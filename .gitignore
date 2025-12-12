@@ -1,0 +1,53 @@
+# Serverpod AnonAccred Module - Root .gitignore
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+!*.key.example
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Build artifacts
+build/
+dist/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Generated documentation
+doc/api/
+
+# Backup files
+*.backup
+*.bak

@@ -1,0 +1,8 @@
+# Payment Exception
+exception: PaymentException
+fields:
+  code: String
+  message: String
+  details: Map<String, String>?
+  orderId: String?
+  paymentRail: String?

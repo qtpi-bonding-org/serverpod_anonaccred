@@ -179,4 +179,117 @@ class _ModuleEndpoint {
       }
     });
   }
+
+  _i3.Future<bool> authenticateUser(
+    _i1.TestSessionBuilder sessionBuilder,
+    String publicKey,
+    String signature,
+    String challenge,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'module',
+            method: 'authenticateUser',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'module',
+          methodName: 'authenticateUser',
+          parameters: _i1.testObjectToJson({
+            'publicKey': publicKey,
+            'signature': signature,
+            'challenge': challenge,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> processPayment(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    String paymentRail,
+    double amount,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'module',
+            method: 'processPayment',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'module',
+          methodName: 'processPayment',
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'paymentRail': paymentRail,
+            'amount': amount,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<int> manageInventory(
+    _i1.TestSessionBuilder sessionBuilder,
+    int accountId,
+    String consumableType,
+    String operation,
+    int? quantity,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'module',
+            method: 'manageInventory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'module',
+          methodName: 'manageInventory',
+          parameters: _i1.testObjectToJson({
+            'accountId': accountId,
+            'consumableType': consumableType,
+            'operation': operation,
+            'quantity': quantity,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<int>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }

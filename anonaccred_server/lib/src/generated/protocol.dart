@@ -12,8 +12,16 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'package:serverpod/protocol.dart' as _i2;
-import 'module_class.dart' as _i3;
+import 'anonaccred_exception.dart' as _i3;
+import 'authentication_exception.dart' as _i4;
+import 'inventory_exception.dart' as _i5;
+import 'module_class.dart' as _i6;
+import 'payment_exception.dart' as _i7;
+export 'anonaccred_exception.dart';
+export 'authentication_exception.dart';
+export 'inventory_exception.dart';
 export 'module_class.dart';
+export 'payment_exception.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -53,11 +61,37 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
 
-    if (t == _i3.ModuleClass) {
-      return _i3.ModuleClass.fromJson(data) as T;
+    if (t == _i3.AnonAccredException) {
+      return _i3.AnonAccredException.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i3.ModuleClass?>()) {
-      return (data != null ? _i3.ModuleClass.fromJson(data) : null) as T;
+    if (t == _i4.AuthenticationException) {
+      return _i4.AuthenticationException.fromJson(data) as T;
+    }
+    if (t == _i5.InventoryException) {
+      return _i5.InventoryException.fromJson(data) as T;
+    }
+    if (t == _i6.ModuleClass) {
+      return _i6.ModuleClass.fromJson(data) as T;
+    }
+    if (t == _i7.PaymentException) {
+      return _i7.PaymentException.fromJson(data) as T;
+    }
+    if (t == _i1.getType<_i3.AnonAccredException?>()) {
+      return (data != null ? _i3.AnonAccredException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i4.AuthenticationException?>()) {
+      return (data != null ? _i4.AuthenticationException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i5.InventoryException?>()) {
+      return (data != null ? _i5.InventoryException.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i6.ModuleClass?>()) {
+      return (data != null ? _i6.ModuleClass.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i7.PaymentException?>()) {
+      return (data != null ? _i7.PaymentException.fromJson(data) : null) as T;
     }
     try {
       return _i2.Protocol().deserialize<T>(data, t);
@@ -67,7 +101,11 @@ class Protocol extends _i1.SerializationManagerServer {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i3.ModuleClass => 'ModuleClass',
+      _i3.AnonAccredException => 'AnonAccredException',
+      _i4.AuthenticationException => 'AuthenticationException',
+      _i5.InventoryException => 'InventoryException',
+      _i6.ModuleClass => 'ModuleClass',
+      _i7.PaymentException => 'PaymentException',
       _ => null,
     };
   }
@@ -82,8 +120,16 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i3.ModuleClass():
+      case _i3.AnonAccredException():
+        return 'AnonAccredException';
+      case _i4.AuthenticationException():
+        return 'AuthenticationException';
+      case _i5.InventoryException():
+        return 'InventoryException';
+      case _i6.ModuleClass():
         return 'ModuleClass';
+      case _i7.PaymentException():
+        return 'PaymentException';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -98,8 +144,20 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'AnonAccredException') {
+      return deserialize<_i3.AnonAccredException>(data['data']);
+    }
+    if (dataClassName == 'AuthenticationException') {
+      return deserialize<_i4.AuthenticationException>(data['data']);
+    }
+    if (dataClassName == 'InventoryException') {
+      return deserialize<_i5.InventoryException>(data['data']);
+    }
     if (dataClassName == 'ModuleClass') {
-      return deserialize<_i3.ModuleClass>(data['data']);
+      return deserialize<_i6.ModuleClass>(data['data']);
+    }
+    if (dataClassName == 'PaymentException') {
+      return deserialize<_i7.PaymentException>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);

@@ -25,6 +25,56 @@ class EndpointModule extends _i1.EndpointRef {
     'hello',
     {'name': name},
   );
+
+  /// Authenticates a user using Ed25519 signature verification
+  /// Throws AuthenticationException on failure
+  _i2.Future<bool> authenticateUser(
+    String publicKey,
+    String signature,
+    String challenge,
+  ) => caller.callServerEndpoint<bool>(
+    'anonaccred.module',
+    'authenticateUser',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'challenge': challenge,
+    },
+  );
+
+  /// Processes a payment through specified payment rail
+  /// Throws PaymentException on failure
+  _i2.Future<String> processPayment(
+    String orderId,
+    String paymentRail,
+    double amount,
+  ) => caller.callServerEndpoint<String>(
+    'anonaccred.module',
+    'processPayment',
+    {
+      'orderId': orderId,
+      'paymentRail': paymentRail,
+      'amount': amount,
+    },
+  );
+
+  /// Manages inventory operations (check balance, add consumables)
+  /// Throws InventoryException on failure
+  _i2.Future<int> manageInventory(
+    int accountId,
+    String consumableType,
+    String operation,
+    int? quantity,
+  ) => caller.callServerEndpoint<int>(
+    'anonaccred.module',
+    'manageInventory',
+    {
+      'accountId': accountId,
+      'consumableType': consumableType,
+      'operation': operation,
+      'quantity': quantity,
+    },
+  );
 }
 
 class Caller extends _i1.ModuleEndpointCaller {

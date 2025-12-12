@@ -1,13 +1,35 @@
-# Files and directories created by pub
+# Dart/Flutter
 .dart_tool/
 .packages
-
-# Omit committing pubspec.lock for library packages:
-# https://dart.dev/guides/libraries/private-files#pubspeclock
 pubspec.lock
-
-# Conventional directory for build outputs
 build/
-
-# Directory created by dartdoc
 doc/api/
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+*.lcov
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Environment files
+.env
+.env.local

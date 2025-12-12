@@ -1,2 +1,5 @@
 module:
   - hello:
+  - authenticateUser:
+  - processPayment:
+  - manageInventory:
