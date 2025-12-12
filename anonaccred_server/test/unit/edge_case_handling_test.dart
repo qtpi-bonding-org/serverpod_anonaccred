@@ -7,9 +7,10 @@ void main() {
     group('Device Registration Edge Cases', () {
       test('registerDevice - should reject empty public subkey', () async {
         // Create a test account first
-        const accountPublicKey = 'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        const accountPublicKey =
+            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key';
-        
+
         final testAccount = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKey,
@@ -30,9 +31,10 @@ void main() {
 
       test('registerDevice - should reject empty encrypted data key', () async {
         // Create a test account first
-        const accountPublicKey = 'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        const accountPublicKey =
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key';
-        
+
         final testAccount = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKey,
@@ -53,9 +55,10 @@ void main() {
 
       test('registerDevice - should reject empty device label', () async {
         // Create a test account first
-        const accountPublicKey = 'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        const accountPublicKey =
+            'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key';
-        
+
         final testAccount = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKey,
@@ -97,7 +100,10 @@ void main() {
         );
 
         expect(result.success, isFalse);
-        expect(result.errorCode, equals(AnonAccredErrorCodes.cryptoInvalidMessage));
+        expect(
+          result.errorCode,
+          equals(AnonAccredErrorCodes.cryptoInvalidMessage),
+        );
       });
 
       test('authenticateDevice - should reject empty signature', () async {
@@ -109,47 +115,57 @@ void main() {
         );
 
         expect(result.success, isFalse);
-        expect(result.errorCode, equals(AnonAccredErrorCodes.cryptoInvalidSignature));
+        expect(
+          result.errorCode,
+          equals(AnonAccredErrorCodes.cryptoInvalidSignature),
+        );
       });
     });
 
     group('Device Revocation Edge Cases', () {
-      test('revokeDevice - should throw exception for non-existent account', () async {
-        const nonExistentAccountId = 99999;
-        const deviceId = 1;
+      test(
+        'revokeDevice - should throw exception for non-existent account',
+        () async {
+          const nonExistentAccountId = 99999;
+          const deviceId = 1;
 
-        expect(
-          () => endpoints.device.revokeDevice(
+          expect(
+            () => endpoints.device.revokeDevice(
+              sessionBuilder,
+              nonExistentAccountId,
+              deviceId,
+            ),
+            throwsA(isA<AuthenticationException>()),
+          );
+        },
+      );
+
+      test(
+        'revokeDevice - should throw exception for non-existent device',
+        () async {
+          // Create a test account first
+          const accountPublicKey =
+              '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+          const accountEncryptedDataKey = 'encrypted_test_data_key';
+
+          final testAccount = await endpoints.account.createAccount(
             sessionBuilder,
-            nonExistentAccountId,
-            deviceId,
-          ),
-          throwsA(isA<AuthenticationException>()),
-        );
-      });
+            accountPublicKey,
+            accountEncryptedDataKey,
+          );
 
-      test('revokeDevice - should throw exception for non-existent device', () async {
-        // Create a test account first
-        const accountPublicKey = '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const accountEncryptedDataKey = 'encrypted_test_data_key';
-        
-        final testAccount = await endpoints.account.createAccount(
-          sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-        );
+          const nonExistentDeviceId = 99999;
 
-        const nonExistentDeviceId = 99999;
-
-        expect(
-          () => endpoints.device.revokeDevice(
-            sessionBuilder,
-            testAccount.id!,
-            nonExistentDeviceId,
-          ),
-          throwsA(isA<AuthenticationException>()),
-        );
-      });
+          expect(
+            () => endpoints.device.revokeDevice(
+              sessionBuilder,
+              testAccount.id!,
+              nonExistentDeviceId,
+            ),
+            throwsA(isA<AuthenticationException>()),
+          );
+        },
+      );
     });
 
     group('Challenge Expiration Edge Cases', () {
@@ -157,11 +173,16 @@ void main() {
         // Create an expired challenge by manually creating one with old timestamp
         // This simulates a challenge that was created more than 5 minutes ago
         const expiredTimestamp = 1000000000000; // Very old timestamp (2001)
-        final timestampHex = expiredTimestamp.toRadixString(16).padLeft(16, '0');
+        final timestampHex = expiredTimestamp
+            .toRadixString(16)
+            .padLeft(16, '0');
         // Take only the last 16 characters to fit the 8-byte timestamp format
-        final shortTimestampHex = timestampHex.substring(timestampHex.length - 16);
-        final expiredChallenge = shortTimestampHex + 
-                                '0123456789abcdef0123456789abcdef0123456789abcdef';
+        final shortTimestampHex = timestampHex.substring(
+          timestampHex.length - 16,
+        );
+        final expiredChallenge =
+            shortTimestampHex +
+            '0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final result = await CryptoAuth.verifyChallengeResponse(
           '2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -170,24 +191,30 @@ void main() {
         );
 
         expect(result.success, isFalse);
-        expect(result.errorCode, equals(AnonAccredErrorCodes.authChallengeExpired));
+        expect(
+          result.errorCode,
+          equals(AnonAccredErrorCodes.authChallengeExpired),
+        );
       });
 
-      test('generateChallenge - should create valid challenges with timestamps', () {
-        final challenge1 = CryptoAuth.generateChallenge();
-        final challenge2 = CryptoAuth.generateChallenge();
+      test(
+        'generateChallenge - should create valid challenges with timestamps',
+        () {
+          final challenge1 = CryptoAuth.generateChallenge();
+          final challenge2 = CryptoAuth.generateChallenge();
 
-        // Challenges should be 64 hex characters
-        expect(challenge1.length, equals(64));
-        expect(challenge2.length, equals(64));
-        
-        // Challenges should be unique
-        expect(challenge1, isNot(equals(challenge2)));
-        
-        // Challenges should be valid (not expired)
-        expect(CryptoUtils.isChallengeValid(challenge1), isTrue);
-        expect(CryptoUtils.isChallengeValid(challenge2), isTrue);
-      });
+          // Challenges should be 64 hex characters
+          expect(challenge1.length, equals(64));
+          expect(challenge2.length, equals(64));
+
+          // Challenges should be unique
+          expect(challenge1, isNot(equals(challenge2)));
+
+          // Challenges should be valid (not expired)
+          expect(CryptoUtils.isChallengeValid(challenge1), isTrue);
+          expect(CryptoUtils.isChallengeValid(challenge2), isTrue);
+        },
+      );
     });
   });
 }

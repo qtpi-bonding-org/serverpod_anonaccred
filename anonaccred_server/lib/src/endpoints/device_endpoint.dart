@@ -2,10 +2,9 @@ import 'package:serverpod/serverpod.dart';
 import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
-import '../privacy_logger.dart';
 
 /// Device management endpoints for Ed25519-based device registration and authentication
-/// 
+///
 /// This endpoint provides device management functionality including:
 /// - Device registration with Ed25519 subkeys
 /// - Challenge-response authentication
@@ -13,18 +12,18 @@ import '../privacy_logger.dart';
 /// - Integration with existing AccountDevice model from Phase 1
 class DeviceEndpoint extends Endpoint {
   /// Register new device with account
-  /// 
+  ///
   /// Creates a new device registration associated with an account.
   /// The device is identified by its Ed25519 public subkey.
-  /// 
+  ///
   /// Parameters:
   /// - [accountId]: The account to associate the device with
   /// - [publicSubKey]: Ed25519 public key for the device (64 hex chars)
   /// - [encryptedDataKey]: Device-encrypted SDK (never decrypted server-side)
   /// - [label]: Human-readable device name
-  /// 
+  ///
   /// Returns the created AccountDevice with assigned ID.
-  /// 
+  ///
   /// Throws AuthenticationException if:
   /// - Public subkey format is invalid
   /// - Account does not exist
@@ -40,108 +39,69 @@ class DeviceEndpoint extends Endpoint {
     try {
       // Validate input parameters
       if (publicSubKey.isEmpty) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.authMissingKey,
-          message: 'Public subkey is required for device registration',
-          operation: 'registerDevice',
-          details: {'publicSubKey': 'empty'},
-        );
-        
-        // Log device registration failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'registerDevice',
-          success: false,
-          errorCode: AnonAccredErrorCodes.authMissingKey,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.authMissingKey,
+              message: 'Public subkey is required for device registration',
+              operation: 'registerDevice',
+              details: {'publicSubKey': 'empty'},
+            );
+
         throw exception;
       }
 
       if (encryptedDataKey.isEmpty) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.cryptoInvalidMessage,
-          message: 'Encrypted data key is required for device registration',
-          operation: 'registerDevice',
-          details: {'encryptedDataKey': 'empty'},
-        );
-        
-        // Log device registration failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'registerDevice',
-          success: false,
-          errorCode: AnonAccredErrorCodes.cryptoInvalidMessage,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.cryptoInvalidMessage,
+              message: 'Encrypted data key is required for device registration',
+              operation: 'registerDevice',
+              details: {'encryptedDataKey': 'empty'},
+            );
+
         throw exception;
       }
 
       if (label.isEmpty) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.cryptoInvalidMessage,
-          message: 'Device label is required for device registration',
-          operation: 'registerDevice',
-          details: {'label': 'empty'},
-        );
-        
-        // Log device registration failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'registerDevice',
-          success: false,
-          errorCode: AnonAccredErrorCodes.cryptoInvalidMessage,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.cryptoInvalidMessage,
+              message: 'Device label is required for device registration',
+              operation: 'registerDevice',
+              details: {'label': 'empty'},
+            );
+
         throw exception;
       }
 
       // Validate public subkey format
       if (!CryptoAuth.isValidPublicKey(publicSubKey)) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-          message: 'Invalid Ed25519 public subkey format',
-          operation: 'registerDevice',
-          details: {
-            'publicSubKeyLength': publicSubKey.length.toString(),
-            'expectedLength': '64',
-            'accountId': accountId.toString(),
-          },
-        );
-        
-        // Log device registration failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'registerDevice',
-          success: false,
-          publicKey: publicSubKey,
-          errorCode: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
+              message: 'Invalid Ed25519 public subkey format',
+              operation: 'registerDevice',
+              details: {
+                'publicSubKeyLength': publicSubKey.length.toString(),
+                'expectedLength': '64',
+                'accountId': accountId.toString(),
+              },
+            );
+
         throw exception;
       }
 
       // Check if account exists
       final account = await AnonAccount.db.findById(session, accountId);
       if (account == null) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.authAccountNotFound,
-          message: 'Account not found',
-          operation: 'registerDevice',
-          details: {
-            'accountId': accountId.toString(),
-          },
-        );
-        
-        // Log device registration failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'registerDevice',
-          success: false,
-          publicKey: publicSubKey,
-          errorCode: AnonAccredErrorCodes.authAccountNotFound,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.authAccountNotFound,
+              message: 'Account not found',
+              operation: 'registerDevice',
+              details: {'accountId': accountId.toString()},
+            );
+
         throw exception;
       }
 
@@ -150,28 +110,20 @@ class DeviceEndpoint extends Endpoint {
         session,
         where: (t) => t.publicSubKey.equals(publicSubKey),
       );
-      
+
       if (existingDevice != null) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.authDuplicateDevice,
-          message: 'Public subkey already registered',
-          operation: 'registerDevice',
-          details: {
-            'publicSubKey': publicSubKey,
-            'existingDeviceId': existingDevice.id.toString(),
-            'accountId': accountId.toString(),
-          },
-        );
-        
-        // Log device registration failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'registerDevice',
-          success: false,
-          publicKey: publicSubKey,
-          errorCode: AnonAccredErrorCodes.authDuplicateDevice,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.authDuplicateDevice,
+              message: 'Public subkey already registered',
+              operation: 'registerDevice',
+              details: {
+                'publicSubKey': publicSubKey,
+                'existingDeviceId': existingDevice.id.toString(),
+                'accountId': accountId.toString(),
+              },
+            );
+
         throw exception;
       }
 
@@ -187,50 +139,32 @@ class DeviceEndpoint extends Endpoint {
 
       // Insert device into database
       final insertedDevice = await AccountDevice.db.insertRow(session, device);
-      
-      // Log successful device registration with privacy-safe information
-      PrivacyLogger.logAuthentication(
-        session,
-        operation: 'registerDevice',
-        success: true,
-        publicKey: publicSubKey,
-      );
-      
+
       return insertedDevice;
     } on AuthenticationException {
       rethrow;
     } catch (e) {
       // Log unexpected error
-      PrivacyLogger.logAuthentication(
-        session,
-        operation: 'registerDevice',
-        success: false,
-        publicKey: publicSubKey,
-        errorCode: AnonAccredErrorCodes.databaseError,
-      );
-      
+
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.databaseError,
         message: 'Failed to register device: ${e.toString()}',
         operation: 'registerDevice',
-        details: {
-          'error': e.toString(),
-          'accountId': accountId.toString(),
-        },
+        details: {'error': e.toString(), 'accountId': accountId.toString()},
       );
     }
   }
 
   /// Authenticate device with challenge-response
-  /// 
+  ///
   /// Performs Ed25519 signature verification for device authentication.
   /// Updates the device's last active timestamp on successful authentication.
-  /// 
+  ///
   /// Parameters:
   /// - [publicSubKey]: Ed25519 public key for the device
   /// - [challenge]: The challenge string that was signed
   /// - [signature]: Ed25519 signature of the challenge
-  /// 
+  ///
   /// Returns AuthenticationResult with success/failure information.
   Future<AuthenticationResult> authenticateDevice(
     Session session,
@@ -241,14 +175,6 @@ class DeviceEndpoint extends Endpoint {
     try {
       // Validate input parameters
       if (publicSubKey.isEmpty) {
-        // Log authentication failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'authenticateDevice',
-          success: false,
-          errorCode: AnonAccredErrorCodes.authMissingKey,
-        );
-        
         return AuthenticationResultFactory.failure(
           errorCode: AnonAccredErrorCodes.authMissingKey,
           errorMessage: 'Public subkey is required for authentication',
@@ -257,15 +183,6 @@ class DeviceEndpoint extends Endpoint {
       }
 
       if (challenge.isEmpty) {
-        // Log authentication failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'authenticateDevice',
-          success: false,
-          publicKey: publicSubKey,
-          errorCode: AnonAccredErrorCodes.cryptoInvalidMessage,
-        );
-        
         return AuthenticationResultFactory.failure(
           errorCode: AnonAccredErrorCodes.cryptoInvalidMessage,
           errorMessage: 'Challenge is required for authentication',
@@ -274,15 +191,6 @@ class DeviceEndpoint extends Endpoint {
       }
 
       if (signature.isEmpty) {
-        // Log authentication failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'authenticateDevice',
-          success: false,
-          publicKey: publicSubKey,
-          errorCode: AnonAccredErrorCodes.cryptoInvalidSignature,
-        );
-        
         return AuthenticationResultFactory.failure(
           errorCode: AnonAccredErrorCodes.cryptoInvalidSignature,
           errorMessage: 'Signature is required for authentication',
@@ -297,35 +205,15 @@ class DeviceEndpoint extends Endpoint {
       );
 
       if (device == null) {
-        // Log authentication failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'authenticateDevice',
-          success: false,
-          publicKey: publicSubKey,
-          errorCode: AnonAccredErrorCodes.authDeviceNotFound,
-        );
-        
         return AuthenticationResultFactory.failure(
           errorCode: AnonAccredErrorCodes.authDeviceNotFound,
           errorMessage: 'Device not found',
-          details: {
-            'publicSubKey': publicSubKey,
-          },
+          details: {'publicSubKey': publicSubKey},
         );
       }
 
       // Check if device is revoked
       if (device.isRevoked) {
-        // Log authentication failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'authenticateDevice',
-          success: false,
-          publicKey: publicSubKey,
-          errorCode: AnonAccredErrorCodes.authDeviceRevoked,
-        );
-        
         return AuthenticationResultFactory.failure(
           errorCode: AnonAccredErrorCodes.authDeviceRevoked,
           errorMessage: 'Device has been revoked',
@@ -350,14 +238,6 @@ class DeviceEndpoint extends Endpoint {
           device.copyWith(lastActive: DateTime.now()),
         );
 
-        // Log successful authentication with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'authenticateDevice',
-          success: true,
-          publicKey: publicSubKey,
-        );
-
         return AuthenticationResultFactory.success(
           accountId: device.accountId,
           deviceId: device.id,
@@ -367,60 +247,40 @@ class DeviceEndpoint extends Endpoint {
           },
         );
       } else {
-        // Log authentication failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'authenticateDevice',
-          success: false,
-          publicKey: publicSubKey,
-          errorCode: verificationResult.errorCode,
-        );
-        
         return verificationResult; // Return the failure result from crypto verification
       }
-    } catch (e) {
+    } on Exception catch (e) {
       // Log unexpected error
-      PrivacyLogger.logAuthentication(
-        session,
-        operation: 'authenticateDevice',
-        success: false,
-        publicKey: publicSubKey,
-        errorCode: AnonAccredErrorCodes.databaseError,
-      );
-      
+
       return AuthenticationResultFactory.failure(
         errorCode: AnonAccredErrorCodes.databaseError,
         errorMessage: 'Authentication failed: ${e.toString()}',
-        details: {
-          'error': e.toString(),
-          'publicSubKey': publicSubKey,
-        },
+        details: {'error': e.toString(), 'publicSubKey': publicSubKey},
       );
     }
   }
 
   /// Generate authentication challenge
-  /// 
+  ///
   /// Creates a cryptographically secure challenge string for client use.
   /// The challenge should be signed by the client's private key and returned
   /// for verification via authenticateDevice.
-  /// 
+  ///
   /// Returns a hex-encoded challenge string.
-  Future<String> generateAuthChallenge(Session session) async {
-    return CryptoAuth.generateChallenge();
-  }
+  Future<String> generateAuthChallenge(Session session) async =>
+      CryptoAuth.generateChallenge();
 
   /// Revoke device access
-  /// 
+  ///
   /// Marks a device as revoked, preventing future authentication attempts.
   /// The device record is preserved for audit purposes.
-  /// 
+  ///
   /// Parameters:
   /// - [accountId]: The account that owns the device
   /// - [deviceId]: The device to revoke
-  /// 
+  ///
   /// Returns true if revocation succeeded.
-  /// 
+  ///
   /// Throws AuthenticationException if account/device validation fails or device not found.
   Future<bool> revokeDevice(
     Session session,
@@ -431,23 +291,14 @@ class DeviceEndpoint extends Endpoint {
       // Verify account exists first
       final account = await AnonAccount.db.findById(session, accountId);
       if (account == null) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.authAccountNotFound,
-          message: 'Account not found',
-          operation: 'revokeDevice',
-          details: {
-            'accountId': accountId.toString(),
-          },
-        );
-        
-        // Log device revocation failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'revokeDevice',
-          success: false,
-          errorCode: AnonAccredErrorCodes.authAccountNotFound,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.authAccountNotFound,
+              message: 'Account not found',
+              operation: 'revokeDevice',
+              details: {'accountId': accountId.toString()},
+            );
+
         throw exception;
       }
 
@@ -458,24 +309,17 @@ class DeviceEndpoint extends Endpoint {
       );
 
       if (device == null) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.authDeviceNotFound,
-          message: 'Device not found or does not belong to account',
-          operation: 'revokeDevice',
-          details: {
-            'accountId': accountId.toString(),
-            'deviceId': deviceId.toString(),
-          },
-        );
-        
-        // Log device revocation failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'revokeDevice',
-          success: false,
-          errorCode: AnonAccredErrorCodes.authDeviceNotFound,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.authDeviceNotFound,
+              message: 'Device not found or does not belong to account',
+              operation: 'revokeDevice',
+              details: {
+                'accountId': accountId.toString(),
+                'deviceId': deviceId.toString(),
+              },
+            );
+
         throw exception;
       }
 
@@ -485,26 +329,12 @@ class DeviceEndpoint extends Endpoint {
         device.copyWith(isRevoked: true),
       );
 
-      // Log successful device revocation with privacy-safe information
-      PrivacyLogger.logAuthentication(
-        session,
-        operation: 'revokeDevice',
-        success: true,
-        publicKey: device.publicSubKey,
-      );
-
       return true;
     } on AuthenticationException {
       rethrow;
     } catch (e) {
       // Log unexpected error
-      PrivacyLogger.logAuthentication(
-        session,
-        operation: 'revokeDevice',
-        success: false,
-        errorCode: AnonAccredErrorCodes.databaseError,
-      );
-      
+
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.databaseError,
         message: 'Failed to revoke device: ${e.toString()}',
@@ -519,16 +349,16 @@ class DeviceEndpoint extends Endpoint {
   }
 
   /// List account devices
-  /// 
+  ///
   /// Returns all devices registered to an account with complete metadata.
   /// Includes both active and revoked devices for management purposes.
-  /// 
+  ///
   /// Parameters:
   /// - [accountId]: The account to list devices for
-  /// 
+  ///
   /// Returns list of AccountDevice objects with metadata.
   /// Returns empty list if no devices are registered.
-  /// 
+  ///
   /// Throws AuthenticationException if account does not exist.
   Future<List<AccountDevice>> listDevices(
     Session session,
@@ -538,23 +368,14 @@ class DeviceEndpoint extends Endpoint {
       // Verify account exists
       final account = await AnonAccount.db.findById(session, accountId);
       if (account == null) {
-        final exception = AnonAccredExceptionFactory.createAuthenticationException(
-          code: AnonAccredErrorCodes.authAccountNotFound,
-          message: 'Account not found',
-          operation: 'listDevices',
-          details: {
-            'accountId': accountId.toString(),
-          },
-        );
-        
-        // Log device listing failure with privacy-safe information
-        PrivacyLogger.logAuthentication(
-          session,
-          operation: 'listDevices',
-          success: false,
-          errorCode: AnonAccredErrorCodes.authAccountNotFound,
-        );
-        
+        final exception =
+            AnonAccredExceptionFactory.createAuthenticationException(
+              code: AnonAccredErrorCodes.authAccountNotFound,
+              message: 'Account not found',
+              operation: 'listDevices',
+              details: {'accountId': accountId.toString()},
+            );
+
         throw exception;
       }
 
@@ -566,33 +387,17 @@ class DeviceEndpoint extends Endpoint {
         orderDescending: true, // Most recently active first
       );
 
-      // Log successful device listing with privacy-safe information
-      PrivacyLogger.logAuthentication(
-        session,
-        operation: 'listDevices',
-        success: true,
-      );
-
       return devices;
     } on AuthenticationException {
       rethrow;
     } catch (e) {
       // Log unexpected error
-      PrivacyLogger.logAuthentication(
-        session,
-        operation: 'listDevices',
-        success: false,
-        errorCode: AnonAccredErrorCodes.databaseError,
-      );
-      
+
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.databaseError,
         message: 'Failed to list devices: ${e.toString()}',
         operation: 'listDevices',
-        details: {
-          'error': e.toString(),
-          'accountId': accountId.toString(),
-        },
+        details: {'error': e.toString(), 'accountId': accountId.toString()},
       );
     }
   }

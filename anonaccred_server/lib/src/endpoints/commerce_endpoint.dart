@@ -6,26 +6,25 @@ import '../inventory_manager.dart';
 import '../inventory_utils.dart';
 import '../order_manager.dart';
 import '../price_registry.dart';
-import '../privacy_logger.dart';
 
 /// Commerce endpoints for AnonAccred Phase 3 commerce foundation
-/// 
+///
 /// Provides endpoints for product registration, order creation, and inventory
 /// management while maintaining the established authentication and error
 /// handling patterns from the AnonAccred module.
 class CommerceEndpoint extends Endpoint {
   /// Register products in the price registry
-  /// 
+  ///
   /// Allows parent applications to define custom products with prices.
   /// This endpoint requires authentication and validates all input parameters.
-  /// 
+  ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [products]: Map of product SKUs to USD prices
-  /// 
+  ///
   /// Returns: Map of registered products with their prices
-  /// 
+  ///
   /// Throws:
   /// - [AuthenticationException] for invalid authentication
   /// - [PaymentException] for invalid product data
@@ -38,8 +37,13 @@ class CommerceEndpoint extends Endpoint {
   ) async {
     try {
       // Validate authentication
-      await _validateAuthentication(session, publicKey, signature, 'registerProducts');
-      
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'registerProducts',
+      );
+
       // Validate products
       if (products.isEmpty) {
         final exception = AnonAccredExceptionFactory.createPaymentException(
@@ -47,135 +51,71 @@ class CommerceEndpoint extends Endpoint {
           message: 'At least one product must be provided',
           details: {'productCount': '0'},
         );
-        
-        PrivacyLogger.logOperation(
-          session,
-          operation: 'registerProducts',
-          success: false,
-          category: 'commerce',
-          errorCode: AnonAccredErrorCodes.orderInvalidProduct,
-          safeData: {'productCount': '0'},
-        );
-        
+
         throw exception;
       }
-      
+
       // Validate each product
       for (final entry in products.entries) {
         final sku = entry.key;
         final price = entry.value;
-        
+
         if (sku.isEmpty) {
           final exception = AnonAccredExceptionFactory.createPaymentException(
             code: AnonAccredErrorCodes.orderInvalidProduct,
             message: 'Product SKU cannot be empty',
             details: {'sku': 'empty'},
           );
-          
-          PrivacyLogger.logOperation(
-            session,
-            operation: 'registerProducts',
-            success: false,
-            category: 'commerce',
-            errorCode: AnonAccredErrorCodes.orderInvalidProduct,
-            safeData: {'sku': 'empty'},
-          );
-          
+
           throw exception;
         }
-        
+
         if (price <= 0) {
           final exception = AnonAccredExceptionFactory.createPaymentException(
             code: AnonAccredErrorCodes.orderInvalidQuantity,
             message: 'Product price must be positive',
-            details: {
-              'sku': sku,
-              'price': price.toString(),
-            },
+            details: {'sku': sku, 'price': price.toString()},
           );
-          
-          PrivacyLogger.logOperation(
-            session,
-            operation: 'registerProducts',
-            success: false,
-            category: 'commerce',
-            errorCode: AnonAccredErrorCodes.orderInvalidQuantity,
-            safeData: {
-              'sku': sku,
-              'price': price.toString(),
-            },
-          );
-          
+
           throw exception;
         }
       }
-      
+
       // Register products in the price registry
       final registry = PriceRegistry();
       try {
         for (final entry in products.entries) {
           registry.registerProduct(entry.key, entry.value);
         }
-      } on PaymentException catch (e) {
-        // Log the price registry error
-        PrivacyLogger.logOperation(
-          session,
-          operation: 'registerProducts',
-          success: false,
-          category: 'commerce',
-          errorCode: e.code,
-          safeData: {
-            'error': e.message,
-            'productCount': products.length.toString(),
-          },
-        );
+      } on PaymentException {
         rethrow;
       }
-      
+
       // Log successful registration
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'registerProducts',
-        success: true,
-        category: 'commerce',
-        safeData: {
-          'productCount': products.length.toString(),
-          'publicKey': publicKey,
-        },
-      );
-      
+
       return products;
-      
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
       rethrow;
     } catch (e) {
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'registerProducts',
-        success: false,
-        category: 'commerce',
-        errorCode: AnonAccredErrorCodes.internalError,
-        safeData: {'error': e.toString()},
-      );
-      
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
-        message: 'Unexpected error during product registration: ${e.toString()}',
+        message:
+            'Unexpected error during product registration: ${e.toString()}',
         details: {'error': e.toString()},
       );
     }
   }
-  
+
   /// Get the complete product catalog
-  /// 
+  ///
   /// Returns all registered products with their current prices.
   /// This endpoint does not require authentication as it provides public
   /// product information.
-  /// 
+  ///
   /// Returns: Map of all products with SKUs as keys and USD prices as values
-  /// 
+  ///
   /// Throws:
   /// - [PaymentException] for price registry errors
   /// - [AnonAccredException] for system errors
@@ -183,39 +123,11 @@ class CommerceEndpoint extends Endpoint {
     try {
       final registry = PriceRegistry();
       final catalog = registry.getProductCatalog();
-      
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'getProductCatalog',
-        success: true,
-        category: 'commerce',
-        safeData: {
-          'productCount': catalog.length.toString(),
-        },
-      );
-      
+
       return catalog;
-      
-    } on PaymentException catch (e) {
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'getProductCatalog',
-        success: false,
-        category: 'commerce',
-        errorCode: e.code,
-        safeData: {'error': e.message},
-      );
+    } on PaymentException {
       rethrow;
     } catch (e) {
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'getProductCatalog',
-        success: false,
-        category: 'commerce',
-        errorCode: AnonAccredErrorCodes.priceRegistryOperationFailed,
-        safeData: {'error': e.toString()},
-      );
-      
       throw AnonAccredExceptionFactory.createPriceRegistryException(
         code: AnonAccredErrorCodes.priceRegistryOperationFailed,
         message: 'Failed to get product catalog: ${e.toString()}',
@@ -223,21 +135,21 @@ class CommerceEndpoint extends Endpoint {
       );
     }
   }
-  
+
   /// Create a new order for consumable items
-  /// 
+  ///
   /// Creates a pending transaction record with the specified items and pricing.
   /// Requires authentication and validates all items against the price registry.
-  /// 
+  ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [accountId]: The account ID creating the order
   /// - [items]: Map of consumable types to quantities
   /// - [paymentRail]: Payment method to be used
-  /// 
+  ///
   /// Returns: The created TransactionPayment record
-  /// 
+  ///
   /// Throws:
   /// - [AuthenticationException] for invalid authentication
   /// - [PaymentException] for invalid order data
@@ -252,8 +164,13 @@ class CommerceEndpoint extends Endpoint {
   ) async {
     try {
       // Validate authentication
-      await _validateAuthentication(session, publicKey, signature, 'createOrder');
-      
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'createOrder',
+      );
+
       // Validate items
       if (items.isEmpty) {
         final exception = AnonAccredExceptionFactory.createPaymentException(
@@ -261,22 +178,10 @@ class CommerceEndpoint extends Endpoint {
           message: 'At least one item must be provided for order',
           details: {'itemCount': '0'},
         );
-        
-        PrivacyLogger.logOperation(
-          session,
-          operation: 'createOrder',
-          success: false,
-          category: 'commerce',
-          errorCode: AnonAccredErrorCodes.orderInvalidProduct,
-          safeData: {
-            'itemCount': '0',
-            'accountId': accountId.toString(),
-          },
-        );
-        
+
         throw exception;
       }
-      
+
       // Create the order using OrderManager
       final transaction = await OrderManager.createOrder(
         session,
@@ -286,53 +191,16 @@ class CommerceEndpoint extends Endpoint {
         paymentRail: paymentRail,
         paymentCurrency: Currency.USD, // Default to USD for now
       );
-      
+
       // Log successful order creation
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'createOrder',
-        success: true,
-        category: 'commerce',
-        safeData: {
-          'accountId': accountId.toString(),
-          'itemCount': items.length.toString(),
-          'transactionId': transaction.id?.toString() ?? 'null',
-          'externalId': transaction.externalId,
-          'publicKey': publicKey,
-        },
-      );
-      
+
       return transaction;
-      
     } on AuthenticationException {
       rethrow;
-    } on PaymentException catch (e) {
+    } on PaymentException {
       // Log payment/price registry errors
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'createOrder',
-        success: false,
-        category: 'commerce',
-        errorCode: e.code,
-        safeData: {
-          'accountId': accountId.toString(),
-          'error': e.message,
-        },
-      );
       rethrow;
     } catch (e) {
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'createOrder',
-        success: false,
-        category: 'commerce',
-        errorCode: AnonAccredErrorCodes.internalError,
-        safeData: {
-          'accountId': accountId.toString(),
-          'error': e.toString(),
-        },
-      );
-      
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
         message: 'Unexpected error during order creation: ${e.toString()}',
@@ -340,19 +208,19 @@ class CommerceEndpoint extends Endpoint {
       );
     }
   }
-  
+
   /// Get inventory for an account
-  /// 
+  ///
   /// Returns all consumable types and their current balances for the specified account.
   /// Requires authentication to ensure only authorized access to inventory data.
-  /// 
+  ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [accountId]: The account ID to query inventory for
-  /// 
+  ///
   /// Returns: List of AccountInventory records
-  /// 
+  ///
   /// Throws:
   /// - [AuthenticationException] for invalid authentication
   /// - [InventoryException] for inventory access errors
@@ -365,43 +233,24 @@ class CommerceEndpoint extends Endpoint {
   ) async {
     try {
       // Validate authentication
-      await _validateAuthentication(session, publicKey, signature, 'getInventory');
-      
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'getInventory',
+      );
+
       // Get inventory using InventoryManager
       final inventory = await InventoryManager.getInventory(session, accountId);
-      
+
       // Log successful inventory query
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'getInventory',
-        success: true,
-        category: 'commerce',
-        safeData: {
-          'accountId': accountId.toString(),
-          'inventoryCount': inventory.length.toString(),
-          'publicKey': publicKey,
-        },
-      );
-      
+
       return inventory;
-      
     } on AuthenticationException {
       rethrow;
     } on InventoryException {
       rethrow;
     } catch (e) {
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'getInventory',
-        success: false,
-        category: 'commerce',
-        errorCode: AnonAccredErrorCodes.internalError,
-        safeData: {
-          'accountId': accountId.toString(),
-          'error': e.toString(),
-        },
-      );
-      
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
         message: 'Unexpected error getting inventory: ${e.toString()}',
@@ -409,20 +258,20 @@ class CommerceEndpoint extends Endpoint {
       );
     }
   }
-  
+
   /// Get balance for a specific consumable type
-  /// 
+  ///
   /// Returns the current balance for the specified consumable type and account.
   /// Requires authentication to ensure only authorized access to balance data.
-  /// 
+  ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [accountId]: The account ID to check balance for
   /// - [consumableType]: The consumable type to check
-  /// 
+  ///
   /// Returns: Current balance as double
-  /// 
+  ///
   /// Throws:
   /// - [AuthenticationException] for invalid authentication
   /// - [InventoryException] for inventory access errors
@@ -436,8 +285,13 @@ class CommerceEndpoint extends Endpoint {
   ) async {
     try {
       // Validate authentication
-      await _validateAuthentication(session, publicKey, signature, 'getBalance');
-      
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'getBalance',
+      );
+
       // Validate consumable type
       if (consumableType.isEmpty) {
         final exception = AnonAccredExceptionFactory.createInventoryException(
@@ -447,63 +301,25 @@ class CommerceEndpoint extends Endpoint {
           consumableType: consumableType,
           details: {'consumableType': 'empty'},
         );
-        
-        PrivacyLogger.logOperation(
-          session,
-          operation: 'getBalance',
-          success: false,
-          category: 'commerce',
-          errorCode: AnonAccredErrorCodes.inventoryInvalidConsumable,
-          safeData: {
-            'accountId': accountId.toString(),
-            'consumableType': 'empty',
-          },
-        );
-        
+
         throw exception;
       }
-      
+
       // Get balance using InventoryManager
       final balance = await InventoryManager.getBalance(
         session,
         accountId: accountId,
         consumableType: consumableType,
       );
-      
+
       // Log successful balance query
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'getBalance',
-        success: true,
-        category: 'commerce',
-        safeData: {
-          'accountId': accountId.toString(),
-          'consumableType': consumableType,
-          'balance': balance.toString(),
-          'publicKey': publicKey,
-        },
-      );
-      
+
       return balance;
-      
     } on AuthenticationException {
       rethrow;
     } on InventoryException {
       rethrow;
     } catch (e) {
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'getBalance',
-        success: false,
-        category: 'commerce',
-        errorCode: AnonAccredErrorCodes.internalError,
-        safeData: {
-          'accountId': accountId.toString(),
-          'consumableType': consumableType,
-          'error': e.toString(),
-        },
-      );
-      
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
         message: 'Unexpected error getting balance: ${e.toString()}',
@@ -511,22 +327,22 @@ class CommerceEndpoint extends Endpoint {
       );
     }
   }
-  
+
   /// Consume inventory using atomic utilities
-  /// 
+  ///
   /// Attempts to consume a specified quantity from account inventory using
   /// the optional InventoryUtils. This endpoint provides atomic consumption
   /// operations for parent applications that choose to use them.
-  /// 
+  ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [accountId]: The account ID to consume inventory from
   /// - [consumableType]: The consumable type to consume
   /// - [quantity]: Amount to consume (must be positive)
-  /// 
+  ///
   /// Returns: ConsumeResult with operation outcome and balance information
-  /// 
+  ///
   /// Throws:
   /// - [AuthenticationException] for invalid authentication
   /// - [InventoryException] for invalid consumption parameters
@@ -541,8 +357,13 @@ class CommerceEndpoint extends Endpoint {
   ) async {
     try {
       // Validate authentication
-      await _validateAuthentication(session, publicKey, signature, 'consumeInventory');
-      
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'consumeInventory',
+      );
+
       // Validate consumable type
       if (consumableType.isEmpty) {
         final exception = AnonAccredExceptionFactory.createInventoryException(
@@ -552,22 +373,10 @@ class CommerceEndpoint extends Endpoint {
           consumableType: consumableType,
           details: {'consumableType': 'empty'},
         );
-        
-        PrivacyLogger.logOperation(
-          session,
-          operation: 'consumeInventory',
-          success: false,
-          category: 'commerce',
-          errorCode: AnonAccredErrorCodes.inventoryInvalidConsumable,
-          safeData: {
-            'accountId': accountId.toString(),
-            'consumableType': 'empty',
-          },
-        );
-        
+
         throw exception;
       }
-      
+
       // Validate quantity
       if (quantity <= 0) {
         final exception = AnonAccredExceptionFactory.createInventoryException(
@@ -575,28 +384,12 @@ class CommerceEndpoint extends Endpoint {
           message: 'Quantity must be positive',
           accountId: accountId,
           consumableType: consumableType,
-          details: {
-            'quantity': quantity.toString(),
-            'minimumQuantity': '0',
-          },
+          details: {'quantity': quantity.toString(), 'minimumQuantity': '0'},
         );
-        
-        PrivacyLogger.logOperation(
-          session,
-          operation: 'consumeInventory',
-          success: false,
-          category: 'commerce',
-          errorCode: AnonAccredErrorCodes.inventoryInvalidQuantity,
-          safeData: {
-            'accountId': accountId.toString(),
-            'consumableType': consumableType,
-            'quantity': quantity.toString(),
-          },
-        );
-        
+
         throw exception;
       }
-      
+
       // Attempt consumption using InventoryUtils
       final result = await InventoryUtils.tryConsume(
         session,
@@ -604,64 +397,36 @@ class CommerceEndpoint extends Endpoint {
         consumableType: consumableType,
         quantity: quantity,
       );
-      
+
       // Log consumption attempt
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'consumeInventory',
-        success: result.success,
-        category: 'commerce',
-        safeData: {
-          'accountId': accountId.toString(),
-          'consumableType': consumableType,
-          'quantity': quantity.toString(),
-          'success': result.success.toString(),
-          'availableBalance': result.availableBalance.toString(),
-          'publicKey': publicKey,
-        },
-      );
-      
+
       return result;
-      
     } on AuthenticationException {
       rethrow;
     } on InventoryException {
       rethrow;
     } catch (e) {
-      PrivacyLogger.logOperation(
-        session,
-        operation: 'consumeInventory',
-        success: false,
-        category: 'commerce',
-        errorCode: AnonAccredErrorCodes.internalError,
-        safeData: {
-          'accountId': accountId.toString(),
-          'consumableType': consumableType,
-          'quantity': quantity.toString(),
-          'error': e.toString(),
-        },
-      );
-      
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
-        message: 'Unexpected error during inventory consumption: ${e.toString()}',
+        message:
+            'Unexpected error during inventory consumption: ${e.toString()}',
         details: {'error': e.toString()},
       );
     }
   }
 
   /// Validates authentication using Ed25519 signature verification
-  /// 
+  ///
   /// This is a simplified authentication check that validates the public key format
   /// and signature. In a production system, this would include more sophisticated
   /// challenge-response authentication.
-  /// 
+  ///
   /// Parameters:
   /// - [session]: Serverpod session for logging
   /// - [publicKey]: Ed25519 public key as hex string
   /// - [signature]: Signature to verify
   /// - [operation]: Operation name for logging
-  /// 
+  ///
   /// Throws:
   /// - [AuthenticationException] for invalid authentication
   Future<void> _validateAuthentication(
@@ -672,79 +437,43 @@ class CommerceEndpoint extends Endpoint {
   ) async {
     // Validate public key format
     if (publicKey.isEmpty) {
-      final exception = AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.authMissingKey,
-        message: 'Public key is required for authentication',
-        operation: operation,
-        details: {'publicKey': 'empty'},
-      );
-      
-      PrivacyLogger.logOperation(
-        session,
-        operation: operation,
-        success: false,
-        category: 'authentication',
-        errorCode: AnonAccredErrorCodes.authMissingKey,
-        safeData: {'publicKey': 'empty'},
-      );
-      
+      final exception =
+          AnonAccredExceptionFactory.createAuthenticationException(
+            code: AnonAccredErrorCodes.authMissingKey,
+            message: 'Public key is required for authentication',
+            operation: operation,
+            details: {'publicKey': 'empty'},
+          );
+
       throw exception;
     }
-    
+
     if (!CryptoAuth.isValidPublicKey(publicKey)) {
-      final exception = AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-        message: 'Invalid Ed25519 public key format',
-        operation: operation,
-        details: {
-          'publicKeyLength': publicKey.length.toString(),
-          'expectedLength': '64',
-        },
-      );
-      
-      PrivacyLogger.logOperation(
-        session,
-        operation: operation,
-        success: false,
-        category: 'authentication',
-        errorCode: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-        safeData: {
-          'publicKeyLength': publicKey.length.toString(),
-          'expectedLength': '64',
-        },
-      );
-      
+      final exception =
+          AnonAccredExceptionFactory.createAuthenticationException(
+            code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
+            message: 'Invalid Ed25519 public key format',
+            operation: operation,
+            details: {
+              'publicKeyLength': publicKey.length.toString(),
+              'expectedLength': '64',
+            },
+          );
+
       throw exception;
     }
-    
+
     // Validate signature format
     if (signature.isEmpty) {
-      final exception = AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.authInvalidSignature,
-        message: 'Signature is required for authentication',
-        operation: operation,
-        details: {'signature': 'empty'},
-      );
-      
-      PrivacyLogger.logOperation(
-        session,
-        operation: operation,
-        success: false,
-        category: 'authentication',
-        errorCode: AnonAccredErrorCodes.authInvalidSignature,
-        safeData: {'signature': 'empty'},
-      );
-      
+      final exception =
+          AnonAccredExceptionFactory.createAuthenticationException(
+            code: AnonAccredErrorCodes.authInvalidSignature,
+            message: 'Signature is required for authentication',
+            operation: operation,
+            details: {'signature': 'empty'},
+          );
+
       throw exception;
     }
-    
-    // Log successful authentication validation
-    PrivacyLogger.logCryptographic(
-      session,
-      operation: 'authentication_validation',
-      success: true,
-      algorithm: 'Ed25519',
-      keyType: 'public',
-    );
   }
 }

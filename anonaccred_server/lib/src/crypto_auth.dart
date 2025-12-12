@@ -2,9 +2,6 @@ import 'dart:typed_data';
 import 'crypto_utils.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
-import 'error_classification.dart';
-
-
 
 /// Factory methods for creating AuthenticationResult instances
 class AuthenticationResultFactory {
@@ -13,32 +10,28 @@ class AuthenticationResultFactory {
     int? accountId,
     int? deviceId,
     Map<String, String>? details,
-  }) {
-    return AuthenticationResult(
-      success: true,
-      accountId: accountId,
-      deviceId: deviceId,
-      details: details,
-    );
-  }
+  }) => AuthenticationResult(
+    success: true,
+    accountId: accountId,
+    deviceId: deviceId,
+    details: details,
+  );
 
   /// Create a failed authentication result
   static AuthenticationResult failure({
     required String errorCode,
     required String errorMessage,
     Map<String, String>? details,
-  }) {
-    return AuthenticationResult(
-      success: false,
-      errorCode: errorCode,
-      errorMessage: errorMessage,
-      details: details,
-    );
-  }
+  }) => AuthenticationResult(
+    success: false,
+    errorCode: errorCode,
+    errorMessage: errorMessage,
+    details: details,
+  );
 }
 
 /// Cryptographic authentication core for Ed25519 operations
-/// 
+///
 /// This class provides high-level authentication operations using Ed25519
 /// cryptography while maintaining strict privacy-by-design principles:
 /// - Only handles public keys and signature verification
@@ -46,14 +39,14 @@ class AuthenticationResultFactory {
 /// - All operations are stateless and side-effect free
 class CryptoAuth {
   /// Verify Ed25519 signature with public key and data
-  /// 
+  ///
   /// Parameters:
   /// - [publicKeyHex]: Ed25519 public key as hex string (64 chars)
   /// - [data]: The original data that was signed
   /// - [signatureHex]: Ed25519 signature as hex string (128 chars)
-  /// 
+  ///
   /// Returns true if the signature is valid for the given data and public key.
-  /// 
+  ///
   /// Throws AuthenticationException if any parameter has invalid format.
   static Future<bool> verifySignature(
     String publicKeyHex,
@@ -62,8 +55,8 @@ class CryptoAuth {
   ) async {
     // Convert data to string for CryptoUtils compatibility
     final message = String.fromCharCodes(data);
-    
-    return await CryptoUtils.verifyEd25519Signature(
+
+    return CryptoUtils.verifyEd25519Signature(
       message: message,
       signature: signatureHex,
       publicKey: publicKeyHex,
@@ -71,28 +64,25 @@ class CryptoAuth {
   }
 
   /// Validate Ed25519 public key format (32 bytes hex)
-  /// 
+  ///
   /// Returns true if the key format is valid, false otherwise.
-  static bool isValidPublicKey(String publicKeyHex) {
-    return CryptoUtils.isValidEd25519PublicKey(publicKeyHex);
-  }
+  static bool isValidPublicKey(String publicKeyHex) =>
+      CryptoUtils.isValidEd25519PublicKey(publicKeyHex);
 
   /// Generate cryptographically secure challenge
-  /// 
+  ///
   /// Returns a hex-encoded random challenge string for authentication.
-  static String generateChallenge() {
-    return CryptoUtils.generateChallenge();
-  }
+  static String generateChallenge() => CryptoUtils.generateChallenge();
 
   /// Verify challenge response signature
-  /// 
+  ///
   /// This is the core challenge-response authentication method.
-  /// 
+  ///
   /// Parameters:
   /// - [publicKeyHex]: Ed25519 public key as hex string (64 chars)
   /// - [challenge]: The challenge string that was signed
   /// - [signatureHex]: Ed25519 signature of the challenge (128 chars)
-  /// 
+  ///
   /// Returns AuthenticationResult with success/failure information.
   static Future<AuthenticationResult> verifyChallengeResponse(
     String publicKeyHex,
@@ -137,10 +127,7 @@ class CryptoAuth {
           return AuthenticationResultFactory.failure(
             errorCode: AnonAccredErrorCodes.authChallengeExpired,
             errorMessage: 'Authentication challenge has expired',
-            details: {
-              'challenge': challenge,
-              'validityDuration': '5 minutes',
-            },
+            details: {'challenge': challenge, 'validityDuration': '5 minutes'},
           );
         }
       } on AuthenticationException catch (e) {
@@ -179,7 +166,7 @@ class CryptoAuth {
     } on AuthenticationException {
       // Re-throw authentication exceptions as-is
       rethrow;
-    } catch (e) {
+    } on Exception catch (e) {
       // Wrap unexpected errors in authentication result
       return AuthenticationResultFactory.failure(
         errorCode: AnonAccredErrorCodes.cryptoVerificationFailed,
@@ -190,22 +177,20 @@ class CryptoAuth {
   }
 
   /// Verify signature with string message (convenience method)
-  /// 
+  ///
   /// Parameters:
   /// - [publicKeyHex]: Ed25519 public key as hex string (64 chars)
   /// - [message]: The original message that was signed
   /// - [signatureHex]: Ed25519 signature as hex string (128 chars)
-  /// 
+  ///
   /// Returns true if the signature is valid for the given message and public key.
   static Future<bool> verifyMessageSignature(
     String publicKeyHex,
     String message,
     String signatureHex,
-  ) async {
-    return await CryptoUtils.verifyEd25519Signature(
-      message: message,
-      signature: signatureHex,
-      publicKey: publicKeyHex,
-    );
-  }
+  ) => CryptoUtils.verifyEd25519Signature(
+    message: message,
+    signature: signatureHex,
+    publicKey: publicKeyHex,
+  );
 }

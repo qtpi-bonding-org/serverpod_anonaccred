@@ -2,11 +2,10 @@ import 'package:test/test.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
 
 /// Tests for error handling integration in commerce components
-/// 
+///
 /// Validates that all commerce components use the established
 /// AnonAccred error handling patterns consistently.
 void main() {
-
   group('Commerce Error Handling Integration', () {
     setUp(() {
       // Clear registry before each test
@@ -19,57 +18,70 @@ void main() {
       // Test empty SKU
       expect(
         () => registry.registerProduct('', 5.99),
-        throwsA(isA<PaymentException>().having(
-          (e) => e.code,
-          'code',
-          equals(AnonAccredErrorCodes.priceRegistryInvalidSku),
-        )),
+        throwsA(
+          isA<PaymentException>().having(
+            (e) => e.code,
+            'code',
+            equals(AnonAccredErrorCodes.priceRegistryInvalidSku),
+          ),
+        ),
       );
 
       // Test invalid price (zero)
       expect(
         () => registry.registerProduct('test_item', 0.0),
-        throwsA(isA<PaymentException>().having(
-          (e) => e.code,
-          'code',
-          equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
-        )),
+        throwsA(
+          isA<PaymentException>().having(
+            (e) => e.code,
+            'code',
+            equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
+          ),
+        ),
       );
 
       // Test invalid price (negative)
       expect(
         () => registry.registerProduct('test_item', -1.0),
-        throwsA(isA<PaymentException>().having(
-          (e) => e.code,
-          'code',
-          equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
-        )),
+        throwsA(
+          isA<PaymentException>().having(
+            (e) => e.code,
+            'code',
+            equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
+          ),
+        ),
       );
 
       // Test invalid price (infinite)
       expect(
         () => registry.registerProduct('test_item', double.infinity),
-        throwsA(isA<PaymentException>().having(
-          (e) => e.code,
-          'code',
-          equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
-        )),
+        throwsA(
+          isA<PaymentException>().having(
+            (e) => e.code,
+            'code',
+            equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
+          ),
+        ),
       );
     });
 
-    test('OrderManager uses correct error codes for price registry errors', () async {
-      // Test with unregistered product
-      final items = {'unregistered_product': 1.0};
+    test(
+      'OrderManager uses correct error codes for price registry errors',
+      () async {
+        // Test with unregistered product
+        final items = {'unregistered_product': 1.0};
 
-      expect(
-        () => OrderManager.calculateTotal(items),
-        throwsA(isA<PaymentException>().having(
-          (e) => e.code,
-          'code',
-          equals(AnonAccredErrorCodes.priceRegistryProductNotFound),
-        )),
-      );
-    });
+        expect(
+          () => OrderManager.calculateTotal(items),
+          throwsA(
+            isA<PaymentException>().having(
+              (e) => e.code,
+              'code',
+              equals(AnonAccredErrorCodes.priceRegistryProductNotFound),
+            ),
+          ),
+        );
+      },
+    );
 
     test('Error classification works for new price registry codes', () {
       // Test retryability
@@ -86,33 +98,18 @@ void main() {
         isTrue,
       );
 
-      // Test severity
-      expect(
-        AnonAccredExceptionUtils.getErrorSeverity(
-          AnonAccredErrorCodes.priceRegistryInvalidPrice,
+      // Test basic error analysis (lightweight approach)
+      final analysis = AnonAccredExceptionUtils.analyzeException(
+        AnonAccredExceptionFactory.createPaymentException(
+          code: AnonAccredErrorCodes.priceRegistryInvalidPrice,
+          message: 'Invalid price',
         ),
-        equals(ErrorSeverity.low),
       );
       expect(
-        AnonAccredExceptionUtils.getErrorSeverity(
-          AnonAccredErrorCodes.priceRegistryOperationFailed,
-        ),
-        equals(ErrorSeverity.medium),
+        analysis['code'],
+        equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
       );
-
-      // Test category
-      expect(
-        AnonAccredExceptionUtils.getErrorCategory(
-          AnonAccredErrorCodes.priceRegistryProductNotFound,
-        ),
-        equals(ErrorCategory.payment),
-      );
-
-      // Test recovery guidance
-      final guidance = AnonAccredExceptionUtils.getRecoveryGuidance(
-        AnonAccredErrorCodes.priceRegistryProductNotFound,
-      );
-      expect(guidance, contains('Register the product'));
+      expect(analysis['retryable'], isFalse);
     });
 
     test('Exception analysis works for price registry exceptions', () {
@@ -125,7 +122,10 @@ void main() {
 
       final analysis = AnonAccredExceptionUtils.analyzeException(exception);
 
-      expect(analysis['code'], equals(AnonAccredErrorCodes.priceRegistryInvalidPrice));
+      expect(
+        analysis['code'],
+        equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
+      );
       expect(analysis['message'], equals('Invalid price'));
       expect(analysis['retryable'], isFalse);
       expect(analysis['severity'], equals('low'));
@@ -135,14 +135,18 @@ void main() {
 
     test('Exception factory creates consistent exception structures', () {
       // Test price registry exception creation
-      final priceException = AnonAccredExceptionFactory.createPriceRegistryException(
-        code: AnonAccredErrorCodes.priceRegistryInvalidPrice,
-        message: 'Test message',
-        sku: 'test_sku',
-        details: {'extra': 'data'},
-      );
+      final priceException =
+          AnonAccredExceptionFactory.createPriceRegistryException(
+            code: AnonAccredErrorCodes.priceRegistryInvalidPrice,
+            message: 'Test message',
+            sku: 'test_sku',
+            details: {'extra': 'data'},
+          );
 
-      expect(priceException.code, equals(AnonAccredErrorCodes.priceRegistryInvalidPrice));
+      expect(
+        priceException.code,
+        equals(AnonAccredErrorCodes.priceRegistryInvalidPrice),
+      );
       expect(priceException.message, equals('Test message'));
       expect(priceException.details!['sku'], equals('test_sku'));
       expect(priceException.details!['extra'], equals('data'));
