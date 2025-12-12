@@ -63,6 +63,25 @@ class AnonAccredExceptionFactory {
       details: details,
     );
   }
+
+  /// Creates a price registry exception (using PaymentException for commerce errors)
+  static PaymentException createPriceRegistryException({
+    required String code,
+    required String message,
+    String? sku,
+    Map<String, String>? details,
+  }) {
+    return PaymentException(
+      code: code,
+      message: message,
+      orderId: null,
+      paymentRail: null,
+      details: {
+        if (sku != null) 'sku': sku,
+        ...?details,
+      },
+    );
+  }
 }
 
 /// Common error codes for AnonAccred operations
@@ -71,6 +90,18 @@ class AnonAccredErrorCodes {
   static const String authInvalidSignature = 'AUTH_INVALID_SIGNATURE';
   static const String authExpiredChallenge = 'AUTH_EXPIRED_CHALLENGE';
   static const String authMissingKey = 'AUTH_MISSING_KEY';
+  static const String authDeviceNotFound = 'AUTH_DEVICE_NOT_FOUND';
+  static const String authDeviceRevoked = 'AUTH_DEVICE_REVOKED';
+  static const String authAccountNotFound = 'AUTH_ACCOUNT_NOT_FOUND';
+  static const String authDuplicateDevice = 'AUTH_DUPLICATE_DEVICE';
+  static const String authChallengeExpired = 'AUTH_CHALLENGE_EXPIRED';
+  
+  // Cryptographic error codes
+  static const String cryptoInvalidPublicKey = 'CRYPTO_INVALID_PUBLIC_KEY';
+  static const String cryptoInvalidSignature = 'CRYPTO_INVALID_SIGNATURE';
+  static const String cryptoInvalidMessage = 'CRYPTO_INVALID_MESSAGE';
+  static const String cryptoVerificationFailed = 'CRYPTO_VERIFICATION_FAILED';
+  static const String cryptoFormatError = 'CRYPTO_FORMAT_ERROR';
   
   // Payment error codes
   static const String paymentFailed = 'PAYMENT_FAILED';
@@ -81,6 +112,19 @@ class AnonAccredErrorCodes {
   static const String inventoryInsufficientBalance = 'INVENTORY_INSUFFICIENT_BALANCE';
   static const String inventoryInvalidConsumable = 'INVENTORY_INVALID_CONSUMABLE';
   static const String inventoryAccountNotFound = 'INVENTORY_ACCOUNT_NOT_FOUND';
+  static const String inventoryInvalidQuantity = 'INVENTORY_INVALID_QUANTITY';
+  
+  // Order error codes
+  static const String orderInvalidProduct = 'ORDER_INVALID_PRODUCT';
+  static const String orderInvalidQuantity = 'ORDER_INVALID_QUANTITY';
+  static const String orderCreationFailed = 'ORDER_CREATION_FAILED';
+  static const String orderFulfillmentFailed = 'ORDER_FULFILLMENT_FAILED';
+  
+  // Price Registry error codes
+  static const String priceRegistryProductNotFound = 'PRICE_REGISTRY_PRODUCT_NOT_FOUND';
+  static const String priceRegistryInvalidPrice = 'PRICE_REGISTRY_INVALID_PRICE';
+  static const String priceRegistryInvalidSku = 'PRICE_REGISTRY_INVALID_SKU';
+  static const String priceRegistryOperationFailed = 'PRICE_REGISTRY_OPERATION_FAILED';
   
   // General error codes
   static const String networkTimeout = 'NETWORK_TIMEOUT';

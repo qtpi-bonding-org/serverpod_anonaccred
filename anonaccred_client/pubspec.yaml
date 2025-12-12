@@ -1,10 +1,35 @@
 name: anonaccred_client
-description: Starting point for a Serverpod module client.
-# version: 1.0.0
-# homepage: https://www.example.com
+description: AnonAccred Phase 1 Client - Client-side protocol classes for anonymous credential system. Provides generated Dart classes for Ed25519 identity, payment processing, and encrypted data models.
+version: 0.1.0+1
+homepage: https://github.com/your-org/serverpod_anonaccred
+repository: https://github.com/your-org/serverpod_anonaccred
+issue_tracker: https://github.com/your-org/serverpod_anonaccred/issues
+documentation: https://github.com/your-org/serverpod_anonaccred/blob/main/README.md
+
+topics:
+  - serverpod
+  - client
+  - protocol
+  - authentication
+  - privacy
+  - cryptography
+  - payments
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
 
 environment:
   sdk: '^3.8.0'
+
 dependencies:
   serverpod_client: 3.0.1
+  crypto: ^3.0.3
+
+dev_dependencies:
+  test: ^1.25.5
 

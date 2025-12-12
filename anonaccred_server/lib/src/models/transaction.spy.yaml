@@ -1,0 +1,24 @@
+# TransactionPayment: Complete payment receipt with pricing and rail information
+# Maintains comprehensive transaction records for audit and reconciliation
+class: TransactionPayment
+table: transaction_payment
+fields:
+  # Unique transaction identifier for external reference
+  externalId: String
+  
+  # Foreign key to account owner
+  accountId: int, relation(parent=anon_account)
+  
+  # Pricing Information (quote currency)
+  priceCurrency: Currency               # Quote currency (typically USD)
+  price: double                         # Total price in quote currency
+  
+  # Payment Execution Details
+  paymentRail: PaymentRail             # Payment method used (monero, x402_http, apple_iap, google_iap)
+  paymentCurrency: Currency            # Actual payment currency (may differ from quote)
+  paymentAmount: double                # Amount paid in payment currency
+  paymentRef: String?                  # Transaction hash, receipt ID, or payment reference
+  
+  # Transaction Status and Timing
+  status: OrderStatus, default=pending # Current transaction status
+  timestamp: DateTime, default=now     # Transaction creation timestamp

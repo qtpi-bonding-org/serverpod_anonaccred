@@ -1,4 +1,107 @@
+/// AnonAccred Server Module
+/// 
+/// Provides anonymous credential system with privacy-by-design architecture
+/// for Serverpod applications. Features include:
+/// 
+/// - Ed25519-based cryptographic authentication with account and device management
+/// - Challenge-response authentication system for secure device access
+/// - Multi-device support with individual subkeys and revocation capability
+/// - Zero-PII architecture with encrypted data storage (never decrypted server-side)
+/// - Commerce foundation with price registry, order management, and inventory operations
+/// - Comprehensive error handling with structured exceptions
+/// - Privacy-safe logging integration
+/// 
+/// ## Usage
+/// 
+/// ### Authentication
+/// 
+/// ```dart
+/// import 'package:anonaccred_server/anonaccred_server.dart';
+/// 
+/// // Create anonymous account
+/// final account = await AccountEndpoint().createAccount(
+///   session,
+///   publicMasterKey: 'ed25519_public_key_hex',
+///   encryptedDataKey: 'client_encrypted_sdk',
+/// );
+/// 
+/// // Register device
+/// final device = await DeviceEndpoint().registerDevice(
+///   session,
+///   accountId: account.id!,
+///   publicSubKey: 'device_ed25519_public_key_hex',
+///   encryptedDataKey: 'device_encrypted_sdk',
+///   label: 'My Device',
+/// );
+/// 
+/// // Authenticate device
+/// final challenge = await DeviceEndpoint().generateAuthChallenge(session);
+/// final authResult = await DeviceEndpoint().authenticateDevice(
+///   session,
+///   publicSubKey: 'device_ed25519_public_key_hex',
+///   challenge: challenge,
+///   signature: 'client_generated_signature',
+/// );
+/// ```
+/// 
+/// ### Commerce Operations
+/// 
+/// ```dart
+/// // Initialize Price Registry (singleton)
+/// final registry = PriceRegistry();
+/// registry.registerProduct('api_credits', 0.01);
+/// registry.registerProduct('storage_gb', 5.99);
+/// 
+/// // Create order
+/// final transaction = await OrderManager.createOrder(
+///   session,
+///   accountId: accountId,
+///   items: {'api_credits': 100.0, 'storage_gb': 1.0},
+///   priceCurrency: Currency.USD,
+/// );
+/// 
+/// // Fulfill order (after payment)
+/// await OrderManager.fulfillOrder(session, transaction);
+/// 
+/// // Query inventory
+/// final inventory = await InventoryManager.getInventory(session, accountId);
+/// final balance = await InventoryManager.getBalance(
+///   session,
+///   accountId: accountId,
+///   consumableType: 'api_credits',
+/// );
+/// 
+/// // Optional: Consume inventory atomically
+/// final result = await InventoryUtils.tryConsume(
+///   session,
+///   accountId: accountId,
+///   consumableType: 'api_credits',
+///   quantity: 10.0,
+/// );
+/// ```
+library anonaccred_server;
+
+// Core cryptographic utilities
+export 'src/crypto_auth.dart';
+export 'src/crypto_utils.dart';
+
+// Exception handling and error classification system
+export 'src/error_classification.dart';
+export 'src/exception_factory.dart';
+
+// Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';
-export 'src/exception_factory.dart';
-export 'src/error_classification.dart';
+
+// Commerce foundation - Price Registry, Order Management, and Inventory Management
+export 'src/inventory_manager.dart';
+export 'src/inventory_util.dart';
+export 'src/inventory_utils.dart';
+export 'src/order_manager.dart';
+export 'src/price_registry.dart';
+
+// Privacy-aware logging utilities
+export 'src/privacy_logger.dart';
+
+// Transaction utilities
+export 'src/transaction_util.dart';

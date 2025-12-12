@@ -1,3 +1,19 @@
+account:
+  - createAccount:
+  - getAccountByPublicKey:
+commerce:
+  - registerProducts:
+  - getProductCatalog:
+  - createOrder:
+  - getInventory:
+  - getBalance:
+  - consumeInventory:
+device:
+  - registerDevice:
+  - authenticateDevice:
+  - generateAuthChallenge:
+  - revokeDevice:
+  - listDevices:
 module:
   - hello:
   - authenticateUser:

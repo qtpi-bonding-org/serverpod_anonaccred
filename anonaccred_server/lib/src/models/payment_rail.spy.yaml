@@ -1,0 +1,9 @@
+# Payment rail enumeration for different payment methods
+# Supports multiple payment channels for flexible payment processing
+enum: PaymentRail
+serialized: byName
+values:
+  - monero          # Monero cryptocurrency payments
+  - x402_http       # HTTP 402 micropayment protocol
+  - apple_iap       # Apple In-App Purchase
+  - google_iap      # Google In-App Purchase

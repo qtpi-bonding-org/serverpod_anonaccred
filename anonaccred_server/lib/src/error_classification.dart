@@ -27,13 +27,38 @@ class AnonAccredExceptionUtils {
       case AnonAccredErrorCodes.databaseError:
         return true;
       
-      // Non-retryable errors
+      // Non-retryable errors (cryptographic)
+      case AnonAccredErrorCodes.cryptoInvalidPublicKey:
+      case AnonAccredErrorCodes.cryptoInvalidSignature:
+      case AnonAccredErrorCodes.cryptoInvalidMessage:
+      case AnonAccredErrorCodes.cryptoFormatError:
+      
+      // Non-retryable errors (authentication)
       case AnonAccredErrorCodes.authInvalidSignature:
       case AnonAccredErrorCodes.authExpiredChallenge:
+      case AnonAccredErrorCodes.authDeviceNotFound:
+      case AnonAccredErrorCodes.authDeviceRevoked:
+      case AnonAccredErrorCodes.authAccountNotFound:
+      case AnonAccredErrorCodes.authDuplicateDevice:
+      case AnonAccredErrorCodes.authChallengeExpired:
+      
+      // Non-retryable errors (payment/inventory)
       case AnonAccredErrorCodes.paymentInsufficientFunds:
       case AnonAccredErrorCodes.inventoryInsufficientBalance:
       case AnonAccredErrorCodes.inventoryAccountNotFound:
+      
+      // Non-retryable errors (price registry)
+      case AnonAccredErrorCodes.priceRegistryProductNotFound:
+      case AnonAccredErrorCodes.priceRegistryInvalidPrice:
+      case AnonAccredErrorCodes.priceRegistryInvalidSku:
         return false;
+      
+      // Potentially retryable cryptographic errors
+      case AnonAccredErrorCodes.cryptoVerificationFailed:
+      
+      // Potentially retryable price registry errors
+      case AnonAccredErrorCodes.priceRegistryOperationFailed:
+        return true;
       
       // Default to non-retryable for unknown codes
       default:
@@ -47,18 +72,38 @@ class AnonAccredExceptionUtils {
       // High severity - system errors
       case AnonAccredErrorCodes.databaseError:
       case AnonAccredErrorCodes.internalError:
+      case AnonAccredErrorCodes.cryptoVerificationFailed:
         return ErrorSeverity.high;
       
       // Medium severity - operational errors
       case AnonAccredErrorCodes.paymentFailed:
       case AnonAccredErrorCodes.networkTimeout:
+      case AnonAccredErrorCodes.priceRegistryOperationFailed:
         return ErrorSeverity.medium;
       
-      // Low severity - user/client errors
+      // Low severity - user/client errors (cryptographic)
+      case AnonAccredErrorCodes.cryptoInvalidPublicKey:
+      case AnonAccredErrorCodes.cryptoInvalidSignature:
+      case AnonAccredErrorCodes.cryptoInvalidMessage:
+      case AnonAccredErrorCodes.cryptoFormatError:
+      
+      // Low severity - user/client errors (authentication)
       case AnonAccredErrorCodes.authInvalidSignature:
       case AnonAccredErrorCodes.authExpiredChallenge:
+      case AnonAccredErrorCodes.authDeviceNotFound:
+      case AnonAccredErrorCodes.authDeviceRevoked:
+      case AnonAccredErrorCodes.authAccountNotFound:
+      case AnonAccredErrorCodes.authDuplicateDevice:
+      case AnonAccredErrorCodes.authChallengeExpired:
+      
+      // Low severity - user/client errors (payment/inventory)
       case AnonAccredErrorCodes.paymentInsufficientFunds:
       case AnonAccredErrorCodes.inventoryInsufficientBalance:
+      
+      // Low severity - user/client errors (price registry)
+      case AnonAccredErrorCodes.priceRegistryProductNotFound:
+      case AnonAccredErrorCodes.priceRegistryInvalidPrice:
+      case AnonAccredErrorCodes.priceRegistryInvalidSku:
         return ErrorSeverity.low;
       
       // Default to medium for unknown codes
@@ -69,9 +114,9 @@ class AnonAccredExceptionUtils {
 
   /// Gets the error category for an error code
   static ErrorCategory getErrorCategory(String errorCode) {
-    if (errorCode.startsWith('AUTH_')) {
+    if (errorCode.startsWith('AUTH_') || errorCode.startsWith('CRYPTO_')) {
       return ErrorCategory.authentication;
-    } else if (errorCode.startsWith('PAYMENT_')) {
+    } else if (errorCode.startsWith('PAYMENT_') || errorCode.startsWith('PRICE_REGISTRY_')) {
       return ErrorCategory.payment;
     } else if (errorCode.startsWith('INVENTORY_')) {
       return ErrorCategory.inventory;
@@ -88,6 +133,23 @@ class AnonAccredExceptionUtils {
   /// Generates recovery guidance for different error types
   static String getRecoveryGuidance(String errorCode) {
     switch (errorCode) {
+      // Cryptographic error guidance
+      case AnonAccredErrorCodes.cryptoInvalidPublicKey:
+        return 'Ensure the Ed25519 public key is exactly 64 hexadecimal characters.';
+      
+      case AnonAccredErrorCodes.cryptoInvalidSignature:
+        return 'Ensure the Ed25519 signature is exactly 128 hexadecimal characters.';
+      
+      case AnonAccredErrorCodes.cryptoInvalidMessage:
+        return 'Provide a non-empty message for signature verification.';
+      
+      case AnonAccredErrorCodes.cryptoFormatError:
+        return 'Check that all cryptographic data is properly formatted as hexadecimal.';
+      
+      case AnonAccredErrorCodes.cryptoVerificationFailed:
+        return 'Cryptographic operation failed. Verify inputs and retry.';
+      
+      // Authentication error guidance
       case AnonAccredErrorCodes.authInvalidSignature:
         return 'Verify the Ed25519 signature is correctly generated and matches the public key.';
       
@@ -97,6 +159,22 @@ class AnonAccredExceptionUtils {
       case AnonAccredErrorCodes.authMissingKey:
         return 'Ensure the Ed25519 public key is provided in the request.';
       
+      case AnonAccredErrorCodes.authDeviceNotFound:
+        return 'Verify the device is registered and the public subkey is correct.';
+      
+      case AnonAccredErrorCodes.authDeviceRevoked:
+        return 'This device has been revoked. Use a different device or register a new one.';
+      
+      case AnonAccredErrorCodes.authAccountNotFound:
+        return 'Verify the account exists and the account ID is correct.';
+      
+      case AnonAccredErrorCodes.authDuplicateDevice:
+        return 'This device public key is already registered. Use a different key.';
+      
+      case AnonAccredErrorCodes.authChallengeExpired:
+        return 'Request a new authentication challenge and retry the operation.';
+      
+      // Payment error guidance
       case AnonAccredErrorCodes.paymentFailed:
         return 'Check payment details and retry. Contact support if the issue persists.';
       
@@ -106,6 +184,7 @@ class AnonAccredExceptionUtils {
       case AnonAccredErrorCodes.paymentInvalidRail:
         return 'Use a supported payment rail (X402, Monero, or IAP).';
       
+      // Inventory error guidance
       case AnonAccredErrorCodes.inventoryInsufficientBalance:
         return 'Purchase additional consumables or check account balance.';
       
@@ -115,6 +194,20 @@ class AnonAccredExceptionUtils {
       case AnonAccredErrorCodes.inventoryAccountNotFound:
         return 'Ensure the account exists and the account ID is correct.';
       
+      // Price Registry error guidance
+      case AnonAccredErrorCodes.priceRegistryProductNotFound:
+        return 'Register the product in the price registry before creating orders.';
+      
+      case AnonAccredErrorCodes.priceRegistryInvalidPrice:
+        return 'Ensure the price is a positive number greater than zero.';
+      
+      case AnonAccredErrorCodes.priceRegistryInvalidSku:
+        return 'Provide a valid, non-empty product SKU identifier.';
+      
+      case AnonAccredErrorCodes.priceRegistryOperationFailed:
+        return 'Price registry operation failed. Please retry or contact support.';
+      
+      // System error guidance
       case AnonAccredErrorCodes.networkTimeout:
         return 'Check network connectivity and retry the operation.';
       

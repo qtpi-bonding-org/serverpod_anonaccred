@@ -1,0 +1,10 @@
+# Order status enumeration for transaction lifecycle tracking
+# Covers the complete payment processing workflow
+enum: OrderStatus
+serialized: byName
+values:
+  - pending         # Order created, awaiting payment
+  - processing      # Payment received, being processed
+  - paid            # Payment confirmed and completed
+  - failed          # Payment failed or rejected
+  - cancelled       # Order cancelled before completion

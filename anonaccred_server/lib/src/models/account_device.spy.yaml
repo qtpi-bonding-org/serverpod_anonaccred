@@ -1,0 +1,27 @@
+# AccountDevice: Ephemeral device access with subkey authentication
+# Enables multiple devices per account with individual key management
+class: AccountDevice
+table: account_device
+indexes:
+  auth_lookup_idx:
+    fields: publicSubKey, isRevoked
+    unique: false
+fields:
+  # Foreign key to parent account
+  accountId: int, relation(parent=anon_account)
+  
+  # Ed25519 public key for this specific device
+  publicSubKey: String
+  
+  # Symmetric data key encrypted with device private key (client-side encryption)
+  # Allows device-specific access without compromising master account security
+  encryptedDataKey: String
+  
+  # Human-readable device identifier (e.g., "iPhone 15", "MacBook Pro")
+  label: String
+  
+  # Last activity timestamp for device management
+  lastActive: DateTime, default=now
+  
+  # Revocation flag for device access control
+  isRevoked: bool, default=false
