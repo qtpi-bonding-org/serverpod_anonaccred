@@ -1,0 +1,5 @@
+type: module
+nickname: anonaccred
+
+client_package_path: ../anonaccred_client
+server_test_tools_path: test/integration/test_tools
