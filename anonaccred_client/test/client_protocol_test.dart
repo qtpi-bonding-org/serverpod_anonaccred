@@ -68,7 +68,8 @@ void main() {
         paymentRail: PaymentRail.monero,
         paymentCurrency: Currency.XMR,
         paymentAmount: 0.05,
-        paymentRef: 'tx_hash_example',
+        paymentRef: 'payment_ref_123',
+        transactionHash: 'tx_hash_abc123def456',
         status: OrderStatus.paid,
         timestamp: DateTime.now(),
       );
@@ -80,6 +81,8 @@ void main() {
       expect(transaction.paymentRail, equals(PaymentRail.monero));
       expect(transaction.paymentCurrency, equals(Currency.XMR));
       expect(transaction.paymentAmount, equals(0.05));
+      expect(transaction.paymentRef, equals('payment_ref_123'));
+      expect(transaction.transactionHash, equals('tx_hash_abc123def456'));
       expect(transaction.status, equals(OrderStatus.paid));
     });
     

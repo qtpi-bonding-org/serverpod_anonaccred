@@ -104,4 +104,9 @@ export 'src/inventory_utils.dart';
 export 'src/order_manager.dart';
 export 'src/price_registry.dart';
 
+// Payment system foundation - Payment Rails, Manager, and Processor
+export 'src/payments/payment_manager.dart';
+export 'src/payments/payment_processor.dart';
+export 'src/payments/payment_rail_interface.dart';
+
 // Transaction utilities removed - use Serverpod built-in patterns

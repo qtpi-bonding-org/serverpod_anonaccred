@@ -15,7 +15,8 @@ import '../endpoints/account_endpoint.dart' as _i2;
 import '../endpoints/commerce_endpoint.dart' as _i3;
 import '../endpoints/device_endpoint.dart' as _i4;
 import '../endpoints/module_endpoint.dart' as _i5;
-import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i6;
+import '../endpoints/payment_endpoint.dart' as _i6;
+import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i7;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -43,6 +44,12 @@ class Endpoints extends _i1.EndpointDispatch {
         ..initialize(
           server,
           'module',
+          'anonaccred',
+        ),
+      'payment': _i6.PaymentEndpoint()
+        ..initialize(
+          server,
+          'payment',
           'anonaccred',
         ),
     };
@@ -73,6 +80,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['publicMasterKey'],
                     params['encryptedDataKey'],
+                  ),
+        ),
+        'getAccountById': _i1.MethodConnector(
+          name: 'getAccountById',
+          params: {
+            'accountId': _i1.ParameterDescription(
+              name: 'accountId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['account'] as _i2.AccountEndpoint).getAccountById(
+                    session,
+                    params['accountId'],
                   ),
         ),
         'getAccountByPublicKey': _i1.MethodConnector(
@@ -166,7 +192,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'paymentRail': _i1.ParameterDescription(
               name: 'paymentRail',
-              type: _i1.getType<_i6.PaymentRail>(),
+              type: _i1.getType<_i7.PaymentRail>(),
               nullable: false,
             ),
           },
@@ -523,6 +549,156 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['consumableType'],
                     params['operation'],
                     params['quantity'],
+                  ),
+        ),
+      },
+    );
+    connectors['payment'] = _i1.EndpointConnector(
+      name: 'payment',
+      endpoint: endpoints['payment']!,
+      methodConnectors: {
+        'initiatePayment': _i1.MethodConnector(
+          name: 'initiatePayment',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'railType': _i1.ParameterDescription(
+              name: 'railType',
+              type: _i1.getType<_i7.PaymentRail>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['payment'] as _i6.PaymentEndpoint).initiatePayment(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['orderId'],
+                    params['railType'],
+                  ),
+        ),
+        'checkPaymentStatus': _i1.MethodConnector(
+          name: 'checkPaymentStatus',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+                  .checkPaymentStatus(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['orderId'],
+                  ),
+        ),
+        'processMoneroWebhook': _i1.MethodConnector(
+          name: 'processMoneroWebhook',
+          params: {
+            'webhookData': _i1.ParameterDescription(
+              name: 'webhookData',
+              type: _i1.getType<Map<String, dynamic>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+                  .processMoneroWebhook(
+                    session,
+                    params['webhookData'],
+                  ),
+        ),
+        'processX402Webhook': _i1.MethodConnector(
+          name: 'processX402Webhook',
+          params: {
+            'webhookData': _i1.ParameterDescription(
+              name: 'webhookData',
+              type: _i1.getType<Map<String, dynamic>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+                  .processX402Webhook(
+                    session,
+                    params['webhookData'],
+                  ),
+        ),
+        'processAppleIAPWebhook': _i1.MethodConnector(
+          name: 'processAppleIAPWebhook',
+          params: {
+            'webhookData': _i1.ParameterDescription(
+              name: 'webhookData',
+              type: _i1.getType<Map<String, dynamic>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+                  .processAppleIAPWebhook(
+                    session,
+                    params['webhookData'],
+                  ),
+        ),
+        'processGoogleIAPWebhook': _i1.MethodConnector(
+          name: 'processGoogleIAPWebhook',
+          params: {
+            'webhookData': _i1.ParameterDescription(
+              name: 'webhookData',
+              type: _i1.getType<Map<String, dynamic>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+                  .processGoogleIAPWebhook(
+                    session,
+                    params['webhookData'],
                   ),
         ),
       },

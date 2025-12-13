@@ -17,7 +17,8 @@ fields:
   paymentRail: PaymentRail             # Payment method used (monero, x402_http, apple_iap, google_iap)
   paymentCurrency: Currency            # Actual payment currency (may differ from quote)
   paymentAmount: double                # Amount paid in payment currency
-  paymentRef: String?                  # Transaction hash, receipt ID, or payment reference
+  paymentRef: String?                  # Payment reference or receipt ID from payment rail
+  transactionHash: String?             # Blockchain transaction hash or payment confirmation ID
   
   # Transaction Status and Timing
   status: OrderStatus, default=pending # Current transaction status

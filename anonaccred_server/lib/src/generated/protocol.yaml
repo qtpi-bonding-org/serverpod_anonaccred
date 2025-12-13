@@ -1,5 +1,6 @@
 account:
   - createAccount:
+  - getAccountById:
   - getAccountByPublicKey:
 commerce:
   - registerProducts:
@@ -19,3 +20,10 @@ module:
   - authenticateUser:
   - processPayment:
   - manageInventory:
+payment:
+  - initiatePayment:
+  - checkPaymentStatus:
+  - processMoneroWebhook:
+  - processX402Webhook:
+  - processAppleIAPWebhook:
+  - processGoogleIAPWebhook:

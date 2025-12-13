@@ -20,6 +20,7 @@ import 'package:anonaccred_client/src/protocol/consume_result.dart' as _i7;
 import 'package:anonaccred_client/src/protocol/account_device.dart' as _i8;
 import 'package:anonaccred_client/src/protocol/authentication_result.dart'
     as _i9;
+import 'package:anonaccred_client/src/protocol/payment_request.dart' as _i10;
 
 /// Account management endpoints for anonymous identity operations
 ///
@@ -56,6 +57,22 @@ class EndpointAccount extends _i1.EndpointRef {
       'encryptedDataKey': encryptedDataKey,
     },
   );
+
+  /// Get account by ID, requiring it to exist
+  ///
+  /// Parameters:
+  /// - [accountId]: The account ID to lookup
+  ///
+  /// Returns the AnonAccount if found.
+  ///
+  /// Throws AuthenticationException if account is not found.
+  /// Throws AnonAccredException for database or system errors.
+  _i2.Future<_i3.AnonAccount> getAccountById(int accountId) =>
+      caller.callServerEndpoint<_i3.AnonAccount>(
+        'anonaccred.account',
+        'getAccountById',
+        {'accountId': accountId},
+      );
 
   /// Get account by public master key lookup
   ///
@@ -317,7 +334,6 @@ class EndpointDevice extends _i1.EndpointRef {
       'encryptedDataKey': encryptedDataKey,
       'label': label,
     },
-    authenticated: false,
   );
 
   /// Authenticate device with challenge-response
@@ -355,7 +371,6 @@ class EndpointDevice extends _i1.EndpointRef {
         'anonaccred.device',
         'generateAuthChallenge',
         {},
-        authenticated: false,
       );
 
   /// Revoke device access
@@ -457,12 +472,165 @@ class EndpointModule extends _i1.EndpointRef {
   );
 }
 
+/// Payment endpoints for AnonAccred Phase 4 payment rail architecture
+///
+/// Provides endpoints for payment initiation, status checking, and webhook processing
+/// while maintaining the established authentication and error handling patterns.
+/// {@category Endpoint}
+class EndpointPayment extends _i1.EndpointRef {
+  EndpointPayment(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccred.payment';
+
+  /// Initiate a payment using the specified payment rail
+  ///
+  /// Creates a payment request through the appropriate payment rail and updates
+  /// the transaction with payment reference information.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [orderId]: External order ID for the transaction
+  /// - [railType]: Payment rail to use for processing
+  ///
+  /// Returns: PaymentRequest with payment details and rail-specific metadata
+  ///
+  /// Throws:
+  /// - [AuthenticationException] for invalid authentication
+  /// - [PaymentException] for payment processing errors
+  /// - [AnonAccredException] for system errors
+  ///
+  /// Requirements 6.1: Create payment requests using specified rail
+  _i2.Future<_i10.PaymentRequest> initiatePayment(
+    String publicKey,
+    String signature,
+    String orderId,
+    _i5.PaymentRail railType,
+  ) => caller.callServerEndpoint<_i10.PaymentRequest>(
+    'anonaccred.payment',
+    'initiatePayment',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'orderId': orderId,
+      'railType': railType,
+    },
+  );
+
+  /// Check the status of a payment transaction
+  ///
+  /// Returns the current status and details of a payment transaction.
+  /// Requires authentication to ensure only authorized access to payment data.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [orderId]: External order ID to check status for
+  ///
+  /// Returns: TransactionPayment with current status and payment details
+  ///
+  /// Throws:
+  /// - [AuthenticationException] for invalid authentication
+  /// - [PaymentException] for transaction not found
+  /// - [AnonAccredException] for system errors
+  ///
+  /// Requirements 6.2: Return current transaction and payment status
+  _i2.Future<_i4.TransactionPayment> checkPaymentStatus(
+    String publicKey,
+    String signature,
+    String orderId,
+  ) => caller.callServerEndpoint<_i4.TransactionPayment>(
+    'anonaccred.payment',
+    'checkPaymentStatus',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'orderId': orderId,
+    },
+  );
+
+  /// Process webhook for Monero payment rail
+  ///
+  /// Handles webhook callbacks from Monero payment services.
+  /// This endpoint does not require authentication as it's called by external services.
+  ///
+  /// Parameters:
+  /// - [webhookData]: Raw webhook payload from Monero service
+  ///
+  /// Returns: Success message
+  ///
+  /// Requirements 6.4: Process callbacks and update transaction status
+  _i2.Future<String> processMoneroWebhook(Map<String, dynamic> webhookData) =>
+      caller.callServerEndpoint<String>(
+        'anonaccred.payment',
+        'processMoneroWebhook',
+        {'webhookData': webhookData},
+      );
+
+  /// Process webhook for X402 HTTP payment rail
+  ///
+  /// Handles webhook callbacks from X402 HTTP payment services.
+  /// This endpoint does not require authentication as it's called by external services.
+  ///
+  /// Parameters:
+  /// - [webhookData]: Raw webhook payload from X402 service
+  ///
+  /// Returns: Success message
+  ///
+  /// Requirements 6.4: Process callbacks and update transaction status
+  _i2.Future<String> processX402Webhook(Map<String, dynamic> webhookData) =>
+      caller.callServerEndpoint<String>(
+        'anonaccred.payment',
+        'processX402Webhook',
+        {'webhookData': webhookData},
+      );
+
+  /// Process webhook for Apple IAP payment rail
+  ///
+  /// Handles webhook callbacks from Apple In-App Purchase services.
+  /// This endpoint does not require authentication as it's called by external services.
+  ///
+  /// Parameters:
+  /// - [webhookData]: Raw webhook payload from Apple IAP service
+  ///
+  /// Returns: Success message
+  ///
+  /// Requirements 6.4: Process callbacks and update transaction status
+  _i2.Future<String> processAppleIAPWebhook(Map<String, dynamic> webhookData) =>
+      caller.callServerEndpoint<String>(
+        'anonaccred.payment',
+        'processAppleIAPWebhook',
+        {'webhookData': webhookData},
+      );
+
+  /// Process webhook for Google IAP payment rail
+  ///
+  /// Handles webhook callbacks from Google In-App Purchase services.
+  /// This endpoint does not require authentication as it's called by external services.
+  ///
+  /// Parameters:
+  /// - [webhookData]: Raw webhook payload from Google IAP service
+  ///
+  /// Returns: Success message
+  ///
+  /// Requirements 6.4: Process callbacks and update transaction status
+  _i2.Future<String> processGoogleIAPWebhook(
+    Map<String, dynamic> webhookData,
+  ) => caller.callServerEndpoint<String>(
+    'anonaccred.payment',
+    'processGoogleIAPWebhook',
+    {'webhookData': webhookData},
+  );
+}
+
 class Caller extends _i1.ModuleEndpointCaller {
   Caller(_i1.ServerpodClientShared client) : super(client) {
     account = EndpointAccount(this);
     commerce = EndpointCommerce(this);
     device = EndpointDevice(this);
     module = EndpointModule(this);
+    payment = EndpointPayment(this);
   }
 
   late final EndpointAccount account;
@@ -473,11 +641,14 @@ class Caller extends _i1.ModuleEndpointCaller {
 
   late final EndpointModule module;
 
+  late final EndpointPayment payment;
+
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'anonaccred.account': account,
     'anonaccred.commerce': commerce,
     'anonaccred.device': device,
     'anonaccred.module': module,
+    'anonaccred.payment': payment,
   };
 }

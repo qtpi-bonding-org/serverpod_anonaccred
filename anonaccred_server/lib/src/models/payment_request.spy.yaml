@@ -1,0 +1,15 @@
+# Payment request data structure for payment rail operations
+# Contains standardized payment initiation information
+class: PaymentRequest
+fields:
+  # Unique payment reference identifier
+  paymentRef: String
+  
+  # Payment amount in USD
+  amountUSD: double
+  
+  # Associated order identifier
+  orderId: String
+  
+  # Rail-specific payment metadata as JSON string
+  railDataJson: String

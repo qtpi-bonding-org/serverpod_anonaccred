@@ -155,6 +155,7 @@ void main() {
           final paymentCurrency = _generateRandomCurrency();
           final paymentAmount = _generateRandomPrice();
           final paymentRef = _generateRandomPaymentRef();
+          final transactionHash = _generateRandomTransactionHash();
           final status = _generateRandomOrderStatus();
           final timestamp = DateTime.now();
 
@@ -168,6 +169,7 @@ void main() {
             paymentCurrency: paymentCurrency,
             paymentAmount: paymentAmount,
             paymentRef: paymentRef,
+            transactionHash: transactionHash,
             status: status,
             timestamp: timestamp,
           );
@@ -181,6 +183,7 @@ void main() {
           expect(transaction.paymentCurrency, equals(paymentCurrency));
           expect(transaction.paymentAmount, equals(paymentAmount));
           expect(transaction.paymentRef, equals(paymentRef));
+          expect(transaction.transactionHash, equals(transactionHash));
           expect(transaction.status, equals(status));
           expect(transaction.timestamp, equals(timestamp));
 
@@ -303,6 +306,13 @@ String? _generateRandomPaymentRef() {
     return null; // Sometimes no payment reference
   }
   return 'ref_${_generateRandomString(20)}';
+}
+
+String? _generateRandomTransactionHash() {
+  if (Random().nextBool()) {
+    return null; // Sometimes no transaction hash
+  }
+  return 'tx_${_generateRandomString(32)}';
 }
 
 OrderStatus _generateRandomOrderStatus() {
