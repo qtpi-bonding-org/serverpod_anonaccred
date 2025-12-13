@@ -1,7 +1,7 @@
 import 'package:serverpod/serverpod.dart';
-import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
+import '../helpers.dart';
 
 /// Account management endpoints for anonymous identity operations
 ///
@@ -27,46 +27,9 @@ class AccountEndpoint extends Endpoint {
     String encryptedDataKey,
   ) async {
     try {
-      // Validate input parameters
-      if (publicMasterKey.isEmpty) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authMissingKey,
-              message: 'Public master key is required for account creation',
-              operation: 'createAccount',
-              details: {'publicMasterKey': 'empty'},
-            );
-
-        throw exception;
-      }
-
-      if (encryptedDataKey.isEmpty) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.cryptoInvalidMessage,
-              message: 'Encrypted data key is required for account creation',
-              operation: 'createAccount',
-              details: {'encryptedDataKey': 'empty'},
-            );
-
-        throw exception;
-      }
-
-      // Validate Ed25519 public key format using cryptographic utilities
-      if (!CryptoAuth.isValidPublicKey(publicMasterKey)) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-              message: 'Invalid Ed25519 public key format',
-              operation: 'createAccount',
-              details: {
-                'publicKeyLength': publicMasterKey.length.toString(),
-                'expectedLength': '64',
-              },
-            );
-
-        throw exception;
-      }
+      // Validate input parameters using helper functions
+      AnonAccredHelpers.validatePublicKey(publicMasterKey, 'createAccount');
+      AnonAccredHelpers.validateNonEmpty(encryptedDataKey, 'encryptedDataKey', 'createAccount');
 
       // Check if account with this public key already exists
       final existingAccount = await AnonAccount.db.findFirstRow(
@@ -118,6 +81,37 @@ class AccountEndpoint extends Endpoint {
     }
   }
 
+  /// Get account by ID, requiring it to exist
+  ///
+  /// Parameters:
+  /// - [accountId]: The account ID to lookup
+  ///
+  /// Returns the AnonAccount if found.
+  ///
+  /// Throws AuthenticationException if account is not found.
+  /// Throws AnonAccredException for database or system errors.
+  Future<AnonAccount> getAccountById(
+    Session session,
+    int accountId,
+  ) async {
+    try {
+      // Lookup account by ID
+      final account = await AnonAccount.db.findById(session, accountId);
+      
+      // Use helper to require account exists, throw if null
+      return AnonAccredHelpers.requireAccount(account, accountId, 'getAccountById');
+    } on AuthenticationException {
+      rethrow;
+    } catch (e) {
+      // Wrap unexpected errors in AnonAccred exception
+      throw AnonAccredExceptionFactory.createException(
+        code: AnonAccredErrorCodes.internalError,
+        message: 'Unexpected error during account lookup: ${e.toString()}',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
   /// Get account by public master key lookup
   ///
   /// Parameters:
@@ -132,34 +126,8 @@ class AccountEndpoint extends Endpoint {
     String publicMasterKey,
   ) async {
     try {
-      // Validate input parameters
-      if (publicMasterKey.isEmpty) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authMissingKey,
-              message: 'Public master key is required for account lookup',
-              operation: 'getAccountByPublicKey',
-              details: {'publicMasterKey': 'empty'},
-            );
-
-        throw exception;
-      }
-
-      // Validate Ed25519 public key format using cryptographic utilities
-      if (!CryptoAuth.isValidPublicKey(publicMasterKey)) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-              message: 'Invalid Ed25519 public key format',
-              operation: 'getAccountByPublicKey',
-              details: {
-                'publicKeyLength': publicMasterKey.length.toString(),
-                'expectedLength': '64',
-              },
-            );
-
-        throw exception;
-      }
+      // Validate input parameters using helper functions
+      AnonAccredHelpers.validatePublicKey(publicMasterKey, 'getAccountByPublicKey');
 
       // Lookup account by public key
       final account = await AnonAccount.db.findFirstRow(

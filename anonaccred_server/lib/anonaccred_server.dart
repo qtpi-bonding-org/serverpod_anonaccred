@@ -80,6 +80,9 @@
 /// );
 /// ```
 
+// Authentication handler for Serverpod integration
+export 'src/auth_handler.dart';
+
 // Core cryptographic utilities
 export 'src/crypto_auth.dart';
 export 'src/crypto_utils.dart';
@@ -87,6 +90,9 @@ export 'src/crypto_utils.dart';
 // Exception handling and error classification system
 export 'src/error_classification.dart';
 export 'src/exception_factory.dart';
+
+// Helper utilities for reducing code duplication
+export 'src/helpers.dart';
 
 // Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';

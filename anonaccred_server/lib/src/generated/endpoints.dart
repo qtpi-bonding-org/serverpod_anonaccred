@@ -22,13 +22,29 @@ class Endpoints extends _i1.EndpointDispatch {
   void initializeEndpoints(_i1.Server server) {
     var endpoints = <String, _i1.Endpoint>{
       'account': _i2.AccountEndpoint()
-        ..initialize(server, 'account', 'anonaccred'),
+        ..initialize(
+          server,
+          'account',
+          'anonaccred',
+        ),
       'commerce': _i3.CommerceEndpoint()
-        ..initialize(server, 'commerce', 'anonaccred'),
+        ..initialize(
+          server,
+          'commerce',
+          'anonaccred',
+        ),
       'device': _i4.DeviceEndpoint()
-        ..initialize(server, 'device', 'anonaccred'),
+        ..initialize(
+          server,
+          'device',
+          'anonaccred',
+        ),
       'module': _i5.ModuleEndpoint()
-        ..initialize(server, 'module', 'anonaccred'),
+        ..initialize(
+          server,
+          'module',
+          'anonaccred',
+        ),
     };
     connectors['account'] = _i1.EndpointConnector(
       name: 'account',
@@ -48,12 +64,16 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['account'] as _i2.AccountEndpoint).createAccount(
-                session,
-                params['publicMasterKey'],
-                params['encryptedDataKey'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['account'] as _i2.AccountEndpoint).createAccount(
+                    session,
+                    params['publicMasterKey'],
+                    params['encryptedDataKey'],
+                  ),
         ),
         'getAccountByPublicKey': _i1.MethodConnector(
           name: 'getAccountByPublicKey',
@@ -64,9 +84,15 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['account'] as _i2.AccountEndpoint)
-                  .getAccountByPublicKey(session, params['publicMasterKey']),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['account'] as _i2.AccountEndpoint)
+                  .getAccountByPublicKey(
+                    session,
+                    params['publicMasterKey'],
+                  ),
         ),
       },
     );
@@ -93,21 +119,27 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['commerce'] as _i3.CommerceEndpoint).registerProducts(
-                session,
-                params['publicKey'],
-                params['signature'],
-                params['products'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+                  .registerProducts(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['products'],
+                  ),
         ),
         'getProductCatalog': _i1.MethodConnector(
           name: 'getProductCatalog',
           params: {},
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['commerce'] as _i3.CommerceEndpoint).getProductCatalog(
-                session,
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+                  .getProductCatalog(session),
         ),
         'createOrder': _i1.MethodConnector(
           name: 'createOrder',
@@ -138,15 +170,19 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['commerce'] as _i3.CommerceEndpoint).createOrder(
-                session,
-                params['publicKey'],
-                params['signature'],
-                params['accountId'],
-                params['items'],
-                params['paymentRail'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['commerce'] as _i3.CommerceEndpoint).createOrder(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['accountId'],
+                    params['items'],
+                    params['paymentRail'],
+                  ),
         ),
         'getInventory': _i1.MethodConnector(
           name: 'getInventory',
@@ -167,13 +203,17 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['commerce'] as _i3.CommerceEndpoint).getInventory(
-                session,
-                params['publicKey'],
-                params['signature'],
-                params['accountId'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['commerce'] as _i3.CommerceEndpoint).getInventory(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['accountId'],
+                  ),
         ),
         'getBalance': _i1.MethodConnector(
           name: 'getBalance',
@@ -199,14 +239,18 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['commerce'] as _i3.CommerceEndpoint).getBalance(
-                session,
-                params['publicKey'],
-                params['signature'],
-                params['accountId'],
-                params['consumableType'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['commerce'] as _i3.CommerceEndpoint).getBalance(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['accountId'],
+                    params['consumableType'],
+                  ),
         ),
         'consumeInventory': _i1.MethodConnector(
           name: 'consumeInventory',
@@ -237,15 +281,19 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['commerce'] as _i3.CommerceEndpoint).consumeInventory(
-                session,
-                params['publicKey'],
-                params['signature'],
-                params['accountId'],
-                params['consumableType'],
-                params['quantity'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+                  .consumeInventory(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['accountId'],
+                    params['consumableType'],
+                    params['quantity'],
+                  ),
         ),
       },
     );
@@ -277,23 +325,22 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['device'] as _i4.DeviceEndpoint).registerDevice(
-                session,
-                params['accountId'],
-                params['publicSubKey'],
-                params['encryptedDataKey'],
-                params['label'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['device'] as _i4.DeviceEndpoint).registerDevice(
+                    session,
+                    params['accountId'],
+                    params['publicSubKey'],
+                    params['encryptedDataKey'],
+                    params['label'],
+                  ),
         ),
         'authenticateDevice': _i1.MethodConnector(
           name: 'authenticateDevice',
           params: {
-            'publicSubKey': _i1.ParameterDescription(
-              name: 'publicSubKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
             'challenge': _i1.ParameterDescription(
               name: 'challenge',
               type: _i1.getType<String>(),
@@ -305,57 +352,55 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['device'] as _i4.DeviceEndpoint).authenticateDevice(
-                session,
-                params['publicSubKey'],
-                params['challenge'],
-                params['signature'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
+                  .authenticateDevice(
+                    session,
+                    params['challenge'],
+                    params['signature'],
+                  ),
         ),
         'generateAuthChallenge': _i1.MethodConnector(
           name: 'generateAuthChallenge',
           params: {},
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['device'] as _i4.DeviceEndpoint).generateAuthChallenge(
-                session,
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
+                  .generateAuthChallenge(session),
         ),
         'revokeDevice': _i1.MethodConnector(
           name: 'revokeDevice',
           params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
             'deviceId': _i1.ParameterDescription(
               name: 'deviceId',
               type: _i1.getType<int>(),
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['device'] as _i4.DeviceEndpoint).revokeDevice(
-                session,
-                params['accountId'],
-                params['deviceId'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['device'] as _i4.DeviceEndpoint).revokeDevice(
+                    session,
+                    params['deviceId'],
+                  ),
         ),
         'listDevices': _i1.MethodConnector(
           name: 'listDevices',
-          params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['device'] as _i4.DeviceEndpoint).listDevices(
-                session,
-                params['accountId'],
-              ),
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
+                  .listDevices(session),
         ),
       },
     );
@@ -372,8 +417,11 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['module'] as _i5.ModuleEndpoint).hello(
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['module'] as _i5.ModuleEndpoint).hello(
                 session,
                 params['name'],
               ),
@@ -397,13 +445,17 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['module'] as _i5.ModuleEndpoint).authenticateUser(
-                session,
-                params['publicKey'],
-                params['signature'],
-                params['challenge'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['module'] as _i5.ModuleEndpoint).authenticateUser(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['challenge'],
+                  ),
         ),
         'processPayment': _i1.MethodConnector(
           name: 'processPayment',
@@ -424,13 +476,17 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: false,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['module'] as _i5.ModuleEndpoint).processPayment(
-                session,
-                params['orderId'],
-                params['paymentRail'],
-                params['amount'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['module'] as _i5.ModuleEndpoint).processPayment(
+                    session,
+                    params['orderId'],
+                    params['paymentRail'],
+                    params['amount'],
+                  ),
         ),
         'manageInventory': _i1.MethodConnector(
           name: 'manageInventory',
@@ -456,14 +512,18 @@ class Endpoints extends _i1.EndpointDispatch {
               nullable: true,
             ),
           },
-          call: (_i1.Session session, Map<String, dynamic> params) async =>
-              (endpoints['module'] as _i5.ModuleEndpoint).manageInventory(
-                session,
-                params['accountId'],
-                params['consumableType'],
-                params['operation'],
-                params['quantity'],
-              ),
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['module'] as _i5.ModuleEndpoint).manageInventory(
+                    session,
+                    params['accountId'],
+                    params['consumableType'],
+                    params['operation'],
+                    params['quantity'],
+                  ),
         ),
       },
     );

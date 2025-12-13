@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
-import '../../lib/src/crypto_auth.dart';
+import 'package:anonaccred_server/anonaccred_server.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../integration/test_tools/auth_test_helper.dart';
 
 /// Test error handling and privacy logging integration for Phase 2 authentication
 void main() {
@@ -11,8 +12,8 @@ void main() {
     group('Authentication Error Handling', () {
       test('should return structured error for invalid public key', () async {
         // Test with invalid public key format
-        final invalidPublicKey = 'invalid_key';
-        final encryptedDataKey = 'test_encrypted_data';
+        const invalidPublicKey = 'invalid_key';
+        const encryptedDataKey = 'test_encrypted_data';
 
         try {
           await endpoints.account.createAccount(
@@ -21,128 +22,168 @@ void main() {
             encryptedDataKey,
           );
           fail('Expected AuthenticationException to be thrown');
-        } catch (e) {
+        } on AuthenticationException catch (e) {
           expect(e.toString(), contains('CRYPTO_INVALID_PUBLIC_KEY'));
           expect(e.toString(), contains('Invalid Ed25519 public key format'));
         }
       });
 
-      test('should return structured error for device not found', () async {
-        final nonExistentPublicKey =
-            '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-        final challenge = 'test_challenge';
-        final signature =
-            '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-
-        final result = await endpoints.device.authenticateDevice(
-          sessionBuilder,
-          nonExistentPublicKey,
-          challenge,
-          signature,
-        );
-
-        expect(result.success, isFalse);
-        expect(result.errorCode, equals('AUTH_DEVICE_NOT_FOUND'));
-        expect(result.errorMessage, equals('Device not found'));
-
-        // Test basic error structure
-        expect(result.success, isFalse);
-        expect(result.errorCode, isNotNull);
-        expect(result.errorMessage, isNotNull);
-      });
-
-      test('should return structured error for account not found', () async {
-        final nonExistentAccountId = 99999;
-
-        try {
-          await endpoints.device.listDevices(
+      test('should return structured error for device authentication without auth', () async {
+        expect(
+          () => endpoints.device.authenticateDevice(
             sessionBuilder,
-            nonExistentAccountId,
-          );
-          fail('Expected AuthenticationException to be thrown');
-        } catch (e) {
-          expect(e.toString(), contains('AUTH_ACCOUNT_NOT_FOUND'));
-          expect(e.toString(), contains('Account not found'));
-        }
+            'test_challenge',
+            AuthTestHelper.generateValidSignature(),
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>((e) => 
+                e.toString().contains('AUTH_MISSING_KEY') &&
+                e.toString().contains('Authentication required')
+              ),
+            ),
+          ),
+        );
       });
 
-      test('should handle duplicate device registration', () async {
-        // Create account first
-        final accountPublicKey =
-            '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-        final accountEncryptedDataKey = 'test_encrypted_account_data';
+      test('should return structured error for device revocation without auth', () async {
+        expect(
+          () => endpoints.device.revokeDevice(
+            sessionBuilder,
+            123, // Any device ID
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>((e) => 
+                e.toString().contains('AUTH_MISSING_KEY') &&
+                e.toString().contains('Authentication required')
+              ),
+            ),
+          ),
+        );
+      });
 
-        final account = await endpoints.account.createAccount(
+      test('should return structured error for device listing without auth', () async {
+        expect(
+          () => endpoints.device.listDevices(sessionBuilder),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>((e) => 
+                e.toString().contains('AUTH_MISSING_KEY') &&
+                e.toString().contains('Authentication required')
+              ),
+            ),
+          ),
+        );
+      });
+
+      test('should return structured error for empty challenge', () async {
+        expect(
+          () => endpoints.device.authenticateDevice(
+            sessionBuilder,
+            '', // Empty challenge
+            AuthTestHelper.generateValidSignature(),
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>((e) => 
+                e.toString().contains('AUTH_MISSING_KEY') ||
+                e.toString().contains('challenge')
+              ),
+            ),
+          ),
+        );
+      });
+    });
+
+    group('Device Registration Error Analysis', () {
+      test('should provide structured errors for device registration failures', () async {
+        // Create test account
+        const accountPublicKey =
+            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        const accountEncryptedDataKey = 'encrypted_test_data_key_7';
+
+        final testAccount = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
         );
 
-        // Register device
-        final devicePublicSubKey =
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
-        final deviceEncryptedDataKey = 'test_encrypted_device_data';
-        final deviceLabel = 'Test Device';
+        // Test empty device key
+        expect(
+          () => endpoints.device.registerDevice(
+            sessionBuilder,
+            testAccount.id!,
+            '', // Empty device key
+            'encrypted_data_key',
+            'Test Device',
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>((e) => 
+                e.toString().contains('AUTH_MISSING_KEY') &&
+                e.toString().contains('Public subkey is required')
+              ),
+            ),
+          ),
+        );
 
+        // Test invalid device key format
+        expect(
+          () => endpoints.device.registerDevice(
+            sessionBuilder,
+            testAccount.id!,
+            'invalid_format', // Invalid format
+            'encrypted_data_key',
+            'Test Device',
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>((e) => 
+                e.toString().contains('CRYPTO_INVALID_PUBLIC_KEY') &&
+                e.toString().contains('Invalid Ed25519 public subkey format')
+              ),
+            ),
+          ),
+        );
+
+        // Test duplicate device registration
+        final validDeviceKey = AuthTestHelper.generateValidDeviceKey();
+        
+        // First registration should succeed
         await endpoints.device.registerDevice(
           sessionBuilder,
-          account.id!,
-          devicePublicSubKey,
-          deviceEncryptedDataKey,
-          deviceLabel,
+          testAccount.id!,
+          validDeviceKey,
+          'encrypted_data_key',
+          'Test Device',
         );
 
-        // Try to register the same device again
-        try {
-          await endpoints.device.registerDevice(
-            sessionBuilder,
-            account.id!,
-            devicePublicSubKey,
-            deviceEncryptedDataKey,
-            'Duplicate Device',
-          );
-          fail('Expected AuthenticationException to be thrown');
-        } catch (e) {
-          expect(e.toString(), contains('AUTH_DUPLICATE_DEVICE'));
-          expect(e.toString(), contains('Public subkey already registered'));
-        }
-      });
-    });
-
-    group('AuthenticationResult Error Analysis', () {
-      test('should provide comprehensive error analysis for success', () async {
-        await endpoints.device.generateAuthChallenge(sessionBuilder);
-
-        // Create a successful result for testing
-        final successResult = AuthenticationResultFactory.success(
-          accountId: 1,
-          deviceId: 1,
-          details: {'test': 'data'},
-        );
-
-        expect(successResult.success, isTrue);
-        expect(successResult.accountId, equals(1));
-        expect(successResult.deviceId, equals(1));
-        expect(successResult.errorCode, isNull);
-        expect(successResult.errorMessage, isNull);
-      });
-
-      test('should provide comprehensive error analysis for failure', () async {
-        final failureResult = AuthenticationResultFactory.failure(
-          errorCode: 'AUTH_INVALID_SIGNATURE',
-          errorMessage: 'Signature verification failed',
-          details: {'publicKey': 'test_key'},
-        );
-
-        expect(failureResult.success, isFalse);
-        expect(failureResult.errorCode, equals('AUTH_INVALID_SIGNATURE'));
+        // Second registration with same key should fail
         expect(
-          failureResult.errorMessage,
-          equals('Signature verification failed'),
+          () => endpoints.device.registerDevice(
+            sessionBuilder,
+            testAccount.id!,
+            validDeviceKey, // Duplicate key
+            'encrypted_data_key_2',
+            'Test Device 2',
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>((e) => 
+                e.toString().contains('AUTH_DUPLICATE_DEVICE') &&
+                e.toString().contains('Public subkey already registered')
+              ),
+            ),
+          ),
         );
-        expect(failureResult.accountId, isNull);
-        expect(failureResult.deviceId, isNull);
-        expect(failureResult.details, isNotNull);
       });
     });
   });

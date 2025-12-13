@@ -146,15 +146,30 @@ class _InternalTestEndpoints extends TestEndpoints
     _i2.SerializationManager serializationManager,
     _i2.EndpointDispatch endpoints,
   ) {
-    account = _AccountEndpoint(endpoints, serializationManager);
-    commerce = _CommerceEndpoint(endpoints, serializationManager);
-    device = _DeviceEndpoint(endpoints, serializationManager);
-    module = _ModuleEndpoint(endpoints, serializationManager);
+    account = _AccountEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    commerce = _CommerceEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    device = _DeviceEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    module = _ModuleEndpoint(
+      endpoints,
+      serializationManager,
+    );
   }
 }
 
 class _AccountEndpoint {
-  _AccountEndpoint(this._endpointDispatch, this._serializationManager);
+  _AccountEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -230,7 +245,10 @@ class _AccountEndpoint {
 }
 
 class _CommerceEndpoint {
-  _CommerceEndpoint(this._endpointDispatch, this._serializationManager);
+  _CommerceEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -287,7 +305,7 @@ class _CommerceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'commerce',
           methodName: 'getProductCatalog',
-          parameters: _i1.testObjectToJson(<String, dynamic>{}),
+          parameters: _i1.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -463,7 +481,10 @@ class _CommerceEndpoint {
 }
 
 class _DeviceEndpoint {
-  _DeviceEndpoint(this._endpointDispatch, this._serializationManager);
+  _DeviceEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -510,7 +531,6 @@ class _DeviceEndpoint {
 
   _i3.Future<_i10.AuthenticationResult> authenticateDevice(
     _i1.TestSessionBuilder sessionBuilder,
-    String publicSubKey,
     String challenge,
     String signature,
   ) async {
@@ -526,7 +546,6 @@ class _DeviceEndpoint {
           endpointPath: 'device',
           methodName: 'authenticateDevice',
           parameters: _i1.testObjectToJson({
-            'publicSubKey': publicSubKey,
             'challenge': challenge,
             'signature': signature,
           }),
@@ -559,7 +578,7 @@ class _DeviceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
           methodName: 'generateAuthChallenge',
-          parameters: _i1.testObjectToJson(<String, dynamic>{}),
+          parameters: _i1.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -577,7 +596,6 @@ class _DeviceEndpoint {
 
   _i3.Future<bool> revokeDevice(
     _i1.TestSessionBuilder sessionBuilder,
-    int accountId,
     int deviceId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -591,10 +609,7 @@ class _DeviceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
           methodName: 'revokeDevice',
-          parameters: _i1.testObjectToJson({
-            'accountId': accountId,
-            'deviceId': deviceId,
-          }),
+          parameters: _i1.testObjectToJson({'deviceId': deviceId}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -612,7 +627,6 @@ class _DeviceEndpoint {
 
   _i3.Future<List<_i9.AccountDevice>> listDevices(
     _i1.TestSessionBuilder sessionBuilder,
-    int accountId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -625,7 +639,7 @@ class _DeviceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
           methodName: 'listDevices',
-          parameters: _i1.testObjectToJson({'accountId': accountId}),
+          parameters: _i1.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -643,7 +657,10 @@ class _DeviceEndpoint {
 }
 
 class _ModuleEndpoint {
-  _ModuleEndpoint(this._endpointDispatch, this._serializationManager);
+  _ModuleEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
 
   final _i2.EndpointDispatch _endpointDispatch;
 

@@ -125,6 +125,7 @@ class EndpointCommerce extends _i1.EndpointRef {
   /// Returns: Map of all products with SKUs as keys and USD prices as values
   ///
   /// Throws:
+  /// - [PaymentException] for price registry errors
   /// - [AnonAccredException] for system errors
   _i2.Future<Map<String, double>> getProductCatalog() =>
       caller.callServerEndpoint<Map<String, double>>(
@@ -316,28 +317,27 @@ class EndpointDevice extends _i1.EndpointRef {
       'encryptedDataKey': encryptedDataKey,
       'label': label,
     },
+    authenticated: false,
   );
 
   /// Authenticate device with challenge-response
   ///
   /// Performs Ed25519 signature verification for device authentication.
   /// Updates the device's last active timestamp on successful authentication.
+  /// Authentication already validated by Serverpod - device key extracted from session.
   ///
   /// Parameters:
-  /// - [publicSubKey]: Ed25519 public key for the device
   /// - [challenge]: The challenge string that was signed
   /// - [signature]: Ed25519 signature of the challenge
   ///
   /// Returns AuthenticationResult with success/failure information.
   _i2.Future<_i9.AuthenticationResult> authenticateDevice(
-    String publicSubKey,
     String challenge,
     String signature,
   ) => caller.callServerEndpoint<_i9.AuthenticationResult>(
     'anonaccred.device',
     'authenticateDevice',
     {
-      'publicSubKey': publicSubKey,
       'challenge': challenge,
       'signature': signature,
     },
@@ -355,49 +355,41 @@ class EndpointDevice extends _i1.EndpointRef {
         'anonaccred.device',
         'generateAuthChallenge',
         {},
+        authenticated: false,
       );
 
   /// Revoke device access
   ///
   /// Marks a device as revoked, preventing future authentication attempts.
   /// The device record is preserved for audit purposes.
+  /// Account ownership automatically verified through authentication.
   ///
   /// Parameters:
-  /// - [accountId]: The account that owns the device
   /// - [deviceId]: The device to revoke
   ///
   /// Returns true if revocation succeeded.
   ///
-  /// Throws AuthenticationException if account/device validation fails or device not found.
-  _i2.Future<bool> revokeDevice(
-    int accountId,
-    int deviceId,
-  ) => caller.callServerEndpoint<bool>(
-    'anonaccred.device',
-    'revokeDevice',
-    {
-      'accountId': accountId,
-      'deviceId': deviceId,
-    },
-  );
+  /// Throws AuthenticationException if device validation fails or device not found.
+  _i2.Future<bool> revokeDevice(int deviceId) =>
+      caller.callServerEndpoint<bool>(
+        'anonaccred.device',
+        'revokeDevice',
+        {'deviceId': deviceId},
+      );
 
   /// List account devices
   ///
-  /// Returns all devices registered to an account with complete metadata.
+  /// Returns all devices registered to the authenticated account with complete metadata.
   /// Includes both active and revoked devices for management purposes.
-  ///
-  /// Parameters:
-  /// - [accountId]: The account to list devices for
+  /// Account ownership automatically verified through authentication.
   ///
   /// Returns list of AccountDevice objects with metadata.
   /// Returns empty list if no devices are registered.
-  ///
-  /// Throws AuthenticationException if account does not exist.
-  _i2.Future<List<_i8.AccountDevice>> listDevices(int accountId) =>
+  _i2.Future<List<_i8.AccountDevice>> listDevices() =>
       caller.callServerEndpoint<List<_i8.AccountDevice>>(
         'anonaccred.device',
         'listDevices',
-        {'accountId': accountId},
+        {},
       );
 }
 

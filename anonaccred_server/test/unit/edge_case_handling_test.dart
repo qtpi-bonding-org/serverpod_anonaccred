@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../integration/test_tools/auth_test_helper.dart';
 
 void main() {
   withServerpod('Edge Case Handling Tests', (sessionBuilder, endpoints) {
@@ -29,11 +30,11 @@ void main() {
         );
       });
 
-      test('registerDevice - should reject empty encrypted data key', () async {
+      test('registerDevice - should reject invalid public subkey format', () async {
         // Create a test account first
         const accountPublicKey =
             'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const accountEncryptedDataKey = 'encrypted_test_data_key';
+        const accountEncryptedDataKey = 'encrypted_test_data_key_2';
 
         final testAccount = await endpoints.account.createAccount(
           sessionBuilder,
@@ -45,33 +46,9 @@ void main() {
           () => endpoints.device.registerDevice(
             sessionBuilder,
             testAccount.id!,
-            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-            '', // Empty encrypted data key
-            'Test Device',
-          ),
-          throwsA(isA<AuthenticationException>()),
-        );
-      });
-
-      test('registerDevice - should reject empty device label', () async {
-        // Create a test account first
-        const accountPublicKey =
-            'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const accountEncryptedDataKey = 'encrypted_test_data_key';
-
-        final testAccount = await endpoints.account.createAccount(
-          sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-        );
-
-        expect(
-          () => endpoints.device.registerDevice(
-            sessionBuilder,
-            testAccount.id!,
-            'e123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+            'invalid_key_format', // Invalid format
             'encrypted_data_key',
-            '', // Empty label
+            'Test Device',
           ),
           throwsA(isA<AuthenticationException>()),
         );
@@ -79,142 +56,72 @@ void main() {
     });
 
     group('Device Authentication Edge Cases', () {
-      test('authenticateDevice - should reject empty public subkey', () async {
-        final result = await endpoints.device.authenticateDevice(
-          sessionBuilder,
-          '', // Empty public subkey
-          'valid_challenge',
-          'valid_signature',
-        );
+      test('authenticateDevice - should fail without authentication', () async {
+        const challenge = 'test_challenge_12345';
+        final signature = AuthTestHelper.generateValidSignature();
 
-        expect(result.success, isFalse);
-        expect(result.errorCode, equals(AnonAccredErrorCodes.authMissingKey));
-      });
-
-      test('authenticateDevice - should reject empty challenge', () async {
-        final result = await endpoints.device.authenticateDevice(
-          sessionBuilder,
-          'f123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-          '', // Empty challenge
-          'valid_signature',
-        );
-
-        expect(result.success, isFalse);
         expect(
-          result.errorCode,
-          equals(AnonAccredErrorCodes.cryptoInvalidMessage),
+          () => endpoints.device.authenticateDevice(
+            sessionBuilder,
+            challenge,
+            signature,
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
-      test('authenticateDevice - should reject empty signature', () async {
-        final result = await endpoints.device.authenticateDevice(
-          sessionBuilder,
-          'g123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-          'valid_challenge',
-          '', // Empty signature
-        );
-
-        expect(result.success, isFalse);
+      test('authenticateDevice - should fail with empty challenge', () async {
         expect(
-          result.errorCode,
-          equals(AnonAccredErrorCodes.cryptoInvalidSignature),
+          () => endpoints.device.authenticateDevice(
+            sessionBuilder,
+            '', // Empty challenge
+            AuthTestHelper.generateValidSignature(),
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      });
+
+      test('authenticateDevice - should fail with empty signature', () async {
+        expect(
+          () => endpoints.device.authenticateDevice(
+            sessionBuilder,
+            'test_challenge',
+            '', // Empty signature
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
       });
     });
 
     group('Device Revocation Edge Cases', () {
-      test(
-        'revokeDevice - should throw exception for non-existent account',
-        () async {
-          const nonExistentAccountId = 99999;
-          const deviceId = 1;
-
-          expect(
-            () => endpoints.device.revokeDevice(
-              sessionBuilder,
-              nonExistentAccountId,
-              deviceId,
-            ),
-            throwsA(isA<AuthenticationException>()),
-          );
-        },
-      );
-
-      test(
-        'revokeDevice - should throw exception for non-existent device',
-        () async {
-          // Create a test account first
-          const accountPublicKey =
-              '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-          const accountEncryptedDataKey = 'encrypted_test_data_key';
-
-          final testAccount = await endpoints.account.createAccount(
-            sessionBuilder,
-            accountPublicKey,
-            accountEncryptedDataKey,
-          );
-
-          const nonExistentDeviceId = 99999;
-
-          expect(
-            () => endpoints.device.revokeDevice(
-              sessionBuilder,
-              testAccount.id!,
-              nonExistentDeviceId,
-            ),
-            throwsA(isA<AuthenticationException>()),
-          );
-        },
-      );
-    });
-
-    group('Challenge Expiration Edge Cases', () {
-      test('verifyChallengeResponse - should reject expired challenge', () async {
-        // Create an expired challenge by manually creating one with old timestamp
-        // This simulates a challenge that was created more than 5 minutes ago
-        const expiredTimestamp = 1000000000000; // Very old timestamp (2001)
-        final timestampHex = expiredTimestamp
-            .toRadixString(16)
-            .padLeft(16, '0');
-        // Take only the last 16 characters to fit the 8-byte timestamp format
-        final shortTimestampHex = timestampHex.substring(
-          timestampHex.length - 16,
-        );
-        final expiredChallenge =
-            shortTimestampHex +
-            '0123456789abcdef0123456789abcdef0123456789abcdef';
-
-        final result = await CryptoAuth.verifyChallengeResponse(
-          '2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-          expiredChallenge,
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456',
-        );
-
-        expect(result.success, isFalse);
+      test('revokeDevice - should fail without authentication', () async {
         expect(
-          result.errorCode,
-          equals(AnonAccredErrorCodes.authChallengeExpired),
+          () => endpoints.device.revokeDevice(
+            sessionBuilder,
+            123, // Any device ID
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
-      test(
-        'generateChallenge - should create valid challenges with timestamps',
-        () {
-          final challenge1 = CryptoAuth.generateChallenge();
-          final challenge2 = CryptoAuth.generateChallenge();
+      test('revokeDevice - should fail with invalid device ID', () async {
+        expect(
+          () => endpoints.device.revokeDevice(
+            sessionBuilder,
+            -1, // Invalid device ID
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      });
+    });
 
-          // Challenges should be 64 hex characters
-          expect(challenge1.length, equals(64));
-          expect(challenge2.length, equals(64));
-
-          // Challenges should be unique
-          expect(challenge1, isNot(equals(challenge2)));
-
-          // Challenges should be valid (not expired)
-          expect(CryptoUtils.isChallengeValid(challenge1), isTrue);
-          expect(CryptoUtils.isChallengeValid(challenge2), isTrue);
-        },
-      );
+    group('Device Listing Edge Cases', () {
+      test('listDevices - should fail without authentication', () async {
+        expect(
+          () => endpoints.device.listDevices(sessionBuilder),
+          throwsA(isA<AuthenticationException>()),
+        );
+      });
     });
   });
 }

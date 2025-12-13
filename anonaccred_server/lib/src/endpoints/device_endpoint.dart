@@ -1,7 +1,9 @@
 import 'package:serverpod/serverpod.dart';
+import '../auth_handler.dart';
 import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
+import '../helpers.dart';
 
 /// Device management endpoints for Ed25519-based device registration and authentication
 ///
@@ -11,6 +13,9 @@ import '../generated/protocol.dart';
 /// - Device revocation and listing
 /// - Integration with existing AccountDevice model from Phase 1
 class DeviceEndpoint extends Endpoint {
+  
+  @override
+  bool get requireLogin => false; // Methods handle authentication individually
   /// Register new device with account
   ///
   /// Creates a new device registration associated with an account.
@@ -159,74 +164,53 @@ class DeviceEndpoint extends Endpoint {
   ///
   /// Performs Ed25519 signature verification for device authentication.
   /// Updates the device's last active timestamp on successful authentication.
+  /// Authentication already validated by Serverpod - device key extracted from session.
   ///
   /// Parameters:
-  /// - [publicSubKey]: Ed25519 public key for the device
   /// - [challenge]: The challenge string that was signed
   /// - [signature]: Ed25519 signature of the challenge
   ///
   /// Returns AuthenticationResult with success/failure information.
   Future<AuthenticationResult> authenticateDevice(
     Session session,
-    String publicSubKey,
     String challenge,
     String signature,
   ) async {
     try {
-      // Validate input parameters
-      if (publicSubKey.isEmpty) {
-        return AuthenticationResultFactory.failure(
-          errorCode: AnonAccredErrorCodes.authMissingKey,
-          errorMessage: 'Public subkey is required for authentication',
-          details: {'publicSubKey': 'empty'},
+      // Check if session is authenticated
+      if (session.authenticated == null) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authMissingKey,
+          message: 'Authentication required for device authentication',
+          operation: 'authenticateDevice',
+          details: {},
         );
       }
+      
+      // Get device key and account ID from authenticated session
+      final publicKey = AnonAccredAuthHandler.getDevicePublicKey(session);
+      final accountId = int.parse(session.authenticated!.userIdentifier);
+      
+      // Validate input parameters using helpers
+      AnonAccredHelpers.validateNonEmpty(challenge, 'challenge', 'authenticateDevice');
+      AnonAccredHelpers.validateNonEmpty(signature, 'signature', 'authenticateDevice');
 
-      if (challenge.isEmpty) {
-        return AuthenticationResultFactory.failure(
-          errorCode: AnonAccredErrorCodes.cryptoInvalidMessage,
-          errorMessage: 'Challenge is required for authentication',
-          details: {'challenge': 'empty'},
-        );
-      }
-
-      if (signature.isEmpty) {
-        return AuthenticationResultFactory.failure(
-          errorCode: AnonAccredErrorCodes.cryptoInvalidSignature,
-          errorMessage: 'Signature is required for authentication',
-          details: {'signature': 'empty'},
-        );
-      }
-
-      // Find device by public subkey
+      // Find device by public subkey (should exist since authentication passed)
       final device = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.publicSubKey.equals(publicSubKey),
+        where: (t) => t.publicSubKey.equals(publicKey),
       );
 
-      if (device == null) {
-        return AuthenticationResultFactory.failure(
-          errorCode: AnonAccredErrorCodes.authDeviceNotFound,
-          errorMessage: 'Device not found',
-          details: {'publicSubKey': publicSubKey},
-        );
-      }
-
-      // Check if device is revoked
-      if (device.isRevoked) {
-        return AuthenticationResultFactory.failure(
-          errorCode: AnonAccredErrorCodes.authDeviceRevoked,
-          errorMessage: 'Device has been revoked',
-          details: {
-            'deviceId': device.id.toString(),
-            'publicSubKey': publicSubKey,
-          },
-        );
-      }
+      // Use helper to ensure device exists and is active
+      final activeDevice = AnonAccredHelpers.requireActiveDevice(
+        device, 
+        publicKey, 
+        'authenticateDevice',
+      );
 
       // Verify challenge-response signature
       final verificationResult = await CryptoAuth.verifyChallengeResponse(
-        publicSubKey,
+        publicKey,
         challenge,
         signature,
       );
@@ -235,27 +219,28 @@ class DeviceEndpoint extends Endpoint {
         // Update last active timestamp
         final updatedDevice = await AccountDevice.db.updateRow(
           session,
-          device.copyWith(lastActive: DateTime.now()),
+          activeDevice.copyWith(lastActive: DateTime.now()),
         );
 
         return AuthenticationResultFactory.success(
-          accountId: device.accountId,
-          deviceId: device.id,
+          accountId: accountId,
+          deviceId: activeDevice.id,
           details: {
-            'publicSubKey': publicSubKey,
+            'publicSubKey': publicKey,
             'lastActive': updatedDevice.lastActive.toIso8601String(),
           },
         );
       } else {
         return verificationResult; // Return the failure result from crypto verification
       }
-    } on Exception catch (e) {
-      // Log unexpected error
-
-      return AuthenticationResultFactory.failure(
-        errorCode: AnonAccredErrorCodes.databaseError,
-        errorMessage: 'Authentication failed: ${e.toString()}',
-        details: {'error': e.toString(), 'publicSubKey': publicSubKey},
+    } on AuthenticationException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.databaseError,
+        message: 'Authentication failed: ${e.toString()}',
+        operation: 'authenticateDevice',
+        details: {'error': e.toString()},
       );
     }
   }
@@ -274,74 +259,71 @@ class DeviceEndpoint extends Endpoint {
   ///
   /// Marks a device as revoked, preventing future authentication attempts.
   /// The device record is preserved for audit purposes.
+  /// Account ownership automatically verified through authentication.
   ///
   /// Parameters:
-  /// - [accountId]: The account that owns the device
   /// - [deviceId]: The device to revoke
   ///
   /// Returns true if revocation succeeded.
   ///
-  /// Throws AuthenticationException if account/device validation fails or device not found.
+  /// Throws AuthenticationException if device validation fails or device not found.
   Future<bool> revokeDevice(
     Session session,
-    int accountId,
     int deviceId,
   ) async {
     try {
-      // Verify account exists first
-      final account = await AnonAccount.db.findById(session, accountId);
-      if (account == null) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authAccountNotFound,
-              message: 'Account not found',
-              operation: 'revokeDevice',
-              details: {'accountId': accountId.toString()},
-            );
-
-        throw exception;
+      // Check if session is authenticated
+      if (session.authenticated == null) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authMissingKey,
+          message: 'Authentication required for device revocation',
+          operation: 'revokeDevice',
+          details: {},
+        );
+      }
+      
+      // Validate deviceId parameter
+      if (deviceId <= 0) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authMissingKey,
+          message: 'deviceId is required for revokeDevice',
+          operation: 'revokeDevice',
+          details: {'deviceId': deviceId.toString()},
+        );
       }
 
-      // Find device and verify it belongs to the account
+      // Get authenticated account ID from session
+      final accountId = int.parse(session.authenticated!.userIdentifier);
+      
+      // Find device and verify it belongs to the authenticated account
       final device = await AccountDevice.db.findFirstRow(
         session,
         where: (t) => t.id.equals(deviceId) & t.accountId.equals(accountId),
       );
 
-      if (device == null) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authDeviceNotFound,
-              message: 'Device not found or does not belong to account',
-              operation: 'revokeDevice',
-              details: {
-                'accountId': accountId.toString(),
-                'deviceId': deviceId.toString(),
-              },
-            );
-
-        throw exception;
-      }
+      // Use helper to ensure device exists and belongs to account
+      final foundDevice = AnonAccredHelpers.requireDevice(
+        device, 
+        'deviceId:$deviceId', 
+        'revokeDevice',
+      );
 
       // Mark device as revoked
       await AccountDevice.db.updateRow(
         session,
-        device.copyWith(isRevoked: true),
+        foundDevice.copyWith(isRevoked: true),
       );
 
       return true;
     } on AuthenticationException {
       rethrow;
     } catch (e) {
-      // Log unexpected error
-
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.databaseError,
         message: 'Failed to revoke device: ${e.toString()}',
         operation: 'revokeDevice',
         details: {
           'error': e.toString(),
-          'accountId': accountId.toString(),
           'deviceId': deviceId.toString(),
         },
       );
@@ -350,36 +332,27 @@ class DeviceEndpoint extends Endpoint {
 
   /// List account devices
   ///
-  /// Returns all devices registered to an account with complete metadata.
+  /// Returns all devices registered to the authenticated account with complete metadata.
   /// Includes both active and revoked devices for management purposes.
-  ///
-  /// Parameters:
-  /// - [accountId]: The account to list devices for
+  /// Account ownership automatically verified through authentication.
   ///
   /// Returns list of AccountDevice objects with metadata.
   /// Returns empty list if no devices are registered.
-  ///
-  /// Throws AuthenticationException if account does not exist.
-  Future<List<AccountDevice>> listDevices(
-    Session session,
-    int accountId,
-  ) async {
+  Future<List<AccountDevice>> listDevices(Session session) async {
     try {
-      // Verify account exists
-      final account = await AnonAccount.db.findById(session, accountId);
-      if (account == null) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authAccountNotFound,
-              message: 'Account not found',
-              operation: 'listDevices',
-              details: {'accountId': accountId.toString()},
-            );
-
-        throw exception;
+      // Check if session is authenticated
+      if (session.authenticated == null) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authMissingKey,
+          message: 'Authentication required for listing devices',
+          operation: 'listDevices',
+          details: {},
+        );
       }
-
-      // Find all devices for the account
+      
+      final accountId = int.parse(session.authenticated!.userIdentifier);
+      
+      // Find all devices for the authenticated account
       final devices = await AccountDevice.db.find(
         session,
         where: (t) => t.accountId.equals(accountId),
@@ -388,16 +361,12 @@ class DeviceEndpoint extends Endpoint {
       );
 
       return devices;
-    } on AuthenticationException {
-      rethrow;
     } catch (e) {
-      // Log unexpected error
-
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.databaseError,
         message: 'Failed to list devices: ${e.toString()}',
         operation: 'listDevices',
-        details: {'error': e.toString(), 'accountId': accountId.toString()},
+        details: {'error': e.toString()},
       );
     }
   }
