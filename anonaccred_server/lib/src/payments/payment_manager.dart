@@ -4,6 +4,8 @@ import '../generated/payment_rail.dart';
 import '../generated/payment_request.dart';
 import 'payment_rail_interface.dart';
 import 'x402_payment_rail.dart';
+import 'rails/apple_iap_rail.dart';
+import 'rails/google_iap_rail.dart';
 
 /// Payment Manager factory for routing payment requests to appropriate rails
 /// 
@@ -148,5 +150,57 @@ class PaymentManager {
         session?.log('Failed to register X402 rail: $e', level: LogLevel.warning);
       }
     }
+  }
+
+  /// Initialize Apple IAP payment rail (simple registration)
+  /// 
+  /// [session] - Serverpod session for logging (optional)
+  /// 
+  /// Registers Apple IAP rail if not already registered
+  /// 
+  /// Requirements 4.1, 4.2: IAP rail integration with existing payment patterns
+  static void initializeAppleIAPRail([Session? session]) {
+    if (!isRailRegistered(PaymentRail.apple_iap)) {
+      try {
+        registerRail(AppleIAPRail());
+        session?.log('Apple IAP Payment Rail registered', level: LogLevel.info);
+      } catch (e) {
+        session?.log('Failed to register Apple IAP rail: $e', level: LogLevel.warning);
+      }
+    }
+  }
+
+  /// Initialize Google IAP payment rail (simple registration)
+  /// 
+  /// [session] - Serverpod session for logging (optional)
+  /// 
+  /// Registers Google IAP rail if not already registered
+  /// 
+  /// Requirements 4.1, 4.2: IAP rail integration with existing payment patterns
+  static void initializeGoogleIAPRail([Session? session]) {
+    if (!isRailRegistered(PaymentRail.google_iap)) {
+      try {
+        registerRail(GoogleIAPRail());
+        session?.log('Google IAP Payment Rail registered', level: LogLevel.info);
+      } catch (e) {
+        session?.log('Failed to register Google IAP rail: $e', level: LogLevel.warning);
+      }
+    }
+  }
+
+  /// Initialize all available payment rails
+  /// 
+  /// [session] - Serverpod session for logging (optional)
+  /// 
+  /// Convenience method to register all supported payment rails
+  static void initializeAllRails([Session? session]) {
+    initializeX402Rail(session);
+    initializeAppleIAPRail(session);
+    initializeGoogleIAPRail(session);
+    
+    session?.log(
+      'Payment rails initialized: ${getRegisteredRailTypes().map((r) => r.toString()).join(', ')}',
+      level: LogLevel.info,
+    );
   }
 }

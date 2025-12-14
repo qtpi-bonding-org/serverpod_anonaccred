@@ -140,6 +140,8 @@ class TestEndpoints {
   late final _ModuleEndpoint module;
 
   late final _PaymentEndpoint payment;
+
+  late final _X402Endpoint x402;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -166,6 +168,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     payment = _PaymentEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    x402 = _X402Endpoint(
       endpoints,
       serializationManager,
     );
@@ -510,6 +516,84 @@ class _CommerceEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<_i8.ConsumeResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> getProductCatalogWithX402(
+    _i1.TestSessionBuilder sessionBuilder,
+    String publicKey,
+    String signature, {
+    Map<String, String>? headers,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'commerce',
+            method: 'getProductCatalogWithX402',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'commerce',
+          methodName: 'getProductCatalogWithX402',
+          parameters: _i1.testObjectToJson({
+            'publicKey': publicKey,
+            'signature': signature,
+            'headers': headers,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> getBalanceWithX402(
+    _i1.TestSessionBuilder sessionBuilder,
+    String publicKey,
+    String signature,
+    int accountId,
+    String consumableType, {
+    Map<String, String>? headers,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'commerce',
+            method: 'getBalanceWithX402',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'commerce',
+          methodName: 'getBalanceWithX402',
+          parameters: _i1.testObjectToJson({
+            'publicKey': publicKey,
+            'signature': signature,
+            'accountId': accountId,
+            'consumableType': consumableType,
+            'headers': headers,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1052,6 +1136,140 @@ class _PaymentEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> requestPaymentStatusWithX402(
+    _i1.TestSessionBuilder sessionBuilder,
+    String publicKey,
+    String signature,
+    String orderId, {
+    Map<String, String>? headers,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'payment',
+            method: 'requestPaymentStatusWithX402',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'payment',
+          methodName: 'requestPaymentStatusWithX402',
+          parameters: _i1.testObjectToJson({
+            'publicKey': publicKey,
+            'signature': signature,
+            'orderId': orderId,
+            'headers': headers,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _X402Endpoint {
+  _X402Endpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<Map<String, dynamic>> requestPaidResource(
+    _i1.TestSessionBuilder sessionBuilder,
+    String publicKey,
+    String signature,
+    String resourceId,
+    int accountId, {
+    Map<String, String>? headers,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'x402',
+            method: 'requestPaidResource',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'x402',
+          methodName: 'requestPaidResource',
+          parameters: _i1.testObjectToJson({
+            'publicKey': publicKey,
+            'signature': signature,
+            'resourceId': resourceId,
+            'accountId': accountId,
+            'headers': headers,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> requestConsumableAccess(
+    _i1.TestSessionBuilder sessionBuilder,
+    String publicKey,
+    String signature,
+    String consumableType,
+    double quantity,
+    int accountId, {
+    Map<String, String>? headers,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'x402',
+            method: 'requestConsumableAccess',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'x402',
+          methodName: 'requestConsumableAccess',
+          parameters: _i1.testObjectToJson({
+            'publicKey': publicKey,
+            'signature': signature,
+            'consumableType': consumableType,
+            'quantity': quantity,
+            'accountId': accountId,
+            'headers': headers,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

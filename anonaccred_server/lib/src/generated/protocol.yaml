@@ -9,6 +9,8 @@ commerce:
   - getInventory:
   - getBalance:
   - consumeInventory:
+  - getProductCatalogWithX402:
+  - getBalanceWithX402:
 device:
   - registerDevice:
   - authenticateDevice:
@@ -27,3 +29,7 @@ payment:
   - processX402Webhook:
   - processAppleIAPWebhook:
   - processGoogleIAPWebhook:
+  - requestPaymentStatusWithX402:
+x402:
+  - requestPaidResource:
+  - requestConsumableAccess:

@@ -16,7 +16,8 @@ import '../endpoints/commerce_endpoint.dart' as _i3;
 import '../endpoints/device_endpoint.dart' as _i4;
 import '../endpoints/module_endpoint.dart' as _i5;
 import '../endpoints/payment_endpoint.dart' as _i6;
-import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i7;
+import '../endpoints/x402_endpoint.dart' as _i7;
+import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i8;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -50,6 +51,12 @@ class Endpoints extends _i1.EndpointDispatch {
         ..initialize(
           server,
           'payment',
+          'anonaccred',
+        ),
+      'x402': _i7.X402Endpoint()
+        ..initialize(
+          server,
+          'x402',
           'anonaccred',
         ),
     };
@@ -192,7 +199,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'paymentRail': _i1.ParameterDescription(
               name: 'paymentRail',
-              type: _i1.getType<_i7.PaymentRail>(),
+              type: _i1.getType<_i8.PaymentRail>(),
               nullable: false,
             ),
           },
@@ -319,6 +326,80 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['accountId'],
                     params['consumableType'],
                     params['quantity'],
+                  ),
+        ),
+        'getProductCatalogWithX402': _i1.MethodConnector(
+          name: 'getProductCatalogWithX402',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'headers': _i1.ParameterDescription(
+              name: 'headers',
+              type: _i1.getType<Map<String, String>?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+                  .getProductCatalogWithX402(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    headers: params['headers'],
+                  ),
+        ),
+        'getBalanceWithX402': _i1.MethodConnector(
+          name: 'getBalanceWithX402',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'accountId': _i1.ParameterDescription(
+              name: 'accountId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'consumableType': _i1.ParameterDescription(
+              name: 'consumableType',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'headers': _i1.ParameterDescription(
+              name: 'headers',
+              type: _i1.getType<Map<String, String>?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+                  .getBalanceWithX402(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['accountId'],
+                    params['consumableType'],
+                    headers: params['headers'],
                   ),
         ),
       },
@@ -577,7 +658,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'railType': _i1.ParameterDescription(
               name: 'railType',
-              type: _i1.getType<_i7.PaymentRail>(),
+              type: _i1.getType<_i8.PaymentRail>(),
               nullable: false,
             ),
           },
@@ -699,6 +780,141 @@ class Endpoints extends _i1.EndpointDispatch {
                   .processGoogleIAPWebhook(
                     session,
                     params['webhookData'],
+                  ),
+        ),
+        'requestPaymentStatusWithX402': _i1.MethodConnector(
+          name: 'requestPaymentStatusWithX402',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'headers': _i1.ParameterDescription(
+              name: 'headers',
+              type: _i1.getType<Map<String, String>?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+                  .requestPaymentStatusWithX402(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['orderId'],
+                    headers: params['headers'],
+                  ),
+        ),
+      },
+    );
+    connectors['x402'] = _i1.EndpointConnector(
+      name: 'x402',
+      endpoint: endpoints['x402']!,
+      methodConnectors: {
+        'requestPaidResource': _i1.MethodConnector(
+          name: 'requestPaidResource',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'resourceId': _i1.ParameterDescription(
+              name: 'resourceId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'accountId': _i1.ParameterDescription(
+              name: 'accountId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'headers': _i1.ParameterDescription(
+              name: 'headers',
+              type: _i1.getType<Map<String, String>?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['x402'] as _i7.X402Endpoint).requestPaidResource(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['resourceId'],
+                    params['accountId'],
+                    headers: params['headers'],
+                  ),
+        ),
+        'requestConsumableAccess': _i1.MethodConnector(
+          name: 'requestConsumableAccess',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'consumableType': _i1.ParameterDescription(
+              name: 'consumableType',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'quantity': _i1.ParameterDescription(
+              name: 'quantity',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'accountId': _i1.ParameterDescription(
+              name: 'accountId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'headers': _i1.ParameterDescription(
+              name: 'headers',
+              type: _i1.getType<Map<String, String>?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['x402'] as _i7.X402Endpoint)
+                  .requestConsumableAccess(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['consumableType'],
+                    params['quantity'],
+                    params['accountId'],
+                    headers: params['headers'],
                   ),
         ),
       },
