@@ -3,6 +3,7 @@ import '../exception_factory.dart';
 import '../generated/payment_rail.dart';
 import '../generated/payment_request.dart';
 import 'payment_rail_interface.dart';
+import 'x402_payment_rail.dart';
 
 /// Payment Manager factory for routing payment requests to appropriate rails
 /// 
@@ -131,5 +132,21 @@ class PaymentManager {
   /// Returns true if the rail is registered, false otherwise
   static bool isRailRegistered(PaymentRail railType) {
     return _rails.containsKey(railType);
+  }
+  
+  /// Initialize X402 payment rail (simple registration)
+  /// 
+  /// [session] - Serverpod session for logging (optional)
+  /// 
+  /// Registers X402 rail if not already registered
+  static void initializeX402Rail([Session? session]) {
+    if (!isRailRegistered(PaymentRail.x402_http)) {
+      try {
+        registerRail(X402PaymentRail());
+        session?.log('X402 HTTP Payment Rail registered', level: LogLevel.info);
+      } catch (e) {
+        session?.log('Failed to register X402 rail: $e', level: LogLevel.warning);
+      }
+    }
   }
 }

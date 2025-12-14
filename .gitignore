@@ -51,3 +51,9 @@ doc/api/
 # Backup files
 *.backup
 *.bak
+
+# Documentation and markdown files
+*.md
+!README.md
+doc/
+example/

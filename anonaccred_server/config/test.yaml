@@ -46,3 +46,25 @@ redis:
 sessionLogs:
   persistentEnabled: true
   consoleEnabled: true
+
+# AnonAccred specific configuration for testing
+anonaccred:
+  # Property-based test iterations for testing (fast feedback)
+  pbt_iterations: 5
+  
+  # Error handling configuration
+  error_classification:
+    enabled: true
+    include_stack_traces: true
+  
+  # Privacy-safe logging configuration
+  privacy_logging:
+    enabled: true
+    log_public_keys: true
+    log_order_ids: true
+    log_account_ids: true
+  
+  # X402 HTTP Payment Rail configuration for testing
+  x402:
+    facilitator_url: "http://localhost:8090/verify"
+    destination_address: "bc1qtest123456789abcdef"

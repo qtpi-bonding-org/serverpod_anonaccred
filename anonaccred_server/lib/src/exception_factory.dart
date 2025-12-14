@@ -88,6 +88,12 @@ class AnonAccredErrorCodes {
   static const String paymentFailed = 'PAYMENT_FAILED';
   static const String paymentInsufficientFunds = 'PAYMENT_INSUFFICIENT_FUNDS';
   static const String paymentInvalidRail = 'PAYMENT_INVALID_RAIL';
+  
+  // X402-specific error codes
+  static const String x402FacilitatorUnavailable = 'X402_FACILITATOR_UNAVAILABLE';
+  static const String x402InvalidPaymentPayload = 'X402_INVALID_PAYMENT_PAYLOAD';
+  static const String x402ConfigurationMissing = 'X402_CONFIGURATION_MISSING';
+  static const String x402VerificationFailed = 'X402_VERIFICATION_FAILED';
 
   // Inventory error codes
   static const String inventoryInsufficientBalance =

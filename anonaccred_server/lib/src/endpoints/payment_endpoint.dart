@@ -5,6 +5,7 @@ import '../generated/protocol.dart';
 import '../payments/payment_manager.dart';
 import '../payments/payment_processor.dart';
 import '../payments/webhook_handler.dart';
+import '../payments/x402_interceptor.dart';
 
 /// Payment endpoints for AnonAccred Phase 4 payment rail architecture
 ///
@@ -325,6 +326,96 @@ class PaymentEndpoint extends Endpoint {
         level: LogLevel.error,
       );
       return 'Webhook received';
+    }
+  }
+
+  /// Request payment status with X402 integration
+  ///
+  /// Demonstrates X402 integration with existing payment endpoints.
+  /// This endpoint can be accessed with or without payment, showcasing
+  /// the X402 protocol flow for pay-per-use API access.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [orderId]: Order ID to check status for
+  /// - [headers]: HTTP headers (may contain X-PAYMENT)
+  ///
+  /// Returns: Either HTTP 402 payment requirement or payment status
+  ///
+  /// Requirements 5.1, 5.2, 5.3: X402 endpoint integration
+  Future<Map<String, dynamic>> requestPaymentStatusWithX402(
+    Session session,
+    String publicKey,
+    String signature,
+    String orderId, {
+    Map<String, String>? headers,
+  }) async {
+    try {
+      // Validate authentication
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'requestPaymentStatusWithX402',
+      );
+
+      // Use X402 interceptor to handle payment flow
+      return await X402Interceptor.interceptRequest(
+        session: session,
+        headers: headers ?? <String, String>{},
+        resourceId: 'payment_status_$orderId',
+        amount: 0.50, // $0.50 for payment status access
+        onPaymentRequired: () async {
+          return await X402Interceptor.generatePaymentRequired(
+            session: session,
+            resourceId: 'payment_status_$orderId',
+            amount: 0.50,
+            description: 'Access to payment status for order $orderId',
+          );
+        },
+        onPaymentVerified: () async {
+          // Payment verified - provide payment status
+          final transaction = await PaymentProcessor.getTransactionByExternalId(
+            session,
+            orderId,
+          );
+
+          if (transaction == null) {
+            throw AnonAccredExceptionFactory.createPaymentException(
+              code: AnonAccredErrorCodes.orderInvalidProduct,
+              message: 'Transaction not found for order ID: $orderId',
+              orderId: orderId,
+              details: {'operation': 'requestPaymentStatusWithX402'},
+            );
+          }
+
+          return {
+            'success': true,
+            'orderId': orderId,
+            'status': transaction.status.name,
+            'amount': transaction.price,
+            'paymentRail': transaction.paymentRail?.name,
+            'paymentRef': transaction.paymentRef,
+            'accessTime': DateTime.now().toIso8601String(),
+            'paymentMethod': 'x402_http',
+          };
+        },
+      );
+
+    } on AuthenticationException {
+      rethrow;
+    } on PaymentException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createException(
+        code: AnonAccredErrorCodes.internalError,
+        message: 'Unexpected error in X402 payment status request: ${e.toString()}',
+        details: {
+          'error': e.toString(),
+          'orderId': orderId,
+        },
+      );
     }
   }
 

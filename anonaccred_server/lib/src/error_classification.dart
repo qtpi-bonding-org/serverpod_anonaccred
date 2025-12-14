@@ -44,6 +44,16 @@ class AnonAccredExceptionUtils {
       case AnonAccredErrorCodes.priceRegistryOperationFailed:
         return true;
 
+      // X402-specific retryable errors
+      case AnonAccredErrorCodes.x402FacilitatorUnavailable:
+        return true;
+
+      // X402-specific non-retryable errors
+      case AnonAccredErrorCodes.x402InvalidPaymentPayload:
+      case AnonAccredErrorCodes.x402ConfigurationMissing:
+      case AnonAccredErrorCodes.x402VerificationFailed:
+        return false;
+
       // Default to non-retryable for unknown codes
       default:
         return false;
@@ -94,6 +104,7 @@ class AnonAccredExceptionUtils {
       case AnonAccredErrorCodes.networkTimeout:
       case AnonAccredErrorCodes.cryptoVerificationFailed:
       case AnonAccredErrorCodes.priceRegistryOperationFailed:
+      case AnonAccredErrorCodes.x402FacilitatorUnavailable:
         return 'medium';
       
       // Low severity - client errors
@@ -106,7 +117,7 @@ class AnonAccredExceptionUtils {
   static String _getCategory(String errorCode) {
     if (errorCode.startsWith('AUTH_') || errorCode.startsWith('CRYPTO_')) {
       return 'authentication';
-    } else if (errorCode.startsWith('PAYMENT_') || errorCode.startsWith('PRICE_REGISTRY_')) {
+    } else if (errorCode.startsWith('PAYMENT_') || errorCode.startsWith('PRICE_REGISTRY_') || errorCode.startsWith('X402_')) {
       return 'payment';
     } else if (errorCode.startsWith('INVENTORY_')) {
       return 'inventory';
@@ -151,6 +162,16 @@ class AnonAccredExceptionUtils {
         return 'Retry the operation after a brief delay';
       case AnonAccredErrorCodes.databaseError:
         return 'Contact support if problem persists';
+      
+      // X402-specific errors
+      case AnonAccredErrorCodes.x402FacilitatorUnavailable:
+        return 'Facilitator service is unavailable, retry after a brief delay';
+      case AnonAccredErrorCodes.x402InvalidPaymentPayload:
+        return 'Verify X-PAYMENT header format and regenerate payment proof';
+      case AnonAccredErrorCodes.x402ConfigurationMissing:
+        return 'Configure X402_FACILITATOR_URL and X402_DESTINATION_ADDRESS environment variables';
+      case AnonAccredErrorCodes.x402VerificationFailed:
+        return 'Payment verification failed, ensure payment is valid and complete';
       
       default:
         return 'Review error details and retry if appropriate';

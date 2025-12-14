@@ -79,6 +79,25 @@
 ///   quantity: 10.0,
 /// );
 /// ```
+///
+/// ### Payment System
+///
+/// ```dart
+/// // Initialize X402 payment rail (simple registration)
+/// PaymentManager.initializeX402Rail(session);
+///
+/// // Create X402 HTTP payment
+/// final paymentRequest = await PaymentManager.createPayment(
+///   session: session,
+///   railType: PaymentRail.x402_http,
+///   amountUSD: 10.00,
+///   orderId: 'order_123',
+/// );
+///
+/// // Process payment callback (X402 verification)
+/// final rail = PaymentManager.getRail(PaymentRail.x402_http);
+/// final result = await rail?.processCallback(callbackData);
+/// ```
 
 // Authentication handler for Serverpod integration
 export 'src/auth_handler.dart';
@@ -108,5 +127,6 @@ export 'src/price_registry.dart';
 export 'src/payments/payment_manager.dart';
 export 'src/payments/payment_processor.dart';
 export 'src/payments/payment_rail_interface.dart';
+export 'src/payments/x402_payment_rail.dart';
 
 // Transaction utilities removed - use Serverpod built-in patterns

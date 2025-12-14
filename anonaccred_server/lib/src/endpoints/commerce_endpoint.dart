@@ -1,10 +1,12 @@
 import 'package:serverpod/serverpod.dart';
+
 import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../inventory_manager.dart';
 import '../inventory_utils.dart';
 import '../order_manager.dart';
+import '../payments/x402_interceptor.dart';
 import '../price_registry.dart';
 
 /// Commerce endpoints for AnonAccred Phase 3 commerce foundation
@@ -411,6 +413,174 @@ class CommerceEndpoint extends Endpoint {
         message:
             'Unexpected error during inventory consumption: ${e.toString()}',
         details: {'error': e.toString()},
+      );
+    }
+  }
+
+  /// Get product catalog with X402 pay-per-access integration
+  ///
+  /// Demonstrates X402 integration with commerce endpoints for pay-per-use access.
+  /// This endpoint can be accessed with or without payment, showcasing micropayments
+  /// for AI agents and autonomous systems.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [headers]: HTTP headers (may contain X-PAYMENT)
+  ///
+  /// Returns: Either HTTP 402 payment requirement or product catalog
+  ///
+  /// Requirements 5.4, 5.5: Support AI agents with pay-per-use model
+  Future<Map<String, dynamic>> getProductCatalogWithX402(
+    Session session,
+    String publicKey,
+    String signature, {
+    Map<String, String>? headers,
+  }) async {
+    try {
+      // Validate authentication
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'getProductCatalogWithX402',
+      );
+
+      // Use X402 interceptor to handle payment flow
+      return await X402Interceptor.interceptRequest(
+        session: session,
+        headers: headers ?? <String, String>{},
+        resourceId: 'product_catalog',
+        amount: 0.25, // $0.25 for catalog access
+        onPaymentRequired: () async {
+          return await X402Interceptor.generatePaymentRequired(
+            session: session,
+            resourceId: 'product_catalog',
+            amount: 0.25,
+            description: 'Access to complete product catalog',
+          );
+        },
+        onPaymentVerified: () async {
+          // Payment verified - provide product catalog
+          final registry = PriceRegistry();
+          final catalog = registry.getProductCatalog();
+
+          return {
+            'success': true,
+            'catalog': catalog,
+            'accessTime': DateTime.now().toIso8601String(),
+            'paymentMethod': 'x402_http',
+            'catalogSize': catalog.length,
+          };
+        },
+      );
+
+    } on AuthenticationException {
+      rethrow;
+    } on PaymentException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createException(
+        code: AnonAccredErrorCodes.internalError,
+        message: 'Unexpected error in X402 catalog request: ${e.toString()}',
+        details: {
+          'error': e.toString(),
+        },
+      );
+    }
+  }
+
+  /// Get inventory balance with X402 pay-per-query integration
+  ///
+  /// Demonstrates X402 integration for inventory queries with micropayments.
+  /// Supports autonomous systems that need to check balances programmatically.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [accountId]: Account ID to check balance for
+  /// - [consumableType]: Consumable type to check
+  /// - [headers]: HTTP headers (may contain X-PAYMENT)
+  ///
+  /// Returns: Either HTTP 402 payment requirement or balance information
+  ///
+  /// Requirements 5.4, 5.5: Support AI agents with pay-per-use model
+  Future<Map<String, dynamic>> getBalanceWithX402(
+    Session session,
+    String publicKey,
+    String signature,
+    int accountId,
+    String consumableType, {
+    Map<String, String>? headers,
+  }) async {
+    try {
+      // Validate authentication
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'getBalanceWithX402',
+      );
+
+      // Validate consumable type
+      if (consumableType.isEmpty) {
+        throw AnonAccredExceptionFactory.createInventoryException(
+          code: AnonAccredErrorCodes.inventoryInvalidConsumable,
+          message: 'Consumable type cannot be empty',
+          accountId: accountId,
+          consumableType: consumableType,
+          details: {'consumableType': 'empty'},
+        );
+      }
+
+      // Use X402 interceptor to handle payment flow
+      return await X402Interceptor.interceptRequest(
+        session: session,
+        headers: headers ?? <String, String>{},
+        resourceId: 'balance_${accountId}_$consumableType',
+        amount: 0.05, // $0.05 for balance query
+        onPaymentRequired: () async {
+          return await X402Interceptor.generatePaymentRequired(
+            session: session,
+            resourceId: 'balance_${accountId}_$consumableType',
+            amount: 0.05,
+            description: 'Balance query for $consumableType',
+          );
+        },
+        onPaymentVerified: () async {
+          // Payment verified - provide balance information
+          final balance = await InventoryManager.getBalance(
+            session,
+            accountId: accountId,
+            consumableType: consumableType,
+          );
+
+          return {
+            'success': true,
+            'accountId': accountId,
+            'consumableType': consumableType,
+            'balance': balance,
+            'accessTime': DateTime.now().toIso8601String(),
+            'paymentMethod': 'x402_http',
+          };
+        },
+      );
+
+    } on AuthenticationException {
+      rethrow;
+    } on InventoryException {
+      rethrow;
+    } on PaymentException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createException(
+        code: AnonAccredErrorCodes.internalError,
+        message: 'Unexpected error in X402 balance request: ${e.toString()}',
+        details: {
+          'error': e.toString(),
+          'accountId': accountId.toString(),
+          'consumableType': consumableType,
+        },
       );
     }
   }
