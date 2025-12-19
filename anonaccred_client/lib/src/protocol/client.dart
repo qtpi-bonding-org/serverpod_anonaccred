@@ -286,6 +286,67 @@ class EndpointCommerce extends _i1.EndpointRef {
       'quantity': quantity,
     },
   );
+
+  /// Get product catalog with X402 pay-per-access integration
+  ///
+  /// Demonstrates X402 integration with commerce endpoints for pay-per-use access.
+  /// This endpoint can be accessed with or without payment, showcasing micropayments
+  /// for AI agents and autonomous systems.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [headers]: HTTP headers (may contain X-PAYMENT)
+  ///
+  /// Returns: Either HTTP 402 payment requirement or product catalog
+  ///
+  /// Requirements 5.4, 5.5: Support AI agents with pay-per-use model
+  _i2.Future<Map<String, dynamic>> getProductCatalogWithX402(
+    String publicKey,
+    String signature, {
+    Map<String, String>? headers,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.commerce',
+    'getProductCatalogWithX402',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'headers': headers,
+    },
+  );
+
+  /// Get inventory balance with X402 pay-per-query integration
+  ///
+  /// Demonstrates X402 integration for inventory queries with micropayments.
+  /// Supports autonomous systems that need to check balances programmatically.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [accountId]: Account ID to check balance for
+  /// - [consumableType]: Consumable type to check
+  /// - [headers]: HTTP headers (may contain X-PAYMENT)
+  ///
+  /// Returns: Either HTTP 402 payment requirement or balance information
+  ///
+  /// Requirements 5.4, 5.5: Support AI agents with pay-per-use model
+  _i2.Future<Map<String, dynamic>> getBalanceWithX402(
+    String publicKey,
+    String signature,
+    int accountId,
+    String consumableType, {
+    Map<String, String>? headers,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.commerce',
+    'getBalanceWithX402',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'accountId': accountId,
+      'consumableType': consumableType,
+      'headers': headers,
+    },
+  );
 }
 
 /// Device management endpoints for Ed25519-based device registration and authentication
@@ -622,6 +683,126 @@ class EndpointPayment extends _i1.EndpointRef {
     'processGoogleIAPWebhook',
     {'webhookData': webhookData},
   );
+
+  /// Request payment status with X402 integration
+  ///
+  /// Demonstrates X402 integration with existing payment endpoints.
+  /// This endpoint can be accessed with or without payment, showcasing
+  /// the X402 protocol flow for pay-per-use API access.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [orderId]: Order ID to check status for
+  /// - [headers]: HTTP headers (may contain X-PAYMENT)
+  ///
+  /// Returns: Either HTTP 402 payment requirement or payment status
+  ///
+  /// Requirements 5.1, 5.2, 5.3: X402 endpoint integration
+  _i2.Future<Map<String, dynamic>> requestPaymentStatusWithX402(
+    String publicKey,
+    String signature,
+    String orderId, {
+    Map<String, String>? headers,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.payment',
+    'requestPaymentStatusWithX402',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'orderId': orderId,
+      'headers': headers,
+    },
+  );
+}
+
+/// X402 HTTP Payment Rail endpoint integration
+///
+/// Demonstrates X402 protocol integration with AnonAccred endpoints.
+/// Supports the standard client-server communication flow where clients
+/// can request resources and receive HTTP 402 responses when payment is required.
+///
+/// Requirements 5.1, 5.2, 5.3: X402 endpoint integration with request interception
+/// {@category Endpoint}
+class EndpointX402 extends _i1.EndpointRef {
+  EndpointX402(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccred.x402';
+
+  /// Request a paid resource with X402 payment integration
+  ///
+  /// This endpoint demonstrates the X402 protocol flow:
+  /// 1. Client requests resource without payment -> HTTP 402 response
+  /// 2. Client resubmits with X-PAYMENT header -> verify and deliver resource
+  ///
+  /// This endpoint supports AI agents and autonomous systems by enabling
+  /// micropayments without human intervention.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [resourceId]: The resource being requested
+  /// - [accountId]: Account ID for inventory management
+  ///
+  /// Returns: Either X402PaymentResponse (HTTP 402) or the requested resource data
+  ///
+  /// Requirements 5.1: Standard client-server communication flow
+  /// Requirements 5.2: HTTP 402 response when payment required
+  /// Requirements 5.3: Verify payment and provide resource
+  _i2.Future<Map<String, dynamic>> requestPaidResource(
+    String publicKey,
+    String signature,
+    String resourceId,
+    int accountId, {
+    Map<String, String>? headers,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.x402',
+    'requestPaidResource',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'resourceId': resourceId,
+      'accountId': accountId,
+      'headers': headers,
+    },
+  );
+
+  /// Request consumable inventory with X402 payment integration
+  ///
+  /// Demonstrates pay-per-use model where each API call consumes inventory.
+  /// Supports micropayments for AI agents and autonomous systems.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [consumableType]: Type of consumable to access
+  /// - [quantity]: Amount to consume
+  /// - [accountId]: Account ID for inventory management
+  ///
+  /// Returns: Either X402PaymentResponse (HTTP 402) or consumption result
+  ///
+  /// Requirements 5.4: Support AI agents and autonomous systems
+  /// Requirements 5.5: Pay-per-use model charging per API call
+  _i2.Future<Map<String, dynamic>> requestConsumableAccess(
+    String publicKey,
+    String signature,
+    String consumableType,
+    double quantity,
+    int accountId, {
+    Map<String, String>? headers,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.x402',
+    'requestConsumableAccess',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'consumableType': consumableType,
+      'quantity': quantity,
+      'accountId': accountId,
+      'headers': headers,
+    },
+  );
 }
 
 class Caller extends _i1.ModuleEndpointCaller {
@@ -631,6 +812,7 @@ class Caller extends _i1.ModuleEndpointCaller {
     device = EndpointDevice(this);
     module = EndpointModule(this);
     payment = EndpointPayment(this);
+    x402 = EndpointX402(this);
   }
 
   late final EndpointAccount account;
@@ -643,6 +825,8 @@ class Caller extends _i1.ModuleEndpointCaller {
 
   late final EndpointPayment payment;
 
+  late final EndpointX402 x402;
+
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'anonaccred.account': account,
@@ -650,5 +834,6 @@ class Caller extends _i1.ModuleEndpointCaller {
     'anonaccred.device': device,
     'anonaccred.module': module,
     'anonaccred.payment': payment,
+    'anonaccred.x402': x402,
   };
 }

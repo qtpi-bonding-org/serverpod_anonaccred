@@ -4,6 +4,7 @@ import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../inventory_manager.dart';
+import '../payments/x402_interceptor.dart';
 import '../payments/x402_payment_processor.dart';
 
 /// X402 HTTP Payment Rail endpoint integration
@@ -62,9 +63,7 @@ class X402Endpoint extends Endpoint {
 
       // Check if X-PAYMENT header is provided
       final requestHeaders = headers ?? <String, String>{};
-      final hasPayment = requestHeaders.containsKey('X-PAYMENT') ||
-          requestHeaders.containsKey('x-payment') ||
-          requestHeaders.containsKey('X-Payment');
+      final hasPayment = X402Interceptor.hasPaymentHeader(requestHeaders);
 
       if (!hasPayment) {
         // No payment provided - return HTTP 402 with payment requirements
@@ -180,9 +179,7 @@ class X402Endpoint extends Endpoint {
 
       // Check if X-PAYMENT header is provided
       final requestHeaders = headers ?? <String, String>{};
-      final hasPayment = requestHeaders.containsKey('X-PAYMENT') ||
-          requestHeaders.containsKey('x-payment') ||
-          requestHeaders.containsKey('X-Payment');
+      final hasPayment = X402Interceptor.hasPaymentHeader(requestHeaders);
 
       // If insufficient balance and no payment, require payment
       if (currentBalance < quantity && !hasPayment) {

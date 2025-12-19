@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import '../config/header_config.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import 'x402_payment_processor.dart';
@@ -43,9 +44,10 @@ class X402Interceptor {
   }) async {
     try {
       // Check if X-PAYMENT header is provided
-      final hasPayment = headers.containsKey('X-PAYMENT') ||
-          headers.containsKey('x-payment') ||
-          headers.containsKey('X-Payment');
+      final hasPayment = AnonAccredHeaderConfig.hasHeader(
+        headers.map((key, value) => MapEntry(key, [value])),
+        AnonAccredHeaderConfig.paymentHeaderVariations,
+      );
 
       if (!hasPayment) {
         // No payment provided - return HTTP 402 with payment requirements
@@ -159,9 +161,10 @@ class X402Interceptor {
   ///
   /// Returns: true if X-PAYMENT header is present, false otherwise
   static bool hasPaymentHeader(Map<String, String> headers) => 
-      headers.containsKey('X-PAYMENT') ||
-      headers.containsKey('x-payment') ||
-      headers.containsKey('X-Payment');
+      AnonAccredHeaderConfig.hasHeader(
+        headers.map((key, value) => MapEntry(key, [value])),
+        AnonAccredHeaderConfig.paymentHeaderVariations,
+      );
 
   /// Extract X-PAYMENT header value
   ///
@@ -173,9 +176,10 @@ class X402Interceptor {
   ///
   /// Returns: X-PAYMENT header value or null if not present
   static String? getPaymentHeader(Map<String, String> headers) => 
-      headers['X-PAYMENT'] ?? 
-      headers['x-payment'] ??
-      headers['X-Payment'];
+      AnonAccredHeaderConfig.getHeaderValue(
+        headers.map((key, value) => MapEntry(key, [value])),
+        AnonAccredHeaderConfig.paymentHeaderVariations,
+      );
 
   /// Validate X402 configuration
   ///

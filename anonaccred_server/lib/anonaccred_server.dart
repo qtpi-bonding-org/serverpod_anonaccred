@@ -102,6 +102,9 @@
 // Authentication handler for Serverpod integration
 export 'src/auth_handler.dart';
 
+// Configuration system
+export 'src/config/header_config.dart';
+
 // Core cryptographic utilities
 export 'src/crypto_auth.dart';
 export 'src/crypto_utils.dart';
@@ -127,6 +130,7 @@ export 'src/price_registry.dart';
 export 'src/payments/payment_manager.dart';
 export 'src/payments/payment_processor.dart';
 export 'src/payments/payment_rail_interface.dart';
+export 'src/payments/x402_interceptor.dart';
 export 'src/payments/x402_payment_rail.dart';
 
 // Transaction utilities removed - use Serverpod built-in patterns
