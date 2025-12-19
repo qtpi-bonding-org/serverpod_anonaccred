@@ -17,6 +17,14 @@ device:
   - generateAuthChallenge:
   - revokeDevice:
   - listDevices:
+iAP:
+  - validateAppleReceipt:
+  - validateGooglePurchase:
+  - handleAppleWebhook:
+  - handleGoogleWebhook:
+iAPWebhook:
+  - handleAppleWebhook:
+  - handleGoogleWebhook:
 module:
   - hello:
   - authenticateUser:

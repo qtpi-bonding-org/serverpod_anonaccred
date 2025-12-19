@@ -137,6 +137,10 @@ class TestEndpoints {
 
   late final _DeviceEndpoint device;
 
+  late final _IAPEndpoint iAP;
+
+  late final _IAPWebhookEndpoint iAPWebhook;
+
   late final _ModuleEndpoint module;
 
   late final _PaymentEndpoint payment;
@@ -160,6 +164,14 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     device = _DeviceEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    iAP = _IAPEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    iAPWebhook = _IAPWebhookEndpoint(
       endpoints,
       serializationManager,
     );
@@ -770,6 +782,246 @@ class _DeviceEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<List<_i9.AccountDevice>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _IAPEndpoint {
+  _IAPEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<Map<String, dynamic>> validateAppleReceipt(
+    _i1.TestSessionBuilder sessionBuilder,
+    String publicKey,
+    String signature,
+    String receiptData,
+    String orderId,
+    int accountId,
+    String consumableType,
+    double quantity,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'iAP',
+            method: 'validateAppleReceipt',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'iAP',
+          methodName: 'validateAppleReceipt',
+          parameters: _i1.testObjectToJson({
+            'publicKey': publicKey,
+            'signature': signature,
+            'receiptData': receiptData,
+            'orderId': orderId,
+            'accountId': accountId,
+            'consumableType': consumableType,
+            'quantity': quantity,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> validateGooglePurchase(
+    _i1.TestSessionBuilder sessionBuilder,
+    String publicKey,
+    String signature,
+    String packageName,
+    String productId,
+    String purchaseToken,
+    String orderId,
+    int accountId,
+    String consumableType,
+    double quantity,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'iAP',
+            method: 'validateGooglePurchase',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'iAP',
+          methodName: 'validateGooglePurchase',
+          parameters: _i1.testObjectToJson({
+            'publicKey': publicKey,
+            'signature': signature,
+            'packageName': packageName,
+            'productId': productId,
+            'purchaseToken': purchaseToken,
+            'orderId': orderId,
+            'accountId': accountId,
+            'consumableType': consumableType,
+            'quantity': quantity,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> handleAppleWebhook(
+    _i1.TestSessionBuilder sessionBuilder,
+    Map<String, dynamic> webhookData,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'iAP',
+            method: 'handleAppleWebhook',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'iAP',
+          methodName: 'handleAppleWebhook',
+          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> handleGoogleWebhook(
+    _i1.TestSessionBuilder sessionBuilder,
+    Map<String, dynamic> webhookData,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'iAP',
+            method: 'handleGoogleWebhook',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'iAP',
+          methodName: 'handleGoogleWebhook',
+          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _IAPWebhookEndpoint {
+  _IAPWebhookEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<String> handleAppleWebhook(
+    _i1.TestSessionBuilder sessionBuilder,
+    Map<String, dynamic> webhookData,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'iAPWebhook',
+            method: 'handleAppleWebhook',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'iAPWebhook',
+          methodName: 'handleAppleWebhook',
+          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> handleGoogleWebhook(
+    _i1.TestSessionBuilder sessionBuilder,
+    Map<String, dynamic> webhookData,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'iAPWebhook',
+            method: 'handleGoogleWebhook',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'iAPWebhook',
+          methodName: 'handleGoogleWebhook',
+          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

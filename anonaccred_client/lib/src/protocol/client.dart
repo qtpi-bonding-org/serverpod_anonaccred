@@ -469,6 +469,187 @@ class EndpointDevice extends _i1.EndpointRef {
       );
 }
 
+/// In-App Purchase endpoint for Apple and Google IAP validation
+///
+/// Provides server-side validation of mobile app store purchases while maintaining
+/// privacy-first architecture. Integrates with existing inventory management and
+/// transaction recording systems.
+///
+/// Requirements 1.1, 1.4: Mobile IAP validation with inventory fulfillment
+/// {@category Endpoint}
+class EndpointIAP extends _i1.EndpointRef {
+  EndpointIAP(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccred.iAP';
+
+  /// Validate Apple App Store receipt and fulfill purchase
+  ///
+  /// Validates iOS app receipt using Apple's verifyReceipt API and adds
+  /// purchased consumables to user inventory upon successful validation.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [receiptData]: Base64-encoded receipt from iOS app
+  /// - [orderId]: Order ID for transaction tracking
+  /// - [accountId]: Account ID for inventory management
+  /// - [consumableType]: Type of consumable being purchased
+  /// - [quantity]: Quantity of consumables purchased
+  ///
+  /// Returns: Validation result with transaction details or error information
+  ///
+  /// Requirements 2.1, 2.2, 2.3: Apple receipt validation
+  /// Requirements 1.4: Inventory fulfillment integration
+  _i2.Future<Map<String, dynamic>> validateAppleReceipt(
+    String publicKey,
+    String signature,
+    String receiptData,
+    String orderId,
+    int accountId,
+    String consumableType,
+    double quantity,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.iAP',
+    'validateAppleReceipt',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'receiptData': receiptData,
+      'orderId': orderId,
+      'accountId': accountId,
+      'consumableType': consumableType,
+      'quantity': quantity,
+    },
+  );
+
+  /// Validate Google Play purchase and fulfill purchase
+  ///
+  /// Validates Android app purchase using Google Play Developer API and adds
+  /// purchased consumables to user inventory upon successful validation.
+  /// Also acknowledges the purchase as required by Google.
+  ///
+  /// Parameters:
+  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [signature]: Signature of the request data
+  /// - [packageName]: Android app package name
+  /// - [productId]: In-app product ID (SKU)
+  /// - [purchaseToken]: Purchase token from Android app
+  /// - [orderId]: Order ID for transaction tracking
+  /// - [accountId]: Account ID for inventory management
+  /// - [consumableType]: Type of consumable being purchased
+  /// - [quantity]: Quantity of consumables purchased
+  ///
+  /// Returns: Validation result with transaction details or error information
+  ///
+  /// Requirements 3.1, 3.2, 3.3: Google purchase validation and acknowledgment
+  /// Requirements 1.4: Inventory fulfillment integration
+  _i2.Future<Map<String, dynamic>> validateGooglePurchase(
+    String publicKey,
+    String signature,
+    String packageName,
+    String productId,
+    String purchaseToken,
+    String orderId,
+    int accountId,
+    String consumableType,
+    double quantity,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.iAP',
+    'validateGooglePurchase',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'packageName': packageName,
+      'productId': productId,
+      'purchaseToken': purchaseToken,
+      'orderId': orderId,
+      'accountId': accountId,
+      'consumableType': consumableType,
+      'quantity': quantity,
+    },
+  );
+
+  /// Handle Apple server-to-server notifications (webhook)
+  ///
+  /// Processes webhook notifications from Apple about purchase events.
+  /// This is a placeholder for future webhook implementation.
+  ///
+  /// Parameters:
+  /// - [webhookData]: Webhook payload from Apple
+  ///
+  /// Returns: Acknowledgment of webhook processing
+  ///
+  /// Requirements 8.1: Process Apple server-to-server notifications
+  _i2.Future<Map<String, dynamic>> handleAppleWebhook(
+    Map<String, dynamic> webhookData,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.iAP',
+    'handleAppleWebhook',
+    {'webhookData': webhookData},
+  );
+
+  /// Handle Google Real-time Developer Notifications (webhook)
+  ///
+  /// Processes webhook notifications from Google about purchase events.
+  /// This is a placeholder for future webhook implementation.
+  ///
+  /// Parameters:
+  /// - [webhookData]: Webhook payload from Google
+  ///
+  /// Returns: Acknowledgment of webhook processing
+  ///
+  /// Requirements 8.2: Process Google Real-time Developer Notifications
+  _i2.Future<Map<String, dynamic>> handleGoogleWebhook(
+    Map<String, dynamic> webhookData,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'anonaccred.iAP',
+    'handleGoogleWebhook',
+    {'webhookData': webhookData},
+  );
+}
+
+/// Basic IAP webhook endpoint for Apple and Google notifications
+///
+/// Provides minimal webhook support for future expansion.
+/// Handles basic webhook routing and signature validation.
+///
+/// Requirements 8.1: Create placeholder webhook endpoints
+/// Requirements 8.2: Add basic webhook signature validation
+/// {@category Endpoint}
+class EndpointIAPWebhook extends _i1.EndpointRef {
+  EndpointIAPWebhook(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccred.iAPWebhook';
+
+  /// Handle Apple App Store Server Notifications
+  ///
+  /// Basic webhook handler for Apple's server-to-server notifications.
+  /// Currently provides minimal processing for future expansion.
+  ///
+  /// Requirements 8.1: Apple webhook endpoint
+  _i2.Future<String> handleAppleWebhook(Map<String, dynamic> webhookData) =>
+      caller.callServerEndpoint<String>(
+        'anonaccred.iAPWebhook',
+        'handleAppleWebhook',
+        {'webhookData': webhookData},
+      );
+
+  /// Handle Google Play Real-time Developer Notifications
+  ///
+  /// Basic webhook handler for Google's real-time notifications.
+  /// Currently provides minimal processing for future expansion.
+  ///
+  /// Requirements 8.1: Google webhook endpoint
+  _i2.Future<String> handleGoogleWebhook(Map<String, dynamic> webhookData) =>
+      caller.callServerEndpoint<String>(
+        'anonaccred.iAPWebhook',
+        'handleGoogleWebhook',
+        {'webhookData': webhookData},
+      );
+}
+
 /// {@category Endpoint}
 class EndpointModule extends _i1.EndpointRef {
   EndpointModule(_i1.EndpointCaller caller) : super(caller);
@@ -810,6 +991,8 @@ class Caller extends _i1.ModuleEndpointCaller {
     account = EndpointAccount(this);
     commerce = EndpointCommerce(this);
     device = EndpointDevice(this);
+    iAP = EndpointIAP(this);
+    iAPWebhook = EndpointIAPWebhook(this);
     module = EndpointModule(this);
     payment = EndpointPayment(this);
     x402 = EndpointX402(this);
@@ -820,6 +1003,10 @@ class Caller extends _i1.ModuleEndpointCaller {
   late final EndpointCommerce commerce;
 
   late final EndpointDevice device;
+
+  late final EndpointIAP iAP;
+
+  late final EndpointIAPWebhook iAPWebhook;
 
   late final EndpointModule module;
 
@@ -832,6 +1019,8 @@ class Caller extends _i1.ModuleEndpointCaller {
     'anonaccred.account': account,
     'anonaccred.commerce': commerce,
     'anonaccred.device': device,
+    'anonaccred.iAP': iAP,
+    'anonaccred.iAPWebhook': iAPWebhook,
     'anonaccred.module': module,
     'anonaccred.payment': payment,
     'anonaccred.x402': x402,

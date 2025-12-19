@@ -14,10 +14,12 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/account_endpoint.dart' as _i2;
 import '../endpoints/commerce_endpoint.dart' as _i3;
 import '../endpoints/device_endpoint.dart' as _i4;
-import '../endpoints/module_endpoint.dart' as _i5;
-import '../endpoints/payment_endpoint.dart' as _i6;
-import '../endpoints/x402_endpoint.dart' as _i7;
-import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i8;
+import '../endpoints/iap_endpoint.dart' as _i5;
+import '../endpoints/iap_webhook_endpoint.dart' as _i6;
+import '../endpoints/module_endpoint.dart' as _i7;
+import '../endpoints/payment_endpoint.dart' as _i8;
+import '../endpoints/x402_endpoint.dart' as _i9;
+import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i10;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -41,19 +43,31 @@ class Endpoints extends _i1.EndpointDispatch {
           'device',
           'anonaccred',
         ),
-      'module': _i5.ModuleEndpoint()
+      'iAP': _i5.IAPEndpoint()
+        ..initialize(
+          server,
+          'iAP',
+          'anonaccred',
+        ),
+      'iAPWebhook': _i6.IAPWebhookEndpoint()
+        ..initialize(
+          server,
+          'iAPWebhook',
+          'anonaccred',
+        ),
+      'module': _i7.ModuleEndpoint()
         ..initialize(
           server,
           'module',
           'anonaccred',
         ),
-      'payment': _i6.PaymentEndpoint()
+      'payment': _i8.PaymentEndpoint()
         ..initialize(
           server,
           'payment',
           'anonaccred',
         ),
-      'x402': _i7.X402Endpoint()
+      'x402': _i9.X402Endpoint()
         ..initialize(
           server,
           'x402',
@@ -199,7 +213,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'paymentRail': _i1.ParameterDescription(
               name: 'paymentRail',
-              type: _i1.getType<_i8.PaymentRail>(),
+              type: _i1.getType<_i10.PaymentRail>(),
               nullable: false,
             ),
           },
@@ -511,6 +525,216 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['iAP'] = _i1.EndpointConnector(
+      name: 'iAP',
+      endpoint: endpoints['iAP']!,
+      methodConnectors: {
+        'validateAppleReceipt': _i1.MethodConnector(
+          name: 'validateAppleReceipt',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'receiptData': _i1.ParameterDescription(
+              name: 'receiptData',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'accountId': _i1.ParameterDescription(
+              name: 'accountId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'consumableType': _i1.ParameterDescription(
+              name: 'consumableType',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'quantity': _i1.ParameterDescription(
+              name: 'quantity',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['iAP'] as _i5.IAPEndpoint).validateAppleReceipt(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['receiptData'],
+                    params['orderId'],
+                    params['accountId'],
+                    params['consumableType'],
+                    params['quantity'],
+                  ),
+        ),
+        'validateGooglePurchase': _i1.MethodConnector(
+          name: 'validateGooglePurchase',
+          params: {
+            'publicKey': _i1.ParameterDescription(
+              name: 'publicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'packageName': _i1.ParameterDescription(
+              name: 'packageName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'purchaseToken': _i1.ParameterDescription(
+              name: 'purchaseToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'accountId': _i1.ParameterDescription(
+              name: 'accountId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'consumableType': _i1.ParameterDescription(
+              name: 'consumableType',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'quantity': _i1.ParameterDescription(
+              name: 'quantity',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['iAP'] as _i5.IAPEndpoint).validateGooglePurchase(
+                    session,
+                    params['publicKey'],
+                    params['signature'],
+                    params['packageName'],
+                    params['productId'],
+                    params['purchaseToken'],
+                    params['orderId'],
+                    params['accountId'],
+                    params['consumableType'],
+                    params['quantity'],
+                  ),
+        ),
+        'handleAppleWebhook': _i1.MethodConnector(
+          name: 'handleAppleWebhook',
+          params: {
+            'webhookData': _i1.ParameterDescription(
+              name: 'webhookData',
+              type: _i1.getType<Map<String, dynamic>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['iAP'] as _i5.IAPEndpoint).handleAppleWebhook(
+                    session,
+                    params['webhookData'],
+                  ),
+        ),
+        'handleGoogleWebhook': _i1.MethodConnector(
+          name: 'handleGoogleWebhook',
+          params: {
+            'webhookData': _i1.ParameterDescription(
+              name: 'webhookData',
+              type: _i1.getType<Map<String, dynamic>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['iAP'] as _i5.IAPEndpoint).handleGoogleWebhook(
+                    session,
+                    params['webhookData'],
+                  ),
+        ),
+      },
+    );
+    connectors['iAPWebhook'] = _i1.EndpointConnector(
+      name: 'iAPWebhook',
+      endpoint: endpoints['iAPWebhook']!,
+      methodConnectors: {
+        'handleAppleWebhook': _i1.MethodConnector(
+          name: 'handleAppleWebhook',
+          params: {
+            'webhookData': _i1.ParameterDescription(
+              name: 'webhookData',
+              type: _i1.getType<Map<String, dynamic>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['iAPWebhook'] as _i6.IAPWebhookEndpoint)
+                  .handleAppleWebhook(
+                    session,
+                    params['webhookData'],
+                  ),
+        ),
+        'handleGoogleWebhook': _i1.MethodConnector(
+          name: 'handleGoogleWebhook',
+          params: {
+            'webhookData': _i1.ParameterDescription(
+              name: 'webhookData',
+              type: _i1.getType<Map<String, dynamic>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['iAPWebhook'] as _i6.IAPWebhookEndpoint)
+                  .handleGoogleWebhook(
+                    session,
+                    params['webhookData'],
+                  ),
+        ),
+      },
+    );
     connectors['module'] = _i1.EndpointConnector(
       name: 'module',
       endpoint: endpoints['module']!,
@@ -528,7 +752,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['module'] as _i5.ModuleEndpoint).hello(
+              ) async => (endpoints['module'] as _i7.ModuleEndpoint).hello(
                 session,
                 params['name'],
               ),
@@ -557,7 +781,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['module'] as _i5.ModuleEndpoint).authenticateUser(
+                  (endpoints['module'] as _i7.ModuleEndpoint).authenticateUser(
                     session,
                     params['publicKey'],
                     params['signature'],
@@ -588,7 +812,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['module'] as _i5.ModuleEndpoint).processPayment(
+                  (endpoints['module'] as _i7.ModuleEndpoint).processPayment(
                     session,
                     params['orderId'],
                     params['paymentRail'],
@@ -624,7 +848,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['module'] as _i5.ModuleEndpoint).manageInventory(
+                  (endpoints['module'] as _i7.ModuleEndpoint).manageInventory(
                     session,
                     params['accountId'],
                     params['consumableType'],
@@ -658,7 +882,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'railType': _i1.ParameterDescription(
               name: 'railType',
-              type: _i1.getType<_i8.PaymentRail>(),
+              type: _i1.getType<_i10.PaymentRail>(),
               nullable: false,
             ),
           },
@@ -667,7 +891,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['payment'] as _i6.PaymentEndpoint).initiatePayment(
+                  (endpoints['payment'] as _i8.PaymentEndpoint).initiatePayment(
                     session,
                     params['publicKey'],
                     params['signature'],
@@ -698,7 +922,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
                   .checkPaymentStatus(
                     session,
                     params['publicKey'],
@@ -719,7 +943,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
                   .processMoneroWebhook(
                     session,
                     params['webhookData'],
@@ -738,7 +962,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
                   .processX402Webhook(
                     session,
                     params['webhookData'],
@@ -757,7 +981,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
                   .processAppleIAPWebhook(
                     session,
                     params['webhookData'],
@@ -776,7 +1000,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
                   .processGoogleIAPWebhook(
                     session,
                     params['webhookData'],
@@ -810,7 +1034,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
                   .requestPaymentStatusWithX402(
                     session,
                     params['publicKey'],
@@ -859,7 +1083,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['x402'] as _i7.X402Endpoint).requestPaidResource(
+                  (endpoints['x402'] as _i9.X402Endpoint).requestPaidResource(
                     session,
                     params['publicKey'],
                     params['signature'],
@@ -906,7 +1130,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['x402'] as _i7.X402Endpoint)
+              ) async => (endpoints['x402'] as _i9.X402Endpoint)
                   .requestConsumableAccess(
                     session,
                     params['publicKey'],
