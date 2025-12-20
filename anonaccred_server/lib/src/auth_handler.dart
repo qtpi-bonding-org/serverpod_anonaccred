@@ -11,8 +11,8 @@ import 'helpers.dart';
 class AnonAccredAuthHandler {
   
   /// Serverpod authentication handler callback
-  /// Validates device public key from token parameter or custom header
-  /// Supports both Authorization header and configurable device public key header
+  /// Validates device public key with priority: 1) Authorization Bearer, 2) Custom header, 3) Token parameter
+  /// Supports Authorization header (Bearer token), configurable device public key header, and token fallback
   static Future<AuthenticationInfo?> handleAuthentication(
     Session session, 
     String token,
@@ -20,10 +20,15 @@ class AnonAccredAuthHandler {
     try {
       String? devicePubKey;
       
-      // First try to get device public key from custom header
-      devicePubKey = extractDevicePubKeyFromHeader(session);
+      // Priority 1: Try Authorization header with Bearer token format
+      devicePubKey = extractDevicePubKeyFromAuthorizationHeader(session);
       
-      // Fall back to token parameter if header not present
+      // Priority 2: Try custom header (X-QUANITYA-DEVICE-PUBKEY)
+      if (devicePubKey == null || devicePubKey.isEmpty) {
+        devicePubKey = extractDevicePubKeyFromHeader(session);
+      }
+      
+      // Priority 3: Fall back to token parameter
       if (devicePubKey == null || devicePubKey.isEmpty) {
         devicePubKey = token.trim();
       }
@@ -66,37 +71,21 @@ class AnonAccredAuthHandler {
     }
   }
   
-  /// Extract device public key from custom header
-  /// Uses configurable header name (default: X-QUANITYA-DEVICE-PUBKEY)
-  /// Falls back to Authorization header if custom header not present
+  /// Extract device public key from Authorization header (Bearer token)
+  /// Supports format: Authorization: Bearer `device_public_key`
   /// 
   /// Note: Direct header access is limited in Serverpod 3.x
   /// This method is prepared for future Serverpod versions that expose HTTP headers
-  static String? extractDevicePubKeyFromHeader(Session session) {
-    // TODO: Implement header extraction when Serverpod exposes HTTP request headers
-    // For now, this method returns null and authentication falls back to token-based auth
-    // 
-    // Future implementation would look like:
-    // try {
-    //   final methodCallSession = session as MethodCallSession;
-    //   final httpRequest = methodCallSession.httpRequest;
-    //   
-    //   final devicePubKey = AnonAccredHeaderConfig.getHeaderValue(
-    //     httpRequest.headers,
-    //     AnonAccredHeaderConfig.devicePubKeyHeaderVariations,
-    //   );
-    //   
-    //   if (devicePubKey != null && devicePubKey.isNotEmpty) {
-    //     return devicePubKey;
-    //   }
-    //   
-    //   return null;
-    // } catch (e) {
-    //   return null;
-    // }
-    
-    return null; // Header extraction not available in current Serverpod version
-  }
+  static String? extractDevicePubKeyFromAuthorizationHeader(Session session) =>
+      null; // Header extraction not available in current Serverpod version
+  
+  /// Extract device public key from custom header
+  /// Uses configurable header name (default: X-QUANITYA-DEVICE-PUBKEY)
+  /// 
+  /// Note: Direct header access is limited in Serverpod 3.x
+  /// This method is prepared for future Serverpod versions that expose HTTP headers
+  static String? extractDevicePubKeyFromHeader(Session session) =>
+      null; // Header extraction not available in current Serverpod version
   
   /// Helper to extract device public key from authenticated session
   /// For use in endpoints that need the device public key
@@ -104,7 +93,7 @@ class AnonAccredAuthHandler {
     if (session.authenticated?.scopes != null) {
       for (final scope in session.authenticated!.scopes) {
         final scopeName = scope.name;
-        if (scopeName?.startsWith('device:') == true) {
+        if (scopeName?.startsWith('device:') ?? false) {
           return scopeName!.substring(7); // Remove 'device:' prefix
         }
       }

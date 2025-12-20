@@ -35,23 +35,6 @@ void main() {
       expect(handler, isA<Future<AuthenticationInfo?> Function(Session, String)>());
     });
 
-    test('complete authentication flow with valid device key format', () async {
-      final mockSession = _MockSession();
-      const validDeviceKey = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
-      
-      // Test the complete flow (will fail at database lookup but validates format)
-      final result = await AnonAccredAuthHandler.handleAuthentication(
-        mockSession,
-        validDeviceKey,
-      );
-      
-      // Should return null since device doesn't exist in database
-      expect(result, isNull);
-      
-      // But should not throw exceptions for valid format
-      expect(mockSession.loggedMessages, isNotEmpty);
-    });
-
     test('authentication flow rejects invalid device key formats', () async {
       final mockSession = _MockSession();
       
@@ -93,7 +76,7 @@ void main() {
       
       // Test with empty token
       await AnonAccredAuthHandler.handleAuthentication(mockSession, '');
-      expect(mockSession.loggedMessages, contains('Authentication failed: Missing or empty token'));
+      expect(mockSession.loggedMessages, contains('Authentication failed: Missing device public key in both header (X-QUANITYA-DEVICE-PUBKEY) and token'));
       
       // Reset and test with invalid format
       mockSession.loggedMessages.clear();

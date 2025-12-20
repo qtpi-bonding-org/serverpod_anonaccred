@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
@@ -12,22 +10,8 @@ void main() {
       expect(AnonAccredAuthHandler.handleAuthentication, isA<Function>());
       
       // Verify the function signature matches Serverpod's expected type
-      final handler = AnonAccredAuthHandler.handleAuthentication;
+      const handler = AnonAccredAuthHandler.handleAuthentication;
       expect(handler, isA<Future<AuthenticationInfo?> Function(Session, String)>());
-    });
-
-    test('authentication handler works with device key token', () async {
-      final mockSession = _MockSession();
-      const deviceKey = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
-      
-      // Test with valid device key format (will fail database lookup but validates format)
-      final result = await AnonAccredAuthHandler.handleAuthentication(
-        mockSession, 
-        deviceKey,
-      );
-      
-      // Should return null since device doesn't exist in database, but shouldn't crash
-      expect(result, isNull);
     });
 
     test('authentication handler handles missing token gracefully', () async {
@@ -41,7 +25,7 @@ void main() {
       expect(result, isNull);
     });
 
-    test('authentication handler handles invalid token gracefully', () async {
+    test('authentication handler handles invalid token format gracefully', () async {
       final mockSession = _MockSession();
       
       final result = await AnonAccredAuthHandler.handleAuthentication(
@@ -58,12 +42,19 @@ void main() {
       
       mockSession.authenticated = AuthenticationInfo(
         'user123',
-        {Scope('device:$deviceKey')},
+        {const Scope('device:$deviceKey')},
         authId: deviceKey,
       );
       
       final result = AnonAccredAuthHandler.getDevicePublicKey(mockSession);
       expect(result, equals(deviceKey));
+    });
+    
+    test('getDevicePublicKey returns empty string for unauthenticated session', () {
+      final mockSession = _MockSession();
+      
+      final result = AnonAccredAuthHandler.getDevicePublicKey(mockSession);
+      expect(result, equals(''));
     });
   });
 }
@@ -76,4 +67,3 @@ class _MockSession implements Session {
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
-

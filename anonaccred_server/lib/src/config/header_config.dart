@@ -30,6 +30,13 @@ class AnonAccredHeaderConfig {
     'x-${headerPrefix.toLowerCase()}-device-pubkey',
   ];
   
+  /// Get all possible variations of the Authorization header
+  /// For Bearer token format: Authorization: Bearer `device_public_key`
+  static List<String> get authorizationHeaderVariations => [
+    'Authorization',
+    'authorization',
+  ];
+  
   /// Get the payment header name (X402 standard)
   static String get paymentHeader => 'X-PAYMENT';
   
@@ -52,11 +59,7 @@ class AnonAccredHeaderConfig {
       throw ArgumentError('Header prefix cannot contain spaces or hyphens: $prefix');
     }
     
-    // Log the configured header names
-    print('AnonAccred Header Configuration:');
-    print('  Prefix: $prefix');
-    print('  Device Public Key Header: $devicePubKeyHeader');
-    print('  Payment Header: $paymentHeader');
+    // Configuration is valid - header names will be logged during server startup
   }
   
   /// Get header value from HTTP headers with case-insensitive matching
@@ -71,7 +74,6 @@ class AnonAccredHeaderConfig {
   }
   
   /// Check if any of the header variations exist
-  static bool hasHeader(Map<String, List<String>> headers, List<String> headerVariations) {
-    return headerVariations.any((variation) => headers.containsKey(variation));
-  }
+  static bool hasHeader(Map<String, List<String>> headers, List<String> headerVariations) =>
+      headerVariations.any((variation) => headers.containsKey(variation));
 }
