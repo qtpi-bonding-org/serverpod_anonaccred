@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'exception_factory.dart';
 
-/// Cryptographic utilities for Ed25519 signature verification and public key validation.
+/// Cryptographic utilities for ECDSA P-256 signature verification.
 ///
 /// This class provides server-side cryptographic operations while maintaining strict
 /// privacy-by-design principles:
@@ -12,21 +12,152 @@ import 'exception_factory.dart';
 /// - Never generates, stores, or processes private keys
 /// - All operations are stateless and side-effect free
 class CryptoUtils {
-  /// Validates that a string represents a valid Ed25519 public key format.
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ECDSA P-256 Validation
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Validates that a string represents a valid ECDSA P-256 public key format.
   ///
-  /// Ed25519 public keys must be exactly 64 hexadecimal characters (32 bytes).
+  /// ECDSA P-256 public keys can be:
+  /// - 128 hex chars (64 bytes): raw x||y coordinates
+  /// - 130 hex chars (65 bytes): uncompressed format with 04 prefix
   ///
   /// Returns true if the key format is valid, false otherwise.
-  /// This validation only checks format, not cryptographic validity.
-  static bool isValidEd25519PublicKey(String publicKey) {
-    if (publicKey.length != 64) {
+  static bool isValidPublicKey(String publicKey) {
+    // Accept both raw (128 hex) and uncompressed with prefix (130 hex)
+    if (publicKey.length != 128 && publicKey.length != 130) {
       return false;
     }
 
     // Check if all characters are valid hexadecimal
     final hexPattern = RegExp(r'^[0-9a-fA-F]+$');
-    return hexPattern.hasMatch(publicKey);
+    if (!hexPattern.hasMatch(publicKey)) {
+      return false;
+    }
+
+    // If 130 chars, must start with '04' (uncompressed point indicator)
+    if (publicKey.length == 130 && !publicKey.startsWith('04')) {
+      return false;
+    }
+
+    return true;
   }
+
+  /// Validates ECDSA P-256 signature format.
+  ///
+  /// ECDSA P-256 signatures are 64 bytes (r || s) = 128 hex chars.
+  ///
+  /// Returns true if the signature format is valid, false otherwise.
+  static bool isValidSignature(String signature) {
+    if (signature.length != 128) {
+      return false;
+    }
+
+    final hexPattern = RegExp(r'^[0-9a-fA-F]+$');
+    return hexPattern.hasMatch(signature);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ECDSA P-256 Signature Verification
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Verifies an ECDSA P-256 signature against a message and public key.
+  ///
+  /// Uses the cryptography library for secure ECDSA signature verification.
+  ///
+  /// Parameters:
+  /// - [message]: The original message that was signed
+  /// - [signature]: The ECDSA signature as a hex string (128 chars)
+  /// - [publicKey]: The ECDSA P-256 public key as a hex string (128 or 130 chars)
+  ///
+  /// Returns true if the signature is valid for the given message and public key.
+  static Future<bool> verifySignature({
+    required String message,
+    required String signature,
+    required String publicKey,
+  }) async {
+    // Validate input formats
+    if (!isValidPublicKey(publicKey)) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
+        message: 'Invalid ECDSA P-256 public key format',
+        operation: 'verifySignature',
+        details: {
+          'publicKeyLength': publicKey.length.toString(),
+          'expectedLength': '128 or 130',
+        },
+      );
+    }
+
+    if (!isValidSignature(signature)) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.cryptoInvalidSignature,
+        message: 'Invalid ECDSA signature format',
+        operation: 'verifySignature',
+        details: {
+          'signatureLength': signature.length.toString(),
+          'expectedLength': '128',
+        },
+      );
+    }
+
+    if (message.isEmpty) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.cryptoInvalidMessage,
+        message: 'Message cannot be empty',
+        operation: 'verifySignature',
+        details: {'messageLength': '0'},
+      );
+    }
+
+    try {
+      final algorithm = Ecdsa.p256(Sha256());
+
+      final messageBytes = utf8.encode(message);
+      final signatureBytes = hexToBytes(signature);
+      
+      // Normalize public key to raw format (remove 04 prefix if present)
+      String normalizedKey = publicKey;
+      if (publicKey.length == 130 && publicKey.startsWith('04')) {
+        normalizedKey = publicKey.substring(2);
+      }
+      final publicKeyBytes = hexToBytes(normalizedKey);
+
+      // Create public key object (x and y coordinates, 32 bytes each)
+      final x = publicKeyBytes.sublist(0, 32);
+      final y = publicKeyBytes.sublist(32, 64);
+      final pubKey = EcPublicKey(x: x, y: y, type: KeyPairType.p256);
+
+      // Create signature object (r and s, 32 bytes each)
+      final r = signatureBytes.sublist(0, 32);
+      final s = signatureBytes.sublist(32, 64);
+      final sig = Signature(
+        Uint8List.fromList([...r, ...s]),
+        publicKey: pubKey,
+      );
+
+      // Perform ECDSA verification
+      return await algorithm.verify(messageBytes, signature: sig);
+    } on Exception catch (e) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.cryptoVerificationFailed,
+        message: 'ECDSA verification failed: ${e.toString()}',
+        operation: 'verifySignature',
+        details: {'cryptographyError': e.toString()},
+      );
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.cryptoVerificationFailed,
+        message: 'Cryptographic verification failed',
+        operation: 'verifySignature',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Utility Methods
+  // ═══════════════════════════════════════════════════════════════════════════
 
   /// Converts a hexadecimal string to bytes.
   ///
@@ -62,123 +193,20 @@ class CryptoUtils {
   static String bytesToHex(Uint8List bytes) =>
       bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
-  /// Validates Ed25519 signature format.
+  /// Generates a cryptographically secure challenge string for authentication.
   ///
-  /// Ed25519 signatures must be exactly 128 hexadecimal characters (64 bytes).
-  ///
-  /// Returns true if the signature format is valid, false otherwise.
-  static bool isValidEd25519Signature(String signature) {
-    if (signature.length != 128) {
-      return false;
-    }
-
-    // Check if all characters are valid hexadecimal
-    final hexPattern = RegExp(r'^[0-9a-fA-F]+$');
-    return hexPattern.hasMatch(signature);
-  }
-
-  /// Verifies an Ed25519 signature against a message and public key.
-  ///
-  /// Uses the cryptography library for secure Ed25519 signature verification.
-  ///
-  /// Parameters:
-  /// - [message]: The original message that was signed
-  /// - [signature]: The Ed25519 signature as a hex string (128 chars)
-  /// - [publicKey]: The Ed25519 public key as a hex string (64 chars)
-  ///
-  /// Returns true if the signature is valid for the given message and public key.
-  ///
-  /// Throws AuthenticationException if any parameter has invalid format or verification fails.
-  static Future<bool> verifyEd25519Signature({
-    required String message,
-    required String signature,
-    required String publicKey,
-  }) async {
-    // Validate input formats with structured exceptions
-    if (!isValidEd25519PublicKey(publicKey)) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-        message: 'Invalid Ed25519 public key format',
-        operation: 'verifyEd25519Signature',
-        details: {
-          'publicKeyLength': publicKey.length.toString(),
-          'expectedLength': '64',
-        },
-      );
-    }
-
-    if (!isValidEd25519Signature(signature)) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoInvalidSignature,
-        message: 'Invalid Ed25519 signature format',
-        operation: 'verifyEd25519Signature',
-        details: {
-          'signatureLength': signature.length.toString(),
-          'expectedLength': '128',
-        },
-      );
-    }
-
-    if (message.isEmpty) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoInvalidMessage,
-        message: 'Message cannot be empty',
-        operation: 'verifyEd25519Signature',
-        details: {'messageLength': '0'},
-      );
-    }
-
-    // Perform real Ed25519 signature verification using cryptography library
-    try {
-      final algorithm = Ed25519();
-
-      final messageBytes = utf8.encode(message);
-      final signatureBytes = hexToBytes(signature);
-      final publicKeyBytes = hexToBytes(publicKey);
-
-      // Create public key object
-      final pubKey = SimplePublicKey(publicKeyBytes, type: KeyPairType.ed25519);
-
-      // Create signature object
-      final sig = Signature(signatureBytes, publicKey: pubKey);
-
-      // Perform real Ed25519 verification
-      return await algorithm.verify(messageBytes, signature: sig);
-    } on Exception catch (e) {
-      // Handle cryptography library specific errors
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoVerificationFailed,
-        message: 'Ed25519 verification failed: ${e.toString()}',
-        operation: 'verifyEd25519Signature',
-        details: {'cryptographyError': e.toString()},
-      );
-    } catch (e) {
-      // Wrap any unexpected errors in structured exceptions
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoVerificationFailed,
-        message: 'Cryptographic verification failed',
-        operation: 'verifyEd25519Signature',
-        details: {'error': e.toString()},
-      );
-    }
-  }
-
-  /// Generates a cryptographically secure challenge string for authentication purposes.
-  ///
-  /// This creates a random challenge that can be signed by the client
+  /// Creates a random challenge that can be signed by the client
   /// to prove ownership of a private key. The challenge includes a timestamp
   /// for expiration validation.
   ///
   /// Returns a hex-encoded challenge string with embedded timestamp.
   static String generateChallenge() {
-    final random =
-        Random.secure(); // Cryptographically secure random number generator
+    final random = Random.secure();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     // Create challenge with timestamp prefix (8 bytes) + random data (24 bytes)
     final timestampBytes = Uint8List(8);
-    final timestampView = ByteData.view(timestampBytes.buffer)
-      ..setUint64(0, timestamp);
+    ByteData.view(timestampBytes.buffer).setUint64(0, timestamp);
 
     final randomBytes = Uint8List.fromList(
       List.generate(24, (_) => random.nextInt(256)),
@@ -197,12 +225,7 @@ class CryptoUtils {
   ///
   /// Challenges are valid for 5 minutes (300 seconds) from creation.
   ///
-  /// Parameters:
-  /// - [challenge]: The challenge string to validate
-  ///
   /// Returns true if the challenge is still valid, false if expired.
-  ///
-  /// Throws AuthenticationException if challenge format is invalid.
   static bool isChallengeValid(String challenge) {
     if (challenge.length != 64) {
       throw AnonAccredExceptionFactory.createAuthenticationException(
@@ -224,8 +247,7 @@ class CryptoUtils {
       final challengeTimestamp = timestampView.getUint64(0);
 
       final now = DateTime.now().millisecondsSinceEpoch;
-      const challengeValidityDuration =
-          5 * 60 * 1000; // 5 minutes in milliseconds
+      const challengeValidityDuration = 5 * 60 * 1000; // 5 minutes
 
       return (now - challengeTimestamp) <= challengeValidityDuration;
     } catch (e) {

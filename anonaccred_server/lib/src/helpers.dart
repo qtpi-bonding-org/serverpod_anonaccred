@@ -21,18 +21,18 @@ class AnonAccredHelpers {
     }
   }
   
-  /// Validate Ed25519 public key format, throw if invalid
-  /// Reduces 4-5 lines to 1 line
+  /// Validate ECDSA P-256 public key format, throw if invalid.
+  /// - ECDSA P-256: 128-130 hex chars (64-65 bytes)
   static void validatePublicKey(String? publicKey, String operation) {
     validateNonEmpty(publicKey, 'publicKey', operation);
     if (!CryptoAuth.isValidPublicKey(publicKey!)) {
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-        message: 'Invalid Ed25519 public key format',
+        message: 'Invalid ECDSA P-256 public key format',
         operation: operation,
         details: {
           'publicKeyLength': publicKey.length.toString(),
-          'expectedLength': '64',
+          'expectedLength': '128 or 130',
         },
       );
     }

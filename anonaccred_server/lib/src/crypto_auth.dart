@@ -30,20 +30,20 @@ class AuthenticationResultFactory {
   );
 }
 
-/// Cryptographic authentication core for Ed25519 operations
+/// Cryptographic authentication core for ECDSA P-256 signature operations.
 ///
-/// This class provides high-level authentication operations using Ed25519
-/// cryptography while maintaining strict privacy-by-design principles:
+/// This class provides high-level authentication operations while maintaining 
+/// strict privacy-by-design principles:
 /// - Only handles public keys and signature verification
 /// - Never generates, stores, or processes private keys
 /// - All operations are stateless and side-effect free
 class CryptoAuth {
-  /// Verify Ed25519 signature with public key and data
+  /// Verify ECDSA P-256 signature with public key and data.
   ///
   /// Parameters:
-  /// - [publicKeyHex]: Ed25519 public key as hex string (64 chars)
+  /// - [publicKeyHex]: ECDSA P-256 public key as hex string (128-130 chars)
   /// - [data]: The original data that was signed
-  /// - [signatureHex]: Ed25519 signature as hex string (128 chars)
+  /// - [signatureHex]: Signature as hex string (128 chars)
   ///
   /// Returns true if the signature is valid for the given data and public key.
   ///
@@ -56,32 +56,32 @@ class CryptoAuth {
     // Convert data to string for CryptoUtils compatibility
     final message = String.fromCharCodes(data);
 
-    return CryptoUtils.verifyEd25519Signature(
+    return CryptoUtils.verifySignature(
       message: message,
       signature: signatureHex,
       publicKey: publicKeyHex,
     );
   }
 
-  /// Validate Ed25519 public key format (32 bytes hex)
+  /// Validate ECDSA P-256 public key format.
   ///
-  /// Returns true if the key format is valid, false otherwise.
+  /// Returns true if the key format is valid (128-130 hex chars), false otherwise.
   static bool isValidPublicKey(String publicKeyHex) =>
-      CryptoUtils.isValidEd25519PublicKey(publicKeyHex);
+      CryptoUtils.isValidPublicKey(publicKeyHex);
 
   /// Generate cryptographically secure challenge
   ///
   /// Returns a hex-encoded random challenge string for authentication.
   static String generateChallenge() => CryptoUtils.generateChallenge();
 
-  /// Verify challenge response signature
+  /// Verify ECDSA P-256 challenge response signature.
   ///
   /// This is the core challenge-response authentication method.
   ///
   /// Parameters:
-  /// - [publicKeyHex]: Ed25519 public key as hex string (64 chars)
+  /// - [publicKeyHex]: ECDSA P-256 public key as hex string (128-130 chars)
   /// - [challenge]: The challenge string that was signed
-  /// - [signatureHex]: Ed25519 signature of the challenge (128 chars)
+  /// - [signatureHex]: Signature of the challenge (128 hex chars)
   ///
   /// Returns AuthenticationResult with success/failure information.
   static Future<AuthenticationResult> verifyChallengeResponse(
@@ -94,18 +94,18 @@ class CryptoAuth {
       if (!isValidPublicKey(publicKeyHex)) {
         return AuthenticationResultFactory.failure(
           errorCode: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-          errorMessage: 'Invalid Ed25519 public key format',
+          errorMessage: 'Invalid ECDSA P-256 public key format',
           details: {
             'publicKeyLength': publicKeyHex.length.toString(),
-            'expectedLength': '64',
+            'expectedLength': '128 or 130',
           },
         );
       }
 
-      if (!CryptoUtils.isValidEd25519Signature(signatureHex)) {
+      if (!CryptoUtils.isValidSignature(signatureHex)) {
         return AuthenticationResultFactory.failure(
           errorCode: AnonAccredErrorCodes.cryptoInvalidSignature,
-          errorMessage: 'Invalid Ed25519 signature format',
+          errorMessage: 'Invalid signature format',
           details: {
             'signatureLength': signatureHex.length.toString(),
             'expectedLength': '128',
@@ -139,8 +139,8 @@ class CryptoAuth {
         );
       }
 
-      // Perform signature verification
-      final isValid = await CryptoUtils.verifyEd25519Signature(
+      // Perform signature verification (auto-detects algorithm)
+      final isValid = await CryptoUtils.verifySignature(
         message: challenge,
         signature: signatureHex,
         publicKey: publicKeyHex,
@@ -151,6 +151,7 @@ class CryptoAuth {
           details: {
             'publicKey': publicKeyHex,
             'challengeLength': challenge.length.toString(),
+            'algorithm': 'ECDSA-P256',
           },
         );
       } else {
@@ -176,19 +177,19 @@ class CryptoAuth {
     }
   }
 
-  /// Verify signature with string message (convenience method)
+  /// Verify ECDSA P-256 signature with string message.
   ///
   /// Parameters:
-  /// - [publicKeyHex]: Ed25519 public key as hex string (64 chars)
+  /// - [publicKeyHex]: ECDSA P-256 public key as hex string (128-130 chars)
   /// - [message]: The original message that was signed
-  /// - [signatureHex]: Ed25519 signature as hex string (128 chars)
+  /// - [signatureHex]: Signature as hex string (128 chars)
   ///
   /// Returns true if the signature is valid for the given message and public key.
   static Future<bool> verifyMessageSignature(
     String publicKeyHex,
     String message,
     String signatureHex,
-  ) => CryptoUtils.verifyEd25519Signature(
+  ) => CryptoUtils.verifySignature(
     message: message,
     signature: signatureHex,
     publicKey: publicKeyHex,
