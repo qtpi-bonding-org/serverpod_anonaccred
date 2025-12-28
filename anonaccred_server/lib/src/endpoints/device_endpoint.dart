@@ -5,10 +5,10 @@ import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
 
-/// Device management endpoints for Ed25519-based device registration and authentication
+/// Device management endpoints for ECDSA P-256 device registration and authentication
 ///
 /// This endpoint provides device management functionality including:
-/// - Device registration with Ed25519 subkeys
+/// - Device registration with ECDSA P-256 subkeys
 /// - Challenge-response authentication
 /// - Device revocation and listing
 /// - Integration with existing AccountDevice model from Phase 1
@@ -19,11 +19,11 @@ class DeviceEndpoint extends Endpoint {
   /// Register new device with account
   ///
   /// Creates a new device registration associated with an account.
-  /// The device is identified by its Ed25519 public subkey.
+  /// The device is identified by its ECDSA P-256 public subkey.
   ///
   /// Parameters:
   /// - [accountId]: The account to associate the device with
-  /// - [publicSubKey]: Ed25519 public key for the device (64 hex chars)
+  /// - [publicSubKey]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
   /// - [encryptedDataKey]: Device-encrypted SDK (never decrypted server-side)
   /// - [label]: Human-readable device name
   ///
@@ -84,11 +84,11 @@ class DeviceEndpoint extends Endpoint {
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-              message: 'Invalid Ed25519 public subkey format',
+              message: 'Invalid ECDSA P-256 public subkey format',
               operation: 'registerDevice',
               details: {
                 'publicSubKeyLength': publicSubKey.length.toString(),
-                'expectedLength': '64',
+                'expectedLength': '128 or 130',
                 'accountId': accountId.toString(),
               },
             );
@@ -162,13 +162,13 @@ class DeviceEndpoint extends Endpoint {
 
   /// Authenticate device with challenge-response
   ///
-  /// Performs Ed25519 signature verification for device authentication.
+  /// Performs ECDSA P-256 signature verification for device authentication.
   /// Updates the device's last active timestamp on successful authentication.
   /// Authentication already validated by Serverpod - device key extracted from session.
   ///
   /// Parameters:
   /// - [challenge]: The challenge string that was signed
-  /// - [signature]: Ed25519 signature of the challenge
+  /// - [signature]: ECDSA P-256 signature of the challenge (128 hex chars, r||s format)
   ///
   /// Returns AuthenticationResult with success/failure information.
   Future<AuthenticationResult> authenticateDevice(

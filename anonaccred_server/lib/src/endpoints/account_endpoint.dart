@@ -11,10 +11,10 @@ import '../helpers.dart';
 /// - Never generates, stores, or processes private keys
 /// - All encrypted data is stored as-is without decryption attempts
 class AccountEndpoint extends Endpoint {
-  /// Create new anonymous account with Ed25519 public key identity
+  /// Create new anonymous account with ECDSA P-256 public key identity
   ///
   /// Parameters:
-  /// - [publicMasterKey]: Ed25519 public key as hex string (64 chars)
+  /// - [publicMasterKey]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
   /// - [encryptedDataKey]: Client-encrypted symmetric data key (never decrypted server-side)
   ///
   /// Returns the created AnonAccount with assigned ID.
@@ -115,7 +115,7 @@ class AccountEndpoint extends Endpoint {
   /// Get account by public master key lookup
   ///
   /// Parameters:
-  /// - [publicMasterKey]: Ed25519 public key as hex string (64 chars)
+  /// - [publicMasterKey]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
   ///
   /// Returns the AnonAccount if found, null if not found.
   ///

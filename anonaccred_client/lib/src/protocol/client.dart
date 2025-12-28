@@ -36,10 +36,10 @@ class EndpointAccount extends _i1.EndpointRef {
   @override
   String get name => 'anonaccred.account';
 
-  /// Create new anonymous account with Ed25519 public key identity
+  /// Create new anonymous account with ECDSA P-256 public key identity
   ///
   /// Parameters:
-  /// - [publicMasterKey]: Ed25519 public key as hex string (64 chars)
+  /// - [publicMasterKey]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
   /// - [encryptedDataKey]: Client-encrypted symmetric data key (never decrypted server-side)
   ///
   /// Returns the created AnonAccount with assigned ID.
@@ -77,7 +77,7 @@ class EndpointAccount extends _i1.EndpointRef {
   /// Get account by public master key lookup
   ///
   /// Parameters:
-  /// - [publicMasterKey]: Ed25519 public key as hex string (64 chars)
+  /// - [publicMasterKey]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
   ///
   /// Returns the AnonAccount if found, null if not found.
   ///
@@ -349,10 +349,10 @@ class EndpointCommerce extends _i1.EndpointRef {
   );
 }
 
-/// Device management endpoints for Ed25519-based device registration and authentication
+/// Device management endpoints for ECDSA P-256 device registration and authentication
 ///
 /// This endpoint provides device management functionality including:
-/// - Device registration with Ed25519 subkeys
+/// - Device registration with ECDSA P-256 subkeys
 /// - Challenge-response authentication
 /// - Device revocation and listing
 /// - Integration with existing AccountDevice model from Phase 1
@@ -366,11 +366,11 @@ class EndpointDevice extends _i1.EndpointRef {
   /// Register new device with account
   ///
   /// Creates a new device registration associated with an account.
-  /// The device is identified by its Ed25519 public subkey.
+  /// The device is identified by its ECDSA P-256 public subkey.
   ///
   /// Parameters:
   /// - [accountId]: The account to associate the device with
-  /// - [publicSubKey]: Ed25519 public key for the device (64 hex chars)
+  /// - [publicSubKey]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
   /// - [encryptedDataKey]: Device-encrypted SDK (never decrypted server-side)
   /// - [label]: Human-readable device name
   ///
@@ -399,13 +399,13 @@ class EndpointDevice extends _i1.EndpointRef {
 
   /// Authenticate device with challenge-response
   ///
-  /// Performs Ed25519 signature verification for device authentication.
+  /// Performs ECDSA P-256 signature verification for device authentication.
   /// Updates the device's last active timestamp on successful authentication.
   /// Authentication already validated by Serverpod - device key extracted from session.
   ///
   /// Parameters:
   /// - [challenge]: The challenge string that was signed
-  /// - [signature]: Ed25519 signature of the challenge
+  /// - [signature]: ECDSA P-256 signature of the challenge (128 hex chars, r||s format)
   ///
   /// Returns AuthenticationResult with success/failure information.
   _i2.Future<_i9.AuthenticationResult> authenticateDevice(
