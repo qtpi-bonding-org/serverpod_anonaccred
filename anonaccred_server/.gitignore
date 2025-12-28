@@ -5,8 +5,7 @@ pubspec.lock
 build/
 doc/api/
 
-# Serverpod specific
-generated/
+# Serverpod specific - keep generated/ tracked for module consumers
 *.g.dart
 *.freezed.dart
 *.mocks.dart
