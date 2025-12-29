@@ -39,22 +39,25 @@ class EndpointAccount extends _i1.EndpointRef {
   /// Create new anonymous account with ECDSA P-256 public key identity
   ///
   /// Parameters:
-  /// - [publicMasterKey]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
-  /// - [encryptedDataKey]: Client-encrypted symmetric data key (never decrypted server-side)
+  /// - [publicMasterKey]: Device ECDSA P-256 public key (128 hex chars, x||y coordinates)
+  /// - [encryptedDataKey]: Recovery blob (symmetric key encrypted with ultimate public key)
+  /// - [ultimatePublicKey]: Ultimate ECDSA P-256 public key (128 hex chars) for recovery lookup
   ///
   /// Returns the created AnonAccount with assigned ID.
   ///
-  /// Throws AuthenticationException if public key validation fails.
+  /// Throws AuthenticationException if public key validation fails or duplicate key exists.
   /// Throws AnonAccredException for database or system errors.
   _i2.Future<_i3.AnonAccount> createAccount(
     String publicMasterKey,
     String encryptedDataKey,
+    String ultimatePublicKey,
   ) => caller.callServerEndpoint<_i3.AnonAccount>(
     'anonaccred.account',
     'createAccount',
     {
       'publicMasterKey': publicMasterKey,
       'encryptedDataKey': encryptedDataKey,
+      'ultimatePublicKey': ultimatePublicKey,
     },
   );
 
@@ -89,6 +92,31 @@ class EndpointAccount extends _i1.EndpointRef {
         'getAccountByPublicKey',
         {'publicMasterKey': publicMasterKey},
       );
+
+  /// Get account for recovery by ultimate public key
+  ///
+  /// This endpoint is used during account recovery when a user has lost all devices
+  /// but has their ultimate private key backup. The ultimate public key is derived
+  /// from the backup and used to look up the account.
+  ///
+  /// Parameters:
+  /// - [ultimatePublicKey]: ECDSA P-256 public key from ultimate JWK (128 hex chars)
+  ///
+  /// Returns the AnonAccount with recovery blob if found, null if not found.
+  /// The recovery blob (encryptedDataKey) can be decrypted with the ultimate private key.
+  ///
+  /// SECURITY: This endpoint is unauthenticated (user has no device).
+  /// Only returns data that requires the ultimate private key to decrypt.
+  ///
+  /// Throws AuthenticationException if public key validation fails.
+  /// Throws AnonAccredException for database or system errors.
+  _i2.Future<_i3.AnonAccount?> getAccountForRecovery(
+    String ultimatePublicKey,
+  ) => caller.callServerEndpoint<_i3.AnonAccount?>(
+    'anonaccred.account',
+    'getAccountForRecovery',
+    {'ultimatePublicKey': ultimatePublicKey},
+  );
 }
 
 /// Commerce endpoints for AnonAccred Phase 3 commerce foundation

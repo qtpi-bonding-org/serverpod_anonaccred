@@ -14,49 +14,67 @@ class AccountEndpoint extends Endpoint {
   /// Create new anonymous account with ECDSA P-256 public key identity
   ///
   /// Parameters:
-  /// - [publicMasterKey]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
-  /// - [encryptedDataKey]: Client-encrypted symmetric data key (never decrypted server-side)
+  /// - [publicMasterKey]: Device ECDSA P-256 public key (128 hex chars, x||y coordinates)
+  /// - [encryptedDataKey]: Recovery blob (symmetric key encrypted with ultimate public key)
+  /// - [ultimatePublicKey]: Ultimate ECDSA P-256 public key (128 hex chars) for recovery lookup
   ///
   /// Returns the created AnonAccount with assigned ID.
   ///
-  /// Throws AuthenticationException if public key validation fails.
+  /// Throws AuthenticationException if public key validation fails or duplicate key exists.
   /// Throws AnonAccredException for database or system errors.
   Future<AnonAccount> createAccount(
     Session session,
     String publicMasterKey,
     String encryptedDataKey,
+    String ultimatePublicKey,
   ) async {
     try {
       // Validate input parameters using helper functions
       AnonAccredHelpers.validatePublicKey(publicMasterKey, 'createAccount');
+      AnonAccredHelpers.validatePublicKey(ultimatePublicKey, 'createAccount');
       AnonAccredHelpers.validateNonEmpty(encryptedDataKey, 'encryptedDataKey', 'createAccount');
 
-      // Check if account with this public key already exists
-      final existingAccount = await AnonAccount.db.findFirstRow(
+      // Check if account with this device public key already exists
+      final existingByDevice = await AnonAccount.db.findFirstRow(
         session,
         where: (t) => t.publicMasterKey.equals(publicMasterKey),
       );
 
-      if (existingAccount != null) {
-        final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes
-                  .authMissingKey, // Using existing error code for duplicate key
-              message: 'Account with this public key already exists',
-              operation: 'createAccount',
-              details: {
-                'publicMasterKey': publicMasterKey,
-                'existingAccountId': existingAccount.id.toString(),
-              },
-            );
+      if (existingByDevice != null) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authDuplicateDevice,
+          message: 'Account with this device public key already exists',
+          operation: 'createAccount',
+          details: {
+            'publicMasterKey': publicMasterKey,
+            'existingAccountId': existingByDevice.id.toString(),
+          },
+        );
+      }
 
-        throw exception;
+      // Check if account with this ultimate public key already exists
+      final existingByUltimate = await AnonAccount.db.findFirstRow(
+        session,
+        where: (t) => t.ultimatePublicKey.equals(ultimatePublicKey),
+      );
+
+      if (existingByUltimate != null) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authDuplicateDevice,
+          message: 'Account with this ultimate key already exists',
+          operation: 'createAccount',
+          details: {
+            'ultimatePublicKey': ultimatePublicKey,
+            'existingAccountId': existingByUltimate.id.toString(),
+          },
+        );
       }
 
       // Create new account - encrypted data is stored as-is without decryption
       final newAccount = AnonAccount(
         publicMasterKey: publicMasterKey,
         encryptedDataKey: encryptedDataKey,
+        ultimatePublicKey: ultimatePublicKey,
         createdAt: DateTime.now(),
       );
 
@@ -70,8 +88,6 @@ class AccountEndpoint extends Endpoint {
     } on AuthenticationException {
       rethrow;
     } catch (e) {
-      // Log unexpected error
-
       // Wrap unexpected errors in AnonAccred exception
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
@@ -139,12 +155,54 @@ class AccountEndpoint extends Endpoint {
     } on AuthenticationException {
       rethrow;
     } catch (e) {
-      // Log unexpected error
-
       // Wrap unexpected errors in AnonAccred exception
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
         message: 'Unexpected error during account lookup: ${e.toString()}',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
+  /// Get account for recovery by ultimate public key
+  ///
+  /// This endpoint is used during account recovery when a user has lost all devices
+  /// but has their ultimate private key backup. The ultimate public key is derived
+  /// from the backup and used to look up the account.
+  ///
+  /// Parameters:
+  /// - [ultimatePublicKey]: ECDSA P-256 public key from ultimate JWK (128 hex chars)
+  ///
+  /// Returns the AnonAccount with recovery blob if found, null if not found.
+  /// The recovery blob (encryptedDataKey) can be decrypted with the ultimate private key.
+  ///
+  /// SECURITY: This endpoint is unauthenticated (user has no device).
+  /// Only returns data that requires the ultimate private key to decrypt.
+  ///
+  /// Throws AuthenticationException if public key validation fails.
+  /// Throws AnonAccredException for database or system errors.
+  Future<AnonAccount?> getAccountForRecovery(
+    Session session,
+    String ultimatePublicKey,
+  ) async {
+    try {
+      // Validate input parameters using helper functions
+      AnonAccredHelpers.validatePublicKey(ultimatePublicKey, 'getAccountForRecovery');
+
+      // Lookup account by ultimate public key
+      final account = await AnonAccount.db.findFirstRow(
+        session,
+        where: (t) => t.ultimatePublicKey.equals(ultimatePublicKey),
+      );
+
+      return account;
+    } on AuthenticationException {
+      rethrow;
+    } catch (e) {
+      // Wrap unexpected errors in AnonAccred exception
+      throw AnonAccredExceptionFactory.createException(
+        code: AnonAccredErrorCodes.internalError,
+        message: 'Unexpected error during recovery lookup: ${e.toString()}',
         details: {'error': e.toString()},
       );
     }

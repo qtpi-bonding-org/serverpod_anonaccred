@@ -17,6 +17,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
     this.id,
     required this.publicMasterKey,
     required this.encryptedDataKey,
+    required this.ultimatePublicKey,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -24,6 +25,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
     int? id,
     required String publicMasterKey,
     required String encryptedDataKey,
+    required String ultimatePublicKey,
     DateTime? createdAt,
   }) = _AnonAccountImpl;
 
@@ -32,6 +34,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
       id: jsonSerialization['id'] as int?,
       publicMasterKey: jsonSerialization['publicMasterKey'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
+      ultimatePublicKey: jsonSerialization['ultimatePublicKey'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -47,6 +50,8 @@ abstract class AnonAccount implements _i1.SerializableModel {
 
   String encryptedDataKey;
 
+  String ultimatePublicKey;
+
   DateTime createdAt;
 
   /// Returns a shallow copy of this [AnonAccount]
@@ -56,6 +61,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
     int? id,
     String? publicMasterKey,
     String? encryptedDataKey,
+    String? ultimatePublicKey,
     DateTime? createdAt,
   });
   @override
@@ -65,6 +71,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
       if (id != null) 'id': id,
       'publicMasterKey': publicMasterKey,
       'encryptedDataKey': encryptedDataKey,
+      'ultimatePublicKey': ultimatePublicKey,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -82,11 +89,13 @@ class _AnonAccountImpl extends AnonAccount {
     int? id,
     required String publicMasterKey,
     required String encryptedDataKey,
+    required String ultimatePublicKey,
     DateTime? createdAt,
   }) : super._(
          id: id,
          publicMasterKey: publicMasterKey,
          encryptedDataKey: encryptedDataKey,
+         ultimatePublicKey: ultimatePublicKey,
          createdAt: createdAt,
        );
 
@@ -98,12 +107,14 @@ class _AnonAccountImpl extends AnonAccount {
     Object? id = _Undefined,
     String? publicMasterKey,
     String? encryptedDataKey,
+    String? ultimatePublicKey,
     DateTime? createdAt,
   }) {
     return AnonAccount(
       id: id is int? ? id : this.id,
       publicMasterKey: publicMasterKey ?? this.publicMasterKey,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
+      ultimatePublicKey: ultimatePublicKey ?? this.ultimatePublicKey,
       createdAt: createdAt ?? this.createdAt,
     );
   }

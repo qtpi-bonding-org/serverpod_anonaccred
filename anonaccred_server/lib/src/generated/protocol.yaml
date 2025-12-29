@@ -2,6 +2,7 @@ account:
   - createAccount:
   - getAccountById:
   - getAccountByPublicKey:
+  - getAccountForRecovery:
 commerce:
   - registerProducts:
   - getProductCatalog:

@@ -18,6 +18,7 @@ abstract class AnonAccount
     this.id,
     required this.publicMasterKey,
     required this.encryptedDataKey,
+    required this.ultimatePublicKey,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -25,6 +26,7 @@ abstract class AnonAccount
     int? id,
     required String publicMasterKey,
     required String encryptedDataKey,
+    required String ultimatePublicKey,
     DateTime? createdAt,
   }) = _AnonAccountImpl;
 
@@ -33,6 +35,7 @@ abstract class AnonAccount
       id: jsonSerialization['id'] as int?,
       publicMasterKey: jsonSerialization['publicMasterKey'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
+      ultimatePublicKey: jsonSerialization['ultimatePublicKey'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -50,6 +53,8 @@ abstract class AnonAccount
 
   String encryptedDataKey;
 
+  String ultimatePublicKey;
+
   DateTime createdAt;
 
   @override
@@ -62,6 +67,7 @@ abstract class AnonAccount
     int? id,
     String? publicMasterKey,
     String? encryptedDataKey,
+    String? ultimatePublicKey,
     DateTime? createdAt,
   });
   @override
@@ -71,6 +77,7 @@ abstract class AnonAccount
       if (id != null) 'id': id,
       'publicMasterKey': publicMasterKey,
       'encryptedDataKey': encryptedDataKey,
+      'ultimatePublicKey': ultimatePublicKey,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -82,6 +89,7 @@ abstract class AnonAccount
       if (id != null) 'id': id,
       'publicMasterKey': publicMasterKey,
       'encryptedDataKey': encryptedDataKey,
+      'ultimatePublicKey': ultimatePublicKey,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -123,11 +131,13 @@ class _AnonAccountImpl extends AnonAccount {
     int? id,
     required String publicMasterKey,
     required String encryptedDataKey,
+    required String ultimatePublicKey,
     DateTime? createdAt,
   }) : super._(
          id: id,
          publicMasterKey: publicMasterKey,
          encryptedDataKey: encryptedDataKey,
+         ultimatePublicKey: ultimatePublicKey,
          createdAt: createdAt,
        );
 
@@ -139,12 +149,14 @@ class _AnonAccountImpl extends AnonAccount {
     Object? id = _Undefined,
     String? publicMasterKey,
     String? encryptedDataKey,
+    String? ultimatePublicKey,
     DateTime? createdAt,
   }) {
     return AnonAccount(
       id: id is int? ? id : this.id,
       publicMasterKey: publicMasterKey ?? this.publicMasterKey,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
+      ultimatePublicKey: ultimatePublicKey ?? this.ultimatePublicKey,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -162,6 +174,12 @@ class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
   _i1.ColumnValue<String, String> encryptedDataKey(String value) =>
       _i1.ColumnValue(
         table.encryptedDataKey,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> ultimatePublicKey(String value) =>
+      _i1.ColumnValue(
+        table.ultimatePublicKey,
         value,
       );
 
@@ -183,6 +201,10 @@ class AnonAccountTable extends _i1.Table<int?> {
       'encryptedDataKey',
       this,
     );
+    ultimatePublicKey = _i1.ColumnString(
+      'ultimatePublicKey',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -196,6 +218,8 @@ class AnonAccountTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString encryptedDataKey;
 
+  late final _i1.ColumnString ultimatePublicKey;
+
   late final _i1.ColumnDateTime createdAt;
 
   @override
@@ -203,6 +227,7 @@ class AnonAccountTable extends _i1.Table<int?> {
     id,
     publicMasterKey,
     encryptedDataKey,
+    ultimatePublicKey,
     createdAt,
   ];
 }

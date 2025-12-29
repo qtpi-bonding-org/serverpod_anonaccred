@@ -1,14 +1,23 @@
-# AnonAccount: Immutable identity root based on Ed25519 public key
+# AnonAccount: Immutable identity root based on ECDSA P-256 public key
 # Stores only public keys and encrypted data - never private keys or PII
 class: AnonAccount
 table: anon_account
+indexes:
+  ultimate_key_idx:
+    fields: ultimatePublicKey
+    unique: true
 fields:
-  # Ed25519 public key as immutable account identifier (64 hex characters)
+  # Device ECDSA P-256 public key (128 hex chars, x||y coordinates)
+  # Used as account identifier for authentication
   publicMasterKey: String
   
-  # Symmetric data key encrypted with master private key (client-side encryption)
-  # Server never decrypts this - used for client-side data encryption/decryption
+  # Recovery blob: Symmetric data key encrypted with ultimate public key
+  # Server never decrypts this - used for account recovery
   encryptedDataKey: String
+  
+  # Ultimate ECDSA P-256 public key (128 hex chars, x||y coordinates)
+  # Used for account recovery lookup - derived from user's offline backup
+  ultimatePublicKey: String
   
   # Account creation timestamp
   createdAt: DateTime, default=now

@@ -204,6 +204,7 @@ class _AccountEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String publicMasterKey,
     String encryptedDataKey,
+    String ultimatePublicKey,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -219,6 +220,7 @@ class _AccountEndpoint {
           parameters: _i1.testObjectToJson({
             'publicMasterKey': publicMasterKey,
             'encryptedDataKey': encryptedDataKey,
+            'ultimatePublicKey': ultimatePublicKey,
           }),
           serializationManager: _serializationManager,
         );
@@ -283,6 +285,39 @@ class _AccountEndpoint {
           methodName: 'getAccountByPublicKey',
           parameters: _i1.testObjectToJson({
             'publicMasterKey': publicMasterKey,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i4.AnonAccount?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i4.AnonAccount?> getAccountForRecovery(
+    _i1.TestSessionBuilder sessionBuilder,
+    String ultimatePublicKey,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'account',
+            method: 'getAccountForRecovery',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'account',
+          methodName: 'getAccountForRecovery',
+          parameters: _i1.testObjectToJson({
+            'ultimatePublicKey': ultimatePublicKey,
           }),
           serializationManager: _serializationManager,
         );

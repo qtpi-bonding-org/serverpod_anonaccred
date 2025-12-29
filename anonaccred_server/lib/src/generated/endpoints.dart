@@ -91,6 +91,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'ultimatePublicKey': _i1.ParameterDescription(
+              name: 'ultimatePublicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -101,6 +106,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['publicMasterKey'],
                     params['encryptedDataKey'],
+                    params['ultimatePublicKey'],
                   ),
         ),
         'getAccountById': _i1.MethodConnector(
@@ -139,6 +145,25 @@ class Endpoints extends _i1.EndpointDispatch {
                   .getAccountByPublicKey(
                     session,
                     params['publicMasterKey'],
+                  ),
+        ),
+        'getAccountForRecovery': _i1.MethodConnector(
+          name: 'getAccountForRecovery',
+          params: {
+            'ultimatePublicKey': _i1.ParameterDescription(
+              name: 'ultimatePublicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['account'] as _i2.AccountEndpoint)
+                  .getAccountForRecovery(
+                    session,
+                    params['ultimatePublicKey'],
                   ),
         ),
       },
