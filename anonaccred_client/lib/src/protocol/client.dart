@@ -20,7 +20,9 @@ import 'package:anonaccred_client/src/protocol/consume_result.dart' as _i7;
 import 'package:anonaccred_client/src/protocol/account_device.dart' as _i8;
 import 'package:anonaccred_client/src/protocol/authentication_result.dart'
     as _i9;
-import 'package:anonaccred_client/src/protocol/payment_request.dart' as _i10;
+import 'package:anonaccred_client/src/protocol/device_pairing_info.dart'
+    as _i10;
+import 'package:anonaccred_client/src/protocol/payment_request.dart' as _i11;
 
 /// Account management endpoints for anonymous identity operations
 ///
@@ -495,6 +497,62 @@ class EndpointDevice extends _i1.EndpointRef {
         'listDevices',
         {},
       );
+
+  /// Register a new device for the caller's account (QR code pairing flow).
+  ///
+  /// Device A (authenticated) calls this to register Device B.
+  /// Server derives accountId from Device A's authenticated session.
+  ///
+  /// SECURITY: Caller must be authenticated with an active (non-revoked) device.
+  /// The auth handler already enforces this via requireActiveDevice().
+  ///
+  /// Parameters:
+  /// - [newDeviceSigningPublicKeyHex]: Device B's ECDSA P-256 signing public key (128 hex)
+  /// - [newDeviceEncryptedDataKey]: SDK encrypted with Device B's RSA public key
+  /// - [label]: Human-readable device name
+  ///
+  /// Returns the created AccountDevice.
+  ///
+  /// Throws AuthenticationException if:
+  /// - Caller is not authenticated
+  /// - Caller's device not found
+  /// - New device public key format is invalid
+  /// - New device public key already registered
+  _i2.Future<_i8.AccountDevice> registerDeviceForAccount(
+    String newDeviceSigningPublicKeyHex,
+    String newDeviceEncryptedDataKey,
+    String label,
+  ) => caller.callServerEndpoint<_i8.AccountDevice>(
+    'anonaccred.device',
+    'registerDeviceForAccount',
+    {
+      'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex,
+      'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
+      'label': label,
+    },
+  );
+
+  /// Get device info by signing public key (for pairing completion).
+  ///
+  /// UNAUTHENTICATED - Device B doesn't have credentials yet.
+  /// Only returns the encrypted blob needed to complete pairing.
+  ///
+  /// SECURITY:
+  /// - Only returns encryptedDataKey (useless without Device B's private key)
+  /// - No account identifiers exposed
+  /// - 128-hex key is not enumerable (2^512 possibilities)
+  ///
+  /// Parameters:
+  /// - [signingPublicKeyHex]: Device's ECDSA P-256 signing public key (128 hex)
+  ///
+  /// Returns DevicePairingInfo if device is registered, null otherwise.
+  _i2.Future<_i10.DevicePairingInfo?> getDeviceBySigningKey(
+    String signingPublicKeyHex,
+  ) => caller.callServerEndpoint<_i10.DevicePairingInfo?>(
+    'anonaccred.device',
+    'getDeviceBySigningKey',
+    {'signingPublicKeyHex': signingPublicKeyHex},
+  );
 }
 
 /// In-App Purchase endpoint for Apple and Google IAP validation
@@ -772,12 +830,12 @@ class EndpointPayment extends _i1.EndpointRef {
   /// - [AnonAccredException] for system errors
   ///
   /// Requirements 6.1: Create payment requests using specified rail
-  _i2.Future<_i10.PaymentRequest> initiatePayment(
+  _i2.Future<_i11.PaymentRequest> initiatePayment(
     String publicKey,
     String signature,
     String orderId,
     _i5.PaymentRail railType,
-  ) => caller.callServerEndpoint<_i10.PaymentRequest>(
+  ) => caller.callServerEndpoint<_i11.PaymentRequest>(
     'anonaccred.payment',
     'initiatePayment',
     {

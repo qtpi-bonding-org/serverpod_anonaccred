@@ -548,6 +548,56 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['device'] as _i4.DeviceEndpoint)
                   .listDevices(session),
         ),
+        'registerDeviceForAccount': _i1.MethodConnector(
+          name: 'registerDeviceForAccount',
+          params: {
+            'newDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'newDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'newDeviceEncryptedDataKey': _i1.ParameterDescription(
+              name: 'newDeviceEncryptedDataKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'label': _i1.ParameterDescription(
+              name: 'label',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
+                  .registerDeviceForAccount(
+                    session,
+                    params['newDeviceSigningPublicKeyHex'],
+                    params['newDeviceEncryptedDataKey'],
+                    params['label'],
+                  ),
+        ),
+        'getDeviceBySigningKey': _i1.MethodConnector(
+          name: 'getDeviceBySigningKey',
+          params: {
+            'signingPublicKeyHex': _i1.ParameterDescription(
+              name: 'signingPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
+                  .getDeviceBySigningKey(
+                    session,
+                    params['signingPublicKeyHex'],
+                  ),
+        ),
       },
     );
     connectors['iAP'] = _i1.EndpointConnector(

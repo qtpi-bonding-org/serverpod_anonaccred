@@ -23,7 +23,9 @@ import 'package:anonaccred_server/src/generated/consume_result.dart' as _i8;
 import 'package:anonaccred_server/src/generated/account_device.dart' as _i9;
 import 'package:anonaccred_server/src/generated/authentication_result.dart'
     as _i10;
-import 'package:anonaccred_server/src/generated/payment_request.dart' as _i11;
+import 'package:anonaccred_server/src/generated/device_pairing_info.dart'
+    as _i11;
+import 'package:anonaccred_server/src/generated/payment_request.dart' as _i12;
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -823,6 +825,76 @@ class _DeviceEndpoint {
       }
     });
   }
+
+  _i3.Future<_i9.AccountDevice> registerDeviceForAccount(
+    _i1.TestSessionBuilder sessionBuilder,
+    String newDeviceSigningPublicKeyHex,
+    String newDeviceEncryptedDataKey,
+    String label,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'device',
+            method: 'registerDeviceForAccount',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'device',
+          methodName: 'registerDeviceForAccount',
+          parameters: _i1.testObjectToJson({
+            'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex,
+            'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
+            'label': label,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i9.AccountDevice>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i11.DevicePairingInfo?> getDeviceBySigningKey(
+    _i1.TestSessionBuilder sessionBuilder,
+    String signingPublicKeyHex,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'device',
+            method: 'getDeviceBySigningKey',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'device',
+          methodName: 'getDeviceBySigningKey',
+          parameters: _i1.testObjectToJson({
+            'signingPublicKeyHex': signingPublicKeyHex,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i11.DevicePairingInfo?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _IAPEndpoint {
@@ -1230,7 +1302,7 @@ class _PaymentEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i11.PaymentRequest> initiatePayment(
+  _i3.Future<_i12.PaymentRequest> initiatePayment(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -1261,7 +1333,7 @@ class _PaymentEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.PaymentRequest>);
+                as _i3.Future<_i12.PaymentRequest>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

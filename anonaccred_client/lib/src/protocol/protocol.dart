@@ -17,25 +17,27 @@ import 'anonaccred_exception.dart' as _i4;
 import 'authentication_exception.dart' as _i5;
 import 'authentication_result.dart' as _i6;
 import 'consume_result.dart' as _i7;
-import 'enums.dart' as _i8;
-import 'inventory.dart' as _i9;
-import 'inventory_exception.dart' as _i10;
-import 'module_class.dart' as _i11;
-import 'order_status.dart' as _i12;
-import 'payment_exception.dart' as _i13;
-import 'payment_rail.dart' as _i14;
-import 'payment_request.dart' as _i15;
-import 'payment_result.dart' as _i16;
-import 'transaction.dart' as _i17;
-import 'transaction_consumable.dart' as _i18;
-import 'package:anonaccred_client/src/protocol/inventory.dart' as _i19;
-import 'package:anonaccred_client/src/protocol/account_device.dart' as _i20;
+import 'device_pairing_info.dart' as _i8;
+import 'enums.dart' as _i9;
+import 'inventory.dart' as _i10;
+import 'inventory_exception.dart' as _i11;
+import 'module_class.dart' as _i12;
+import 'order_status.dart' as _i13;
+import 'payment_exception.dart' as _i14;
+import 'payment_rail.dart' as _i15;
+import 'payment_request.dart' as _i16;
+import 'payment_result.dart' as _i17;
+import 'transaction.dart' as _i18;
+import 'transaction_consumable.dart' as _i19;
+import 'package:anonaccred_client/src/protocol/inventory.dart' as _i20;
+import 'package:anonaccred_client/src/protocol/account_device.dart' as _i21;
 export 'account.dart';
 export 'account_device.dart';
 export 'anonaccred_exception.dart';
 export 'authentication_exception.dart';
 export 'authentication_result.dart';
 export 'consume_result.dart';
+export 'device_pairing_info.dart';
 export 'enums.dart';
 export 'inventory.dart';
 export 'inventory_exception.dart';
@@ -103,38 +105,41 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i7.ConsumeResult) {
       return _i7.ConsumeResult.fromJson(data) as T;
     }
-    if (t == _i8.Currency) {
-      return _i8.Currency.fromJson(data) as T;
+    if (t == _i8.DevicePairingInfo) {
+      return _i8.DevicePairingInfo.fromJson(data) as T;
     }
-    if (t == _i9.AccountInventory) {
-      return _i9.AccountInventory.fromJson(data) as T;
+    if (t == _i9.Currency) {
+      return _i9.Currency.fromJson(data) as T;
     }
-    if (t == _i10.InventoryException) {
-      return _i10.InventoryException.fromJson(data) as T;
+    if (t == _i10.AccountInventory) {
+      return _i10.AccountInventory.fromJson(data) as T;
     }
-    if (t == _i11.ModuleClass) {
-      return _i11.ModuleClass.fromJson(data) as T;
+    if (t == _i11.InventoryException) {
+      return _i11.InventoryException.fromJson(data) as T;
     }
-    if (t == _i12.OrderStatus) {
-      return _i12.OrderStatus.fromJson(data) as T;
+    if (t == _i12.ModuleClass) {
+      return _i12.ModuleClass.fromJson(data) as T;
     }
-    if (t == _i13.PaymentException) {
-      return _i13.PaymentException.fromJson(data) as T;
+    if (t == _i13.OrderStatus) {
+      return _i13.OrderStatus.fromJson(data) as T;
     }
-    if (t == _i14.PaymentRail) {
-      return _i14.PaymentRail.fromJson(data) as T;
+    if (t == _i14.PaymentException) {
+      return _i14.PaymentException.fromJson(data) as T;
     }
-    if (t == _i15.PaymentRequest) {
-      return _i15.PaymentRequest.fromJson(data) as T;
+    if (t == _i15.PaymentRail) {
+      return _i15.PaymentRail.fromJson(data) as T;
     }
-    if (t == _i16.PaymentResult) {
-      return _i16.PaymentResult.fromJson(data) as T;
+    if (t == _i16.PaymentRequest) {
+      return _i16.PaymentRequest.fromJson(data) as T;
     }
-    if (t == _i17.TransactionPayment) {
-      return _i17.TransactionPayment.fromJson(data) as T;
+    if (t == _i17.PaymentResult) {
+      return _i17.PaymentResult.fromJson(data) as T;
     }
-    if (t == _i18.TransactionConsumable) {
-      return _i18.TransactionConsumable.fromJson(data) as T;
+    if (t == _i18.TransactionPayment) {
+      return _i18.TransactionPayment.fromJson(data) as T;
+    }
+    if (t == _i19.TransactionConsumable) {
+      return _i19.TransactionConsumable.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AnonAccount?>()) {
       return (data != null ? _i2.AnonAccount.fromJson(data) : null) as T;
@@ -157,40 +162,43 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i7.ConsumeResult?>()) {
       return (data != null ? _i7.ConsumeResult.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i8.Currency?>()) {
-      return (data != null ? _i8.Currency.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i8.DevicePairingInfo?>()) {
+      return (data != null ? _i8.DevicePairingInfo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i9.AccountInventory?>()) {
-      return (data != null ? _i9.AccountInventory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i9.Currency?>()) {
+      return (data != null ? _i9.Currency.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i10.InventoryException?>()) {
-      return (data != null ? _i10.InventoryException.fromJson(data) : null)
+    if (t == _i1.getType<_i10.AccountInventory?>()) {
+      return (data != null ? _i10.AccountInventory.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i11.InventoryException?>()) {
+      return (data != null ? _i11.InventoryException.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i11.ModuleClass?>()) {
-      return (data != null ? _i11.ModuleClass.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.ModuleClass?>()) {
+      return (data != null ? _i12.ModuleClass.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.OrderStatus?>()) {
-      return (data != null ? _i12.OrderStatus.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.OrderStatus?>()) {
+      return (data != null ? _i13.OrderStatus.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.PaymentException?>()) {
-      return (data != null ? _i13.PaymentException.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i14.PaymentException?>()) {
+      return (data != null ? _i14.PaymentException.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.PaymentRail?>()) {
-      return (data != null ? _i14.PaymentRail.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i15.PaymentRail?>()) {
+      return (data != null ? _i15.PaymentRail.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i15.PaymentRequest?>()) {
-      return (data != null ? _i15.PaymentRequest.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i16.PaymentRequest?>()) {
+      return (data != null ? _i16.PaymentRequest.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i16.PaymentResult?>()) {
-      return (data != null ? _i16.PaymentResult.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i17.PaymentResult?>()) {
+      return (data != null ? _i17.PaymentResult.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i17.TransactionPayment?>()) {
-      return (data != null ? _i17.TransactionPayment.fromJson(data) : null)
+    if (t == _i1.getType<_i18.TransactionPayment?>()) {
+      return (data != null ? _i18.TransactionPayment.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i18.TransactionConsumable?>()) {
-      return (data != null ? _i18.TransactionConsumable.fromJson(data) : null)
+    if (t == _i1.getType<_i19.TransactionConsumable?>()) {
+      return (data != null ? _i19.TransactionConsumable.fromJson(data) : null)
           as T;
     }
     if (t == Map<String, String>) {
@@ -214,9 +222,9 @@ class Protocol extends _i1.SerializationManager {
           )
           as T;
     }
-    if (t == List<_i19.AccountInventory>) {
+    if (t == List<_i20.AccountInventory>) {
       return (data as List)
-              .map((e) => deserialize<_i19.AccountInventory>(e))
+              .map((e) => deserialize<_i20.AccountInventory>(e))
               .toList()
           as T;
     }
@@ -241,9 +249,9 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i20.AccountDevice>) {
+    if (t == List<_i21.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i20.AccountDevice>(e))
+              .map((e) => deserialize<_i21.AccountDevice>(e))
               .toList()
           as T;
     }
@@ -258,17 +266,18 @@ class Protocol extends _i1.SerializationManager {
       _i5.AuthenticationException => 'AuthenticationException',
       _i6.AuthenticationResult => 'AuthenticationResult',
       _i7.ConsumeResult => 'ConsumeResult',
-      _i8.Currency => 'Currency',
-      _i9.AccountInventory => 'AccountInventory',
-      _i10.InventoryException => 'InventoryException',
-      _i11.ModuleClass => 'ModuleClass',
-      _i12.OrderStatus => 'OrderStatus',
-      _i13.PaymentException => 'PaymentException',
-      _i14.PaymentRail => 'PaymentRail',
-      _i15.PaymentRequest => 'PaymentRequest',
-      _i16.PaymentResult => 'PaymentResult',
-      _i17.TransactionPayment => 'TransactionPayment',
-      _i18.TransactionConsumable => 'TransactionConsumable',
+      _i8.DevicePairingInfo => 'DevicePairingInfo',
+      _i9.Currency => 'Currency',
+      _i10.AccountInventory => 'AccountInventory',
+      _i11.InventoryException => 'InventoryException',
+      _i12.ModuleClass => 'ModuleClass',
+      _i13.OrderStatus => 'OrderStatus',
+      _i14.PaymentException => 'PaymentException',
+      _i15.PaymentRail => 'PaymentRail',
+      _i16.PaymentRequest => 'PaymentRequest',
+      _i17.PaymentResult => 'PaymentResult',
+      _i18.TransactionPayment => 'TransactionPayment',
+      _i19.TransactionConsumable => 'TransactionConsumable',
       _ => null,
     };
   }
@@ -295,27 +304,29 @@ class Protocol extends _i1.SerializationManager {
         return 'AuthenticationResult';
       case _i7.ConsumeResult():
         return 'ConsumeResult';
-      case _i8.Currency():
+      case _i8.DevicePairingInfo():
+        return 'DevicePairingInfo';
+      case _i9.Currency():
         return 'Currency';
-      case _i9.AccountInventory():
+      case _i10.AccountInventory():
         return 'AccountInventory';
-      case _i10.InventoryException():
+      case _i11.InventoryException():
         return 'InventoryException';
-      case _i11.ModuleClass():
+      case _i12.ModuleClass():
         return 'ModuleClass';
-      case _i12.OrderStatus():
+      case _i13.OrderStatus():
         return 'OrderStatus';
-      case _i13.PaymentException():
+      case _i14.PaymentException():
         return 'PaymentException';
-      case _i14.PaymentRail():
+      case _i15.PaymentRail():
         return 'PaymentRail';
-      case _i15.PaymentRequest():
+      case _i16.PaymentRequest():
         return 'PaymentRequest';
-      case _i16.PaymentResult():
+      case _i17.PaymentResult():
         return 'PaymentResult';
-      case _i17.TransactionPayment():
+      case _i18.TransactionPayment():
         return 'TransactionPayment';
-      case _i18.TransactionConsumable():
+      case _i19.TransactionConsumable():
         return 'TransactionConsumable';
     }
     return null;
@@ -345,38 +356,41 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'ConsumeResult') {
       return deserialize<_i7.ConsumeResult>(data['data']);
     }
+    if (dataClassName == 'DevicePairingInfo') {
+      return deserialize<_i8.DevicePairingInfo>(data['data']);
+    }
     if (dataClassName == 'Currency') {
-      return deserialize<_i8.Currency>(data['data']);
+      return deserialize<_i9.Currency>(data['data']);
     }
     if (dataClassName == 'AccountInventory') {
-      return deserialize<_i9.AccountInventory>(data['data']);
+      return deserialize<_i10.AccountInventory>(data['data']);
     }
     if (dataClassName == 'InventoryException') {
-      return deserialize<_i10.InventoryException>(data['data']);
+      return deserialize<_i11.InventoryException>(data['data']);
     }
     if (dataClassName == 'ModuleClass') {
-      return deserialize<_i11.ModuleClass>(data['data']);
+      return deserialize<_i12.ModuleClass>(data['data']);
     }
     if (dataClassName == 'OrderStatus') {
-      return deserialize<_i12.OrderStatus>(data['data']);
+      return deserialize<_i13.OrderStatus>(data['data']);
     }
     if (dataClassName == 'PaymentException') {
-      return deserialize<_i13.PaymentException>(data['data']);
+      return deserialize<_i14.PaymentException>(data['data']);
     }
     if (dataClassName == 'PaymentRail') {
-      return deserialize<_i14.PaymentRail>(data['data']);
+      return deserialize<_i15.PaymentRail>(data['data']);
     }
     if (dataClassName == 'PaymentRequest') {
-      return deserialize<_i15.PaymentRequest>(data['data']);
+      return deserialize<_i16.PaymentRequest>(data['data']);
     }
     if (dataClassName == 'PaymentResult') {
-      return deserialize<_i16.PaymentResult>(data['data']);
+      return deserialize<_i17.PaymentResult>(data['data']);
     }
     if (dataClassName == 'TransactionPayment') {
-      return deserialize<_i17.TransactionPayment>(data['data']);
+      return deserialize<_i18.TransactionPayment>(data['data']);
     }
     if (dataClassName == 'TransactionConsumable') {
-      return deserialize<_i18.TransactionConsumable>(data['data']);
+      return deserialize<_i19.TransactionConsumable>(data['data']);
     }
     return super.deserializeByClassName(data);
   }

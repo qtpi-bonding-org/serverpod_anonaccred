@@ -18,6 +18,8 @@ device:
   - generateAuthChallenge:
   - revokeDevice:
   - listDevices:
+  - registerDeviceForAccount:
+  - getDeviceBySigningKey:
 iAP:
   - validateAppleReceipt:
   - validateGooglePurchase:

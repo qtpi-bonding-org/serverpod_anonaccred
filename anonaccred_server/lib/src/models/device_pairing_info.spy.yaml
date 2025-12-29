@@ -1,0 +1,9 @@
+### Device pairing info returned when polling for registration completion.
+### 
+### Contains only the encrypted data key blob - no account identifiers exposed.
+### Device B uses this to complete pairing after Device A registers it.
+class: DevicePairingInfo
+fields:
+  ### SDK encrypted with device's RSA public key (base64 encoded).
+  ### Only the device with the matching private key can decrypt this.
+  encryptedDataKey: String

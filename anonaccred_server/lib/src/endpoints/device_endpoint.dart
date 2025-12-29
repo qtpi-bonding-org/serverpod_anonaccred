@@ -370,4 +370,144 @@ class DeviceEndpoint extends Endpoint {
       );
     }
   }
+
+  /// Register a new device for the caller's account (QR code pairing flow).
+  /// 
+  /// Device A (authenticated) calls this to register Device B.
+  /// Server derives accountId from Device A's authenticated session.
+  /// 
+  /// SECURITY: Caller must be authenticated with an active (non-revoked) device.
+  /// The auth handler already enforces this via requireActiveDevice().
+  /// 
+  /// Parameters:
+  /// - [newDeviceSigningPublicKeyHex]: Device B's ECDSA P-256 signing public key (128 hex)
+  /// - [newDeviceEncryptedDataKey]: SDK encrypted with Device B's RSA public key
+  /// - [label]: Human-readable device name
+  /// 
+  /// Returns the created AccountDevice.
+  /// 
+  /// Throws AuthenticationException if:
+  /// - Caller is not authenticated
+  /// - Caller's device not found
+  /// - New device public key format is invalid
+  /// - New device public key already registered
+  Future<AccountDevice> registerDeviceForAccount(
+    Session session,
+    String newDeviceSigningPublicKeyHex,
+    String newDeviceEncryptedDataKey,
+    String label,
+  ) async {
+    try {
+      // Require authentication (revoked devices already blocked by auth handler)
+      if (session.authenticated == null) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authMissingKey,
+          message: 'Authentication required to register new device',
+          operation: 'registerDeviceForAccount',
+          details: {},
+        );
+      }
+      
+      // Get caller's device → derive accountId
+      final callerDeviceKey = AnonAccredAuthHandler.getDevicePublicKey(session);
+      final callerDevice = await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) => t.publicSubKey.equals(callerDeviceKey),
+      );
+      
+      if (callerDevice == null) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authDeviceNotFound,
+          message: 'Caller device not found',
+          operation: 'registerDeviceForAccount',
+          details: {'callerDeviceKey': callerDeviceKey},
+        );
+      }
+      
+      // Validate new device key format
+      AnonAccredHelpers.validatePublicKey(newDeviceSigningPublicKeyHex, 'registerDeviceForAccount');
+      AnonAccredHelpers.validateNonEmpty(newDeviceEncryptedDataKey, 'newDeviceEncryptedDataKey', 'registerDeviceForAccount');
+      AnonAccredHelpers.validateNonEmpty(label, 'label', 'registerDeviceForAccount');
+      
+      // Check for duplicate
+      final existing = await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) => t.publicSubKey.equals(newDeviceSigningPublicKeyHex),
+      );
+      if (existing != null) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.authDuplicateDevice,
+          message: 'Device already registered',
+          operation: 'registerDeviceForAccount',
+          details: {'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex},
+        );
+      }
+      
+      // Register new device under same account
+      final newDevice = AccountDevice(
+        accountId: callerDevice.accountId,  // Derived from caller's session
+        publicSubKey: newDeviceSigningPublicKeyHex,
+        encryptedDataKey: newDeviceEncryptedDataKey,
+        label: label,
+        lastActive: DateTime.now(),
+        isRevoked: false,
+      );
+      
+      return await AccountDevice.db.insertRow(session, newDevice);
+    } on AuthenticationException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.databaseError,
+        message: 'Failed to register device for account: ${e.toString()}',
+        operation: 'registerDeviceForAccount',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
+  /// Get device info by signing public key (for pairing completion).
+  /// 
+  /// UNAUTHENTICATED - Device B doesn't have credentials yet.
+  /// Only returns the encrypted blob needed to complete pairing.
+  /// 
+  /// SECURITY: 
+  /// - Only returns encryptedDataKey (useless without Device B's private key)
+  /// - No account identifiers exposed
+  /// - 128-hex key is not enumerable (2^512 possibilities)
+  /// 
+  /// Parameters:
+  /// - [signingPublicKeyHex]: Device's ECDSA P-256 signing public key (128 hex)
+  /// 
+  /// Returns DevicePairingInfo if device is registered, null otherwise.
+  Future<DevicePairingInfo?> getDeviceBySigningKey(
+    Session session,
+    String signingPublicKeyHex,
+  ) async {
+    try {
+      // Validate key format
+      AnonAccredHelpers.validatePublicKey(signingPublicKeyHex, 'getDeviceBySigningKey');
+      
+      final device = await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) => t.publicSubKey.equals(signingPublicKeyHex),
+      );
+      
+      if (device == null) return null;
+      
+      // Return only what Device B needs - no account identifiers
+      return DevicePairingInfo(
+        encryptedDataKey: device.encryptedDataKey,
+      );
+    } on AuthenticationException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.databaseError,
+        message: 'Failed to get device by signing key: ${e.toString()}',
+        operation: 'getDeviceBySigningKey',
+        details: {'error': e.toString()},
+      );
+    }
+  }
 }
