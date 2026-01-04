@@ -20,6 +20,7 @@ void main() {
             sessionBuilder,
             invalidPublicKey,
             encryptedDataKey,
+            invalidPublicKey, // ultimatePublicKey - using same invalid key for testing
           );
           fail('Expected AuthenticationException to be thrown');
         } on AuthenticationException catch (e) {
@@ -111,6 +112,7 @@ void main() {
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
+          accountPublicKey, // ultimatePublicKey - using same key for testing
         );
 
         // Test empty device key

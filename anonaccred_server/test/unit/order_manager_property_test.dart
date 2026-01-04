@@ -32,6 +32,7 @@ void main() {
             sessionBuilder,
             _generateRandomPublicKey(),
             'encrypted_data_key_test',
+            _generateRandomPublicKey(), // ultimatePublicKey - using different key for testing
           );
           final accountId = account.id!;
 
@@ -148,6 +149,7 @@ void main() {
             sessionBuilder,
             _generateRandomPublicKey(),
             'encrypted_data_key_test',
+            _generateRandomPublicKey(), // ultimatePublicKey - using different key for testing
           );
           final accountId = account.id!;
 
@@ -276,6 +278,7 @@ void main() {
         sessionBuilder,
         _generateRandomPublicKey(),
         'encrypted_data_key_test',
+        _generateRandomPublicKey(), // ultimatePublicKey - using different key for testing
       );
       final accountId = account.id!;
 
@@ -338,6 +341,7 @@ void main() {
             sessionBuilder,
             _generateRandomPublicKey(),
             'encrypted_data_key_test',
+            _generateRandomPublicKey(), // ultimatePublicKey - using different key for testing
           );
           final accountId = account.id!;
 
@@ -484,7 +488,7 @@ String _generateRandomPublicKey() {
   final random = Random();
   const chars = '0123456789abcdef';
   return List.generate(
-    64,
+    128, // ECDSA P-256 public key (not Ed25519)
     (index) => chars[random.nextInt(chars.length)],
   ).join();
 }

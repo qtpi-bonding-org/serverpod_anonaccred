@@ -92,7 +92,7 @@ void main() {
       test('property: validatePublicKey should accept valid ECDSA P-256 keys', () {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
-          final validKey = _generateValidEcdsaP256PublicKey(random);
+          final validKey = _generateFakePublicKeyString(random);
           final operation = 'op${random.nextInt(100)}';
           
           expect(
@@ -189,9 +189,9 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final account = AnonAccount(
             id: random.nextInt(1000) + 1,
-            publicMasterKey: _generateValidEcdsaP256PublicKey(random),
+            publicMasterKey: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
-            ultimatePublicKey: _generateValidEcdsaP256PublicKey(random),
+            ultimatePublicKey: _generateFakePublicKeyString(random),
           );
           final accountId = random.nextInt(1000) + 1;
           final operation = 'op${random.nextInt(100)}';
@@ -229,11 +229,11 @@ void main() {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateValidEcdsaP256PublicKey(random),
+            publicSubKey: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
           );
-          final publicKey = _generateValidEcdsaP256PublicKey(random);
+          final publicKey = _generateFakePublicKeyString(random);
           final operation = 'op${random.nextInt(100)}';
           
           final result = AnonAccredHelpers.requireDevice(device, publicKey, operation);
@@ -286,12 +286,12 @@ void main() {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateValidEcdsaP256PublicKey(random),
+            publicSubKey: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
             isRevoked: false, // Always non-revoked for this property
           );
-          final publicKey = _generateValidEcdsaP256PublicKey(random);
+          final publicKey = _generateFakePublicKeyString(random);
           final operation = 'op${random.nextInt(100)}';
           
           final result = AnonAccredHelpers.requireActiveDevice(device, publicKey, operation);
@@ -305,12 +305,12 @@ void main() {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateValidEcdsaP256PublicKey(random),
+            publicSubKey: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
             isRevoked: true, // Always revoked for this property
           );
-          final publicKey = _generateValidEcdsaP256PublicKey(random);
+          final publicKey = _generateFakePublicKeyString(random);
           final operation = 'op${random.nextInt(100)}';
           
           expect(
@@ -323,21 +323,21 @@ void main() {
   });
 }
 
-// Test data generators
+// Test data generators - These generate FAKE data for testing, not real cryptographic keys
 String _generateRandomNonEmptyString(Random random) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   final length = random.nextInt(50) + 1; // 1-50 characters
   return List.generate(length, (index) => chars[random.nextInt(chars.length)]).join();
 }
 
-String _generateValidEcdsaP256PublicKey(Random random) {
-  // Generate a valid 128-character hex string (64 bytes for ECDSA P-256)
+String _generateFakePublicKeyString(Random random) {
+  // Generate a fake 128-character hex string for testing (not a real ECDSA P-256 key)
   const chars = '0123456789abcdef';
   return List.generate(128, (index) => chars[random.nextInt(chars.length)]).join();
 }
 
 String _generateInvalidPublicKey(Random random) {
-  // Generate various invalid key formats
+  // Generate various invalid key formats for testing
   final invalidTypes = [
     () => '', // Empty string
     () => 'invalid', // Too short

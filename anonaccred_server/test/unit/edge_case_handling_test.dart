@@ -16,6 +16,7 @@ void main() {
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
+          accountPublicKey, // ultimatePublicKey - using same key for testing
         );
 
         expect(
@@ -40,6 +41,7 @@ void main() {
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
+          accountPublicKey, // ultimatePublicKey - using same key for testing
         );
 
         expect(

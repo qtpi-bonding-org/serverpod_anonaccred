@@ -29,8 +29,9 @@ void main() {
       // Create test account and device for authenticated tests
       testAccount = await endpoints.account.createAccount(
         sessionBuilder,
-        'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 64-char hex
+        'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 128-char hex for ECDSA P-256
         'encrypted_data_key_test',
+        'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // ultimatePublicKey - using same key for testing
       );
 
       testDevice = await endpoints.device.registerDevice(

@@ -24,6 +24,7 @@ void main() {
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
+          accountPublicKey, // ultimatePublicKey - using same key for testing
         );
 
         // Register a device
@@ -85,35 +86,13 @@ void main() {
   });
 }
 
-// Test data generators
+// Test data generators - These generate FAKE hex strings for testing, not real cryptographic keys
 String _generateRandomEd25519PublicKey() {
-  // Generate a valid Ed25519 public key format (64 hex characters)
+  // Generate a fake 128-character hex string for ECDSA P-256 format (not Ed25519)
   final random = Random();
   const chars = '0123456789abcdef';
   return List.generate(
-    64,
-    (index) => chars[random.nextInt(chars.length)],
-  ).join();
-}
-
-String _generateRandomEd25519Signature() {
-  // Generate a valid Ed25519 signature format (128 hex characters)
-  final random = Random();
-  const chars = '0123456789abcdef';
-  return List.generate(
-    128,
-    (index) => chars[random.nextInt(chars.length)],
-  ).join();
-}
-
-String _generateRandomEncryptedData() {
-  // Generate random encrypted data (base64-like string)
-  final random = Random();
-  const chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  final length = 32 + random.nextInt(64); // 32-96 characters
-  return List.generate(
-    length,
+    128, // ECDSA P-256 public key format
     (index) => chars[random.nextInt(chars.length)],
   ).join();
 }

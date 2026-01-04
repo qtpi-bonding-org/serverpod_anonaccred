@@ -19,16 +19,16 @@ void main() {
         // Run 5 iterations during development (can be increased to 100+ for production)
         for (int i = 0; i < 5; i++) {
           // Generate random cryptographic data
-          final publicMasterKey = _generateRandomEcdsaP256PublicKey();
+          final publicMasterKey = _generateFakePublicKeyString();
           final encryptedMasterDataKey = _generateRandomEncryptedData();
-          final publicSubKey = _generateRandomEcdsaP256PublicKey();
+          final publicSubKey = _generateFakePublicKeyString();
           final encryptedDeviceDataKey = _generateRandomEncryptedData();
 
           // Create account with cryptographic data
           final account = AnonAccount(
             publicMasterKey: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
-            ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
+            ultimatePublicKey: _generateFakePublicKeyString(),
             createdAt: DateTime.now(),
           );
 
@@ -90,13 +90,13 @@ void main() {
         // Run 5 iterations during development
         for (int i = 0; i < 5; i++) {
           // Generate master account data
-          final publicMasterKey = _generateRandomEcdsaP256PublicKey();
+          final publicMasterKey = _generateFakePublicKeyString();
           final encryptedMasterDataKey = _generateRandomEncryptedData();
 
           final account = AnonAccount(
             publicMasterKey: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
-            ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
+            ultimatePublicKey: _generateFakePublicKeyString(),
             createdAt: DateTime.now(),
           );
 
@@ -107,7 +107,7 @@ void main() {
           for (int j = 0; j < deviceCount; j++) {
             final device = AccountDevice(
               accountId: random.nextInt(10000) + 1,
-              publicSubKey: _generateRandomEcdsaP256PublicKey(),
+              publicSubKey: _generateFakePublicKeyString(),
               encryptedDataKey: _generateRandomEncryptedData(),
               label: 'Device $j',
               lastActive: DateTime.now(),
@@ -160,8 +160,8 @@ void main() {
         // Run 5 iterations during development
         for (int i = 0; i < 5; i++) {
           // Generate valid ECDSA P-256 format data
-          final publicKey = _generateRandomEcdsaP256PublicKey();
-          final signature = _generateRandomEcdsaP256Signature();
+          final publicKey = _generateFakePublicKeyString();
+          final signature = _generateFakeSignatureString();
           final message = _generateRandomMessage();
 
           // Test valid format acceptance
@@ -234,7 +234,7 @@ void main() {
             try {
               await CryptoUtils.verifySignature(
                 message: 'test message',
-                signature: _generateRandomEcdsaP256Signature(),
+                signature: _generateFakeSignatureString(),
                 publicKey: invalidKey,
               );
               fail('Should have thrown exception for invalid public key');
@@ -285,7 +285,7 @@ void main() {
               await CryptoUtils.verifySignature(
                 message: 'test message',
                 signature: invalidSignature,
-                publicKey: _generateRandomEcdsaP256PublicKey(),
+                publicKey: _generateFakePublicKeyString(),
               );
               fail('Should have thrown exception for invalid signature');
             } catch (e) {
@@ -327,8 +327,8 @@ void main() {
           try {
             await CryptoUtils.verifySignature(
               message: '', // Empty message
-              signature: _generateRandomEcdsaP256Signature(),
-              publicKey: _generateRandomEcdsaP256PublicKey(),
+              signature: _generateFakeSignatureString(),
+              publicKey: _generateFakePublicKeyString(),
             );
             fail('Should have thrown exception for empty message');
           } catch (e) {
@@ -386,9 +386,9 @@ void main() {
   });
 }
 
-// Test data generators
-String _generateRandomEcdsaP256PublicKey() {
-  // Generate a valid ECDSA P-256 public key format (128 hex characters)
+// Test data generators - These generate FAKE hex strings for testing, not real cryptographic keys
+String _generateFakePublicKeyString() {
+  // Generate a fake 128-character hex string for testing (not a real ECDSA P-256 key)
   final random = Random();
   const chars = '0123456789abcdef';
   return List.generate(
@@ -397,8 +397,8 @@ String _generateRandomEcdsaP256PublicKey() {
   ).join();
 }
 
-String _generateRandomEcdsaP256Signature() {
-  // Generate a valid ECDSA P-256 signature format (128 hex characters)
+String _generateFakeSignatureString() {
+  // Generate a fake 128-character hex string for testing (not a real ECDSA P-256 signature)
   final random = Random();
   const chars = '0123456789abcdef';
   return List.generate(
@@ -408,7 +408,7 @@ String _generateRandomEcdsaP256Signature() {
 }
 
 String _generateRandomEncryptedData() {
-  // Generate random encrypted data (base64-like string)
+  // Generate fake encrypted data string for testing (base64-like string)
   final random = Random();
   const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -441,14 +441,5 @@ bool _isValidHexString(String hex) {
 bool _isValidEcdsaP256PublicKey(String publicKey) =>
     publicKey.length == 128 && _isValidHexString(publicKey);
 
-bool _isValidEncryptedData(String encryptedData) {
-  // Basic validation for encrypted data format
-  return encryptedData.isNotEmpty && encryptedData.length >= 16;
-}
-
-String _generateRandomEcdsaP256PublicKey() {
-  // Generate a valid 128-character hex string (64 bytes for ECDSA P-256)
-  final random = Random();
-  const chars = '0123456789abcdef';
-  return List.generate(128, (index) => chars[random.nextInt(chars.length)]).join();
-}
+bool _isValidEncryptedData(String encryptedData) =>
+    encryptedData.isNotEmpty && encryptedData.length >= 16;

@@ -31,6 +31,7 @@ void main() {
             sessionBuilder,
             publicKey,
             encryptedDataKey,
+            publicKey, // ultimatePublicKey - using same key for testing
           );
           final accountId = account.id!;
 
@@ -146,6 +147,7 @@ void main() {
           sessionBuilder,
           publicKey,
           encryptedDataKey,
+          publicKey, // ultimatePublicKey - using same key for testing
         );
         final accountId = account.id!;
         final session = sessionBuilder.build();
@@ -219,6 +221,7 @@ void main() {
         sessionBuilder,
         publicKey,
         encryptedDataKey,
+        publicKey, // ultimatePublicKey - using same key for testing
       );
       final accountId = account.id!;
       final session = sessionBuilder.build();
@@ -274,6 +277,7 @@ void main() {
           sessionBuilder,
           publicKey,
           encryptedDataKey,
+          publicKey, // ultimatePublicKey - using same key for testing
         );
         final accountId = account.id!;
         final session = sessionBuilder.build();
@@ -371,6 +375,7 @@ void main() {
         sessionBuilder,
         publicKey,
         encryptedDataKey,
+        publicKey, // ultimatePublicKey - using same key for testing
       );
       final accountId = account.id!;
       final session = sessionBuilder.build();
@@ -439,8 +444,8 @@ String _generateRandomPublicKey() {
   final random = Random();
   final buffer = StringBuffer();
 
-  // Generate 64 hex characters for Ed25519 public key
-  for (int i = 0; i < 64; i++) {
+  // Generate 128 hex characters for ECDSA P-256 public key (not Ed25519)
+  for (int i = 0; i < 128; i++) {
     buffer.write(random.nextInt(16).toRadixString(16));
   }
 
