@@ -129,7 +129,7 @@ void main() {
               isA<AuthenticationException>(),
               predicate<AuthenticationException>((e) => 
                 e.toString().contains('AUTH_MISSING_KEY') &&
-                e.toString().contains('Public subkey is required')
+                e.toString().contains('Device signing public key is required')
               ),
             ),
           ),
@@ -149,7 +149,7 @@ void main() {
               isA<AuthenticationException>(),
               predicate<AuthenticationException>((e) => 
                 e.toString().contains('CRYPTO_INVALID_PUBLIC_KEY') &&
-                e.toString().contains('Invalid ECDSA P-256 public subkey format')
+                e.toString().contains('Invalid ECDSA P-256 device signing public key format')
               ),
             ),
           ),
@@ -181,7 +181,7 @@ void main() {
               isA<AuthenticationException>(),
               predicate<AuthenticationException>((e) => 
                 e.toString().contains('AUTH_DUPLICATE_DEVICE') &&
-                e.toString().contains('Public subkey already registered')
+                e.toString().contains('Device signing public key already registered')
               ),
             ),
           ),
