@@ -168,23 +168,39 @@ void main() {
           expect(CryptoUtils.isValidPublicKey(publicKey), isTrue);
           expect(CryptoUtils.isValidSignature(signature), isTrue);
 
-          // Test signature verification (real ECDSA P-256 implementation)
-          final result = await CryptoUtils.verifySignature(
-            message: message,
-            signature: signature,
-            publicKey: publicKey,
-          );
-
-          // Verify result is boolean (signature verification completed)
-          expect(result, isA<bool>());
+          // Test signature verification with fake keys (should fail gracefully)
+          // Since we're using fake keys that aren't valid ECDSA P-256 points,
+          // verification should fail with a crypto verification error
+          try {
+            final result = await CryptoUtils.verifySignature(
+              message: message,
+              signature: signature,
+              publicKey: publicKey,
+            );
+            
+            // If verification completes without throwing, result should be false
+            // (fake signature with fake key should not verify)
+            expect(result, isFalse);
+          } on AuthenticationException catch (e) {
+            // Expected behavior: fake keys cause verification failure
+            expect(e.code, equals(AnonAccredErrorCodes.cryptoVerificationFailed));
+            expect(e.message, contains('ECDSA verification failed'));
+          }
 
           // Test with same inputs produces same result (deterministic)
-          final result2 = await CryptoUtils.verifySignature(
-            message: message,
-            signature: signature,
-            publicKey: publicKey,
-          );
-          expect(result2, equals(result));
+          // Since fake keys will consistently fail, test that the error is consistent
+          try {
+            final result2 = await CryptoUtils.verifySignature(
+              message: message,
+              signature: signature,
+              publicKey: publicKey,
+            );
+            // If no exception, should be false (fake keys don't verify)
+            expect(result2, isFalse);
+          } on AuthenticationException catch (e2) {
+            // Should get the same type of error consistently
+            expect(e2.code, equals(AnonAccredErrorCodes.cryptoVerificationFailed));
+          }
 
           // Test format validation
           expect(

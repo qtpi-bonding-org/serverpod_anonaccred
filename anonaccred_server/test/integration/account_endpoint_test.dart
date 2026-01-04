@@ -8,18 +8,20 @@ void main() {
     endpoints,
   ) {
     test(
-      'createAccount - successful account creation with valid Ed25519 key',
+      'createAccount - successful account creation with valid ECDSA P-256 key',
       () async {
-        // Valid ECDSA P-256 public key (128 hex characters) - using all lowercase
+        // Valid ECDSA P-256 public key (128 hex characters)
         const validPublicKey =
-            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefa123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'encrypted_data_key_example_12345';
+        const ultimatePublicKey = 
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefb123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           validPublicKey,
           encryptedDataKey,
-          'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
+          ultimatePublicKey,
         );
 
         expect(account.publicMasterKey, equals(validPublicKey));
@@ -32,13 +34,15 @@ void main() {
     test('createAccount - fails with invalid public key format', () async {
       const invalidPublicKey = 'invalid_key_too_short';
       const encryptedDataKey = 'encrypted_data_key_example_12345';
+      const ultimatePublicKey = 
+          'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefc123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
       expect(
         () => endpoints.account.createAccount(
           sessionBuilder,
           invalidPublicKey,
           encryptedDataKey,
-          'ultimate_public_key_invalid',
+          ultimatePublicKey,
         ),
         throwsA(isA<Exception>()),
       );
@@ -47,13 +51,15 @@ void main() {
     test('createAccount - fails with empty public key', () async {
       const emptyPublicKey = '';
       const encryptedDataKey = 'encrypted_data_key_example_12345';
+      const ultimatePublicKey = 
+          'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
       expect(
         () => endpoints.account.createAccount(
           sessionBuilder,
           emptyPublicKey,
           encryptedDataKey,
-          'ultimate_public_key_empty',
+          ultimatePublicKey,
         ),
         throwsA(isA<Exception>()),
       );
@@ -61,15 +67,17 @@ void main() {
 
     test('createAccount - fails with empty encrypted data key', () async {
       const validPublicKey =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+          'e123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefe123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
       const emptyEncryptedDataKey = '';
+      const ultimatePublicKey = 
+          'f123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdeff123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
       expect(
         () => endpoints.account.createAccount(
           sessionBuilder,
           validPublicKey,
           emptyEncryptedDataKey,
-          'ultimate_public_key_empty_data',
+          ultimatePublicKey,
         ),
         throwsA(isA<Exception>()),
       );
@@ -82,12 +90,14 @@ void main() {
         const validPublicKey =
             '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'encrypted_data_key_example_67890';
+        const ultimatePublicKey = 
+            '2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final createdAccount = await endpoints.account.createAccount(
           sessionBuilder,
           validPublicKey,
           encryptedDataKey,
-          'ultimate_public_key_created_${DateTime.now().millisecondsSinceEpoch}',
+          ultimatePublicKey,
         );
 
         // Now lookup the account
@@ -107,7 +117,7 @@ void main() {
       'getAccountByPublicKey - returns null for non-existent account',
       () async {
         const nonExistentPublicKey =
-            '2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final foundAccount = await endpoints.account.getAccountByPublicKey(
           sessionBuilder,
@@ -149,16 +159,20 @@ void main() {
       'createAccount - prevents duplicate public key registration',
       () async {
         const duplicatePublicKey =
-            '3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey1 = 'encrypted_data_key_first_12345';
         const encryptedDataKey2 = 'encrypted_data_key_second_67890';
+        const ultimatePublicKey1 = 
+            '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        const ultimatePublicKey2 = 
+            '6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         // Create first account
         await endpoints.account.createAccount(
           sessionBuilder,
           duplicatePublicKey,
           encryptedDataKey1,
-          'ultimate_public_key_duplicate_1',
+          ultimatePublicKey1,
         );
 
         // Attempt to create second account with same public key should fail
@@ -167,7 +181,7 @@ void main() {
             sessionBuilder,
             duplicatePublicKey,
             encryptedDataKey2,
-            'ultimate_public_key_duplicate_2',
+            ultimatePublicKey2,
           ),
           throwsA(isA<Exception>()),
         );
@@ -178,15 +192,17 @@ void main() {
       'encrypted data preservation - data stored without decryption',
       () async {
         const validPublicKey =
-            '4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const originalEncryptedData =
             r'complex_encrypted_data_with_special_chars_!@#$%^&*()';
+        const ultimatePublicKey = 
+            '8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           validPublicKey,
           originalEncryptedData,
-          'ultimate_public_key_preservation_${DateTime.now().millisecondsSinceEpoch}',
+          ultimatePublicKey,
         );
 
         // Verify encrypted data is stored exactly as provided

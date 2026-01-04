@@ -122,11 +122,11 @@ class CryptoUtils {
       final publicKeyBytes = hexToBytes(normalizedKey);
 
       // webcrypto.dart expects X9.62 format: 0x04 + x + y
-      final x9_62_key = Uint8List.fromList([0x04, ...publicKeyBytes]);
+      final x962Key = Uint8List.fromList([0x04, ...publicKeyBytes]);
       
       // Import public key using webcrypto.dart
       final ecdsaPublicKey = await EcdsaPublicKey.importRawKey(
-        x9_62_key,
+        x962Key,
         EllipticCurve.p256,
       );
 
