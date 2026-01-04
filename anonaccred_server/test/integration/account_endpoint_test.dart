@@ -19,6 +19,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           encryptedDataKey,
+          'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
         );
 
         expect(account.publicMasterKey, equals(validPublicKey));
@@ -37,6 +38,7 @@ void main() {
           sessionBuilder,
           invalidPublicKey,
           encryptedDataKey,
+          'ultimate_public_key_invalid',
         ),
         throwsA(isA<Exception>()),
       );
@@ -51,6 +53,7 @@ void main() {
           sessionBuilder,
           emptyPublicKey,
           encryptedDataKey,
+          'ultimate_public_key_empty',
         ),
         throwsA(isA<Exception>()),
       );
@@ -66,6 +69,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           emptyEncryptedDataKey,
+          'ultimate_public_key_empty_data',
         ),
         throwsA(isA<Exception>()),
       );
@@ -83,6 +87,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           encryptedDataKey,
+          'ultimate_public_key_created_${DateTime.now().millisecondsSinceEpoch}',
         );
 
         // Now lookup the account
@@ -153,6 +158,7 @@ void main() {
           sessionBuilder,
           duplicatePublicKey,
           encryptedDataKey1,
+          'ultimate_public_key_duplicate_1',
         );
 
         // Attempt to create second account with same public key should fail
@@ -161,6 +167,7 @@ void main() {
             sessionBuilder,
             duplicatePublicKey,
             encryptedDataKey2,
+            'ultimate_public_key_duplicate_2',
           ),
           throwsA(isA<Exception>()),
         );
@@ -179,6 +186,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           originalEncryptedData,
+          'ultimate_public_key_preservation_${DateTime.now().millisecondsSinceEpoch}',
         );
 
         // Verify encrypted data is stored exactly as provided

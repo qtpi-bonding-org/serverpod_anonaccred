@@ -26,8 +26,9 @@ void main() {
 
     test('database helpers work with existing models', () {
       final account = AnonAccount(
-        publicMasterKey: 'a' * 64,
+        publicMasterKey: 'a' * 128, // ECDSA P-256 format
         encryptedDataKey: 'encrypted',
+        ultimatePublicKey: 'b' * 128,
       );
 
       final result = AnonAccredHelpers.requireAccount(account, 1, 'testOp');

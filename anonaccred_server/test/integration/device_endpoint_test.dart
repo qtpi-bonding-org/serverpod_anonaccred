@@ -18,6 +18,7 @@ void main() {
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
+          'ultimate_public_key_device_1',
         );
 
         const publicSubKey =
@@ -55,6 +56,7 @@ void main() {
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
+          'ultimate_public_key_device_2',
         );
 
         const publicSubKey =
@@ -97,6 +99,7 @@ void main() {
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
+          'ultimate_public_key_device_3',
         );
 
         const invalidPublicSubKey = 'invalid_key_format';

@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:test/test.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
 
 void main() {
@@ -14,6 +14,7 @@ void main() {
       testAccount = AnonAccount(
         publicMasterKey: 'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',
+        ultimatePublicKey: 'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
       );
       testAccount = await AnonAccount.db.insertRow(session, testAccount);
       

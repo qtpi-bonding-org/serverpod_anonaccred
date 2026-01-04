@@ -1,10 +1,12 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
-import 'package:cryptography/cryptography.dart';
+
 import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:anonaccred_server/src/crypto_utils.dart';
-import 'test_tools/serverpod_test_tools.dart';
+import 'package:test/test.dart';
+import 'package:webcrypto/webcrypto.dart';
+
 import 'test_tools/auth_test_helper.dart';
+import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
   withServerpod('Complete Workflow Integration Tests', (
@@ -12,33 +14,30 @@ void main() {
     endpoints,
   ) {
     group('Account Creation → Device Registration → Authentication Flow', () {
-      test('complete happy path workflow with real Ed25519 signatures', () async {
-        // Step 1: Generate Ed25519 key pair for account (simulating client-side)
-        final algorithm = Ed25519();
-        final accountKeyPair = await algorithm.newKeyPair();
-        final accountPublicKey = await accountKeyPair.extractPublicKey();
-        final accountPublicKeyHex = CryptoUtils.bytesToHex(
-          Uint8List.fromList(accountPublicKey.bytes),
-        );
+      test('complete happy path workflow with real ECDSA P-256 signatures', () async {
+        // Step 1: Generate ECDSA P-256 key pair for account (simulating client-side)
+        final accountKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
+        final accountPublicKey = await accountKeyPair.publicKey.exportRawKey();
+        final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
         // Step 2: Create account
         const encryptedDataKey = 'encrypted_account_data_key_12345';
+        final ultimatePublicKey = 'ultimate_public_key_workflow_' + ('a' * 100);
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKeyHex,
           encryptedDataKey,
+          ultimatePublicKey,
         );
 
         expect(account.id, isNotNull);
         expect(account.publicMasterKey, equals(accountPublicKeyHex));
         expect(account.encryptedDataKey, equals(encryptedDataKey));
 
-        // Step 3: Generate Ed25519 key pair for device (simulating client-side)
-        final deviceKeyPair = await algorithm.newKeyPair();
-        final devicePublicKey = await deviceKeyPair.extractPublicKey();
-        final devicePublicKeyHex = CryptoUtils.bytesToHex(
-          Uint8List.fromList(devicePublicKey.bytes),
-        );
+        // Step 3: Generate ECDSA P-256 key pair for device (simulating client-side)
+        final deviceKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
+        final devicePublicKey = await deviceKeyPair.publicKey.exportRawKey();
+        final devicePublicKeyHex = devicePublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
         // Step 4: Register device
         const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
@@ -87,20 +86,19 @@ void main() {
       });
 
       test('account lookup workflow', () async {
-        // Step 1: Generate Ed25519 key pair for account
-        final algorithm = Ed25519();
-        final accountKeyPair = await algorithm.newKeyPair();
-        final accountPublicKey = await accountKeyPair.extractPublicKey();
-        final accountPublicKeyHex = CryptoUtils.bytesToHex(
-          Uint8List.fromList(accountPublicKey.bytes),
-        );
+        // Step 1: Generate ECDSA P-256 key pair for account
+        final accountKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
+        final accountPublicKey = await accountKeyPair.publicKey.exportRawKey();
+        final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
         // Step 2: Create account
         const encryptedDataKey = 'encrypted_account_data_key_lookup';
+        final ultimatePublicKey = 'ultimate_public_key_lookup_' + ('b' * 100);
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKeyHex,
           encryptedDataKey,
+          ultimatePublicKey,
         );
 
         expect(account.id, isNotNull);
@@ -116,6 +114,7 @@ void main() {
 
         // Step 4: Test lookup with non-existent key
         const nonExistentPublicKey =
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' +
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
         final nonExistentAccount = await endpoints.account.getAccountByPublicKey(
           sessionBuilder,
@@ -154,13 +153,18 @@ void main() {
       test('device registration validation workflow', () async {
         // Create test account
         const accountPublicKey =
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_8';
+        const ultimatePublicKey = 
+            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final testAccount = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKey,
           accountEncryptedDataKey,
+          ultimatePublicKey,
         );
 
         // Test successful device registration
@@ -194,7 +198,8 @@ void main() {
           () => endpoints.device.registerDevice(
             sessionBuilder,
             99999, // Non-existent account
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
             'encrypted_device_data_key',
             'Test Device',
           ),

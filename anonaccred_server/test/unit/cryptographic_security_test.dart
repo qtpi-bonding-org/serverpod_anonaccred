@@ -28,6 +28,7 @@ void main() {
           final account = AnonAccount(
             publicMasterKey: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
+            ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
             createdAt: DateTime.now(),
           );
 
@@ -48,8 +49,8 @@ void main() {
           // Verify no private key storage capability
           expect(
             account.publicMasterKey.length,
-            equals(64),
-          ); // Ed25519 public key format
+            equals(128),
+          ); // ECDSA P-256 public key format
           expect(_isValidHexString(account.publicMasterKey), isTrue);
 
           // Verify encrypted data remains encrypted (no decryption methods)
@@ -63,8 +64,8 @@ void main() {
           // Verify no private key storage capability
           expect(
             device.publicSubKey.length,
-            equals(64),
-          ); // Ed25519 public key format
+            equals(128),
+          ); // ECDSA P-256 public key format
           expect(_isValidHexString(device.publicSubKey), isTrue);
 
           // Verify encrypted data remains encrypted
@@ -89,12 +90,13 @@ void main() {
         // Run 5 iterations during development
         for (int i = 0; i < 5; i++) {
           // Generate master account data
-          final publicMasterKey = _generateRandomEd25519PublicKey();
+          final publicMasterKey = _generateRandomEcdsaP256PublicKey();
           final encryptedMasterDataKey = _generateRandomEncryptedData();
 
           final account = AnonAccount(
             publicMasterKey: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
+            ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
             createdAt: DateTime.now(),
           );
 
@@ -105,7 +107,7 @@ void main() {
           for (int j = 0; j < deviceCount; j++) {
             final device = AccountDevice(
               accountId: random.nextInt(10000) + 1,
-              publicSubKey: _generateRandomEd25519PublicKey(),
+              publicSubKey: _generateRandomEcdsaP256PublicKey(),
               encryptedDataKey: _generateRandomEncryptedData(),
               label: 'Device $j',
               lastActive: DateTime.now(),
@@ -144,30 +146,30 @@ void main() {
           }
 
           // Verify all public keys are properly formatted
-          expect(_isValidEd25519PublicKey(account.publicMasterKey), isTrue);
+          expect(_isValidEcdsaP256PublicKey(account.publicMasterKey), isTrue);
           for (final device in devices) {
-            expect(_isValidEd25519PublicKey(device.publicSubKey), isTrue);
+            expect(_isValidEcdsaP256PublicKey(device.publicSubKey), isTrue);
           }
         }
       },
     );
 
     test(
-      'Property 20: Signature verification support - For any valid Ed25519 signature and public key pair, the system should correctly validate the signature',
+      'Property 20: Signature verification support - For any valid ECDSA P-256 signature and public key pair, the system should correctly validate the signature',
       () async {
         // Run 5 iterations during development
         for (int i = 0; i < 5; i++) {
-          // Generate valid Ed25519 format data
-          final publicKey = _generateRandomEd25519PublicKey();
-          final signature = _generateRandomEd25519Signature();
+          // Generate valid ECDSA P-256 format data
+          final publicKey = _generateRandomEcdsaP256PublicKey();
+          final signature = _generateRandomEcdsaP256Signature();
           final message = _generateRandomMessage();
 
           // Test valid format acceptance
-          expect(CryptoUtils.isValidEd25519PublicKey(publicKey), isTrue);
-          expect(CryptoUtils.isValidEd25519Signature(signature), isTrue);
+          expect(CryptoUtils.isValidPublicKey(publicKey), isTrue);
+          expect(CryptoUtils.isValidSignature(signature), isTrue);
 
-          // Test signature verification (real Ed25519 implementation)
-          final result = await CryptoUtils.verifyEd25519Signature(
+          // Test signature verification (real ECDSA P-256 implementation)
+          final result = await CryptoUtils.verifySignature(
             message: message,
             signature: signature,
             publicKey: publicKey,
@@ -177,7 +179,7 @@ void main() {
           expect(result, isA<bool>());
 
           // Test with same inputs produces same result (deterministic)
-          final result2 = await CryptoUtils.verifyEd25519Signature(
+          final result2 = await CryptoUtils.verifySignature(
             message: message,
             signature: signature,
             publicKey: publicKey,
@@ -186,7 +188,7 @@ void main() {
 
           // Test format validation
           expect(
-            () async => await CryptoUtils.verifyEd25519Signature(
+            () async => await CryptoUtils.verifySignature(
               message: message,
               signature: 'invalid_signature',
               publicKey: publicKey,
@@ -195,7 +197,7 @@ void main() {
           );
 
           expect(
-            () async => await CryptoUtils.verifyEd25519Signature(
+            () async => await CryptoUtils.verifySignature(
               message: message,
               signature: signature,
               publicKey: 'invalid_key',
@@ -205,7 +207,7 @@ void main() {
 
           // Test hex conversion utilities
           final hexBytes = CryptoUtils.hexToBytes(publicKey);
-          expect(hexBytes.length, equals(32)); // 64 hex chars = 32 bytes
+          expect(hexBytes.length, equals(64)); // 128 hex chars = 64 bytes
 
           final hexString = CryptoUtils.bytesToHex(hexBytes);
           expect(hexString.toLowerCase(), equals(publicKey.toLowerCase()));
@@ -230,9 +232,9 @@ void main() {
 
           for (final invalidKey in invalidPublicKeys) {
             try {
-              await CryptoUtils.verifyEd25519Signature(
+              await CryptoUtils.verifySignature(
                 message: 'test message',
-                signature: _generateRandomEd25519Signature(),
+                signature: _generateRandomEcdsaP256Signature(),
                 publicKey: invalidKey,
               );
               fail('Should have thrown exception for invalid public key');
@@ -247,13 +249,13 @@ void main() {
               );
               expect(
                 authException.message,
-                contains('Invalid Ed25519 public key format'),
+                contains('Invalid ECDSA P-256 public key format'),
               );
-              expect(authException.operation, equals('verifyEd25519Signature'));
+              expect(authException.operation, equals('verifySignature'));
 
               // Verify error details don't expose the invalid key content
               expect(authException.details?['publicKeyLength'], isNotNull);
-              expect(authException.details?['expectedLength'], equals('64'));
+              expect(authException.details?['expectedLength'], equals('128 or 130'));
 
               // Verify the actual invalid key is not in the error message or details (skip empty strings)
               if (invalidKey.isNotEmpty) {
@@ -280,10 +282,10 @@ void main() {
 
           for (final invalidSignature in invalidSignatures) {
             try {
-              await CryptoUtils.verifyEd25519Signature(
+              await CryptoUtils.verifySignature(
                 message: 'test message',
                 signature: invalidSignature,
-                publicKey: _generateRandomEd25519PublicKey(),
+                publicKey: _generateRandomEcdsaP256PublicKey(),
               );
               fail('Should have thrown exception for invalid signature');
             } catch (e) {
@@ -297,9 +299,9 @@ void main() {
               );
               expect(
                 authException.message,
-                contains('Invalid Ed25519 signature format'),
+                contains('Invalid ECDSA signature format'),
               );
-              expect(authException.operation, equals('verifyEd25519Signature'));
+              expect(authException.operation, equals('verifySignature'));
 
               // Verify error details don't expose the invalid signature content
               expect(authException.details?['signatureLength'], isNotNull);
@@ -323,10 +325,10 @@ void main() {
 
           // Test invalid message
           try {
-            await CryptoUtils.verifyEd25519Signature(
+            await CryptoUtils.verifySignature(
               message: '', // Empty message
-              signature: _generateRandomEd25519Signature(),
-              publicKey: _generateRandomEd25519PublicKey(),
+              signature: _generateRandomEcdsaP256Signature(),
+              publicKey: _generateRandomEcdsaP256PublicKey(),
             );
             fail('Should have thrown exception for empty message');
           } catch (e) {
@@ -338,7 +340,7 @@ void main() {
               equals(AnonAccredErrorCodes.cryptoInvalidMessage),
             );
             expect(authException.message, contains('Message cannot be empty'));
-            expect(authException.operation, equals('verifyEd25519Signature'));
+            expect(authException.operation, equals('verifySignature'));
             expect(authException.details?['messageLength'], equals('0'));
           }
 
@@ -385,18 +387,18 @@ void main() {
 }
 
 // Test data generators
-String _generateRandomEd25519PublicKey() {
-  // Generate a valid Ed25519 public key format (64 hex characters)
+String _generateRandomEcdsaP256PublicKey() {
+  // Generate a valid ECDSA P-256 public key format (128 hex characters)
   final random = Random();
   const chars = '0123456789abcdef';
   return List.generate(
-    64,
+    128,
     (index) => chars[random.nextInt(chars.length)],
   ).join();
 }
 
-String _generateRandomEd25519Signature() {
-  // Generate a valid Ed25519 signature format (128 hex characters)
+String _generateRandomEcdsaP256Signature() {
+  // Generate a valid ECDSA P-256 signature format (128 hex characters)
   final random = Random();
   const chars = '0123456789abcdef';
   return List.generate(
@@ -436,9 +438,8 @@ bool _isValidHexString(String hex) {
   return hexPattern.hasMatch(hex);
 }
 
-bool _isValidEd25519PublicKey(String publicKey) {
-  return publicKey.length == 64 && _isValidHexString(publicKey);
-}
+bool _isValidEcdsaP256PublicKey(String publicKey) =>
+    publicKey.length == 128 && _isValidHexString(publicKey);
 
 bool _isValidEncryptedData(String encryptedData) {
   // Basic validation for encrypted data format

@@ -17,9 +17,9 @@ void main() {
       'Property 1: Account creation privacy preservation - For any valid Master Public Key and encrypted data key, creating an account should store only the public key and encrypted data without any server-side decryption attempts',
       () {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random account data
-          final publicMasterKey = _generateRandomEd25519PublicKey();
+          final publicMasterKey = _generateRandomEcdsaP256PublicKey();
           final encryptedDataKey = _generateRandomEncryptedData();
           final createdAt = DateTime.now();
 
@@ -27,6 +27,7 @@ void main() {
           final account = AnonAccount(
             publicMasterKey: publicMasterKey,
             encryptedDataKey: encryptedDataKey,
+            ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
             createdAt: createdAt,
           );
 
@@ -52,10 +53,10 @@ void main() {
       'Property 2: Device registration privacy preservation - For any valid Subkey Public Key and device-encrypted data key, registering a device should store only the public key and encrypted data without server-side decryption',
       () {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random device data
           final accountId = _generateRandomAccountId();
-          final publicSubKey = _generateRandomEd25519PublicKey();
+          final publicSubKey = _generateRandomEcdsaP256PublicKey();
           final encryptedDataKey = _generateRandomEncryptedData();
           final label = _generateRandomDeviceLabel();
           final lastActive = DateTime.now();
@@ -95,7 +96,7 @@ void main() {
       'Property 3: Consumable type flexibility - For any string identifier, the system should accept it as a valid consumable type without validation against predefined enums',
       () {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random consumable types (any string should be valid)
           final consumableTypes = [
             _generateRandomString(10),
@@ -145,7 +146,7 @@ void main() {
       'Property 4: Transaction completeness - For any valid transaction data, recording a transaction should create complete payment receipts with all line items and status information',
       () {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random transaction data
           final externalId = _generateRandomTransactionId();
           final accountId = _generateRandomAccountId();
@@ -227,12 +228,12 @@ void main() {
 }
 
 // Test data generators
-String _generateRandomEd25519PublicKey() {
-  // Generate a valid Ed25519 public key format (64 hex characters)
+String _generateRandomEcdsaP256PublicKey() {
+  // Generate a valid ECDSA P-256 public key format (128 hex characters)
   final random = Random();
-  final chars = '0123456789abcdef';
+  const chars = '0123456789abcdef';
   return List.generate(
-    64,
+    128,
     (index) => chars[random.nextInt(chars.length)],
   ).join();
 }
@@ -240,7 +241,7 @@ String _generateRandomEd25519PublicKey() {
 String _generateRandomEncryptedData() {
   // Generate random encrypted data (base64-like string)
   final random = Random();
-  final chars =
+  const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   final length = 32 + random.nextInt(64); // 32-96 characters
   return List.generate(
@@ -249,9 +250,7 @@ String _generateRandomEncryptedData() {
   ).join();
 }
 
-int _generateRandomAccountId() {
-  return Random().nextInt(10000) + 1;
-}
+int _generateRandomAccountId() => Random().nextInt(10000) + 1;
 
 String _generateRandomDeviceLabel() {
   final labels = [
@@ -269,7 +268,7 @@ String _generateRandomDeviceLabel() {
 
 String _generateRandomString(int length) {
   final random = Random();
-  final chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   return List.generate(
     length,
     (index) => chars[random.nextInt(chars.length)],
@@ -282,12 +281,10 @@ double _generateRandomQuantity() {
   return (random.nextDouble() * 1000) + 0.1; // 0.1 to 1000.1
 }
 
-String _generateRandomTransactionId() {
-  return 'txn_${_generateRandomString(16)}';
-}
+String _generateRandomTransactionId() => 'txn_${_generateRandomString(16)}';
 
 Currency _generateRandomCurrency() {
-  final currencies = Currency.values;
+  const currencies = Currency.values;
   return currencies[Random().nextInt(currencies.length)];
 }
 
@@ -297,7 +294,7 @@ double _generateRandomPrice() {
 }
 
 PaymentRail _generateRandomPaymentRail() {
-  final rails = PaymentRail.values;
+  const rails = PaymentRail.values;
   return rails[Random().nextInt(rails.length)];
 }
 
@@ -316,7 +313,7 @@ String? _generateRandomTransactionHash() {
 }
 
 OrderStatus _generateRandomOrderStatus() {
-  final statuses = OrderStatus.values;
+  const statuses = OrderStatus.values;
   return statuses[Random().nextInt(statuses.length)];
 }
 

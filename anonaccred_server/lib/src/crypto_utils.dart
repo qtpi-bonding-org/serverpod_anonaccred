@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:cryptography/cryptography.dart';
+import 'package:webcrypto/webcrypto.dart';
 import 'exception_factory.dart';
 
 /// Cryptographic utilities for ECDSA P-256 signature verification.
@@ -111,8 +111,6 @@ class CryptoUtils {
     }
 
     try {
-      final algorithm = Ecdsa.p256(Sha256());
-
       final messageBytes = utf8.encode(message);
       final signatureBytes = hexToBytes(signature);
       
@@ -123,27 +121,27 @@ class CryptoUtils {
       }
       final publicKeyBytes = hexToBytes(normalizedKey);
 
-      // Create public key object (x and y coordinates, 32 bytes each)
-      final x = publicKeyBytes.sublist(0, 32);
-      final y = publicKeyBytes.sublist(32, 64);
-      final pubKey = EcPublicKey(x: x, y: y, type: KeyPairType.p256);
-
-      // Create signature object (r and s, 32 bytes each)
-      final r = signatureBytes.sublist(0, 32);
-      final s = signatureBytes.sublist(32, 64);
-      final sig = Signature(
-        Uint8List.fromList([...r, ...s]),
-        publicKey: pubKey,
+      // webcrypto.dart expects X9.62 format: 0x04 + x + y
+      final x9_62_key = Uint8List.fromList([0x04, ...publicKeyBytes]);
+      
+      // Import public key using webcrypto.dart
+      final ecdsaPublicKey = await EcdsaPublicKey.importRawKey(
+        x9_62_key,
+        EllipticCurve.p256,
       );
 
-      // Perform ECDSA verification
-      return await algorithm.verify(messageBytes, signature: sig);
+      // Perform ECDSA verification with SHA-256
+      return await ecdsaPublicKey.verifyBytes(
+        signatureBytes,
+        messageBytes,
+        Hash.sha256,
+      );
     } on Exception catch (e) {
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.cryptoVerificationFailed,
         message: 'ECDSA verification failed: ${e.toString()}',
         operation: 'verifySignature',
-        details: {'cryptographyError': e.toString()},
+        details: {'webCryptoError': e.toString()},
       );
     } catch (e) {
       throw AnonAccredExceptionFactory.createAuthenticationException(

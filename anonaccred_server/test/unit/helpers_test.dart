@@ -32,7 +32,7 @@ void main() {
 
       test('property: validateNonEmpty should accept any non-empty string', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final validString = _generateRandomNonEmptyString(random);
           final fieldName = 'field${random.nextInt(100)}';
           final operation = 'op${random.nextInt(100)}';
@@ -46,7 +46,7 @@ void main() {
 
       test('property: validateNonEmpty should reject null and empty strings', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final fieldName = 'field${random.nextInt(100)}';
           final operation = 'op${random.nextInt(100)}';
           
@@ -66,9 +66,9 @@ void main() {
     });
 
     group('validatePublicKey', () {
-      test('should pass for valid Ed25519 public key', () {
-        // Valid 64-character hex string (32 bytes)
-        final validKey = 'a' * 64;
+      test('should pass for valid ECDSA P-256 public key', () {
+        // Valid 128-character hex string (64 bytes for ECDSA P-256)
+        final validKey = 'a' * 128;
         expect(
           () => AnonAccredHelpers.validatePublicKey(validKey, 'testOp'),
           returnsNormally,
@@ -89,10 +89,10 @@ void main() {
         );
       });
 
-      test('property: validatePublicKey should accept valid Ed25519 keys', () {
+      test('property: validatePublicKey should accept valid ECDSA P-256 keys', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
-          final validKey = _generateValidEd25519PublicKey(random);
+        for (var i = 0; i < 5; i++) {
+          final validKey = _generateValidEcdsaP256PublicKey(random);
           final operation = 'op${random.nextInt(100)}';
           
           expect(
@@ -104,7 +104,7 @@ void main() {
 
       test('property: validatePublicKey should reject invalid keys', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final invalidKey = _generateInvalidPublicKey(random);
           final operation = 'op${random.nextInt(100)}';
           
@@ -144,7 +144,7 @@ void main() {
 
       test('property: requireEntity should return non-null entities', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final entity = 'entity${random.nextInt(1000)}';
           final errorCode = 'ERROR_${random.nextInt(100)}';
           final message = 'Message ${random.nextInt(100)}';
@@ -168,8 +168,9 @@ void main() {
       test('should return account when not null', () {
         final account = AnonAccount(
           id: 1,
-          publicMasterKey: 'a' * 64,
+          publicMasterKey: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
+          ultimatePublicKey: 'b' * 128,
         );
         
         final result = AnonAccredHelpers.requireAccount(account, 1, 'testOp');
@@ -185,11 +186,12 @@ void main() {
 
       test('property: requireAccount should return valid accounts', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final account = AnonAccount(
             id: random.nextInt(1000) + 1,
-            publicMasterKey: _generateValidEd25519PublicKey(random),
+            publicMasterKey: _generateValidEcdsaP256PublicKey(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
+            ultimatePublicKey: _generateValidEcdsaP256PublicKey(random),
           );
           final accountId = random.nextInt(1000) + 1;
           final operation = 'op${random.nextInt(100)}';
@@ -205,33 +207,33 @@ void main() {
         final device = AccountDevice(
           id: 1,
           accountId: 1,
-          publicSubKey: 'a' * 64,
+          publicSubKey: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
         );
         
-        final result = AnonAccredHelpers.requireDevice(device, 'a' * 64, 'testOp');
+        final result = AnonAccredHelpers.requireDevice(device, 'a' * 128, 'testOp');
         expect(result, equals(device));
       });
 
       test('should throw when device is null', () {
         expect(
-          () => AnonAccredHelpers.requireDevice(null, 'a' * 64, 'testOp'),
+          () => AnonAccredHelpers.requireDevice(null, 'a' * 128, 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
 
       test('property: requireDevice should return valid devices', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateValidEd25519PublicKey(random),
+            publicSubKey: _generateValidEcdsaP256PublicKey(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
           );
-          final publicKey = _generateValidEd25519PublicKey(random);
+          final publicKey = _generateValidEcdsaP256PublicKey(random);
           final operation = 'op${random.nextInt(100)}';
           
           final result = AnonAccredHelpers.requireDevice(device, publicKey, operation);
@@ -245,19 +247,19 @@ void main() {
         final device = AccountDevice(
           id: 1,
           accountId: 1,
-          publicSubKey: 'a' * 64,
+          publicSubKey: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
           isRevoked: false,
         );
         
-        final result = AnonAccredHelpers.requireActiveDevice(device, 'a' * 64, 'testOp');
+        final result = AnonAccredHelpers.requireActiveDevice(device, 'a' * 128, 'testOp');
         expect(result, equals(device));
       });
 
       test('should throw when device is null', () {
         expect(
-          () => AnonAccredHelpers.requireActiveDevice(null, 'a' * 64, 'testOp'),
+          () => AnonAccredHelpers.requireActiveDevice(null, 'a' * 128, 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
@@ -266,30 +268,30 @@ void main() {
         final device = AccountDevice(
           id: 1,
           accountId: 1,
-          publicSubKey: 'a' * 64,
+          publicSubKey: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
           isRevoked: true,
         );
         
         expect(
-          () => AnonAccredHelpers.requireActiveDevice(device, 'a' * 64, 'testOp'),
+          () => AnonAccredHelpers.requireActiveDevice(device, 'a' * 128, 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
 
       test('property: requireActiveDevice should return non-revoked devices', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateValidEd25519PublicKey(random),
+            publicSubKey: _generateValidEcdsaP256PublicKey(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
             isRevoked: false, // Always non-revoked for this property
           );
-          final publicKey = _generateValidEd25519PublicKey(random);
+          final publicKey = _generateValidEcdsaP256PublicKey(random);
           final operation = 'op${random.nextInt(100)}';
           
           final result = AnonAccredHelpers.requireActiveDevice(device, publicKey, operation);
@@ -299,16 +301,16 @@ void main() {
 
       test('property: requireActiveDevice should reject revoked devices', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateValidEd25519PublicKey(random),
+            publicSubKey: _generateValidEcdsaP256PublicKey(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
             isRevoked: true, // Always revoked for this property
           );
-          final publicKey = _generateValidEd25519PublicKey(random);
+          final publicKey = _generateValidEcdsaP256PublicKey(random);
           final operation = 'op${random.nextInt(100)}';
           
           expect(
@@ -328,10 +330,10 @@ String _generateRandomNonEmptyString(Random random) {
   return List.generate(length, (index) => chars[random.nextInt(chars.length)]).join();
 }
 
-String _generateValidEd25519PublicKey(Random random) {
-  // Generate a valid 64-character hex string (32 bytes)
+String _generateValidEcdsaP256PublicKey(Random random) {
+  // Generate a valid 128-character hex string (64 bytes for ECDSA P-256)
   const chars = '0123456789abcdef';
-  return List.generate(64, (index) => chars[random.nextInt(chars.length)]).join();
+  return List.generate(128, (index) => chars[random.nextInt(chars.length)]).join();
 }
 
 String _generateInvalidPublicKey(Random random) {
@@ -339,9 +341,9 @@ String _generateInvalidPublicKey(Random random) {
   final invalidTypes = [
     () => '', // Empty string
     () => 'invalid', // Too short
-    () => 'g' * 64, // Invalid hex characters
-    () => '0123456789abcdef' * 3, // Too short (48 chars)
-    () => '0123456789abcdef' * 5, // Too long (80 chars)
+    () => 'g' * 128, // Invalid hex characters
+    () => '0123456789abcdef' * 7, // Too short (112 chars)
+    () => '0123456789abcdef' * 9, // Too long (144 chars)
   ];
   
   return invalidTypes[random.nextInt(invalidTypes.length)]();

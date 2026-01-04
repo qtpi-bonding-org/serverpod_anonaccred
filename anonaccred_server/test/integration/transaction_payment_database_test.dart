@@ -16,6 +16,7 @@ void main() {
       final testAccount = AnonAccount(
         publicMasterKey: 'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',
+        ultimatePublicKey: 'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
       );
       final insertedAccount = await AnonAccount.db.insertRow(session, testAccount);
       
@@ -62,6 +63,7 @@ void main() {
       final testAccount = AnonAccount(
         publicMasterKey: 'test_public_key_null_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',
+        ultimatePublicKey: 'ultimate_public_key_null_${DateTime.now().millisecondsSinceEpoch}',
       );
       final insertedAccount = await AnonAccount.db.insertRow(session, testAccount);
       
@@ -107,6 +109,7 @@ void main() {
       final testAccount = AnonAccount(
         publicMasterKey: 'test_public_key_update_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',
+        ultimatePublicKey: 'ultimate_public_key_update_${DateTime.now().millisecondsSinceEpoch}',
       );
       final insertedAccount = await AnonAccount.db.insertRow(session, testAccount);
       
