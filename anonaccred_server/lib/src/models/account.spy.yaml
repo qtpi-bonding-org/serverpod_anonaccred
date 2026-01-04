@@ -7,9 +7,9 @@ indexes:
     fields: ultimatePublicKey
     unique: true
 fields:
-  # Device ECDSA P-256 public key (128 hex chars, x||y coordinates)
-  # Used as account identifier for authentication
-  publicMasterKey: String
+  # Ultimate ECDSA P-256 signing public key (128 hex chars, x||y coordinates)
+  # Used as account identifier for authentication - matches Flutter client naming
+  ultimateSigningPublicKeyHex: String
   
   # Recovery blob: Symmetric data key encrypted with ultimate public key
   # Server never decrypts this - used for account recovery

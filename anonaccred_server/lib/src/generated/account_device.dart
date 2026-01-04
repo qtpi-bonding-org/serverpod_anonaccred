@@ -17,7 +17,7 @@ abstract class AccountDevice
   AccountDevice._({
     this.id,
     required this.accountId,
-    required this.publicSubKey,
+    required this.deviceSigningPublicKeyHex,
     required this.encryptedDataKey,
     required this.label,
     DateTime? lastActive,
@@ -28,7 +28,7 @@ abstract class AccountDevice
   factory AccountDevice({
     int? id,
     required int accountId,
-    required String publicSubKey,
+    required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
     DateTime? lastActive,
@@ -39,7 +39,8 @@ abstract class AccountDevice
     return AccountDevice(
       id: jsonSerialization['id'] as int?,
       accountId: jsonSerialization['accountId'] as int,
-      publicSubKey: jsonSerialization['publicSubKey'] as String,
+      deviceSigningPublicKeyHex:
+          jsonSerialization['deviceSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       label: jsonSerialization['label'] as String,
       lastActive: _i1.DateTimeJsonExtension.fromJson(
@@ -58,7 +59,7 @@ abstract class AccountDevice
 
   int accountId;
 
-  String publicSubKey;
+  String deviceSigningPublicKeyHex;
 
   String encryptedDataKey;
 
@@ -77,7 +78,7 @@ abstract class AccountDevice
   AccountDevice copyWith({
     int? id,
     int? accountId,
-    String? publicSubKey,
+    String? deviceSigningPublicKeyHex,
     String? encryptedDataKey,
     String? label,
     DateTime? lastActive,
@@ -89,7 +90,7 @@ abstract class AccountDevice
       '__className__': 'anonaccred.AccountDevice',
       if (id != null) 'id': id,
       'accountId': accountId,
-      'publicSubKey': publicSubKey,
+      'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
       'lastActive': lastActive.toJson(),
@@ -103,7 +104,7 @@ abstract class AccountDevice
       '__className__': 'anonaccred.AccountDevice',
       if (id != null) 'id': id,
       'accountId': accountId,
-      'publicSubKey': publicSubKey,
+      'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
       'lastActive': lastActive.toJson(),
@@ -147,7 +148,7 @@ class _AccountDeviceImpl extends AccountDevice {
   _AccountDeviceImpl({
     int? id,
     required int accountId,
-    required String publicSubKey,
+    required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
     DateTime? lastActive,
@@ -155,7 +156,7 @@ class _AccountDeviceImpl extends AccountDevice {
   }) : super._(
          id: id,
          accountId: accountId,
-         publicSubKey: publicSubKey,
+         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          label: label,
          lastActive: lastActive,
@@ -169,7 +170,7 @@ class _AccountDeviceImpl extends AccountDevice {
   AccountDevice copyWith({
     Object? id = _Undefined,
     int? accountId,
-    String? publicSubKey,
+    String? deviceSigningPublicKeyHex,
     String? encryptedDataKey,
     String? label,
     DateTime? lastActive,
@@ -178,7 +179,8 @@ class _AccountDeviceImpl extends AccountDevice {
     return AccountDevice(
       id: id is int? ? id : this.id,
       accountId: accountId ?? this.accountId,
-      publicSubKey: publicSubKey ?? this.publicSubKey,
+      deviceSigningPublicKeyHex:
+          deviceSigningPublicKeyHex ?? this.deviceSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       label: label ?? this.label,
       lastActive: lastActive ?? this.lastActive,
@@ -195,10 +197,11 @@ class AccountDeviceUpdateTable extends _i1.UpdateTable<AccountDeviceTable> {
     value,
   );
 
-  _i1.ColumnValue<String, String> publicSubKey(String value) => _i1.ColumnValue(
-    table.publicSubKey,
-    value,
-  );
+  _i1.ColumnValue<String, String> deviceSigningPublicKeyHex(String value) =>
+      _i1.ColumnValue(
+        table.deviceSigningPublicKeyHex,
+        value,
+      );
 
   _i1.ColumnValue<String, String> encryptedDataKey(String value) =>
       _i1.ColumnValue(
@@ -231,8 +234,8 @@ class AccountDeviceTable extends _i1.Table<int?> {
       'accountId',
       this,
     );
-    publicSubKey = _i1.ColumnString(
-      'publicSubKey',
+    deviceSigningPublicKeyHex = _i1.ColumnString(
+      'deviceSigningPublicKeyHex',
       this,
     );
     encryptedDataKey = _i1.ColumnString(
@@ -259,7 +262,7 @@ class AccountDeviceTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt accountId;
 
-  late final _i1.ColumnString publicSubKey;
+  late final _i1.ColumnString deviceSigningPublicKeyHex;
 
   late final _i1.ColumnString encryptedDataKey;
 
@@ -273,7 +276,7 @@ class AccountDeviceTable extends _i1.Table<int?> {
   List<_i1.Column> get columns => [
     id,
     accountId,
-    publicSubKey,
+    deviceSigningPublicKeyHex,
     encryptedDataKey,
     label,
     lastActive,

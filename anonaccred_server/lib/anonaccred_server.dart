@@ -21,7 +21,7 @@
 /// // Create anonymous account
 /// final account = await AccountEndpoint().createAccount(
 ///   session,
-///   publicMasterKey: 'ed25519_public_key_hex',
+///   ultimateSigningPublicKeyHex: 'ecdsa_p256_public_key_hex',
 ///   encryptedDataKey: 'client_encrypted_sdk',
 /// );
 ///
@@ -29,7 +29,7 @@
 /// final device = await DeviceEndpoint().registerDevice(
 ///   session,
 ///   accountId: account.id!,
-///   publicSubKey: 'device_ed25519_public_key_hex',
+///   deviceSigningPublicKeyHex: 'device_ecdsa_p256_public_key_hex',
 ///   encryptedDataKey: 'device_encrypted_sdk',
 ///   label: 'My Device',
 /// );
@@ -38,7 +38,7 @@
 /// final challenge = await DeviceEndpoint().generateAuthChallenge(session);
 /// final authResult = await DeviceEndpoint().authenticateDevice(
 ///   session,
-///   publicSubKey: 'device_ed25519_public_key_hex',
+///   deviceSigningPublicKeyHex: 'device_ecdsa_p256_public_key_hex',
 ///   challenge: challenge,
 ///   signature: 'client_generated_signature',
 /// );

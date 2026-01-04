@@ -24,7 +24,7 @@ void main() {
           ultimatePublicKey,
         );
 
-        expect(account.publicMasterKey, equals(validPublicKey));
+        expect(account.ultimateSigningPublicKeyHex, equals(validPublicKey));
         expect(account.encryptedDataKey, equals(encryptedDataKey));
         expect(account.id, isNotNull);
         expect(account.createdAt, isNotNull);
@@ -108,7 +108,7 @@ void main() {
 
         expect(foundAccount, isNotNull);
         expect(foundAccount!.id, equals(createdAccount.id));
-        expect(foundAccount.publicMasterKey, equals(validPublicKey));
+        expect(foundAccount.ultimateSigningPublicKeyHex, equals(validPublicKey));
         expect(foundAccount.encryptedDataKey, equals(encryptedDataKey));
       },
     );

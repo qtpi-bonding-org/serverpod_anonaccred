@@ -12,7 +12,7 @@ void main() {
       
       // Create a test account for foreign key constraint
       testAccount = AnonAccount(
-        publicMasterKey: 'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
+        ultimateSigningPublicKeyHex: 'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',
         ultimatePublicKey: 'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
       );

@@ -23,7 +23,7 @@ void main() {
           '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // ultimatePublicKey
         );
 
-        const publicSubKey =
+        const deviceSigningPublicKeyHex =
             '6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             '6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'device_encrypted_data_key';
@@ -32,14 +32,14 @@ void main() {
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
           testAccount.id!,
-          publicSubKey,
+          deviceSigningPublicKeyHex,
           encryptedDataKey,
           label,
         );
 
         expect(device.id, isNotNull);
         expect(device.accountId, equals(testAccount.id));
-        expect(device.publicSubKey, equals(publicSubKey));
+        expect(device.deviceSigningPublicKeyHex, equals(deviceSigningPublicKeyHex));
         expect(device.encryptedDataKey, equals(encryptedDataKey));
         expect(device.label, equals(label));
         expect(device.isRevoked, isFalse);
@@ -64,7 +64,7 @@ void main() {
           '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // ultimatePublicKey
         );
 
-        const publicSubKey =
+        const deviceSigningPublicKeyHex =
             '8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             '8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'device_encrypted_data_key';
@@ -74,17 +74,17 @@ void main() {
         await endpoints.device.registerDevice(
           sessionBuilder,
           testAccount.id!,
-          publicSubKey,
+          deviceSigningPublicKeyHex,
           encryptedDataKey,
           label,
         );
 
-        // Try to register same public subkey again - should fail
+        // Try to register same device signing public key again - should fail
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
             testAccount.id!,
-            publicSubKey,
+            deviceSigningPublicKeyHex,
             'different_encrypted_data_key',
             'Different Device',
           ),
@@ -110,7 +110,7 @@ void main() {
           '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // ultimatePublicKey
         );
 
-        const invalidPublicSubKey = 'invalid_key_format';
+        const invalidDeviceSigningPublicKeyHex = 'invalid_key_format';
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
@@ -118,7 +118,7 @@ void main() {
           () => endpoints.device.registerDevice(
             sessionBuilder,
             testAccount.id!,
-            invalidPublicSubKey,
+            invalidDeviceSigningPublicKeyHex,
             encryptedDataKey,
             label,
           ),
@@ -130,7 +130,7 @@ void main() {
     test(
       'registerDevice - should reject registration for non-existent account',
       () async {
-        const publicSubKey =
+        const deviceSigningPublicKeyHex =
             'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'device_encrypted_data_key';
@@ -141,7 +141,7 @@ void main() {
           () => endpoints.device.registerDevice(
             sessionBuilder,
             nonExistentAccountId,
-            publicSubKey,
+            deviceSigningPublicKeyHex,
             encryptedDataKey,
             label,
           ),

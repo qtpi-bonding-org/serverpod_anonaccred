@@ -204,7 +204,7 @@ class _AccountEndpoint {
 
   _i3.Future<_i4.AnonAccount> createAccount(
     _i1.TestSessionBuilder sessionBuilder,
-    String publicMasterKey,
+    String ultimateSigningPublicKeyHex,
     String encryptedDataKey,
     String ultimatePublicKey,
   ) async {
@@ -220,7 +220,7 @@ class _AccountEndpoint {
           endpointPath: 'account',
           methodName: 'createAccount',
           parameters: _i1.testObjectToJson({
-            'publicMasterKey': publicMasterKey,
+            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
             'encryptedDataKey': encryptedDataKey,
             'ultimatePublicKey': ultimatePublicKey,
           }),
@@ -272,7 +272,7 @@ class _AccountEndpoint {
 
   _i3.Future<_i4.AnonAccount?> getAccountByPublicKey(
     _i1.TestSessionBuilder sessionBuilder,
-    String publicMasterKey,
+    String ultimateSigningPublicKeyHex,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -286,7 +286,7 @@ class _AccountEndpoint {
           endpointPath: 'account',
           methodName: 'getAccountByPublicKey',
           parameters: _i1.testObjectToJson({
-            'publicMasterKey': publicMasterKey,
+            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
           }),
           serializationManager: _serializationManager,
         );
@@ -664,7 +664,7 @@ class _DeviceEndpoint {
   _i3.Future<_i9.AccountDevice> registerDevice(
     _i1.TestSessionBuilder sessionBuilder,
     int accountId,
-    String publicSubKey,
+    String deviceSigningPublicKeyHex,
     String encryptedDataKey,
     String label,
   ) async {
@@ -681,7 +681,7 @@ class _DeviceEndpoint {
           methodName: 'registerDevice',
           parameters: _i1.testObjectToJson({
             'accountId': accountId,
-            'publicSubKey': publicSubKey,
+            'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
             'encryptedDataKey': encryptedDataKey,
             'label': label,
           }),

@@ -14,7 +14,7 @@ class AccountEndpoint extends Endpoint {
   /// Create new anonymous account with ECDSA P-256 public key identity
   ///
   /// Parameters:
-  /// - [publicMasterKey]: Device ECDSA P-256 public key (128 hex chars, x||y coordinates)
+  /// - [ultimateSigningPublicKeyHex]: Ultimate ECDSA P-256 public key (128 hex chars, x||y coordinates)
   /// - [encryptedDataKey]: Recovery blob (symmetric key encrypted with ultimate public key)
   /// - [ultimatePublicKey]: Ultimate ECDSA P-256 public key (128 hex chars) for recovery lookup
   ///
@@ -24,20 +24,20 @@ class AccountEndpoint extends Endpoint {
   /// Throws AnonAccredException for database or system errors.
   Future<AnonAccount> createAccount(
     Session session,
-    String publicMasterKey,
+    String ultimateSigningPublicKeyHex,
     String encryptedDataKey,
     String ultimatePublicKey,
   ) async {
     try {
       // Validate input parameters using helper functions
-      AnonAccredHelpers.validatePublicKey(publicMasterKey, 'createAccount');
+      AnonAccredHelpers.validatePublicKey(ultimateSigningPublicKeyHex, 'createAccount');
       AnonAccredHelpers.validatePublicKey(ultimatePublicKey, 'createAccount');
       AnonAccredHelpers.validateNonEmpty(encryptedDataKey, 'encryptedDataKey', 'createAccount');
 
       // Check if account with this device public key already exists
       final existingByDevice = await AnonAccount.db.findFirstRow(
         session,
-        where: (t) => t.publicMasterKey.equals(publicMasterKey),
+        where: (t) => t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
       );
 
       if (existingByDevice != null) {
@@ -46,7 +46,7 @@ class AccountEndpoint extends Endpoint {
           message: 'Account with this device public key already exists',
           operation: 'createAccount',
           details: {
-            'publicMasterKey': publicMasterKey,
+            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
             'existingAccountId': existingByDevice.id.toString(),
           },
         );
@@ -72,7 +72,7 @@ class AccountEndpoint extends Endpoint {
 
       // Create new account - encrypted data is stored as-is without decryption
       final newAccount = AnonAccount(
-        publicMasterKey: publicMasterKey,
+        ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         ultimatePublicKey: ultimatePublicKey,
         createdAt: DateTime.now(),
@@ -131,7 +131,7 @@ class AccountEndpoint extends Endpoint {
   /// Get account by public master key lookup
   ///
   /// Parameters:
-  /// - [publicMasterKey]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
+  /// - [ultimateSigningPublicKeyHex]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
   ///
   /// Returns the AnonAccount if found, null if not found.
   ///
@@ -139,16 +139,16 @@ class AccountEndpoint extends Endpoint {
   /// Throws AnonAccredException for database or system errors.
   Future<AnonAccount?> getAccountByPublicKey(
     Session session,
-    String publicMasterKey,
+    String ultimateSigningPublicKeyHex,
   ) async {
     try {
       // Validate input parameters using helper functions
-      AnonAccredHelpers.validatePublicKey(publicMasterKey, 'getAccountByPublicKey');
+      AnonAccredHelpers.validatePublicKey(ultimateSigningPublicKeyHex, 'getAccountByPublicKey');
 
       // Lookup account by public key
       final account = await AnonAccount.db.findFirstRow(
         session,
-        where: (t) => t.publicMasterKey.equals(publicMasterKey),
+        where: (t) => t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
       );
 
       return account;

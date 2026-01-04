@@ -26,7 +26,7 @@ void main() {
 
     test('database helpers work with existing models', () {
       final account = AnonAccount(
-        publicMasterKey: 'a' * 128, // ECDSA P-256 format
+        ultimateSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
         encryptedDataKey: 'encrypted',
         ultimatePublicKey: 'b' * 128,
       );

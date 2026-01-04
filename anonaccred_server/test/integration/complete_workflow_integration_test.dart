@@ -32,7 +32,7 @@ void main() {
         );
 
         expect(account.id, isNotNull);
-        expect(account.publicMasterKey, equals(accountPublicKeyHex));
+        expect(account.ultimateSigningPublicKeyHex, equals(accountPublicKeyHex));
         expect(account.encryptedDataKey, equals(encryptedDataKey));
 
         // Step 3: Generate ECDSA P-256 key pair for device (simulating client-side)
@@ -54,7 +54,7 @@ void main() {
 
         expect(device.id, isNotNull);
         expect(device.accountId, equals(account.id));
-        expect(device.publicSubKey, equals(devicePublicKeyHex));
+        expect(device.deviceSigningPublicKeyHex, equals(devicePublicKeyHex));
         expect(device.encryptedDataKey, equals(deviceEncryptedDataKey));
         expect(device.label, equals(deviceLabel));
         expect(device.isRevoked, isFalse);
@@ -180,7 +180,7 @@ void main() {
         );
 
         expect(device.id, isNotNull);
-        expect(device.publicSubKey, equals(devicePublicKey));
+        expect(device.deviceSigningPublicKeyHex, equals(devicePublicKey));
         expect(device.isRevoked, isFalse);
 
         // Test duplicate device registration fails

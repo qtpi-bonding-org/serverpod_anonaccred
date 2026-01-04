@@ -85,7 +85,7 @@ class AnonAccredHelpers {
     AnonAccredErrorCodes.authDeviceNotFound,
     'Device not found',
     operation,
-    {'publicSubKey': publicKey},
+    {'deviceSigningPublicKeyHex': publicKey},
   );
   
   /// Require active device (exists and not revoked)
@@ -103,7 +103,7 @@ class AnonAccredHelpers {
         operation: operation,
         details: {
           'deviceId': foundDevice.id.toString(),
-          'publicSubKey': publicKey,
+          'deviceSigningPublicKeyHex': publicKey,
         },
       );
     }

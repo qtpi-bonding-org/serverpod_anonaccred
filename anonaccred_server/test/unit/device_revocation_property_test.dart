@@ -43,7 +43,7 @@ void main() {
         // Verify device is initially active
         expect(device.id, isNotNull);
         expect(device.isRevoked, isFalse);
-        expect(device.publicSubKey, equals(devicePublicKey));
+        expect(device.deviceSigningPublicKeyHex, equals(devicePublicKey));
 
         // Test that authentication endpoints require authentication
         // (These will fail because we don't have proper authentication setup in tests)

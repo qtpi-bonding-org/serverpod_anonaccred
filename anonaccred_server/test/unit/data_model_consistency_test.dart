@@ -19,20 +19,20 @@ void main() {
         // Run 5 iterations during development (can be increased to 100+ for production)
         for (var i = 0; i < 5; i++) {
           // Generate random account data
-          final publicMasterKey = _generateRandomEcdsaP256PublicKey();
+          final ultimateSigningPublicKeyHex = _generateRandomEcdsaP256PublicKey();
           final encryptedDataKey = _generateRandomEncryptedData();
           final createdAt = DateTime.now();
 
           // Create account model
           final account = AnonAccount(
-            publicMasterKey: publicMasterKey,
+            ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
             createdAt: createdAt,
           );
 
           // Verify privacy preservation - only public key and encrypted data stored
-          expect(account.publicMasterKey, equals(publicMasterKey));
+          expect(account.ultimateSigningPublicKeyHex, equals(ultimateSigningPublicKeyHex));
           expect(account.encryptedDataKey, equals(encryptedDataKey));
           expect(account.createdAt, equals(createdAt));
 
@@ -43,7 +43,7 @@ void main() {
 
           // Verify serialization preserves privacy
           final json = account.toJson();
-          expect(json['publicMasterKey'], equals(publicMasterKey));
+          expect(json['ultimateSigningPublicKeyHex'], equals(ultimateSigningPublicKeyHex));
           expect(json['encryptedDataKey'], equals(encryptedDataKey));
         }
       },
@@ -56,7 +56,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           // Generate random device data
           final accountId = _generateRandomAccountId();
-          final publicSubKey = _generateRandomEcdsaP256PublicKey();
+          final deviceSigningPublicKeyHex = _generateRandomEcdsaP256PublicKey();
           final encryptedDataKey = _generateRandomEncryptedData();
           final label = _generateRandomDeviceLabel();
           final lastActive = DateTime.now();
@@ -65,7 +65,7 @@ void main() {
           // Create device model
           final device = AccountDevice(
             accountId: accountId,
-            publicSubKey: publicSubKey,
+            deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
             label: label,
             lastActive: lastActive,
@@ -74,7 +74,7 @@ void main() {
 
           // Verify privacy preservation - only public key and encrypted data stored
           expect(device.accountId, equals(accountId));
-          expect(device.publicSubKey, equals(publicSubKey));
+          expect(device.deviceSigningPublicKeyHex, equals(deviceSigningPublicKeyHex));
           expect(device.encryptedDataKey, equals(encryptedDataKey));
           expect(device.label, equals(label));
           expect(device.lastActive, equals(lastActive));
@@ -86,7 +86,7 @@ void main() {
 
           // Verify serialization preserves privacy
           final json = device.toJson();
-          expect(json['publicSubKey'], equals(publicSubKey));
+          expect(json['deviceSigningPublicKeyHex'], equals(deviceSigningPublicKeyHex));
           expect(json['encryptedDataKey'], equals(encryptedDataKey));
         }
       },

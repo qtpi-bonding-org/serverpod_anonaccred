@@ -19,11 +19,11 @@ class DeviceEndpoint extends Endpoint {
   /// Register new device with account
   ///
   /// Creates a new device registration associated with an account.
-  /// The device is identified by its ECDSA P-256 public subkey.
+  /// The device is identified by its ECDSA P-256 device signing public key.
   ///
   /// Parameters:
   /// - [accountId]: The account to associate the device with
-  /// - [publicSubKey]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
+  /// - [deviceSigningPublicKeyHex]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
   /// - [encryptedDataKey]: Device-encrypted SDK (never decrypted server-side)
   /// - [label]: Human-readable device name
   ///
@@ -37,19 +37,19 @@ class DeviceEndpoint extends Endpoint {
   Future<AccountDevice> registerDevice(
     Session session,
     int accountId,
-    String publicSubKey,
+    String deviceSigningPublicKeyHex,
     String encryptedDataKey,
     String label,
   ) async {
     try {
       // Validate input parameters
-      if (publicSubKey.isEmpty) {
+      if (deviceSigningPublicKeyHex.isEmpty) {
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.authMissingKey,
-              message: 'Public subkey is required for device registration',
+              message: 'Device signing public key is required for device registration',
               operation: 'registerDevice',
-              details: {'publicSubKey': 'empty'},
+              details: {'deviceSigningPublicKeyHex': 'empty'},
             );
 
         throw exception;
@@ -79,15 +79,15 @@ class DeviceEndpoint extends Endpoint {
         throw exception;
       }
 
-      // Validate public subkey format
-      if (!CryptoAuth.isValidPublicKey(publicSubKey)) {
+      // Validate device signing public key format
+      if (!CryptoAuth.isValidPublicKey(deviceSigningPublicKeyHex)) {
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-              message: 'Invalid ECDSA P-256 public subkey format',
+              message: 'Invalid ECDSA P-256 device signing public key format',
               operation: 'registerDevice',
               details: {
-                'publicSubKeyLength': publicSubKey.length.toString(),
+                'deviceSigningPublicKeyHexLength': deviceSigningPublicKeyHex.length.toString(),
                 'expectedLength': '128 or 130',
                 'accountId': accountId.toString(),
               },
@@ -110,20 +110,20 @@ class DeviceEndpoint extends Endpoint {
         throw exception;
       }
 
-      // Check for duplicate public subkey
+      // Check for duplicate device signing public key
       final existingDevice = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.publicSubKey.equals(publicSubKey),
+        where: (t) => t.deviceSigningPublicKeyHex.equals(deviceSigningPublicKeyHex),
       );
 
       if (existingDevice != null) {
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.authDuplicateDevice,
-              message: 'Public subkey already registered',
+              message: 'Device signing public key already registered',
               operation: 'registerDevice',
               details: {
-                'publicSubKey': publicSubKey,
+                'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
                 'existingDeviceId': existingDevice.id.toString(),
                 'accountId': accountId.toString(),
               },
@@ -135,7 +135,7 @@ class DeviceEndpoint extends Endpoint {
       // Create new device
       final device = AccountDevice(
         accountId: accountId,
-        publicSubKey: publicSubKey,
+        deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         label: label,
         lastActive: DateTime.now(),
@@ -195,10 +195,10 @@ class DeviceEndpoint extends Endpoint {
       AnonAccredHelpers.validateNonEmpty(challenge, 'challenge', 'authenticateDevice');
       AnonAccredHelpers.validateNonEmpty(signature, 'signature', 'authenticateDevice');
 
-      // Find device by public subkey (should exist since authentication passed)
+      // Find device by device signing public key (should exist since authentication passed)
       final device = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.publicSubKey.equals(publicKey),
+        where: (t) => t.deviceSigningPublicKeyHex.equals(publicKey),
       );
 
       // Use helper to ensure device exists and is active
@@ -226,7 +226,7 @@ class DeviceEndpoint extends Endpoint {
           accountId: accountId,
           deviceId: activeDevice.id,
           details: {
-            'publicSubKey': publicKey,
+            'deviceSigningPublicKeyHex': publicKey,
             'lastActive': updatedDevice.lastActive.toIso8601String(),
           },
         );
@@ -412,7 +412,7 @@ class DeviceEndpoint extends Endpoint {
       final callerDeviceKey = AnonAccredAuthHandler.getDevicePublicKey(session);
       final callerDevice = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.publicSubKey.equals(callerDeviceKey),
+        where: (t) => t.deviceSigningPublicKeyHex.equals(callerDeviceKey),
       );
       
       if (callerDevice == null) {
@@ -432,7 +432,7 @@ class DeviceEndpoint extends Endpoint {
       // Check for duplicate
       final existing = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.publicSubKey.equals(newDeviceSigningPublicKeyHex),
+        where: (t) => t.deviceSigningPublicKeyHex.equals(newDeviceSigningPublicKeyHex),
       );
       if (existing != null) {
         throw AnonAccredExceptionFactory.createAuthenticationException(
@@ -446,7 +446,7 @@ class DeviceEndpoint extends Endpoint {
       // Register new device under same account
       final newDevice = AccountDevice(
         accountId: callerDevice.accountId,  // Derived from caller's session
-        publicSubKey: newDeviceSigningPublicKeyHex,
+        deviceSigningPublicKeyHex: newDeviceSigningPublicKeyHex,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,
         lastActive: DateTime.now(),
@@ -490,7 +490,7 @@ class DeviceEndpoint extends Endpoint {
       
       final device = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.publicSubKey.equals(signingPublicKeyHex),
+        where: (t) => t.deviceSigningPublicKeyHex.equals(signingPublicKeyHex),
       );
       
       if (device == null) return null;

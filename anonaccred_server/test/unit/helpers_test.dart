@@ -168,7 +168,7 @@ void main() {
       test('should return account when not null', () {
         final account = AnonAccount(
           id: 1,
-          publicMasterKey: 'a' * 128, // ECDSA P-256 format
+          ultimateSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           ultimatePublicKey: 'b' * 128,
         );
@@ -189,7 +189,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final account = AnonAccount(
             id: random.nextInt(1000) + 1,
-            publicMasterKey: _generateFakePublicKeyString(random),
+            ultimateSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             ultimatePublicKey: _generateFakePublicKeyString(random),
           );
@@ -207,7 +207,7 @@ void main() {
         final device = AccountDevice(
           id: 1,
           accountId: 1,
-          publicSubKey: 'a' * 128, // ECDSA P-256 format
+          deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
         );
@@ -229,7 +229,7 @@ void main() {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateFakePublicKeyString(random),
+            deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
           );
@@ -247,7 +247,7 @@ void main() {
         final device = AccountDevice(
           id: 1,
           accountId: 1,
-          publicSubKey: 'a' * 128, // ECDSA P-256 format
+          deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
           isRevoked: false,
@@ -268,7 +268,7 @@ void main() {
         final device = AccountDevice(
           id: 1,
           accountId: 1,
-          publicSubKey: 'a' * 128, // ECDSA P-256 format
+          deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
           isRevoked: true,
@@ -286,7 +286,7 @@ void main() {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateFakePublicKeyString(random),
+            deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
             isRevoked: false, // Always non-revoked for this property
@@ -305,7 +305,7 @@ void main() {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
             accountId: random.nextInt(1000) + 1,
-            publicSubKey: _generateFakePublicKeyString(random),
+            deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
             isRevoked: true, // Always revoked for this property

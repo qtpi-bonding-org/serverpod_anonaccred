@@ -70,7 +70,7 @@ class AnonAccredAuthHandler {
       // Verify device exists and is active
       final device = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.publicSubKey.equals(devicePubKey),
+        where: (t) => t.deviceSigningPublicKeyHex.equals(devicePubKey),
       );
       
       final activeDevice = AnonAccredHelpers.requireActiveDevice(
@@ -83,8 +83,8 @@ class AnonAccredAuthHandler {
       // Store device public key in scopes for endpoint access
       return AuthenticationInfo(
         activeDevice.accountId.toString(),
-        {Scope('device:${activeDevice.publicSubKey}')},
-        authId: activeDevice.publicSubKey,
+        {Scope('device:${activeDevice.deviceSigningPublicKeyHex}')},
+        authId: activeDevice.deviceSigningPublicKeyHex,
       );
       
     } on AuthenticationException catch (e) {

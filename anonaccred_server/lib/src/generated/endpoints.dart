@@ -81,8 +81,8 @@ class Endpoints extends _i1.EndpointDispatch {
         'createAccount': _i1.MethodConnector(
           name: 'createAccount',
           params: {
-            'publicMasterKey': _i1.ParameterDescription(
-              name: 'publicMasterKey',
+            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'ultimateSigningPublicKeyHex',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -104,7 +104,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['account'] as _i2.AccountEndpoint).createAccount(
                     session,
-                    params['publicMasterKey'],
+                    params['ultimateSigningPublicKeyHex'],
                     params['encryptedDataKey'],
                     params['ultimatePublicKey'],
                   ),
@@ -131,8 +131,8 @@ class Endpoints extends _i1.EndpointDispatch {
         'getAccountByPublicKey': _i1.MethodConnector(
           name: 'getAccountByPublicKey',
           params: {
-            'publicMasterKey': _i1.ParameterDescription(
-              name: 'publicMasterKey',
+            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'ultimateSigningPublicKeyHex',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -144,7 +144,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['account'] as _i2.AccountEndpoint)
                   .getAccountByPublicKey(
                     session,
-                    params['publicMasterKey'],
+                    params['ultimateSigningPublicKeyHex'],
                   ),
         ),
         'getAccountForRecovery': _i1.MethodConnector(
@@ -455,8 +455,8 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<int>(),
               nullable: false,
             ),
-            'publicSubKey': _i1.ParameterDescription(
-              name: 'publicSubKey',
+            'deviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'deviceSigningPublicKeyHex',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -479,7 +479,7 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['device'] as _i4.DeviceEndpoint).registerDevice(
                     session,
                     params['accountId'],
-                    params['publicSubKey'],
+                    params['deviceSigningPublicKeyHex'],
                     params['encryptedDataKey'],
                     params['label'],
                   ),

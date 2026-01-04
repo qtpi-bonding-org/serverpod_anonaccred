@@ -26,7 +26,7 @@ void main() {
 
           // Create account with cryptographic data
           final account = AnonAccount(
-            publicMasterKey: publicMasterKey,
+            ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
             ultimatePublicKey: _generateFakePublicKeyString(),
             createdAt: DateTime.now(),
@@ -35,7 +35,7 @@ void main() {
           // Create device with cryptographic data
           final device = AccountDevice(
             accountId: random.nextInt(10000) + 1,
-            publicSubKey: publicSubKey,
+            deviceSigningPublicKeyHex: publicSubKey,
             encryptedDataKey: encryptedDeviceDataKey,
             label: 'Test Device',
             lastActive: DateTime.now(),
@@ -43,30 +43,30 @@ void main() {
           );
 
           // Verify cryptographic data isolation for account
-          expect(account.publicMasterKey, equals(publicMasterKey));
+          expect(account.ultimateSigningPublicKeyHex, equals(publicMasterKey));
           expect(account.encryptedDataKey, equals(encryptedMasterDataKey));
 
           // Verify no private key storage capability
           expect(
-            account.publicMasterKey.length,
+            account.ultimateSigningPublicKeyHex.length,
             equals(128),
           ); // ECDSA P-256 public key format
-          expect(_isValidHexString(account.publicMasterKey), isTrue);
+          expect(_isValidHexString(account.ultimateSigningPublicKeyHex), isTrue);
 
           // Verify encrypted data remains encrypted (no decryption methods)
           expect(account.encryptedDataKey, isA<String>());
           expect(account.encryptedDataKey.isNotEmpty, isTrue);
 
           // Verify cryptographic data isolation for device
-          expect(device.publicSubKey, equals(publicSubKey));
+          expect(device.deviceSigningPublicKeyHex, equals(publicSubKey));
           expect(device.encryptedDataKey, equals(encryptedDeviceDataKey));
 
           // Verify no private key storage capability
           expect(
-            device.publicSubKey.length,
+            device.deviceSigningPublicKeyHex.length,
             equals(128),
           ); // ECDSA P-256 public key format
-          expect(_isValidHexString(device.publicSubKey), isTrue);
+          expect(_isValidHexString(device.deviceSigningPublicKeyHex), isTrue);
 
           // Verify encrypted data remains encrypted
           expect(device.encryptedDataKey, isA<String>());
@@ -94,7 +94,7 @@ void main() {
           final encryptedMasterDataKey = _generateRandomEncryptedData();
 
           final account = AnonAccount(
-            publicMasterKey: publicMasterKey,
+            ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
             ultimatePublicKey: _generateFakePublicKeyString(),
             createdAt: DateTime.now(),
@@ -107,7 +107,7 @@ void main() {
           for (int j = 0; j < deviceCount; j++) {
             final device = AccountDevice(
               accountId: random.nextInt(10000) + 1,
-              publicSubKey: _generateFakePublicKeyString(),
+              deviceSigningPublicKeyHex: _generateFakePublicKeyString(),
               encryptedDataKey: _generateRandomEncryptedData(),
               label: 'Device $j',
               lastActive: DateTime.now(),
@@ -122,7 +122,7 @@ void main() {
               device.encryptedDataKey,
               isNot(equals(account.encryptedDataKey)),
             );
-            expect(device.publicSubKey, isNot(equals(account.publicMasterKey)));
+            expect(device.deviceSigningPublicKeyHex, isNot(equals(account.ultimateSigningPublicKeyHex)));
           }
 
           // Verify each device has unique encryption
@@ -133,8 +133,8 @@ void main() {
                 isNot(equals(devices[k].encryptedDataKey)),
               );
               expect(
-                devices[j].publicSubKey,
-                isNot(equals(devices[k].publicSubKey)),
+                devices[j].deviceSigningPublicKeyHex,
+                isNot(equals(devices[k].deviceSigningPublicKeyHex)),
               );
             }
           }
@@ -146,9 +146,9 @@ void main() {
           }
 
           // Verify all public keys are properly formatted
-          expect(_isValidEcdsaP256PublicKey(account.publicMasterKey), isTrue);
+          expect(_isValidEcdsaP256PublicKey(account.ultimateSigningPublicKeyHex), isTrue);
           for (final device in devices) {
-            expect(_isValidEcdsaP256PublicKey(device.publicSubKey), isTrue);
+            expect(_isValidEcdsaP256PublicKey(device.deviceSigningPublicKeyHex), isTrue);
           }
         }
       },

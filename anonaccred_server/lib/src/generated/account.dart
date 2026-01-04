@@ -16,7 +16,7 @@ abstract class AnonAccount
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   AnonAccount._({
     this.id,
-    required this.publicMasterKey,
+    required this.ultimateSigningPublicKeyHex,
     required this.encryptedDataKey,
     required this.ultimatePublicKey,
     DateTime? createdAt,
@@ -24,7 +24,7 @@ abstract class AnonAccount
 
   factory AnonAccount({
     int? id,
-    required String publicMasterKey,
+    required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
     DateTime? createdAt,
@@ -33,7 +33,8 @@ abstract class AnonAccount
   factory AnonAccount.fromJson(Map<String, dynamic> jsonSerialization) {
     return AnonAccount(
       id: jsonSerialization['id'] as int?,
-      publicMasterKey: jsonSerialization['publicMasterKey'] as String,
+      ultimateSigningPublicKeyHex:
+          jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       ultimatePublicKey: jsonSerialization['ultimatePublicKey'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -49,7 +50,7 @@ abstract class AnonAccount
   @override
   int? id;
 
-  String publicMasterKey;
+  String ultimateSigningPublicKeyHex;
 
   String encryptedDataKey;
 
@@ -65,7 +66,7 @@ abstract class AnonAccount
   @_i1.useResult
   AnonAccount copyWith({
     int? id,
-    String? publicMasterKey,
+    String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimatePublicKey,
     DateTime? createdAt,
@@ -75,7 +76,7 @@ abstract class AnonAccount
     return {
       '__className__': 'anonaccred.AnonAccount',
       if (id != null) 'id': id,
-      'publicMasterKey': publicMasterKey,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
       'createdAt': createdAt.toJson(),
@@ -87,7 +88,7 @@ abstract class AnonAccount
     return {
       '__className__': 'anonaccred.AnonAccount',
       if (id != null) 'id': id,
-      'publicMasterKey': publicMasterKey,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
       'createdAt': createdAt.toJson(),
@@ -129,13 +130,13 @@ class _Undefined {}
 class _AnonAccountImpl extends AnonAccount {
   _AnonAccountImpl({
     int? id,
-    required String publicMasterKey,
+    required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
     DateTime? createdAt,
   }) : super._(
          id: id,
-         publicMasterKey: publicMasterKey,
+         ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          ultimatePublicKey: ultimatePublicKey,
          createdAt: createdAt,
@@ -147,14 +148,15 @@ class _AnonAccountImpl extends AnonAccount {
   @override
   AnonAccount copyWith({
     Object? id = _Undefined,
-    String? publicMasterKey,
+    String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimatePublicKey,
     DateTime? createdAt,
   }) {
     return AnonAccount(
       id: id is int? ? id : this.id,
-      publicMasterKey: publicMasterKey ?? this.publicMasterKey,
+      ultimateSigningPublicKeyHex:
+          ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       ultimatePublicKey: ultimatePublicKey ?? this.ultimatePublicKey,
       createdAt: createdAt ?? this.createdAt,
@@ -165,9 +167,9 @@ class _AnonAccountImpl extends AnonAccount {
 class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
   AnonAccountUpdateTable(super.table);
 
-  _i1.ColumnValue<String, String> publicMasterKey(String value) =>
+  _i1.ColumnValue<String, String> ultimateSigningPublicKeyHex(String value) =>
       _i1.ColumnValue(
-        table.publicMasterKey,
+        table.ultimateSigningPublicKeyHex,
         value,
       );
 
@@ -193,8 +195,8 @@ class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
 class AnonAccountTable extends _i1.Table<int?> {
   AnonAccountTable({super.tableRelation}) : super(tableName: 'anon_account') {
     updateTable = AnonAccountUpdateTable(this);
-    publicMasterKey = _i1.ColumnString(
-      'publicMasterKey',
+    ultimateSigningPublicKeyHex = _i1.ColumnString(
+      'ultimateSigningPublicKeyHex',
       this,
     );
     encryptedDataKey = _i1.ColumnString(
@@ -214,7 +216,7 @@ class AnonAccountTable extends _i1.Table<int?> {
 
   late final AnonAccountUpdateTable updateTable;
 
-  late final _i1.ColumnString publicMasterKey;
+  late final _i1.ColumnString ultimateSigningPublicKeyHex;
 
   late final _i1.ColumnString encryptedDataKey;
 
@@ -225,7 +227,7 @@ class AnonAccountTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    publicMasterKey,
+    ultimateSigningPublicKeyHex,
     encryptedDataKey,
     ultimatePublicKey,
     createdAt,

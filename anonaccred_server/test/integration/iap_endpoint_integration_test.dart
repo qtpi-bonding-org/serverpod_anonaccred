@@ -49,8 +49,8 @@ void main() {
       authenticatedSessionBuilder = sessionBuilder.copyWith(
         authentication: AuthenticationOverride.authenticationInfo(
           testAccount.id!.toString(),
-          {Scope('device:${testDevice.publicSubKey}')},
-          authId: testDevice.publicSubKey,
+          {Scope('device:${testDevice.deviceSigningPublicKeyHex}')},
+          authId: testDevice.deviceSigningPublicKeyHex,
         ),
       );
     });
@@ -85,7 +85,7 @@ void main() {
         try {
           await endpoints.iAP.validateAppleReceipt(
             authenticatedSessionBuilder,
-            testDevice.publicSubKey, // Valid public key from test device
+            testDevice.deviceSigningPublicKeyHex, // Valid public key from test device
             'valid_signature_format',
             '', // Empty receipt data should trigger PaymentException
             'test_order_123',
@@ -105,7 +105,7 @@ void main() {
         try {
           await endpoints.iAP.validateAppleReceipt(
             authenticatedSessionBuilder,
-            testDevice.publicSubKey,
+            testDevice.deviceSigningPublicKeyHex,
             'valid_signature_format',
             'mock_receipt_data',
             'test_order_123',
@@ -125,7 +125,7 @@ void main() {
         try {
           await endpoints.iAP.validateAppleReceipt(
             authenticatedSessionBuilder,
-            testDevice.publicSubKey,
+            testDevice.deviceSigningPublicKeyHex,
             'valid_signature_format',
             'mock_receipt_data',
             'test_order_123',
@@ -196,7 +196,7 @@ void main() {
         try {
           await endpoints.iAP.validateGooglePurchase(
             authenticatedSessionBuilder,
-            testDevice.publicSubKey,
+            testDevice.deviceSigningPublicKeyHex,
             'valid_signature_format',
             '', // Empty package name should trigger PaymentException
             'com.example.premium',
@@ -218,7 +218,7 @@ void main() {
         try {
           await endpoints.iAP.validateGooglePurchase(
             authenticatedSessionBuilder,
-            testDevice.publicSubKey,
+            testDevice.deviceSigningPublicKeyHex,
             'valid_signature_format',
             'com.example.app',
             'com.example.premium',
@@ -240,7 +240,7 @@ void main() {
         try {
           await endpoints.iAP.validateGooglePurchase(
             authenticatedSessionBuilder,
-            testDevice.publicSubKey,
+            testDevice.deviceSigningPublicKeyHex,
             'valid_signature_format',
             'com.example.app',
             'com.example.premium',

@@ -79,7 +79,7 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'int',
         ),
         _i2.ColumnDefinition(
-          name: 'publicSubKey',
+          name: 'deviceSigningPublicKeyHex',
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
@@ -143,7 +143,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'publicSubKey',
+              definition: 'deviceSigningPublicKeyHex',
             ),
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
@@ -256,7 +256,7 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'nextval(\'anon_account_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
-          name: 'publicMasterKey',
+          name: 'ultimateSigningPublicKeyHex',
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',

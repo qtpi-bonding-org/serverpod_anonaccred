@@ -93,7 +93,7 @@ void main() {
         // In a real authentication flow, this would be done by the auth handler
         final foundDevice = await AccountDevice.db.findFirstRow(
           sessionBuilder.build(),
-          where: (t) => t.publicSubKey.equals(devicePublicKeyHex),
+          where: (t) => t.deviceSigningPublicKeyHex.equals(devicePublicKeyHex),
         );
         
         expect(foundDevice, isNotNull);
@@ -331,7 +331,7 @@ void main() {
           // Verify database lookup works for each device
           final foundDevice = await AccountDevice.db.findFirstRow(
             sessionBuilder.build(),
-            where: (t) => t.publicSubKey.equals(devicePublicKeyHex),
+            where: (t) => t.deviceSigningPublicKeyHex.equals(devicePublicKeyHex),
           );
           
           expect(foundDevice, isNotNull);

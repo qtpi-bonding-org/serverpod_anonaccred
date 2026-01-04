@@ -4,14 +4,15 @@ class: AccountDevice
 table: account_device
 indexes:
   auth_lookup_idx:
-    fields: publicSubKey, isRevoked
+    fields: deviceSigningPublicKeyHex, isRevoked
     unique: false
 fields:
   # Foreign key to parent account
   accountId: int, relation(parent=anon_account)
   
-  # Ed25519 public key for this specific device
-  publicSubKey: String
+  # Device ECDSA P-256 signing public key (128 hex chars, x||y coordinates)
+  # Used for device authentication - matches Flutter client naming
+  deviceSigningPublicKeyHex: String
   
   # Symmetric data key encrypted with device private key (client-side encryption)
   # Allows device-specific access without compromising master account security
