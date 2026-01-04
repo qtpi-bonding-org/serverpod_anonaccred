@@ -1,7 +1,7 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
-import '../integration/test_tools/serverpod_test_tools.dart';
+import 'package:test/test.dart';
 import '../integration/test_tools/auth_test_helper.dart';
+import '../integration/test_tools/serverpod_test_tools.dart';
 
 /// Test error handling and privacy logging integration for Phase 2 authentication
 void main() {
@@ -25,7 +25,7 @@ void main() {
           fail('Expected AuthenticationException to be thrown');
         } on AuthenticationException catch (e) {
           expect(e.toString(), contains('CRYPTO_INVALID_PUBLIC_KEY'));
-          expect(e.toString(), contains('Invalid Ed25519 public key format'));
+          expect(e.toString(), contains('Invalid ECDSA P-256 public key format'));
         }
       });
 
@@ -103,9 +103,9 @@ void main() {
 
     group('Device Registration Error Analysis', () {
       test('should provide structured errors for device registration failures', () async {
-        // Create test account
-        const accountPublicKey =
-            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        // Create test account with valid 128-character ECDSA P-256 key
+        const accountPublicKey = 'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+                                 'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_7';
 
         final testAccount = await endpoints.account.createAccount(
@@ -149,7 +149,7 @@ void main() {
               isA<AuthenticationException>(),
               predicate<AuthenticationException>((e) => 
                 e.toString().contains('CRYPTO_INVALID_PUBLIC_KEY') &&
-                e.toString().contains('Invalid Ed25519 public subkey format')
+                e.toString().contains('Invalid ECDSA P-256 public subkey format')
               ),
             ),
           ),

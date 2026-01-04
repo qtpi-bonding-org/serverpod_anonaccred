@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:anonaccred_server/anonaccred_server.dart';
-import 'package:webcrypto/webcrypto.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
+import 'package:webcrypto/webcrypto.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 
@@ -30,7 +30,7 @@ void main() {
     test('authentication handler has correct signature for Serverpod', () {
       // Test that the handler function signature matches what Serverpod expects
       // This is a compile-time check - if the signature is wrong, this won't compile
-      final handler = AnonAccredAuthHandler.handleAuthentication;
+      const handler = AnonAccredAuthHandler.handleAuthentication;
       expect(handler, isA<Function>());
     });
 
@@ -45,7 +45,7 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_12345';
-        const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' +
+        const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
                                   'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
         final account = await endpoints.account.createAccount(
@@ -72,7 +72,7 @@ void main() {
         );
 
         // Step 2: Test authentication
-        final challenge = CryptoAuth.generateChallenge();
+        final challenge = CryptoUtils.generateChallenge();
         final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
         
         // Sign challenge with device private key
@@ -98,7 +98,7 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_invalid';
-        const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' +
+        const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
                                   'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
         final account = await endpoints.account.createAccount(
@@ -124,8 +124,8 @@ void main() {
         );
 
         // Test with invalid signature
-        final challenge = CryptoAuth.generateChallenge();
-        final invalidSignature = 'invalid_signature_' + ('f' * 100); // 128 chars total
+        final challenge = CryptoUtils.generateChallenge();
+        final invalidSignature = 'invalid_signature_${'f' * 100}'; // 128 chars total
 
         final result = await CryptoAuth.verifyChallengeResponse(
           devicePublicKeyHex,
@@ -144,7 +144,7 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_revoked';
-        const ultimatePublicKey = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' +
+        const ultimatePublicKey = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
                                   'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
 
         final account = await endpoints.account.createAccount(
@@ -176,7 +176,7 @@ void main() {
         );
 
         // Step 3: Try to authenticate with revoked device
-        final challenge = CryptoAuth.generateChallenge();
+        final challenge = CryptoUtils.generateChallenge();
         final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
         
         final signatureBytes = await deviceKeyPair.privateKey.signBytes(challengeBytes, Hash.sha256);
@@ -199,7 +199,7 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_info';
-        const ultimatePublicKey = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd' +
+        const ultimatePublicKey = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd'
                                   'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd';
 
         final account = await endpoints.account.createAccount(
@@ -224,23 +224,17 @@ void main() {
           deviceLabel,
         );
 
-        // Create AuthenticationInfo
+        // Create AuthenticationInfo with correct constructor
         final authInfo = AuthenticationInfo(
-          authId: 'auth_${account.id}',
-          userId: account.id!,
-          scopes: <String, dynamic>{
-            'deviceId': device.id,
-            'publicKey': devicePublicKeyHex,
-            'accountId': account.id,
-          },
+          'user_${account.id}', // userIdentifier
+          <Scope>{}, // scopes (empty set for testing)
+          authId: 'auth_${account.id}', // authId
         );
 
         // Verify structure matches Serverpod expectations
-        expect(authInfo.userId, equals(account.id));
-        expect(authInfo.authId, isA<Map<String, dynamic>>());
-        expect(authInfo.authId['deviceId'], equals(device.id));
-        expect(authInfo.authId['publicKey'], equals(devicePublicKeyHex));
-        expect(authInfo.authId['accountId'], equals(account.id));
+        expect(authInfo.userIdentifier, equals('user_${account.id}'));
+        expect(authInfo.scopes, isA<Set<Scope>>());
+        expect(authInfo.authId, equals('auth_${account.id}'));
       });
 
       test('multiple devices can authenticate independently', () async {
@@ -250,7 +244,7 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_multi';
-        const ultimatePublicKey = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' +
+        const ultimatePublicKey = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
                                   'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
         final account = await endpoints.account.createAccount(
@@ -264,7 +258,7 @@ void main() {
         final devices = <AccountDevice>[];
         final deviceKeyPairs = <({EcdsaPrivateKey privateKey, String publicKeyHex})>[];
         
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           final deviceKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
           final devicePublicKey = await deviceKeyPair.publicKey.exportRawKey();
           final devicePublicKeyHex = devicePublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
@@ -281,17 +275,17 @@ void main() {
           );
 
           devices.add(device);
-          deviceKeyPairs.add((privateKey: deviceKeyPair, publicKeyHex: devicePublicKeyHex));
+          deviceKeyPairs.add((privateKey: deviceKeyPair.privateKey, publicKeyHex: devicePublicKeyHex));
         }
 
         // Test that each device can authenticate independently
-        for (int i = 0; i < devices.length; i++) {
+        for (var i = 0; i < devices.length; i++) {
           final device = devices[i];
           final keyPairInfo = deviceKeyPairs[i];
           
           final devicePublicKeyHex = keyPairInfo.publicKeyHex;
 
-          final challenge = CryptoAuth.generateChallenge();
+          final challenge = CryptoUtils.generateChallenge();
           final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
           
           final signatureBytes = await keyPairInfo.privateKey.signBytes(challengeBytes, Hash.sha256);
@@ -316,7 +310,7 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_extract';
-        const ultimatePublicKey = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' +
+        const ultimatePublicKey = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
                                   'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
         final account = await endpoints.account.createAccount(
@@ -343,20 +337,16 @@ void main() {
 
         // Create authenticated session
         final authInfo = AuthenticationInfo(
-          authId: 'auth_${account.id}_extract',
-          userId: account.id!,
-          scopes: <String, dynamic>{
-            'deviceId': device.id,
-            'publicKey': devicePublicKeyHex,
-            'accountId': account.id,
-          },
+          'user_${account.id}_extract', // userIdentifier
+          <Scope>{}, // scopes (empty set for testing)
+          authId: 'auth_${account.id}_extract', // authId
         );
 
         final session = sessionBuilder.build();
-        session.authenticated = authInfo;
+        session.updateAuthenticated(authInfo);
 
         // Test extraction - verify the auth info is properly set
-        expect(session.authenticated?.userId, equals(account.id));
+        expect(session.authenticated?.userIdentifier, equals('user_${account.id}_extract'));
         expect(session.authenticated?.authId, equals('auth_${account.id}_extract'));
       });
     });

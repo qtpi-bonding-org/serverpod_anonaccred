@@ -9,6 +9,7 @@ void main() {
       test('registerDevice - should reject empty public subkey', () async {
         // Create a test account first
         const accountPublicKey =
+            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key';
 
@@ -34,6 +35,7 @@ void main() {
       test('registerDevice - should reject invalid public subkey format', () async {
         // Create a test account first
         const accountPublicKey =
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_2';
 

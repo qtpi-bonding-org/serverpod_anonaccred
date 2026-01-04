@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:test/test.dart';
 
 /// Integration tests for module packaging and external consumption
 ///
@@ -31,7 +31,7 @@ void main() {
 
       // Crypto utilities should be available
       expect(
-        () => CryptoUtils.isValidEd25519PublicKey('invalid'),
+        () => CryptoUtils.isValidPublicKey('invalid'),
         returnsNormally,
       );
 
@@ -130,18 +130,20 @@ void main() {
     });
 
     test('cryptographic utilities work correctly', () {
-      // Test Ed25519 public key validation
-      expect(CryptoUtils.isValidEd25519PublicKey('invalid'), isFalse);
-      expect(CryptoUtils.isValidEd25519PublicKey(''), isFalse);
-      expect(CryptoUtils.isValidEd25519PublicKey('short'), isFalse);
+      // Test ECDSA P-256 public key validation
+      expect(CryptoUtils.isValidPublicKey('invalid'), isFalse);
+      expect(CryptoUtils.isValidPublicKey(''), isFalse);
+      expect(CryptoUtils.isValidPublicKey('short'), isFalse);
 
-      // Test with valid format (64 hex characters)
-      final validKey = 'a' * 64; // 64 'a' characters
-      expect(CryptoUtils.isValidEd25519PublicKey(validKey), isTrue);
+      // Test with valid format (128 hex characters)
+      const validKey = 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+                       'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      expect(CryptoUtils.isValidPublicKey(validKey), isTrue);
 
       // Test with invalid hex characters
-      final invalidHex = 'g' * 64; // 64 'g' characters (not hex)
-      expect(CryptoUtils.isValidEd25519PublicKey(invalidHex), isFalse);
+      const invalidHex = 'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+                         'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      expect(CryptoUtils.isValidPublicKey(invalidHex), isFalse);
     });
 
     test('module dependencies are properly configured', () {
@@ -152,9 +154,9 @@ void main() {
       // (This would fail if Serverpod integration was broken)
       expect(() {
         // These classes should be available through the generated protocol
-        final currency = Currency.USD;
-        final rail = PaymentRail.monero;
-        final status = OrderStatus.pending;
+        const currency = Currency.USD;
+        const rail = PaymentRail.monero;
+        const status = OrderStatus.pending;
 
         expect(currency.name, equals('USD'));
         expect(rail.name, equals('monero'));
@@ -199,9 +201,9 @@ void main() {
     test('generated protocol classes are accessible', () {
       // Test that Serverpod-generated classes work correctly
       expect(() {
-        final currency = Currency.USD;
-        final rail = PaymentRail.x402_http;
-        final status = OrderStatus.paid;
+        const currency = Currency.USD;
+        const rail = PaymentRail.x402_http;
+        const status = OrderStatus.paid;
 
         // Test enum serialization
         expect(currency.name, equals('USD'));

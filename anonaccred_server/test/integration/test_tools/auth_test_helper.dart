@@ -5,13 +5,13 @@
 class AuthTestHelper {
   /// Generates a valid ECDSA P-256 public key for testing
   /// Uses the correct format: exactly 128 hex characters
-  static String generateValidDeviceKey() {
-    return 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
-  }
+  static String generateValidDeviceKey() =>
+      'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+      'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
   
-  /// Generates a valid Ed25519 signature for testing
-  /// Uses exactly 128 hex characters as required by Ed25519
-  static String generateValidSignature() {
-    return 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
-  }
+  /// Generates a valid ECDSA P-256 signature for testing
+  /// Uses exactly 128 hex characters as required by ECDSA P-256
+  static String generateValidSignature() =>
+      'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+      'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
 }

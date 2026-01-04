@@ -29,15 +29,18 @@ void main() {
       // Create test account and device for authenticated tests
       testAccount = await endpoints.account.createAccount(
         sessionBuilder,
+        'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
         'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 128-char hex for ECDSA P-256
         'encrypted_data_key_test',
+        'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
         'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // ultimatePublicKey - using same key for testing
       );
 
       testDevice = await endpoints.device.registerDevice(
         sessionBuilder,
         testAccount.id!,
-        'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
+        'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
+        'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
         'encrypted_device_key_test',
         'Test Device',
       );
@@ -144,6 +147,7 @@ void main() {
         try {
           await iapEndpoint.validateAppleReceipt(
             session,
+            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid format but not in DB
             'test_signature',
             'mock_receipt_data',
@@ -260,6 +264,7 @@ void main() {
         try {
           await iapEndpoint.validateGooglePurchase(
             session,
+            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid format but not in DB
             'test_signature',
             'com.example.app',
