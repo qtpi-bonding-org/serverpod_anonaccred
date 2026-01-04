@@ -19,9 +19,9 @@ void main() {
         // Run 5 iterations during development (can be increased to 100+ for production)
         for (int i = 0; i < 5; i++) {
           // Generate random cryptographic data
-          final publicMasterKey = _generateRandomEd25519PublicKey();
+          final publicMasterKey = _generateRandomEcdsaP256PublicKey();
           final encryptedMasterDataKey = _generateRandomEncryptedData();
-          final publicSubKey = _generateRandomEd25519PublicKey();
+          final publicSubKey = _generateRandomEcdsaP256PublicKey();
           final encryptedDeviceDataKey = _generateRandomEncryptedData();
 
           // Create account with cryptographic data
@@ -444,4 +444,11 @@ bool _isValidEcdsaP256PublicKey(String publicKey) =>
 bool _isValidEncryptedData(String encryptedData) {
   // Basic validation for encrypted data format
   return encryptedData.isNotEmpty && encryptedData.length >= 16;
+}
+
+String _generateRandomEcdsaP256PublicKey() {
+  // Generate a valid 128-character hex string (64 bytes for ECDSA P-256)
+  final random = Random();
+  const chars = '0123456789abcdef';
+  return List.generate(128, (index) => chars[random.nextInt(chars.length)]).join();
 }
