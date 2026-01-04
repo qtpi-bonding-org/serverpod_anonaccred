@@ -10,9 +10,9 @@ void main() {
     test(
       'createAccount - successful account creation with valid Ed25519 key',
       () async {
-        // Valid Ed25519 public key (64 hex characters) - using all lowercase
+        // Valid ECDSA P-256 public key (128 hex characters) - using all lowercase
         const validPublicKey =
-            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'encrypted_data_key_example_12345';
 
         final account = await endpoints.account.createAccount(
@@ -61,7 +61,7 @@ void main() {
 
     test('createAccount - fails with empty encrypted data key', () async {
       const validPublicKey =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       const emptyEncryptedDataKey = '';
 
       expect(
@@ -80,7 +80,7 @@ void main() {
       () async {
         // Create an account first
         const validPublicKey =
-            '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'encrypted_data_key_example_67890';
 
         final createdAccount = await endpoints.account.createAccount(
@@ -107,7 +107,7 @@ void main() {
       'getAccountByPublicKey - returns null for non-existent account',
       () async {
         const nonExistentPublicKey =
-            '2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final foundAccount = await endpoints.account.getAccountByPublicKey(
           sessionBuilder,
@@ -149,7 +149,7 @@ void main() {
       'createAccount - prevents duplicate public key registration',
       () async {
         const duplicatePublicKey =
-            '3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey1 = 'encrypted_data_key_first_12345';
         const encryptedDataKey2 = 'encrypted_data_key_second_67890';
 
@@ -178,9 +178,9 @@ void main() {
       'encrypted data preservation - data stored without decryption',
       () async {
         const validPublicKey =
-            '4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const originalEncryptedData =
-            'complex_encrypted_data_with_special_chars_!@#\$%^&*()';
+            r'complex_encrypted_data_with_special_chars_!@#$%^&*()';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,

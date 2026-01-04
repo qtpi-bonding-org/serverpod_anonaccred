@@ -11,7 +11,7 @@ void main() {
       () async {
         // Create a test account first
         const accountPublicKey =
-            '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key';
 
         final testAccount = await endpoints.account.createAccount(
@@ -22,7 +22,7 @@ void main() {
         );
 
         const publicSubKey =
-            '6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
@@ -49,7 +49,7 @@ void main() {
       () async {
         // Create a test account first
         const accountPublicKey =
-            '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_2';
 
         final testAccount = await endpoints.account.createAccount(
@@ -60,7 +60,7 @@ void main() {
         );
 
         const publicSubKey =
-            '8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
@@ -92,7 +92,7 @@ void main() {
       () async {
         // Create a test account first
         const accountPublicKey =
-            '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_3';
 
         final testAccount = await endpoints.account.createAccount(
@@ -123,7 +123,7 @@ void main() {
       'registerDevice - should reject registration for non-existent account',
       () async {
         const publicSubKey =
-            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefa123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
         const nonExistentAccountId = 99999;

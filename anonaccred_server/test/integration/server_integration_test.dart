@@ -38,7 +38,7 @@ void main() {
 
     test('getDevicePublicKey extracts key from authenticated session', () {
       final mockSession = _MockSession();
-      const deviceKey = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const deviceKey = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
       
       mockSession.authenticated = AuthenticationInfo(
         'user123',

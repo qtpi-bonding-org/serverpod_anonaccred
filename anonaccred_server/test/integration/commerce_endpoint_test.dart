@@ -12,7 +12,7 @@ void main() {
   ) {
     // Test constants
     const validPublicKey =
-        '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
     const validSignature =
         'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
     late int testAccountId;
@@ -26,6 +26,7 @@ void main() {
         sessionBuilder,
         validPublicKey,
         'encrypted_data_key_for_commerce_test',
+        validPublicKey, // Use the same valid key for ultimatePublicKey
       );
       testAccountId = account.id!;
     });

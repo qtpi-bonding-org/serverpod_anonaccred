@@ -76,8 +76,8 @@ void main() {
     sessionBuilder,
     endpoints,
   ) {
-    // Test constants - valid Ed25519 key format (64 hex chars)
-    const validPublicKey = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    // Test constants - valid ECDSA P-256 key format (128 hex chars)
+    const validPublicKey = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
     const validSignature = 'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
 
     group('Complete Payment Flow Tests', () {

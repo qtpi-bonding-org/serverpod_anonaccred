@@ -134,9 +134,9 @@ void main() {
     });
 
     test('public key validation works correctly', () {
-      // Valid 64-character hex string
+      // Valid 128-character hex string
       const validKey =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       expect(CryptoAuth.isValidPublicKey(validKey), isTrue);
 
       // Invalid cases

@@ -45,7 +45,8 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_12345';
-        final ultimatePublicKey = 'ultimate_public_key_12345_' + ('a' * 100); // 128 chars total
+        const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' +
+                                  'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,
@@ -97,7 +98,8 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_invalid';
-        final ultimatePublicKey = 'ultimate_public_key_invalid_' + ('b' * 100);
+        const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' +
+                                  'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,
@@ -142,7 +144,8 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_revoked';
-        final ultimatePublicKey = 'ultimate_public_key_revoked_' + ('c' * 100);
+        const ultimatePublicKey = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' +
+                                  'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,
@@ -196,7 +199,8 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_info';
-        final ultimatePublicKey = 'ultimate_public_key_info_' + ('d' * 100);
+        const ultimatePublicKey = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd' +
+                                  'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,
@@ -246,7 +250,8 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_multi';
-        final ultimatePublicKey = 'ultimate_public_key_multi_' + ('e' * 100);
+        const ultimatePublicKey = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' +
+                                  'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,
@@ -311,7 +316,8 @@ void main() {
         final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
         
         const encryptedDataKey = 'encrypted_account_data_key_extract';
-        final ultimatePublicKey = 'ultimate_public_key_extract_' + ('f' * 100);
+        const ultimatePublicKey = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' +
+                                  'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
         final account = await endpoints.account.createAccount(
           sessionBuilder,

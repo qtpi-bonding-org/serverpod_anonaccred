@@ -22,7 +22,8 @@ void main() {
 
         // Step 2: Create account
         const encryptedDataKey = 'encrypted_account_data_key_12345';
-        final ultimatePublicKey = 'ultimate_public_key_workflow_' + ('a' * 100);
+        const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' +
+                                  'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKeyHex,
@@ -93,7 +94,8 @@ void main() {
 
         // Step 2: Create account
         const encryptedDataKey = 'encrypted_account_data_key_lookup';
-        final ultimatePublicKey = 'ultimate_public_key_lookup_' + ('b' * 100);
+        const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' +
+                                  'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKeyHex,

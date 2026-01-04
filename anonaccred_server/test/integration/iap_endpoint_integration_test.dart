@@ -37,7 +37,7 @@ void main() {
       testDevice = await endpoints.device.registerDevice(
         sessionBuilder,
         testAccount.id!,
-        'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 64-char hex
+        'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
         'encrypted_device_key_test',
         'Test Device',
       );

@@ -15,7 +15,7 @@ import 'test_tools/serverpod_test_tools.dart';
 void main() {
   withServerpod('X402 Complete Integration Tests', (sessionBuilder, endpoints) {
     // Test constants
-    const validPublicKey = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+    const validPublicKey = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
     const validSignature = 'test_signature_for_x402_integration';
     late int testAccountId;
     
@@ -33,6 +33,7 @@ void main() {
         sessionBuilder,
         validPublicKey,
         'encrypted_data_key_for_x402_test',
+        validPublicKey, // Use the same valid key for ultimatePublicKey
       );
       testAccountId = account.id!;
     });

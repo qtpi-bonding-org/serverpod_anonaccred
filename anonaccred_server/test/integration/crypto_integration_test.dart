@@ -19,11 +19,11 @@ void main() {
 
       // Step 3: Client signs the challenge (simulated)
       final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
-      final signatureBytes = await keyPair.signBytes(challengeBytes, Hash.sha256);
+      final signatureBytes = await keyPair.privateKey.signBytes(challengeBytes, Hash.sha256);
       final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Step 4: Server verifies the signature
-      final isValid = await CryptoUtils.verifyEcdsaP256Signature(
+      final isValid = await CryptoUtils.verifySignature(
         message: challenge,
         signature: signatureHex,
         publicKey: publicKeyHex,
@@ -46,11 +46,11 @@ void main() {
 
       // Client B signs the challenge with their key
       final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
-      final signatureBytes = await keyPairB.signBytes(challengeBytes, Hash.sha256);
+      final signatureBytes = await keyPairB.privateKey.signBytes(challengeBytes, Hash.sha256);
       final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Server tries to verify with Client A's public key (should fail)
-      final isValid = await CryptoUtils.verifyEcdsaP256Signature(
+      final isValid = await CryptoUtils.verifySignature(
         message: challenge,
         signature: signatureHex,
         publicKey: publicKeyAHex,
