@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:webcrypto/webcrypto.dart';
+import 'package:pointycastle/export.dart';
 import 'exception_factory.dart';
 
 /// Cryptographic utilities for ECDSA P-256 signature verification.
@@ -63,7 +63,7 @@ class CryptoUtils {
 
   /// Verifies an ECDSA P-256 signature against a message and public key.
   ///
-  /// Uses the cryptography library for secure ECDSA signature verification.
+  /// Uses the PointyCastle library for secure ECDSA signature verification.
   ///
   /// Parameters:
   /// - [message]: The original message that was signed
@@ -121,36 +121,84 @@ class CryptoUtils {
       }
       final publicKeyBytes = hexToBytes(normalizedKey);
 
-      // webcrypto.dart expects X9.62 format: 0x04 + x + y
-      final x962Key = Uint8List.fromList([0x04, ...publicKeyBytes]);
-      
-      // Import public key using webcrypto.dart
-      final ecdsaPublicKey = await EcdsaPublicKey.importRawKey(
-        x962Key,
-        EllipticCurve.p256,
-      );
+      // Validate key length
+      if (publicKeyBytes.length != 64) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
+          message: 'Invalid public key length after normalization',
+          operation: 'verifySignature',
+          details: {
+            'normalizedKeyLength': publicKeyBytes.length.toString(),
+            'expectedLength': '64',
+          },
+        );
+      }
 
-      // Perform ECDSA verification with SHA-256
-      return await ecdsaPublicKey.verifyBytes(
-        signatureBytes,
-        messageBytes,
-        Hash.sha256,
-      );
-    } on Exception catch (e) {
+      // Validate signature length
+      if (signatureBytes.length != 64) {
+        throw AnonAccredExceptionFactory.createAuthenticationException(
+          code: AnonAccredErrorCodes.cryptoInvalidSignature,
+          message: 'Invalid signature length',
+          operation: 'verifySignature',
+          details: {
+            'signatureLength': signatureBytes.length.toString(),
+            'expectedLength': '64',
+          },
+        );
+      }
+
+      // Create P-256 curve parameters
+      final domainParams = ECDomainParameters('secp256r1');
+      
+      // Extract x and y coordinates from public key
+      final x = publicKeyBytes.sublist(0, 32);
+      final y = publicKeyBytes.sublist(32, 64);
+      
+      // Convert to BigInt
+      final xBigInt = _bytesToBigInt(x);
+      final yBigInt = _bytesToBigInt(y);
+      
+      // Create EC point
+      final point = domainParams.curve.createPoint(xBigInt, yBigInt);
+      
+      // Create public key
+      final ecPublicKey = ECPublicKey(point, domainParams);
+      
+      // Extract r and s from signature
+      final r = _bytesToBigInt(signatureBytes.sublist(0, 32));
+      final s = _bytesToBigInt(signatureBytes.sublist(32, 64));
+      
+      // Create signature object
+      final ecSignature = ECSignature(r, s);
+      
+      // Hash the message with SHA-256
+      final digest = SHA256Digest();
+      final hashedMessage = digest.process(messageBytes);
+      
+      // Create and initialize ECDSA signer for verification
+      final signer = ECDSASigner(SHA256Digest());
+      signer.init(false, PublicKeyParameter<ECPublicKey>(ecPublicKey));
+      
+      // Verify signature
+      return signer.verifySignature(hashedMessage, ecSignature);
+      
+    } catch (e) {
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.cryptoVerificationFailed,
         message: 'ECDSA verification failed: ${e.toString()}',
         operation: 'verifySignature',
-        details: {'webCryptoError': e.toString()},
-      );
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoVerificationFailed,
-        message: 'Cryptographic verification failed',
-        operation: 'verifySignature',
-        details: {'error': e.toString()},
+        details: {'pointyCastleError': e.toString()},
       );
     }
+  }
+
+  /// Converts bytes to BigInt (big-endian)
+  static BigInt _bytesToBigInt(Uint8List bytes) {
+    BigInt result = BigInt.zero;
+    for (int i = 0; i < bytes.length; i++) {
+      result = (result << 8) + BigInt.from(bytes[i]);
+    }
+    return result;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class AnonAccount implements _i1.SerializableModel {
   AnonAccount._({
     this.id,
-    required this.publicMasterKey,
+    required this.ultimateSigningPublicKeyHex,
     required this.encryptedDataKey,
     required this.ultimatePublicKey,
     DateTime? createdAt,
@@ -23,7 +23,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
 
   factory AnonAccount({
     int? id,
-    required String publicMasterKey,
+    required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
     DateTime? createdAt,
@@ -32,7 +32,8 @@ abstract class AnonAccount implements _i1.SerializableModel {
   factory AnonAccount.fromJson(Map<String, dynamic> jsonSerialization) {
     return AnonAccount(
       id: jsonSerialization['id'] as int?,
-      publicMasterKey: jsonSerialization['publicMasterKey'] as String,
+      ultimateSigningPublicKeyHex:
+          jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       ultimatePublicKey: jsonSerialization['ultimatePublicKey'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -46,7 +47,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  String publicMasterKey;
+  String ultimateSigningPublicKeyHex;
 
   String encryptedDataKey;
 
@@ -59,7 +60,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
   @_i1.useResult
   AnonAccount copyWith({
     int? id,
-    String? publicMasterKey,
+    String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimatePublicKey,
     DateTime? createdAt,
@@ -69,7 +70,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
     return {
       '__className__': 'anonaccred.AnonAccount',
       if (id != null) 'id': id,
-      'publicMasterKey': publicMasterKey,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
       'createdAt': createdAt.toJson(),
@@ -87,13 +88,13 @@ class _Undefined {}
 class _AnonAccountImpl extends AnonAccount {
   _AnonAccountImpl({
     int? id,
-    required String publicMasterKey,
+    required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
     DateTime? createdAt,
   }) : super._(
          id: id,
-         publicMasterKey: publicMasterKey,
+         ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          ultimatePublicKey: ultimatePublicKey,
          createdAt: createdAt,
@@ -105,14 +106,15 @@ class _AnonAccountImpl extends AnonAccount {
   @override
   AnonAccount copyWith({
     Object? id = _Undefined,
-    String? publicMasterKey,
+    String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimatePublicKey,
     DateTime? createdAt,
   }) {
     return AnonAccount(
       id: id is int? ? id : this.id,
-      publicMasterKey: publicMasterKey ?? this.publicMasterKey,
+      ultimateSigningPublicKeyHex:
+          ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       ultimatePublicKey: ultimatePublicKey ?? this.ultimatePublicKey,
       createdAt: createdAt ?? this.createdAt,

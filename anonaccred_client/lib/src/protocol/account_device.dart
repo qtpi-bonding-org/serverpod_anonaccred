@@ -16,7 +16,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
   AccountDevice._({
     this.id,
     required this.accountId,
-    required this.publicSubKey,
+    required this.deviceSigningPublicKeyHex,
     required this.encryptedDataKey,
     required this.label,
     DateTime? lastActive,
@@ -27,7 +27,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
   factory AccountDevice({
     int? id,
     required int accountId,
-    required String publicSubKey,
+    required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
     DateTime? lastActive,
@@ -38,7 +38,8 @@ abstract class AccountDevice implements _i1.SerializableModel {
     return AccountDevice(
       id: jsonSerialization['id'] as int?,
       accountId: jsonSerialization['accountId'] as int,
-      publicSubKey: jsonSerialization['publicSubKey'] as String,
+      deviceSigningPublicKeyHex:
+          jsonSerialization['deviceSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       label: jsonSerialization['label'] as String,
       lastActive: _i1.DateTimeJsonExtension.fromJson(
@@ -55,7 +56,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
 
   int accountId;
 
-  String publicSubKey;
+  String deviceSigningPublicKeyHex;
 
   String encryptedDataKey;
 
@@ -71,7 +72,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
   AccountDevice copyWith({
     int? id,
     int? accountId,
-    String? publicSubKey,
+    String? deviceSigningPublicKeyHex,
     String? encryptedDataKey,
     String? label,
     DateTime? lastActive,
@@ -83,7 +84,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
       '__className__': 'anonaccred.AccountDevice',
       if (id != null) 'id': id,
       'accountId': accountId,
-      'publicSubKey': publicSubKey,
+      'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
       'lastActive': lastActive.toJson(),
@@ -103,7 +104,7 @@ class _AccountDeviceImpl extends AccountDevice {
   _AccountDeviceImpl({
     int? id,
     required int accountId,
-    required String publicSubKey,
+    required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
     DateTime? lastActive,
@@ -111,7 +112,7 @@ class _AccountDeviceImpl extends AccountDevice {
   }) : super._(
          id: id,
          accountId: accountId,
-         publicSubKey: publicSubKey,
+         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          label: label,
          lastActive: lastActive,
@@ -125,7 +126,7 @@ class _AccountDeviceImpl extends AccountDevice {
   AccountDevice copyWith({
     Object? id = _Undefined,
     int? accountId,
-    String? publicSubKey,
+    String? deviceSigningPublicKeyHex,
     String? encryptedDataKey,
     String? label,
     DateTime? lastActive,
@@ -134,7 +135,8 @@ class _AccountDeviceImpl extends AccountDevice {
     return AccountDevice(
       id: id is int? ? id : this.id,
       accountId: accountId ?? this.accountId,
-      publicSubKey: publicSubKey ?? this.publicSubKey,
+      deviceSigningPublicKeyHex:
+          deviceSigningPublicKeyHex ?? this.deviceSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       label: label ?? this.label,
       lastActive: lastActive ?? this.lastActive,

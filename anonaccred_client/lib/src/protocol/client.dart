@@ -41,7 +41,7 @@ class EndpointAccount extends _i1.EndpointRef {
   /// Create new anonymous account with ECDSA P-256 public key identity
   ///
   /// Parameters:
-  /// - [publicMasterKey]: Device ECDSA P-256 public key (128 hex chars, x||y coordinates)
+  /// - [ultimateSigningPublicKeyHex]: Ultimate ECDSA P-256 public key (128 hex chars, x||y coordinates)
   /// - [encryptedDataKey]: Recovery blob (symmetric key encrypted with ultimate public key)
   /// - [ultimatePublicKey]: Ultimate ECDSA P-256 public key (128 hex chars) for recovery lookup
   ///
@@ -50,14 +50,14 @@ class EndpointAccount extends _i1.EndpointRef {
   /// Throws AuthenticationException if public key validation fails or duplicate key exists.
   /// Throws AnonAccredException for database or system errors.
   _i2.Future<_i3.AnonAccount> createAccount(
-    String publicMasterKey,
+    String ultimateSigningPublicKeyHex,
     String encryptedDataKey,
     String ultimatePublicKey,
   ) => caller.callServerEndpoint<_i3.AnonAccount>(
     'anonaccred.account',
     'createAccount',
     {
-      'publicMasterKey': publicMasterKey,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
     },
@@ -82,18 +82,19 @@ class EndpointAccount extends _i1.EndpointRef {
   /// Get account by public master key lookup
   ///
   /// Parameters:
-  /// - [publicMasterKey]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
+  /// - [ultimateSigningPublicKeyHex]: ECDSA P-256 public key as hex string (128 chars, x||y coordinates)
   ///
   /// Returns the AnonAccount if found, null if not found.
   ///
   /// Throws AuthenticationException if public key validation fails.
   /// Throws AnonAccredException for database or system errors.
-  _i2.Future<_i3.AnonAccount?> getAccountByPublicKey(String publicMasterKey) =>
-      caller.callServerEndpoint<_i3.AnonAccount?>(
-        'anonaccred.account',
-        'getAccountByPublicKey',
-        {'publicMasterKey': publicMasterKey},
-      );
+  _i2.Future<_i3.AnonAccount?> getAccountByPublicKey(
+    String ultimateSigningPublicKeyHex,
+  ) => caller.callServerEndpoint<_i3.AnonAccount?>(
+    'anonaccred.account',
+    'getAccountByPublicKey',
+    {'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex},
+  );
 
   /// Get account for recovery by ultimate public key
   ///
@@ -396,11 +397,11 @@ class EndpointDevice extends _i1.EndpointRef {
   /// Register new device with account
   ///
   /// Creates a new device registration associated with an account.
-  /// The device is identified by its ECDSA P-256 public subkey.
+  /// The device is identified by its ECDSA P-256 device signing public key.
   ///
   /// Parameters:
   /// - [accountId]: The account to associate the device with
-  /// - [publicSubKey]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
+  /// - [deviceSigningPublicKeyHex]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
   /// - [encryptedDataKey]: Device-encrypted SDK (never decrypted server-side)
   /// - [label]: Human-readable device name
   ///
@@ -413,7 +414,7 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - Required parameters are empty
   _i2.Future<_i8.AccountDevice> registerDevice(
     int accountId,
-    String publicSubKey,
+    String deviceSigningPublicKeyHex,
     String encryptedDataKey,
     String label,
   ) => caller.callServerEndpoint<_i8.AccountDevice>(
@@ -421,7 +422,7 @@ class EndpointDevice extends _i1.EndpointRef {
     'registerDevice',
     {
       'accountId': accountId,
-      'publicSubKey': publicSubKey,
+      'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
     },
