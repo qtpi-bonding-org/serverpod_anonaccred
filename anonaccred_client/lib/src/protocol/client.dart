@@ -36,7 +36,7 @@ class EndpointAccount extends _i1.EndpointRef {
   EndpointAccount(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'anonaccred.account';
+  String get name => 'account';
 
   /// Create new anonymous account with ECDSA P-256 public key identity
   ///
@@ -54,7 +54,7 @@ class EndpointAccount extends _i1.EndpointRef {
     String encryptedDataKey,
     String ultimatePublicKey,
   ) => caller.callServerEndpoint<_i3.AnonAccount>(
-    'anonaccred.account',
+    'account',
     'createAccount',
     {
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
@@ -74,7 +74,7 @@ class EndpointAccount extends _i1.EndpointRef {
   /// Throws AnonAccredException for database or system errors.
   _i2.Future<_i3.AnonAccount> getAccountById(int accountId) =>
       caller.callServerEndpoint<_i3.AnonAccount>(
-        'anonaccred.account',
+        'account',
         'getAccountById',
         {'accountId': accountId},
       );
@@ -91,7 +91,7 @@ class EndpointAccount extends _i1.EndpointRef {
   _i2.Future<_i3.AnonAccount?> getAccountByPublicKey(
     String ultimateSigningPublicKeyHex,
   ) => caller.callServerEndpoint<_i3.AnonAccount?>(
-    'anonaccred.account',
+    'account',
     'getAccountByPublicKey',
     {'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex},
   );
@@ -116,7 +116,7 @@ class EndpointAccount extends _i1.EndpointRef {
   _i2.Future<_i3.AnonAccount?> getAccountForRecovery(
     String ultimatePublicKey,
   ) => caller.callServerEndpoint<_i3.AnonAccount?>(
-    'anonaccred.account',
+    'account',
     'getAccountForRecovery',
     {'ultimatePublicKey': ultimatePublicKey},
   );
@@ -132,7 +132,7 @@ class EndpointCommerce extends _i1.EndpointRef {
   EndpointCommerce(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'anonaccred.commerce';
+  String get name => 'commerce';
 
   /// Register products in the price registry
   ///
@@ -155,7 +155,7 @@ class EndpointCommerce extends _i1.EndpointRef {
     String signature,
     Map<String, double> products,
   ) => caller.callServerEndpoint<Map<String, double>>(
-    'anonaccred.commerce',
+    'commerce',
     'registerProducts',
     {
       'publicKey': publicKey,
@@ -177,7 +177,7 @@ class EndpointCommerce extends _i1.EndpointRef {
   /// - [AnonAccredException] for system errors
   _i2.Future<Map<String, double>> getProductCatalog() =>
       caller.callServerEndpoint<Map<String, double>>(
-        'anonaccred.commerce',
+        'commerce',
         'getProductCatalog',
         {},
       );
@@ -207,7 +207,7 @@ class EndpointCommerce extends _i1.EndpointRef {
     Map<String, double> items,
     _i5.PaymentRail paymentRail,
   ) => caller.callServerEndpoint<_i4.TransactionPayment>(
-    'anonaccred.commerce',
+    'commerce',
     'createOrder',
     {
       'publicKey': publicKey,
@@ -239,7 +239,7 @@ class EndpointCommerce extends _i1.EndpointRef {
     String signature,
     int accountId,
   ) => caller.callServerEndpoint<List<_i6.AccountInventory>>(
-    'anonaccred.commerce',
+    'commerce',
     'getInventory',
     {
       'publicKey': publicKey,
@@ -271,7 +271,7 @@ class EndpointCommerce extends _i1.EndpointRef {
     int accountId,
     String consumableType,
   ) => caller.callServerEndpoint<double>(
-    'anonaccred.commerce',
+    'commerce',
     'getBalance',
     {
       'publicKey': publicKey,
@@ -307,7 +307,7 @@ class EndpointCommerce extends _i1.EndpointRef {
     String consumableType,
     double quantity,
   ) => caller.callServerEndpoint<_i7.ConsumeResult>(
-    'anonaccred.commerce',
+    'commerce',
     'consumeInventory',
     {
       'publicKey': publicKey,
@@ -337,7 +337,7 @@ class EndpointCommerce extends _i1.EndpointRef {
     String signature, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.commerce',
+    'commerce',
     'getProductCatalogWithX402',
     {
       'publicKey': publicKey,
@@ -368,7 +368,7 @@ class EndpointCommerce extends _i1.EndpointRef {
     String consumableType, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.commerce',
+    'commerce',
     'getBalanceWithX402',
     {
       'publicKey': publicKey,
@@ -392,7 +392,7 @@ class EndpointDevice extends _i1.EndpointRef {
   EndpointDevice(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'anonaccred.device';
+  String get name => 'device';
 
   /// Register new device with account
   ///
@@ -418,7 +418,7 @@ class EndpointDevice extends _i1.EndpointRef {
     String encryptedDataKey,
     String label,
   ) => caller.callServerEndpoint<_i8.AccountDevice>(
-    'anonaccred.device',
+    'device',
     'registerDevice',
     {
       'accountId': accountId,
@@ -443,7 +443,7 @@ class EndpointDevice extends _i1.EndpointRef {
     String challenge,
     String signature,
   ) => caller.callServerEndpoint<_i9.AuthenticationResult>(
-    'anonaccred.device',
+    'device',
     'authenticateDevice',
     {
       'challenge': challenge,
@@ -460,7 +460,7 @@ class EndpointDevice extends _i1.EndpointRef {
   /// Returns a hex-encoded challenge string.
   _i2.Future<String> generateAuthChallenge() =>
       caller.callServerEndpoint<String>(
-        'anonaccred.device',
+        'device',
         'generateAuthChallenge',
         {},
       );
@@ -479,7 +479,7 @@ class EndpointDevice extends _i1.EndpointRef {
   /// Throws AuthenticationException if device validation fails or device not found.
   _i2.Future<bool> revokeDevice(int deviceId) =>
       caller.callServerEndpoint<bool>(
-        'anonaccred.device',
+        'device',
         'revokeDevice',
         {'deviceId': deviceId},
       );
@@ -494,7 +494,7 @@ class EndpointDevice extends _i1.EndpointRef {
   /// Returns empty list if no devices are registered.
   _i2.Future<List<_i8.AccountDevice>> listDevices() =>
       caller.callServerEndpoint<List<_i8.AccountDevice>>(
-        'anonaccred.device',
+        'device',
         'listDevices',
         {},
       );
@@ -524,7 +524,7 @@ class EndpointDevice extends _i1.EndpointRef {
     String newDeviceEncryptedDataKey,
     String label,
   ) => caller.callServerEndpoint<_i8.AccountDevice>(
-    'anonaccred.device',
+    'device',
     'registerDeviceForAccount',
     {
       'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex,
@@ -550,7 +550,7 @@ class EndpointDevice extends _i1.EndpointRef {
   _i2.Future<_i10.DevicePairingInfo?> getDeviceBySigningKey(
     String signingPublicKeyHex,
   ) => caller.callServerEndpoint<_i10.DevicePairingInfo?>(
-    'anonaccred.device',
+    'device',
     'getDeviceBySigningKey',
     {'signingPublicKeyHex': signingPublicKeyHex},
   );
@@ -568,7 +568,7 @@ class EndpointIAP extends _i1.EndpointRef {
   EndpointIAP(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'anonaccred.iAP';
+  String get name => 'iAP';
 
   /// Validate Apple App Store receipt and fulfill purchase
   ///
@@ -597,7 +597,7 @@ class EndpointIAP extends _i1.EndpointRef {
     String consumableType,
     double quantity,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.iAP',
+    'iAP',
     'validateAppleReceipt',
     {
       'publicKey': publicKey,
@@ -642,7 +642,7 @@ class EndpointIAP extends _i1.EndpointRef {
     String consumableType,
     double quantity,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.iAP',
+    'iAP',
     'validateGooglePurchase',
     {
       'publicKey': publicKey,
@@ -671,7 +671,7 @@ class EndpointIAP extends _i1.EndpointRef {
   _i2.Future<Map<String, dynamic>> handleAppleWebhook(
     Map<String, dynamic> webhookData,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.iAP',
+    'iAP',
     'handleAppleWebhook',
     {'webhookData': webhookData},
   );
@@ -690,7 +690,7 @@ class EndpointIAP extends _i1.EndpointRef {
   _i2.Future<Map<String, dynamic>> handleGoogleWebhook(
     Map<String, dynamic> webhookData,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.iAP',
+    'iAP',
     'handleGoogleWebhook',
     {'webhookData': webhookData},
   );
@@ -708,7 +708,7 @@ class EndpointIAPWebhook extends _i1.EndpointRef {
   EndpointIAPWebhook(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'anonaccred.iAPWebhook';
+  String get name => 'iAPWebhook';
 
   /// Handle Apple App Store Server Notifications
   ///
@@ -718,7 +718,7 @@ class EndpointIAPWebhook extends _i1.EndpointRef {
   /// Requirements 8.1: Apple webhook endpoint
   _i2.Future<String> handleAppleWebhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
-        'anonaccred.iAPWebhook',
+        'iAPWebhook',
         'handleAppleWebhook',
         {'webhookData': webhookData},
       );
@@ -731,7 +731,7 @@ class EndpointIAPWebhook extends _i1.EndpointRef {
   /// Requirements 8.1: Google webhook endpoint
   _i2.Future<String> handleGoogleWebhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
-        'anonaccred.iAPWebhook',
+        'iAPWebhook',
         'handleGoogleWebhook',
         {'webhookData': webhookData},
       );
@@ -742,10 +742,10 @@ class EndpointModule extends _i1.EndpointRef {
   EndpointModule(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'anonaccred.module';
+  String get name => 'module';
 
   _i2.Future<String> hello(String name) => caller.callServerEndpoint<String>(
-    'anonaccred.module',
+    'module',
     'hello',
     {'name': name},
   );
@@ -757,7 +757,7 @@ class EndpointModule extends _i1.EndpointRef {
     String signature,
     String challenge,
   ) => caller.callServerEndpoint<bool>(
-    'anonaccred.module',
+    'module',
     'authenticateUser',
     {
       'publicKey': publicKey,
@@ -773,7 +773,7 @@ class EndpointModule extends _i1.EndpointRef {
     String paymentRail,
     double amount,
   ) => caller.callServerEndpoint<String>(
-    'anonaccred.module',
+    'module',
     'processPayment',
     {
       'orderId': orderId,
@@ -790,7 +790,7 @@ class EndpointModule extends _i1.EndpointRef {
     String operation,
     int? quantity,
   ) => caller.callServerEndpoint<int>(
-    'anonaccred.module',
+    'module',
     'manageInventory',
     {
       'accountId': accountId,
@@ -810,7 +810,7 @@ class EndpointPayment extends _i1.EndpointRef {
   EndpointPayment(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'anonaccred.payment';
+  String get name => 'payment';
 
   /// Initiate a payment using the specified payment rail
   ///
@@ -837,7 +837,7 @@ class EndpointPayment extends _i1.EndpointRef {
     String orderId,
     _i5.PaymentRail railType,
   ) => caller.callServerEndpoint<_i11.PaymentRequest>(
-    'anonaccred.payment',
+    'payment',
     'initiatePayment',
     {
       'publicKey': publicKey,
@@ -870,7 +870,7 @@ class EndpointPayment extends _i1.EndpointRef {
     String signature,
     String orderId,
   ) => caller.callServerEndpoint<_i4.TransactionPayment>(
-    'anonaccred.payment',
+    'payment',
     'checkPaymentStatus',
     {
       'publicKey': publicKey,
@@ -892,7 +892,7 @@ class EndpointPayment extends _i1.EndpointRef {
   /// Requirements 6.4: Process callbacks and update transaction status
   _i2.Future<String> processMoneroWebhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
-        'anonaccred.payment',
+        'payment',
         'processMoneroWebhook',
         {'webhookData': webhookData},
       );
@@ -910,7 +910,7 @@ class EndpointPayment extends _i1.EndpointRef {
   /// Requirements 6.4: Process callbacks and update transaction status
   _i2.Future<String> processX402Webhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
-        'anonaccred.payment',
+        'payment',
         'processX402Webhook',
         {'webhookData': webhookData},
       );
@@ -928,7 +928,7 @@ class EndpointPayment extends _i1.EndpointRef {
   /// Requirements 6.4: Process callbacks and update transaction status
   _i2.Future<String> processAppleIAPWebhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
-        'anonaccred.payment',
+        'payment',
         'processAppleIAPWebhook',
         {'webhookData': webhookData},
       );
@@ -947,7 +947,7 @@ class EndpointPayment extends _i1.EndpointRef {
   _i2.Future<String> processGoogleIAPWebhook(
     Map<String, dynamic> webhookData,
   ) => caller.callServerEndpoint<String>(
-    'anonaccred.payment',
+    'payment',
     'processGoogleIAPWebhook',
     {'webhookData': webhookData},
   );
@@ -973,7 +973,7 @@ class EndpointPayment extends _i1.EndpointRef {
     String orderId, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.payment',
+    'payment',
     'requestPaymentStatusWithX402',
     {
       'publicKey': publicKey,
@@ -996,7 +996,7 @@ class EndpointX402 extends _i1.EndpointRef {
   EndpointX402(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'anonaccred.x402';
+  String get name => 'x402';
 
   /// Request a paid resource with X402 payment integration
   ///
@@ -1025,7 +1025,7 @@ class EndpointX402 extends _i1.EndpointRef {
     int accountId, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.x402',
+    'x402',
     'requestPaidResource',
     {
       'publicKey': publicKey,
@@ -1060,7 +1060,7 @@ class EndpointX402 extends _i1.EndpointRef {
     int accountId, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.x402',
+    'x402',
     'requestConsumableAccess',
     {
       'publicKey': publicKey,
@@ -1103,13 +1103,13 @@ class Caller extends _i1.ModuleEndpointCaller {
 
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
-    'anonaccred.account': account,
-    'anonaccred.commerce': commerce,
-    'anonaccred.device': device,
-    'anonaccred.iAP': iAP,
-    'anonaccred.iAPWebhook': iAPWebhook,
-    'anonaccred.module': module,
-    'anonaccred.payment': payment,
-    'anonaccred.x402': x402,
+    'account': account,
+    'commerce': commerce,
+    'device': device,
+    'iAP': iAP,
+    'iAPWebhook': iAPWebhook,
+    'module': module,
+    'payment': payment,
+    'x402': x402,
   };
 }
