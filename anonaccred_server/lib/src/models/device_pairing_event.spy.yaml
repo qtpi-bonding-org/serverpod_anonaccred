@@ -1,0 +1,4 @@
+class: DevicePairingEvent
+fields:
+  encryptedDataKey: String
+  signingKeyHex: String
