@@ -76,7 +76,7 @@ void main() {
       
       expect(result.success, isTrue);
       expect(result.orderId, equals('e2e_test_order_789'));
-      expect(result.transactionHash, isNotNull);
+      expect(result.transactionTimestamp, isNotNull);
     });
     
     test('should maintain compatibility with existing payment system', () async {
@@ -160,7 +160,7 @@ class MockPaymentRail implements PaymentRailInterface {
     return PaymentResult(
       success: true,
       orderId: callbackData['orderId'] as String?,
-      transactionHash: 'mock_tx_${DateTime.now().millisecondsSinceEpoch}',
+      transactionTimestamp: 'mock_tx_${DateTime.now().millisecondsSinceEpoch}',
     );
   }
 }

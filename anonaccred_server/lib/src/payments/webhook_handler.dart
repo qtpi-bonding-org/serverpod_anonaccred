@@ -5,20 +5,20 @@ import 'payment_manager.dart';
 import 'payment_processor.dart';
 
 /// Simple webhook handler for processing external payment callbacks
-/// 
+///
 /// This class provides basic webhook processing that routes callbacks to
 /// appropriate payment rails and updates transaction status based on results.
 /// Implements idempotent processing to handle duplicate webhooks safely.
 class WebhookHandler {
   /// Process a webhook callback from an external payment service
-  /// 
+  ///
   /// [session] - Serverpod session for database operations
   /// [railType] - The payment rail type that sent the webhook
   /// [webhookData] - Raw webhook payload from the payment service
-  /// 
+  ///
   /// Routes the webhook to the appropriate payment rail for processing
   /// and updates transaction status based on the result.
-  /// 
+  ///
   /// Requirements 4.1, 4.2, 4.3: Route callbacks, update records, handle errors
   /// Requirement 9.4: Log webhook processing results with payload details
   static Future<void> processWebhook({
@@ -47,20 +47,20 @@ class WebhookHandler {
 
       // Process the webhook through the payment rail
       final result = await rail.processCallback(webhookData);
-      
+
       // Log webhook processing result (Requirement 9.4)
       session.log(
-        'Webhook processed by rail - Rail: $railType, Success: ${result.success}, OrderId: ${result.orderId ?? 'unknown'}, TransactionHash: ${result.transactionHash ?? 'none'}',
+        'Webhook processed by rail - Rail: $railType, Success: ${result.success}, OrderId: ${result.orderId ?? 'unknown'}, Timestamp: ${result.transactionTimestamp?.toIso8601String() ?? 'none'}',
         level: LogLevel.info,
       );
-      
+
       // Update transaction status if orderId is provided
       if (result.orderId != null) {
         await _updateTransactionFromResult(session, result);
-        
+
         // Log successful webhook processing with complete details (Requirement 9.4)
         session.log(
-          'Webhook processed successfully - Rail: $railType, OrderId: ${result.orderId}, Success: ${result.success}, TransactionHash: ${result.transactionHash ?? 'none'}',
+          'Webhook processed successfully - Rail: $railType, OrderId: ${result.orderId}, Success: ${result.success}, Timestamp: ${result.transactionTimestamp?.toIso8601String() ?? 'none'}',
           level: LogLevel.info,
         );
       } else {
@@ -76,21 +76,21 @@ class WebhookHandler {
         'Webhook processing failed - Rail: $railType, OrderId: ${orderId ?? 'unknown'}, Error: ${e.toString()}, PayloadKeys: ${webhookData.keys.join(', ')}',
         level: LogLevel.error,
       );
-      
+
       // Don't rethrow - webhook endpoints should return success to prevent retries
       // for processing errors that won't be resolved by retrying
     }
   }
 
   /// Update transaction status based on payment result
-  /// 
+  ///
   /// [session] - Serverpod session for database operations
   /// [result] - Payment result from rail processing
-  /// 
-  /// Updates transaction status and optionally transaction hash based on
+  ///
+  /// Updates transaction status and optionally transaction timestamp based on
   /// the payment result. Implements idempotent behavior by checking current
   /// status before making changes.
-  /// 
+  ///
   /// Requirement 4.4: Handle duplicate webhooks idempotently
   static Future<void> _updateTransactionFromResult(
     Session session,
@@ -100,10 +100,11 @@ class WebhookHandler {
 
     try {
       // Check current transaction status for idempotency
-      final currentTransaction = await PaymentProcessor.getTransactionByExternalId(
-        session,
-        result.orderId!,
-      );
+      final currentTransaction =
+          await PaymentProcessor.getTransactionByExternalId(
+            session,
+            result.orderId!,
+          );
 
       if (currentTransaction == null) {
         session.log(
@@ -115,9 +116,9 @@ class WebhookHandler {
 
       // Determine new status based on result
       final newStatus = result.success ? OrderStatus.paid : OrderStatus.failed;
-      
+
       // Implement idempotency: don't update if already in final state
-      if (currentTransaction.status == OrderStatus.paid || 
+      if (currentTransaction.status == OrderStatus.paid ||
           currentTransaction.status == OrderStatus.cancelled) {
         session.log(
           'Transaction ${result.orderId} already in final state: ${currentTransaction.status}',
@@ -133,12 +134,12 @@ class WebhookHandler {
         newStatus,
       );
 
-      // Update transaction hash if provided and payment was successful
-      if (result.success && result.transactionHash != null) {
-        await PaymentProcessor.updateTransactionHash(
+      // Update transaction timestamp if provided and payment was successful
+      if (result.success && result.transactionTimestamp != null) {
+        await PaymentProcessor.updateTransactionTimestamp(
           session,
           result.orderId!,
-          result.transactionHash!,
+          result.transactionTimestamp!,
         );
       }
     } catch (e) {
@@ -157,9 +158,9 @@ class WebhookHandler {
   }
 
   /// Validate webhook data contains required fields
-  /// 
+  ///
   /// [webhookData] - Raw webhook payload to validate
-  /// 
+  ///
   /// Returns true if webhook data appears valid, false otherwise.
   /// This is a basic validation - payment rails should implement
   /// their own specific validation logic.
@@ -169,17 +170,17 @@ class WebhookHandler {
   }
 
   /// Extract order ID from webhook data if present
-  /// 
+  ///
   /// [webhookData] - Raw webhook payload
-  /// 
+  ///
   /// Returns order ID if found in common webhook fields, null otherwise.
   /// Payment rails should implement their own extraction logic for
   /// rail-specific webhook formats.
   static String? extractOrderId(Map<String, dynamic> webhookData) {
     // Check common field names for order ID
     return webhookData['orderId'] as String? ??
-           webhookData['order_id'] as String? ??
-           webhookData['externalId'] as String? ??
-           webhookData['external_id'] as String?;
+        webhookData['order_id'] as String? ??
+        webhookData['externalId'] as String? ??
+        webhookData['external_id'] as String?;
   }
 }

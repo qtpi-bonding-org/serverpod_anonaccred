@@ -19,7 +19,8 @@ class GoogleIAPRail implements PaymentRailInterface {
   PaymentRail get railType => PaymentRail.google_iap;
 
   /// Google Play Developer API base URL
-  static const String _baseUrl = 'https://androidpublisher.googleapis.com/androidpublisher/v3';
+  static const String _baseUrl =
+      'https://androidpublisher.googleapis.com/androidpublisher/v3';
 
   @override
   Future<PaymentRequest> createPayment({
@@ -37,14 +38,17 @@ class GoogleIAPRail implements PaymentRailInterface {
         'order_id': orderId,
         'amount_usd': amountUSD,
         'validation_endpoint': '/api/iap/google/validate',
-        'instructions': 'Complete purchase in Android app, then submit purchase token for validation',
+        'instructions':
+            'Complete purchase in Android app, then submit purchase token for validation',
         'expires_at': DateTime.now().add(Duration(hours: 24)).toIso8601String(),
       }),
     );
   }
 
   @override
-  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
+  Future<PaymentResult> processCallback(
+    Map<String, dynamic> callbackData,
+  ) async {
     // Google IAP uses purchase token validation rather than callbacks
     // This method handles Real-time Developer Notifications if configured
     try {
@@ -53,7 +57,10 @@ class GoogleIAPRail implements PaymentRailInterface {
       final purchaseToken = callbackData['purchase_token'] as String?;
       final orderId = callbackData['order_id'] as String?;
 
-      if (packageName == null || productId == null || purchaseToken == null || orderId == null) {
+      if (packageName == null ||
+          productId == null ||
+          purchaseToken == null ||
+          orderId == null) {
         return PaymentResult(
           success: false,
           errorMessage: 'Missing required fields in Google IAP callback',
@@ -65,7 +72,7 @@ class GoogleIAPRail implements PaymentRailInterface {
         productId: productId,
         purchaseToken: purchaseToken,
       );
-      
+
       if (validationResult.isValid) {
         // Acknowledge the purchase (required by Google)
         await acknowledgePurchase(
@@ -78,8 +85,10 @@ class GoogleIAPRail implements PaymentRailInterface {
       return PaymentResult(
         success: validationResult.isValid,
         orderId: orderId,
-        transactionHash: validationResult.orderId,
-        errorMessage: validationResult.isValid ? null : 'Purchase validation failed',
+        transactionTimestamp: validationResult.purchaseDate,
+        errorMessage: validationResult.isValid
+            ? null
+            : 'Purchase validation failed',
       );
     } catch (e) {
       return PaymentResult(
@@ -113,28 +122,33 @@ class GoogleIAPRail implements PaymentRailInterface {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'Google service account not configured',
-        details: {'requiredConfig': 'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH'},
+        details: {
+          'requiredConfig':
+              'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH',
+        },
       );
     }
 
     try {
-      final url = '$_baseUrl/applications/$packageName/purchases/products/$productId/tokens/$purchaseToken';
-      
+      final url =
+          '$_baseUrl/applications/$packageName/purchases/products/$productId/tokens/$purchaseToken';
+
       final client = HttpClient();
       final request = await client.getUrl(Uri.parse(url));
-      
+
       request.headers.set('Authorization', 'Bearer $accessToken');
       request.headers.set('Content-Type', 'application/json');
-      
+
       final response = await request.close();
       final responseBody = await response.transform(utf8.decoder).join();
-      
+
       client.close();
-      
+
       if (response.statusCode != 200) {
         throw AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentValidationFailed,
-          message: 'Google purchase validation failed: HTTP ${response.statusCode}',
+          message:
+              'Google purchase validation failed: HTTP ${response.statusCode}',
           details: {
             'httpStatus': response.statusCode.toString(),
             'responseBody': responseBody,
@@ -143,13 +157,13 @@ class GoogleIAPRail implements PaymentRailInterface {
           },
         );
       }
-      
+
       final responseData = jsonDecode(responseBody) as Map<String, dynamic>;
-      
+
       return GooglePurchaseValidationResult.fromJson(responseData);
     } catch (e) {
       if (e is PaymentException) rethrow;
-      
+
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
         message: 'Google purchase validation network error: ${e.toString()}',
@@ -185,27 +199,31 @@ class GoogleIAPRail implements PaymentRailInterface {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'Google service account not configured for acknowledgment',
-        details: {'requiredConfig': 'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH'},
+        details: {
+          'requiredConfig':
+              'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH',
+        },
       );
     }
 
     try {
-      final url = '$_baseUrl/applications/$packageName/purchases/products/$productId/tokens/$purchaseToken:acknowledge';
-      
+      final url =
+          '$_baseUrl/applications/$packageName/purchases/products/$productId/tokens/$purchaseToken:acknowledge';
+
       final client = HttpClient();
       final request = await client.postUrl(Uri.parse(url));
-      
+
       request.headers.set('Authorization', 'Bearer $accessToken');
       request.headers.set('Content-Type', 'application/json');
-      
+
       // Empty JSON body for acknowledgment
       request.write('{}');
-      
+
       final response = await request.close();
       await response.drain(); // Consume response
-      
+
       client.close();
-      
+
       return response.statusCode == 200;
     } catch (e) {
       throw AnonAccredExceptionFactory.createPaymentException(
@@ -232,7 +250,9 @@ class GoogleIAPRail implements PaymentRailInterface {
   ///
   /// Requirements 1.3: Extract transaction details without storing PII
   /// Requirements 6.1: Extract only transaction IDs and product information
-  static Map<String, dynamic> extractTransactionData(Map<String, dynamic> purchaseData) {
+  static Map<String, dynamic> extractTransactionData(
+    Map<String, dynamic> purchaseData,
+  ) {
     return {
       'order_id': purchaseData['orderId'] as String?,
       'product_id': purchaseData['productId'] as String?,
@@ -255,14 +275,17 @@ class GoogleIAPRail implements PaymentRailInterface {
 /// Requirements 5.3: Support sandbox/production configuration
 class GoogleIAPConfig {
   /// Service account JSON configuration
-  static String? get serviceAccountJson => Platform.environment['GOOGLE_SERVICE_ACCOUNT_JSON'];
-  
+  static String? get serviceAccountJson =>
+      Platform.environment['GOOGLE_SERVICE_ACCOUNT_JSON'];
+
   /// Service account file path
-  static String? get serviceAccountPath => Platform.environment['GOOGLE_SERVICE_ACCOUNT_PATH'];
-  
+  static String? get serviceAccountPath =>
+      Platform.environment['GOOGLE_SERVICE_ACCOUNT_PATH'];
+
   /// Check if Google IAP is properly configured
-  static bool get isConfigured => serviceAccountJson != null || serviceAccountPath != null;
-  
+  static bool get isConfigured =>
+      serviceAccountJson != null || serviceAccountPath != null;
+
   /// Validate Google IAP configuration
   ///
   /// Throws configuration exception if required settings are missing.
@@ -275,7 +298,8 @@ class GoogleIAPConfig {
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'Google IAP configuration missing',
         details: {
-          'requiredConfig': 'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH',
+          'requiredConfig':
+              'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH',
         },
       );
     }
@@ -345,6 +369,12 @@ class GooglePurchaseValidationResult {
   /// Whether the purchase has been acknowledged
   /// acknowledgementState: 0 = Yet to be acknowledged, 1 = Acknowledged
   bool get isAcknowledged => acknowledgementState == 1;
+
+  /// Get purchase date (for refund matching)
+  DateTime? get purchaseDate {
+    if (purchaseTimeMillis == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(purchaseTimeMillis!);
+  }
 
   /// Get human-readable error message for purchase state
   ///

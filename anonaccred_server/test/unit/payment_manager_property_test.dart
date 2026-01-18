@@ -223,7 +223,7 @@ class MockPaymentRail implements PaymentRailInterface {
     return PaymentResult(
       success: true,
       orderId: callbackData['orderId'] as String?,
-      transactionHash: 'mock_tx_hash_${DateTime.now().millisecondsSinceEpoch}',
+      transactionTimestamp: DateTime.now(),
     );
   }
 }

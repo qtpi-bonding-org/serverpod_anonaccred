@@ -19,8 +19,10 @@ class AppleIAPRail implements PaymentRailInterface {
   PaymentRail get railType => PaymentRail.apple_iap;
 
   /// Apple's receipt validation endpoints
-  static const String _productionUrl = 'https://buy.itunes.apple.com/verifyReceipt';
-  static const String _sandboxUrl = 'https://sandbox.itunes.apple.com/verifyReceipt';
+  static const String _productionUrl =
+      'https://buy.itunes.apple.com/verifyReceipt';
+  static const String _sandboxUrl =
+      'https://sandbox.itunes.apple.com/verifyReceipt';
 
   @override
   Future<PaymentRequest> createPayment({
@@ -38,14 +40,17 @@ class AppleIAPRail implements PaymentRailInterface {
         'order_id': orderId,
         'amount_usd': amountUSD,
         'validation_endpoint': '/api/iap/apple/validate',
-        'instructions': 'Complete purchase in iOS app, then submit receipt for validation',
+        'instructions':
+            'Complete purchase in iOS app, then submit receipt for validation',
         'expires_at': DateTime.now().add(Duration(hours: 24)).toIso8601String(),
       }),
     );
   }
 
   @override
-  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
+  Future<PaymentResult> processCallback(
+    Map<String, dynamic> callbackData,
+  ) async {
     // Apple IAP uses receipt validation rather than callbacks
     // This method handles webhook notifications if configured
     try {
@@ -60,12 +65,14 @@ class AppleIAPRail implements PaymentRailInterface {
       }
 
       final validationResult = await validateReceipt(receiptData);
-      
+
       return PaymentResult(
         success: validationResult.isValid,
         orderId: orderId,
-        transactionHash: validationResult.transactionId,
-        errorMessage: validationResult.isValid ? null : 'Receipt validation failed',
+        transactionTimestamp: validationResult.purchaseDate,
+        errorMessage: validationResult.isValid
+            ? null
+            : 'Receipt validation failed',
       );
     } catch (e) {
       return PaymentResult(
@@ -88,7 +95,9 @@ class AppleIAPRail implements PaymentRailInterface {
   /// Requirements 2.1: POST to Apple's verifyReceipt endpoint
   /// Requirements 2.2: Use app-specific shared secret for authentication
   /// Requirements 2.5: Support both production and sandbox environments
-  Future<AppleReceiptValidationResult> validateReceipt(String receiptData) async {
+  Future<AppleReceiptValidationResult> validateReceipt(
+    String receiptData,
+  ) async {
     final sharedSecret = AppleIAPConfig.sharedSecret;
     if (sharedSecret == null) {
       throw AnonAccredExceptionFactory.createPaymentException(
@@ -99,11 +108,19 @@ class AppleIAPRail implements PaymentRailInterface {
     }
 
     // Try production first, then sandbox if needed
-    var result = await _validateReceiptWithEndpoint(receiptData, sharedSecret, _productionUrl);
-    
+    var result = await _validateReceiptWithEndpoint(
+      receiptData,
+      sharedSecret,
+      _productionUrl,
+    );
+
     // If production returns sandbox error (21007), try sandbox
     if (result.status == 21007) {
-      result = await _validateReceiptWithEndpoint(receiptData, sharedSecret, _sandboxUrl);
+      result = await _validateReceiptWithEndpoint(
+        receiptData,
+        sharedSecret,
+        _sandboxUrl,
+      );
     }
 
     return result;
@@ -121,33 +138,30 @@ class AppleIAPRail implements PaymentRailInterface {
     try {
       final client = HttpClient();
       final request = await client.postUrl(Uri.parse(endpoint));
-      
+
       request.headers.contentType = ContentType.json;
-      
+
       final requestBody = {
         'receipt-data': receiptData,
         'password': sharedSecret,
         'exclude-old-transactions': true,
       };
-      
+
       request.write(jsonEncode(requestBody));
-      
+
       final response = await request.close();
       final responseBody = await response.transform(utf8.decoder).join();
-      
+
       client.close();
-      
+
       final responseData = jsonDecode(responseBody) as Map<String, dynamic>;
-      
+
       return AppleReceiptValidationResult.fromJson(responseData);
     } catch (e) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
         message: 'Apple receipt validation network error: ${e.toString()}',
-        details: {
-          'endpoint': endpoint,
-          'error': e.toString(),
-        },
+        details: {'endpoint': endpoint, 'error': e.toString()},
       );
     }
   }
@@ -164,7 +178,9 @@ class AppleIAPRail implements PaymentRailInterface {
   ///
   /// Requirements 1.3: Extract transaction details without storing PII
   /// Requirements 6.1: Extract only transaction IDs and product information
-  static Map<String, dynamic> extractTransactionData(Map<String, dynamic> receiptData) {
+  static Map<String, dynamic> extractTransactionData(
+    Map<String, dynamic> receiptData,
+  ) {
     final receipt = receiptData['receipt'] as Map<String, dynamic>?;
     if (receipt == null) {
       throw AnonAccredExceptionFactory.createPaymentException(
@@ -188,12 +204,14 @@ class AppleIAPRail implements PaymentRailInterface {
 
     return {
       'transaction_id': latestPurchase['transaction_id'] as String?,
-      'original_transaction_id': latestPurchase['original_transaction_id'] as String?,
+      'original_transaction_id':
+          latestPurchase['original_transaction_id'] as String?,
       'product_id': latestPurchase['product_id'] as String?,
       'purchase_date': latestPurchase['purchase_date'] as String?,
       'purchase_date_ms': latestPurchase['purchase_date_ms'] as String?,
       'quantity': latestPurchase['quantity'] as String? ?? '1',
-      'is_trial_period': latestPurchase['is_trial_period'] as String? ?? 'false',
+      'is_trial_period':
+          latestPurchase['is_trial_period'] as String? ?? 'false',
       'bundle_id': receipt['bundle_id'] as String?,
       'application_version': receipt['application_version'] as String?,
     };
@@ -209,14 +227,16 @@ class AppleIAPRail implements PaymentRailInterface {
 /// Requirements 5.3: Support sandbox/production configuration
 class AppleIAPConfig {
   /// Apple shared secret for receipt validation
-  static String? get sharedSecret => Platform.environment['APPLE_SHARED_SECRET'];
-  
+  static String? get sharedSecret =>
+      Platform.environment['APPLE_SHARED_SECRET'];
+
   /// Whether to use sandbox environment for testing
-  static bool get useSandbox => Platform.environment['APPLE_USE_SANDBOX'] == 'true';
-  
+  static bool get useSandbox =>
+      Platform.environment['APPLE_USE_SANDBOX'] == 'true';
+
   /// Check if Apple IAP is properly configured
   static bool get isConfigured => sharedSecret != null;
-  
+
   /// Validate Apple IAP configuration
   ///
   /// Throws configuration exception if required settings are missing.
@@ -271,15 +291,18 @@ class AppleReceiptValidationResult {
   /// Whether this is a sandbox receipt
   bool get isSandbox => environment == 'Sandbox';
 
-  /// Get transaction ID from receipt (if available)
-  String? get transactionId {
+  /// Get purchase date from receipt (for refund matching)
+  DateTime? get purchaseDate {
     if (receipt == null) return null;
-    
+
     final inApp = receipt!['in_app'] as List<dynamic>?;
     if (inApp == null || inApp.isEmpty) return null;
-    
+
     final latestPurchase = inApp.last as Map<String, dynamic>;
-    return latestPurchase['transaction_id'] as String?;
+    final purchaseDateMs = latestPurchase['purchase_date_ms'] as String?;
+    if (purchaseDateMs == null) return null;
+
+    return DateTime.fromMillisecondsSinceEpoch(int.parse(purchaseDateMs));
   }
 
   /// Get human-readable error message for status code
@@ -313,6 +336,4 @@ class AppleReceiptValidationResult {
         return 'Unknown receipt validation error: $status';
     }
   }
-
-
 }

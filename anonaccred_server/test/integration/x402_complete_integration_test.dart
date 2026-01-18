@@ -15,19 +15,20 @@ import 'test_tools/serverpod_test_tools.dart';
 void main() {
   withServerpod('X402 Complete Integration Tests', (sessionBuilder, endpoints) {
     // Test constants
-    const validPublicKey = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+    const validPublicKey =
+        '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
     const validSignature = 'test_signature_for_x402_integration';
     late int testAccountId;
-    
+
     setUp(() async {
       // Clear any existing rails before each test
       PaymentManager.clearRails();
-      
+
       // Initialize X402 rail for testing
       final session = sessionBuilder.build();
       PaymentManager.initializeX402Rail(session);
       await session.close();
-      
+
       // Create a test account for tests that need it
       final account = await endpoints.account.createAccount(
         sessionBuilder,
@@ -39,31 +40,40 @@ void main() {
     });
 
     group('X402 Payment Rail Integration', () {
-      test('should register X402 rail and create payments through PaymentManager', () async {
-        // Verify X402 rail is registered
-        expect(PaymentManager.isRailRegistered(PaymentRail.x402_http), isTrue);
+      test(
+        'should register X402 rail and create payments through PaymentManager',
+        () async {
+          // Verify X402 rail is registered
+          expect(
+            PaymentManager.isRailRegistered(PaymentRail.x402_http),
+            isTrue,
+          );
 
-        // Create payment through PaymentManager
-        final session = sessionBuilder.build();
-        final paymentRequest = await PaymentManager.createPayment(
-          session: session,
-          railType: PaymentRail.x402_http,
-          amountUSD: 25.99,
-          orderId: 'integration_test_order_456',
-        );
-        await session.close();
+          // Create payment through PaymentManager
+          final session = sessionBuilder.build();
+          final paymentRequest = await PaymentManager.createPayment(
+            session: session,
+            railType: PaymentRail.x402_http,
+            amountUSD: 25.99,
+            orderId: 'integration_test_order_456',
+          );
+          await session.close();
 
-        // Verify payment request structure
-        expect(paymentRequest.amountUSD, equals(25.99));
-        expect(paymentRequest.orderId, equals('integration_test_order_456'));
-        expect(paymentRequest.paymentRef, startsWith('x402_integration_test_order_456_'));
+          // Verify payment request structure
+          expect(paymentRequest.amountUSD, equals(25.99));
+          expect(paymentRequest.orderId, equals('integration_test_order_456'));
+          expect(
+            paymentRequest.paymentRef,
+            startsWith('x402_integration_test_order_456_'),
+          );
 
-        // Verify rail data contains X402-specific information
-        final railData = paymentRequest.railData;
-        expect(railData['protocol'], equals('x402'));
-        expect(railData['facilitatorUrl'], isNotNull);
-        expect(railData['destinationAddress'], isNotNull);
-      });
+          // Verify rail data contains X402-specific information
+          final railData = paymentRequest.railData;
+          expect(railData['protocol'], equals('x402'));
+          expect(railData['facilitatorUrl'], isNotNull);
+          expect(railData['destinationAddress'], isNotNull);
+        },
+      );
 
       test('should process X402 payment callbacks correctly', () async {
         // Get X402 rail instance
@@ -82,7 +92,7 @@ void main() {
         // Verify callback processing
         expect(result.success, isTrue);
         expect(result.orderId, equals('test_order_callback_456'));
-        expect(result.transactionHash, isNotNull);
+        expect(result.transactionTimestamp, isNotNull);
       });
 
       test('should maintain compatibility with other payment rails', () async {
@@ -129,16 +139,25 @@ void main() {
 
       test('should extract payment headers correctly', () {
         // Test case-insensitive header extraction
-        expect(X402Interceptor.getPaymentHeader({'X-PAYMENT': 'payload1'}), equals('payload1'));
-        expect(X402Interceptor.getPaymentHeader({'x-payment': 'payload2'}), equals('payload2'));
-        expect(X402Interceptor.getPaymentHeader({'X-Payment': 'payload3'}), equals('payload3'));
+        expect(
+          X402Interceptor.getPaymentHeader({'X-PAYMENT': 'payload1'}),
+          equals('payload1'),
+        );
+        expect(
+          X402Interceptor.getPaymentHeader({'x-payment': 'payload2'}),
+          equals('payload2'),
+        );
+        expect(
+          X402Interceptor.getPaymentHeader({'X-Payment': 'payload3'}),
+          equals('payload3'),
+        );
         expect(X402Interceptor.getPaymentHeader({'OTHER': 'test'}), isNull);
         expect(X402Interceptor.getPaymentHeader({}), isNull);
       });
 
       test('should generate compliant X402 payment responses', () async {
         final session = sessionBuilder.build();
-        
+
         // Generate payment required response
         final response = await X402Interceptor.generatePaymentRequired(
           session: session,
@@ -169,7 +188,7 @@ void main() {
 
         // Test payment verification with invalid payload
         final result2 = await X402PaymentProcessor.verifyPayment({
-          'X-PAYMENT': 'invalid_payload'
+          'X-PAYMENT': 'invalid_payload',
         });
         expect(result2, isFalse); // Invalid payment (facilitator will reject)
       });
@@ -178,16 +197,19 @@ void main() {
     group('X402 Error Scenarios', () {
       test('should handle configuration validation', () {
         // Test configuration validation (will throw due to missing env vars in test)
-        expect(() => X402Interceptor.validateConfiguration(), throwsA(isA<PaymentException>()));
+        expect(
+          () => X402Interceptor.validateConfiguration(),
+          throwsA(isA<PaymentException>()),
+        );
       });
 
       test('should handle payment processor errors gracefully', () {
         // Test payment response generation - it doesn't validate parameters, just generates response
         final response = X402PaymentProcessor.generatePaymentRequired(
           amount: -1.0, // Negative amount (processor doesn't validate)
-          orderId: '',   // Empty order ID (processor doesn't validate)
+          orderId: '', // Empty order ID (processor doesn't validate)
         );
-        
+
         // Should still generate a response (validation happens elsewhere)
         expect(response.amount, equals(-1.0));
         expect(response.orderId, equals(''));
@@ -196,7 +218,7 @@ void main() {
 
       test('should handle interceptor request errors', () async {
         final session = sessionBuilder.build();
-        
+
         // Test interceptor with callback that throws - it should catch and return fallback
         try {
           final result = await X402Interceptor.interceptRequest(
@@ -211,7 +233,7 @@ void main() {
               return {'success': true};
             },
           );
-          
+
           // Should handle error gracefully and return payment required as fallback
           expect(result, isA<Map<String, dynamic>>());
         } catch (e) {
@@ -257,10 +279,7 @@ void main() {
     group('Commerce Endpoint Integration', () {
       test('should create orders with X402 payment rail', () async {
         // Register some test products first
-        final products = {
-          'api_calls': 0.10,
-          'storage_gb': 5.99,
-        };
+        final products = {'api_calls': 0.10, 'storage_gb': 5.99};
 
         await endpoints.commerce.registerProducts(
           sessionBuilder,
@@ -286,30 +305,33 @@ void main() {
         expect(order.status, equals(OrderStatus.pending));
       });
 
-      test('should get inventory and balance through commerce endpoints', () async {
-        // Get inventory for the test account
-        final inventory = await endpoints.commerce.getInventory(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
-          testAccountId,
-        );
+      test(
+        'should get inventory and balance through commerce endpoints',
+        () async {
+          // Get inventory for the test account
+          final inventory = await endpoints.commerce.getInventory(
+            sessionBuilder,
+            validPublicKey,
+            validSignature,
+            testAccountId,
+          );
 
-        // Should return empty inventory initially
-        expect(inventory, isA<List<AccountInventory>>());
+          // Should return empty inventory initially
+          expect(inventory, isA<List<AccountInventory>>());
 
-        // Get balance for a specific consumable type
-        final balance = await endpoints.commerce.getBalance(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
-          testAccountId,
-          'api_calls',
-        );
+          // Get balance for a specific consumable type
+          final balance = await endpoints.commerce.getBalance(
+            sessionBuilder,
+            validPublicKey,
+            validSignature,
+            testAccountId,
+            'api_calls',
+          );
 
-        // Should return 0.0 balance initially
-        expect(balance, equals(0.0));
-      });
+          // Should return 0.0 balance initially
+          expect(balance, equals(0.0));
+        },
+      );
 
       test('should process X402 webhook through payment endpoint', () async {
         // Test webhook processing with simple data
@@ -317,7 +339,7 @@ void main() {
           'orderId': 'test_x402_order_123',
           'paymentRef': 'x402_payment_ref_456',
           'success': true,
-          'transactionHash': 'x402_tx_789',
+          'transactionTimestamp': DateTime.now().toIso8601String(),
         };
 
         try {
@@ -336,69 +358,84 @@ void main() {
     });
 
     group('X402 Stateless Operation', () {
-      test('should generate unique payment requirements for concurrent requests', () async {
-        final session = sessionBuilder.build();
-        
-        // Generate multiple payment requirements concurrently
-        final futures = <Future<Map<String, dynamic>>>[];
-        for (int i = 0; i < 5; i++) {
-          futures.add(X402Interceptor.generatePaymentRequired(
-            session: session,
-            resourceId: 'concurrent_resource_$i',
-            amount: 1.0 + i,
-            description: 'Concurrent test resource $i',
-          ));
-        }
+      test(
+        'should generate unique payment requirements for concurrent requests',
+        () async {
+          final session = sessionBuilder.build();
 
-        final responses = await Future.wait(futures);
-        await session.close();
+          // Generate multiple payment requirements concurrently
+          final futures = <Future<Map<String, dynamic>>>[];
+          for (int i = 0; i < 5; i++) {
+            futures.add(
+              X402Interceptor.generatePaymentRequired(
+                session: session,
+                resourceId: 'concurrent_resource_$i',
+                amount: 1.0 + i,
+                description: 'Concurrent test resource $i',
+              ),
+            );
+          }
 
-        // All should return HTTP 402
-        for (final response in responses) {
-          expect(response['httpStatus'], equals(402));
-          expect(response['paymentRequired'], isNotNull);
-        }
-
-        // All order IDs should be unique (stateless operation)
-        final orderIds = responses
-            .map((r) => (r['paymentRequired'] as Map<String, dynamic>)['orderId'] as String)
-            .toList();
-        
-        final uniqueOrderIds = orderIds.toSet();
-        expect(uniqueOrderIds.length, equals(orderIds.length));
-      });
-
-      test('should handle multiple payment rail instances independently', () async {
-        // Create multiple payment requests through different sessions
-        final sessions = List.generate(3, (_) => sessionBuilder.build());
-        
-        final paymentRequests = <PaymentRequest>[];
-        for (int i = 0; i < sessions.length; i++) {
-          final request = await PaymentManager.createPayment(
-            session: sessions[i],
-            railType: PaymentRail.x402_http,
-            amountUSD: 5.0 + i,
-            orderId: 'stateless_test_order_$i',
-          );
-          paymentRequests.add(request);
-        }
-
-        // Close all sessions
-        for (final session in sessions) {
+          final responses = await Future.wait(futures);
           await session.close();
-        }
 
-        // All payment references should be unique
-        final paymentRefs = paymentRequests.map((r) => r.paymentRef).toList();
-        final uniqueRefs = paymentRefs.toSet();
-        expect(uniqueRefs.length, equals(paymentRefs.length));
+          // All should return HTTP 402
+          for (final response in responses) {
+            expect(response['httpStatus'], equals(402));
+            expect(response['paymentRequired'], isNotNull);
+          }
 
-        // All should have correct amounts
-        for (int i = 0; i < paymentRequests.length; i++) {
-          expect(paymentRequests[i].amountUSD, equals(5.0 + i));
-          expect(paymentRequests[i].orderId, equals('stateless_test_order_$i'));
-        }
-      });
+          // All order IDs should be unique (stateless operation)
+          final orderIds = responses
+              .map(
+                (r) =>
+                    (r['paymentRequired'] as Map<String, dynamic>)['orderId']
+                        as String,
+              )
+              .toList();
+
+          final uniqueOrderIds = orderIds.toSet();
+          expect(uniqueOrderIds.length, equals(orderIds.length));
+        },
+      );
+
+      test(
+        'should handle multiple payment rail instances independently',
+        () async {
+          // Create multiple payment requests through different sessions
+          final sessions = List.generate(3, (_) => sessionBuilder.build());
+
+          final paymentRequests = <PaymentRequest>[];
+          for (int i = 0; i < sessions.length; i++) {
+            final request = await PaymentManager.createPayment(
+              session: sessions[i],
+              railType: PaymentRail.x402_http,
+              amountUSD: 5.0 + i,
+              orderId: 'stateless_test_order_$i',
+            );
+            paymentRequests.add(request);
+          }
+
+          // Close all sessions
+          for (final session in sessions) {
+            await session.close();
+          }
+
+          // All payment references should be unique
+          final paymentRefs = paymentRequests.map((r) => r.paymentRef).toList();
+          final uniqueRefs = paymentRefs.toSet();
+          expect(uniqueRefs.length, equals(paymentRefs.length));
+
+          // All should have correct amounts
+          for (int i = 0; i < paymentRequests.length; i++) {
+            expect(paymentRequests[i].amountUSD, equals(5.0 + i));
+            expect(
+              paymentRequests[i].orderId,
+              equals('stateless_test_order_$i'),
+            );
+          }
+        },
+      );
     });
   });
 }
@@ -406,12 +443,12 @@ void main() {
 /// Mock payment rail for testing compatibility
 class MockPaymentRail implements PaymentRailInterface {
   final PaymentRail _railType;
-  
+
   MockPaymentRail(this._railType);
-  
+
   @override
   PaymentRail get railType => _railType;
-  
+
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
@@ -420,17 +457,15 @@ class MockPaymentRail implements PaymentRailInterface {
     paymentRef: 'mock_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
     amountUSD: amountUSD,
     orderId: orderId,
-    railData: {
-      'railType': railType.name,
-      'mockData': 'test_data',
-    },
+    railData: {'railType': railType.name, 'mockData': 'test_data'},
   );
-  
+
   @override
-  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async => 
-    PaymentResult(
-      success: true,
-      orderId: callbackData['orderId'] as String?,
-      transactionHash: 'mock_tx_${DateTime.now().millisecondsSinceEpoch}',
-    );
+  Future<PaymentResult> processCallback(
+    Map<String, dynamic> callbackData,
+  ) async => PaymentResult(
+    success: true,
+    orderId: callbackData['orderId'] as String?,
+    transactionTimestamp: 'mock_tx_${DateTime.now().millisecondsSinceEpoch}',
+  );
 }

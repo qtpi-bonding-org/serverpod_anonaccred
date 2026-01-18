@@ -9,15 +9,17 @@ void main() {
 
     setUp(() async {
       final session = sessionBuilder.build();
-      
+
       // Create a test account for foreign key constraint
       testAccount = AnonAccount(
-        ultimateSigningPublicKeyHex: 'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
+        ultimateSigningPublicKeyHex:
+            'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',
-        ultimatePublicKey: 'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
+        ultimatePublicKey:
+            'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
       );
       testAccount = await AnonAccount.db.insertRow(session, testAccount);
-      
+
       // Create a test transaction for each test
       testTransaction = TransactionPayment(
         externalId: 'test-order-${DateTime.now().millisecondsSinceEpoch}',
@@ -29,7 +31,7 @@ void main() {
         paymentAmount: 10.0,
         status: OrderStatus.pending,
       );
-      
+
       testTransaction = await TransactionPayment.db.insertRow(
         session,
         testTransaction,
@@ -49,7 +51,7 @@ void main() {
 
     test('updateTransactionStatus updates status successfully', () async {
       final session = sessionBuilder.build();
-      
+
       // Act
       await PaymentProcessor.updateTransactionStatus(
         session,
@@ -84,100 +86,118 @@ void main() {
       expect(updated?.paymentRef, equals(paymentRef));
     });
 
-    test('updateTransactionHash updates transaction hash successfully', () async {
-      final session = sessionBuilder.build();
-      const transactionHash = 'tx-hash-abc123';
+    test(
+      'updateTransactionTimestamp updates transaction timestamp successfully',
+      () async {
+        final session = sessionBuilder.build();
+        final transactionTimestamp = DateTime.now();
 
-      // Act
-      await PaymentProcessor.updateTransactionHash(
-        session,
-        testTransaction.externalId,
-        transactionHash,
-      );
+        // Act
+        await PaymentProcessor.updateTransactionTimestamp(
+          session,
+          testTransaction.externalId,
+          transactionTimestamp,
+        );
 
-      // Assert
-      final updated = await TransactionPayment.db.findById(
-        session,
-        testTransaction.id!,
-      );
-      expect(updated?.transactionHash, equals(transactionHash));
-    });
+        // Assert
+        final updated = await TransactionPayment.db.findById(
+          session,
+          testTransaction.id!,
+        );
+        expect(updated?.transactionTimestamp, isNotNull);
+      },
+    );
 
-    test('updateStatusAndPaymentRef updates both fields successfully', () async {
-      final session = sessionBuilder.build();
-      const paymentRef = 'payment-ref-456';
+    test(
+      'updateStatusAndPaymentRef updates both fields successfully',
+      () async {
+        final session = sessionBuilder.build();
+        const paymentRef = 'payment-ref-456';
 
-      // Act
-      await PaymentProcessor.updateStatusAndPaymentRef(
-        session,
-        testTransaction.externalId,
-        OrderStatus.paid,
-        paymentRef,
-      );
+        // Act
+        await PaymentProcessor.updateStatusAndPaymentRef(
+          session,
+          testTransaction.externalId,
+          OrderStatus.paid,
+          paymentRef,
+        );
 
-      // Assert
-      final updated = await TransactionPayment.db.findById(
-        session,
-        testTransaction.id!,
-      );
-      expect(updated?.status, equals(OrderStatus.paid));
-      expect(updated?.paymentRef, equals(paymentRef));
-    });
+        // Assert
+        final updated = await TransactionPayment.db.findById(
+          session,
+          testTransaction.id!,
+        );
+        expect(updated?.status, equals(OrderStatus.paid));
+        expect(updated?.paymentRef, equals(paymentRef));
+      },
+    );
 
-    test('getTransactionByExternalId retrieves transaction successfully', () async {
-      final session = sessionBuilder.build();
-      
-      // Act
-      final retrieved = await PaymentProcessor.getTransactionByExternalId(
-        session,
-        testTransaction.externalId,
-      );
+    test(
+      'getTransactionByExternalId retrieves transaction successfully',
+      () async {
+        final session = sessionBuilder.build();
 
-      // Assert
-      expect(retrieved, isNotNull);
-      expect(retrieved?.id, equals(testTransaction.id));
-      expect(retrieved?.externalId, equals(testTransaction.externalId));
-    });
+        // Act
+        final retrieved = await PaymentProcessor.getTransactionByExternalId(
+          session,
+          testTransaction.externalId,
+        );
 
-    test('updateTransactionStatus throws exception for non-existent transaction', () async {
-      final session = sessionBuilder.build();
-      
-      // Act & Assert
-      expect(
-        () => PaymentProcessor.updateTransactionStatus(
+        // Assert
+        expect(retrieved, isNotNull);
+        expect(retrieved?.id, equals(testTransaction.id));
+        expect(retrieved?.externalId, equals(testTransaction.externalId));
+      },
+    );
+
+    test(
+      'updateTransactionStatus throws exception for non-existent transaction',
+      () async {
+        final session = sessionBuilder.build();
+
+        // Act & Assert
+        expect(
+          () => PaymentProcessor.updateTransactionStatus(
+            session,
+            'non-existent-order-id',
+            OrderStatus.processing,
+          ),
+          throwsA(isA<PaymentException>()),
+        );
+      },
+    );
+
+    test(
+      'updatePaymentRef throws exception for non-existent transaction',
+      () async {
+        final session = sessionBuilder.build();
+
+        // Act & Assert
+        expect(
+          () => PaymentProcessor.updatePaymentRef(
+            session,
+            'non-existent-order-id',
+            'payment-ref-123',
+          ),
+          throwsA(isA<PaymentException>()),
+        );
+      },
+    );
+
+    test(
+      'getTransactionByExternalId returns null for non-existent transaction',
+      () async {
+        final session = sessionBuilder.build();
+
+        // Act
+        final retrieved = await PaymentProcessor.getTransactionByExternalId(
           session,
           'non-existent-order-id',
-          OrderStatus.processing,
-        ),
-        throwsA(isA<PaymentException>()),
-      );
-    });
+        );
 
-    test('updatePaymentRef throws exception for non-existent transaction', () async {
-      final session = sessionBuilder.build();
-      
-      // Act & Assert
-      expect(
-        () => PaymentProcessor.updatePaymentRef(
-          session,
-          'non-existent-order-id',
-          'payment-ref-123',
-        ),
-        throwsA(isA<PaymentException>()),
-      );
-    });
-
-    test('getTransactionByExternalId returns null for non-existent transaction', () async {
-      final session = sessionBuilder.build();
-      
-      // Act
-      final retrieved = await PaymentProcessor.getTransactionByExternalId(
-        session,
-        'non-existent-order-id',
-      );
-
-      // Assert
-      expect(retrieved, isNull);
-    });
+        // Assert
+        expect(retrieved, isNull);
+      },
+    );
   });
 }

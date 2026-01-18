@@ -18,7 +18,7 @@ fields:
   paymentCurrency: Currency            # Actual payment currency (may differ from quote)
   paymentAmount: double                # Amount paid in payment currency
   paymentRef: String?                  # Payment reference or receipt ID from payment rail
-  transactionHash: String?             # Blockchain transaction hash or payment confirmation ID
+  transactionTimestamp: DateTime?      # Payment provider timestamp for refund matching (probabilistic, not a direct identifier)
   
   # Transaction Status and Timing
   status: OrderStatus, default=pending # Current transaction status

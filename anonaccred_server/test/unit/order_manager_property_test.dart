@@ -84,7 +84,7 @@ void main() {
           // Verify consumables were created
           final consumables = await TransactionConsumable.db.find(
             session,
-            where: (t) => t.transactionId.equals(transaction.id!),
+            where: (t) => t.purchaseDate.equals(transaction.id!),
           );
 
           expect(consumables.length, equals(items.length));
@@ -118,8 +118,8 @@ void main() {
           await TransactionConsumable.db.deleteWhere(
             session,
             where: (t) =>
-                t.transactionId.equals(transaction.id!) |
-                t.transactionId.equals(secondTransaction.id!),
+                t.purchaseDate.equals(transaction.id!) |
+                t.purchaseDate.equals(secondTransaction.id!),
           );
           await TransactionPayment.db.deleteWhere(
             session,
@@ -466,7 +466,7 @@ void main() {
           // Clean up for next iteration
           await TransactionConsumable.db.deleteWhere(
             session,
-            where: (t) => t.transactionId.equals(transaction.id!),
+            where: (t) => t.purchaseDate.equals(transaction.id!),
           );
           await TransactionPayment.db.deleteWhere(
             session,

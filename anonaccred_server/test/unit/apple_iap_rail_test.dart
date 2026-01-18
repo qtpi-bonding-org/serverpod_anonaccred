@@ -67,7 +67,7 @@ void main() {
       expect(result.environment, equals('Production'));
       expect(result.isValid, isTrue);
       expect(result.isSandbox, isFalse);
-      expect(result.transactionId, equals('1000000012345678'));
+      expect(result.purchaseDate, equals('1000000012345678'));
       expect(result.errorMessage, equals('Receipt validation successful'));
     });
 

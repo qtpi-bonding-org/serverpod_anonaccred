@@ -437,10 +437,10 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String?',
         ),
         _i2.ColumnDefinition(
-          name: 'transactionHash',
-          columnType: _i2.ColumnType.text,
+          name: 'transactionTimestamp',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
-          dartType: 'String?',
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'status',

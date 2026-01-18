@@ -19,7 +19,8 @@ void main() {
         // Run 5 iterations during development (can be increased to 100+ for production)
         for (var i = 0; i < 5; i++) {
           // Generate random account data
-          final ultimateSigningPublicKeyHex = _generateRandomEcdsaP256PublicKey();
+          final ultimateSigningPublicKeyHex =
+              _generateRandomEcdsaP256PublicKey();
           final encryptedDataKey = _generateRandomEncryptedData();
           final createdAt = DateTime.now();
 
@@ -32,7 +33,10 @@ void main() {
           );
 
           // Verify privacy preservation - only public key and encrypted data stored
-          expect(account.ultimateSigningPublicKeyHex, equals(ultimateSigningPublicKeyHex));
+          expect(
+            account.ultimateSigningPublicKeyHex,
+            equals(ultimateSigningPublicKeyHex),
+          );
           expect(account.encryptedDataKey, equals(encryptedDataKey));
           expect(account.createdAt, equals(createdAt));
 
@@ -43,7 +47,10 @@ void main() {
 
           // Verify serialization preserves privacy
           final json = account.toJson();
-          expect(json['ultimateSigningPublicKeyHex'], equals(ultimateSigningPublicKeyHex));
+          expect(
+            json['ultimateSigningPublicKeyHex'],
+            equals(ultimateSigningPublicKeyHex),
+          );
           expect(json['encryptedDataKey'], equals(encryptedDataKey));
         }
       },
@@ -74,7 +81,10 @@ void main() {
 
           // Verify privacy preservation - only public key and encrypted data stored
           expect(device.accountId, equals(accountId));
-          expect(device.deviceSigningPublicKeyHex, equals(deviceSigningPublicKeyHex));
+          expect(
+            device.deviceSigningPublicKeyHex,
+            equals(deviceSigningPublicKeyHex),
+          );
           expect(device.encryptedDataKey, equals(encryptedDataKey));
           expect(device.label, equals(label));
           expect(device.lastActive, equals(lastActive));
@@ -86,7 +96,10 @@ void main() {
 
           // Verify serialization preserves privacy
           final json = device.toJson();
-          expect(json['deviceSigningPublicKeyHex'], equals(deviceSigningPublicKeyHex));
+          expect(
+            json['deviceSigningPublicKeyHex'],
+            equals(deviceSigningPublicKeyHex),
+          );
           expect(json['encryptedDataKey'], equals(encryptedDataKey));
         }
       },
@@ -156,7 +169,7 @@ void main() {
           final paymentCurrency = _generateRandomCurrency();
           final paymentAmount = _generateRandomPrice();
           final paymentRef = _generateRandomPaymentRef();
-          final transactionHash = _generateRandomTransactionHash();
+          final transactionTimestamp = _generateRandomTransactionTimestamp();
           final status = _generateRandomOrderStatus();
           final timestamp = DateTime.now();
 
@@ -170,7 +183,7 @@ void main() {
             paymentCurrency: paymentCurrency,
             paymentAmount: paymentAmount,
             paymentRef: paymentRef,
-            transactionHash: transactionHash,
+            transactionTimestamp: transactionTimestamp,
             status: status,
             timestamp: timestamp,
           );
@@ -184,7 +197,10 @@ void main() {
           expect(transaction.paymentCurrency, equals(paymentCurrency));
           expect(transaction.paymentAmount, equals(paymentAmount));
           expect(transaction.paymentRef, equals(paymentRef));
-          expect(transaction.transactionHash, equals(transactionHash));
+          expect(
+            transaction.transactionTimestamp,
+            equals(transactionTimestamp),
+          );
           expect(transaction.status, equals(status));
           expect(transaction.timestamp, equals(timestamp));
 
@@ -305,11 +321,11 @@ String? _generateRandomPaymentRef() {
   return 'ref_${_generateRandomString(20)}';
 }
 
-String? _generateRandomTransactionHash() {
+DateTime? _generateRandomTransactionTimestamp() {
   if (Random().nextBool()) {
-    return null; // Sometimes no transaction hash
+    return null; // Sometimes no transaction timestamp
   }
-  return 'tx_${_generateRandomString(32)}';
+  return DateTime.now();
 }
 
 OrderStatus _generateRandomOrderStatus() {

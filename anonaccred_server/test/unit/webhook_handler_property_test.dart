@@ -24,17 +24,17 @@ void main() {
           // Generate random test data
           final railType = PaymentRail.values[random.nextInt(PaymentRail.values.length)];
           final orderId = 'order_${random.nextInt(999999)}';
-          final transactionHash = 'tx_hash_${random.nextInt(999999)}';
+          final transactionTimestamp = 'ts_${random.nextInt(999999)}';
           final isSuccess = random.nextBool();
           
           // Register a mock rail that returns consistent results
-          final mockRail = MockWebhookRail(railType, orderId, transactionHash, isSuccess);
+          final mockRail = MockWebhookRail(railType, orderId, transactionTimestamp, isSuccess);
           PaymentManager.registerRail(mockRail);
           
           // Create webhook data
           final webhookData = {
             'orderId': orderId,
-            'transactionHash': transactionHash,
+            'transactionTimestamp': transactionTimestamp,
             'success': isSuccess,
             'timestamp': DateTime.now().toIso8601String(),
           };
@@ -56,7 +56,7 @@ void main() {
           for (final result in subsequentResults) {
             expect(result.success, equals(firstResult.success));
             expect(result.orderId, equals(firstResult.orderId));
-            expect(result.transactionHash, equals(firstResult.transactionHash));
+            expect(result.transactionTimestamp, equals(firstResult.transactionTimestamp));
             expect(result.errorMessage, equals(firstResult.errorMessage));
           }
           
@@ -64,7 +64,7 @@ void main() {
           expect(firstResult.success, equals(isSuccess));
           expect(firstResult.orderId, equals(orderId));
           if (isSuccess) {
-            expect(firstResult.transactionHash, equals(transactionHash));
+            expect(firstResult.transactionTimestamp, equals(transactionTimestamp));
           }
           
           // Verify rail was called for each processing
@@ -122,7 +122,7 @@ void main() {
           for (final result in results.skip(1)) {
             expect(result.success, equals(firstResult.success));
             expect(result.orderId, equals(firstResult.orderId));
-            expect(result.transactionHash, equals(firstResult.transactionHash));
+            expect(result.transactionTimestamp, equals(firstResult.transactionTimestamp));
             expect(result.errorMessage, equals(firstResult.errorMessage));
           }
         }
@@ -159,12 +159,12 @@ void main() {
 class MockWebhookRail implements PaymentRailInterface {
   final PaymentRail _railType;
   final String _orderId;
-  final String _transactionHash;
+  final String _transactionTimestamp;
   final bool _success;
   int callCount = 0;
   final List<PaymentResult> results = [];
   
-  MockWebhookRail(this._railType, this._orderId, this._transactionHash, this._success);
+  MockWebhookRail(this._railType, this._orderId, this._transactionTimestamp, this._success);
   
   @override
   PaymentRail get railType => _railType;
@@ -194,7 +194,7 @@ class MockWebhookRail implements PaymentRailInterface {
     final result = PaymentResult(
       success: _success,
       orderId: _orderId,
-      transactionHash: _success ? _transactionHash : null,
+      transactionTimestamp: _success ? _transactionTimestamp : null,
       errorMessage: _success ? null : 'Mock payment failed',
     );
     

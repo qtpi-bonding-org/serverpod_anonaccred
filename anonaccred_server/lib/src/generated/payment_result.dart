@@ -17,14 +17,14 @@ abstract class PaymentResult
   PaymentResult._({
     required this.success,
     this.orderId,
-    this.transactionHash,
+    this.transactionTimestamp,
     this.errorMessage,
   });
 
   factory PaymentResult({
     required bool success,
     String? orderId,
-    String? transactionHash,
+    DateTime? transactionTimestamp,
     String? errorMessage,
   }) = _PaymentResultImpl;
 
@@ -32,7 +32,11 @@ abstract class PaymentResult
     return PaymentResult(
       success: jsonSerialization['success'] as bool,
       orderId: jsonSerialization['orderId'] as String?,
-      transactionHash: jsonSerialization['transactionHash'] as String?,
+      transactionTimestamp: jsonSerialization['transactionTimestamp'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['transactionTimestamp'],
+            ),
       errorMessage: jsonSerialization['errorMessage'] as String?,
     );
   }
@@ -41,7 +45,7 @@ abstract class PaymentResult
 
   String? orderId;
 
-  String? transactionHash;
+  DateTime? transactionTimestamp;
 
   String? errorMessage;
 
@@ -51,7 +55,7 @@ abstract class PaymentResult
   PaymentResult copyWith({
     bool? success,
     String? orderId,
-    String? transactionHash,
+    DateTime? transactionTimestamp,
     String? errorMessage,
   });
   @override
@@ -60,7 +64,8 @@ abstract class PaymentResult
       '__className__': 'anonaccred.PaymentResult',
       'success': success,
       if (orderId != null) 'orderId': orderId,
-      if (transactionHash != null) 'transactionHash': transactionHash,
+      if (transactionTimestamp != null)
+        'transactionTimestamp': transactionTimestamp?.toJson(),
       if (errorMessage != null) 'errorMessage': errorMessage,
     };
   }
@@ -71,7 +76,8 @@ abstract class PaymentResult
       '__className__': 'anonaccred.PaymentResult',
       'success': success,
       if (orderId != null) 'orderId': orderId,
-      if (transactionHash != null) 'transactionHash': transactionHash,
+      if (transactionTimestamp != null)
+        'transactionTimestamp': transactionTimestamp?.toJson(),
       if (errorMessage != null) 'errorMessage': errorMessage,
     };
   }
@@ -88,12 +94,12 @@ class _PaymentResultImpl extends PaymentResult {
   _PaymentResultImpl({
     required bool success,
     String? orderId,
-    String? transactionHash,
+    DateTime? transactionTimestamp,
     String? errorMessage,
   }) : super._(
          success: success,
          orderId: orderId,
-         transactionHash: transactionHash,
+         transactionTimestamp: transactionTimestamp,
          errorMessage: errorMessage,
        );
 
@@ -104,15 +110,15 @@ class _PaymentResultImpl extends PaymentResult {
   PaymentResult copyWith({
     bool? success,
     Object? orderId = _Undefined,
-    Object? transactionHash = _Undefined,
+    Object? transactionTimestamp = _Undefined,
     Object? errorMessage = _Undefined,
   }) {
     return PaymentResult(
       success: success ?? this.success,
       orderId: orderId is String? ? orderId : this.orderId,
-      transactionHash: transactionHash is String?
-          ? transactionHash
-          : this.transactionHash,
+      transactionTimestamp: transactionTimestamp is DateTime?
+          ? transactionTimestamp
+          : this.transactionTimestamp,
       errorMessage: errorMessage is String? ? errorMessage : this.errorMessage,
     );
   }

@@ -8,8 +8,8 @@ fields:
   # Associated order identifier (optional)
   orderId: String?
   
-  # Transaction hash from payment rail (optional)
-  transactionHash: String?
+  # Transaction timestamp from payment rail for matching (optional)
+  transactionTimestamp: DateTime?
   
   # Error message if payment failed (optional)
   errorMessage: String?

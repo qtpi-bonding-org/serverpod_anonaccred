@@ -16,14 +16,12 @@ class MockPaymentRail implements PaymentRailInterface {
   final bool shouldThrowOnCreate;
   final bool shouldThrowOnCallback;
   final String? customPaymentRef;
-  final String? customTransactionHash;
 
   MockPaymentRail({
     this.shouldSucceed = true,
     this.shouldThrowOnCreate = false,
     this.shouldThrowOnCallback = false,
     this.customPaymentRef,
-    this.customTransactionHash,
   });
 
   @override
@@ -42,43 +40,45 @@ class MockPaymentRail implements PaymentRailInterface {
       railData: {
         'mockRail': true,
         'paymentAddress': 'mock_address_123',
-        'expirationTime': DateTime.now().add(Duration(hours: 1)).toIso8601String(),
+        'expirationTime': DateTime.now()
+            .add(Duration(hours: 1))
+            .toIso8601String(),
       },
     );
   }
 
   @override
-  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
+  Future<PaymentResult> processCallback(
+    Map<String, dynamic> callbackData,
+  ) async {
     if (shouldThrowOnCallback) {
       throw Exception('Mock callback processing failure');
     }
 
     final orderId = callbackData['orderId'] as String?;
-    final webhookTransactionHash = callbackData['transactionHash'] as String?;
-    
+
     return PaymentResult(
       success: shouldSucceed,
       orderId: orderId,
-      transactionHash: shouldSucceed ? (webhookTransactionHash ?? customTransactionHash ?? 'mock_tx_hash_${orderId ?? 'unknown'}') : null,
+      transactionTimestamp: shouldSucceed ? DateTime.now() : null,
       errorMessage: shouldSucceed ? null : 'Mock payment failed',
     );
   }
 }
 
 /// Integration tests for complete payment flow validation
-/// 
+///
 /// Tests the end-to-end payment processing including payment initiation,
 /// status checking, webhook processing, database transactions, and error handling.
-/// 
+///
 /// Requirements 6.5, 8.5: Complete payment flow and error handling validation
 void main() {
-  withServerpod('Payment Flow Integration Tests', (
-    sessionBuilder,
-    endpoints,
-  ) {
+  withServerpod('Payment Flow Integration Tests', (sessionBuilder, endpoints) {
     // Test constants - valid ECDSA P-256 key format (128 hex chars)
-    const validPublicKey = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-    const validSignature = 'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
+    const validPublicKey =
+        '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const validSignature =
+        'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
 
     group('Complete Payment Flow Tests', () {
       late AnonAccount testAccount;
@@ -87,14 +87,16 @@ void main() {
       setUp(() async {
         // Clear payment rails before each test
         PaymentManager.clearRails();
-        
+
         // Create test account and transaction for each test
         final session = sessionBuilder.build();
-        
+
         testAccount = AnonAccount(
-          ultimateSigningPublicKeyHex: 'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
+          ultimateSigningPublicKeyHex:
+              'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
           encryptedDataKey: 'encrypted_data_key_test',
-          ultimatePublicKey: 'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
+          ultimatePublicKey:
+              'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
         );
         testAccount = await AnonAccount.db.insertRow(session, testAccount);
 
@@ -108,8 +110,11 @@ void main() {
           paymentAmount: 0.05,
           status: OrderStatus.pending,
         );
-        testTransaction = await TransactionPayment.db.insertRow(session, testTransaction);
-        
+        testTransaction = await TransactionPayment.db.insertRow(
+          session,
+          testTransaction,
+        );
+
         await session.close();
       });
 
@@ -132,7 +137,10 @@ void main() {
         expect(paymentRequest.amountUSD, equals(10.0));
         expect(paymentRequest.orderId, equals(testTransaction.externalId));
         expect(paymentRequest.railData['mockRail'], isTrue);
-        expect(paymentRequest.railData['paymentAddress'], equals('mock_address_123'));
+        expect(
+          paymentRequest.railData['paymentAddress'],
+          equals('mock_address_123'),
+        );
 
         // Step 2: Check payment status (should be processing after initiation)
         var statusResult = await endpoints.payment.checkPaymentStatus(
@@ -149,7 +157,6 @@ void main() {
           final webhookData = {
             'orderId': testTransaction.externalId,
             'success': true,
-            'transactionHash': 'webhook_tx_hash_123',
           };
 
           await WebhookHandler.processWebhook(
@@ -169,7 +176,7 @@ void main() {
           testTransaction.externalId,
         );
         expect(statusResult.status, equals(OrderStatus.paid));
-        expect(statusResult.transactionHash, equals('webhook_tx_hash_123'));
+        expect(statusResult.transactionTimestamp, isNotNull);
       });
 
       test('failed payment flow with mock rail', () async {
@@ -214,7 +221,7 @@ void main() {
           testTransaction.externalId,
         );
         expect(statusResult.status, equals(OrderStatus.failed));
-        expect(statusResult.transactionHash, isNull);
+        expect(statusResult.transactionTimestamp, isNull);
       });
 
       test('payment creation error handling', () async {
@@ -295,7 +302,6 @@ void main() {
           final webhookData = {
             'orderId': testTransaction.externalId,
             'success': true,
-            'transactionHash': 'idempotent_tx_hash',
           };
 
           await WebhookHandler.processWebhook(
@@ -315,7 +321,7 @@ void main() {
           testTransaction.externalId,
         );
         expect(statusResult.status, equals(OrderStatus.paid));
-        expect(statusResult.transactionHash, equals('idempotent_tx_hash'));
+        expect(statusResult.transactionTimestamp, isNotNull);
 
         // Process same webhook again - should be idempotent
         final session2 = sessionBuilder.build();
@@ -323,7 +329,6 @@ void main() {
           final webhookData = {
             'orderId': testTransaction.externalId,
             'success': true,
-            'transactionHash': 'idempotent_tx_hash',
           };
 
           await WebhookHandler.processWebhook(
@@ -343,17 +348,17 @@ void main() {
           testTransaction.externalId,
         );
         expect(statusResult.status, equals(OrderStatus.paid));
-        expect(statusResult.transactionHash, equals('idempotent_tx_hash'));
+        expect(statusResult.transactionTimestamp, isNotNull);
       });
 
       test('multiple payment rails registration and routing', () async {
         // Register multiple mock rails
         final moneroRail = MockPaymentRail();
         final x402Rail = MockPaymentRail();
-        
+
         // Override railType for x402
         final x402RailWithType = _MockX402Rail();
-        
+
         PaymentManager.registerRail(moneroRail);
         PaymentManager.registerRail(x402RailWithType);
 
@@ -380,7 +385,7 @@ void main() {
 
       test('database transaction consistency', () async {
         final session = sessionBuilder.build();
-        
+
         try {
           // Test direct PaymentProcessor methods
           await PaymentProcessor.updateTransactionStatus(
@@ -395,22 +400,23 @@ void main() {
             'test_payment_ref_123',
           );
 
-          await PaymentProcessor.updateTransactionHash(
+          await PaymentProcessor.updateTransactionTimestamp(
             session,
             testTransaction.externalId,
-            'test_tx_hash_456',
+            DateTime.now(),
           );
 
           // Verify all updates were applied
-          final updatedTransaction = await PaymentProcessor.getTransactionByExternalId(
-            session,
-            testTransaction.externalId,
-          );
+          final updatedTransaction =
+              await PaymentProcessor.getTransactionByExternalId(
+                session,
+                testTransaction.externalId,
+              );
 
           expect(updatedTransaction, isNotNull);
           expect(updatedTransaction!.status, equals(OrderStatus.processing));
           expect(updatedTransaction.paymentRef, equals('test_payment_ref_123'));
-          expect(updatedTransaction.transactionHash, equals('test_tx_hash_456'));
+          expect(updatedTransaction.transactionTimestamp, isNotNull);
         } finally {
           await session.close();
         }
@@ -427,7 +433,6 @@ void main() {
           final webhookData = {
             'orderId': 'non-existent-order-id',
             'success': true,
-            'transactionHash': 'some_tx_hash',
           };
 
           // Should complete without throwing (warning logged)
@@ -551,12 +556,14 @@ class _MockX402Rail implements PaymentRailInterface {
   }
 
   @override
-  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
+  Future<PaymentResult> processCallback(
+    Map<String, dynamic> callbackData,
+  ) async {
     final orderId = callbackData['orderId'] as String?;
     return PaymentResult(
       success: true,
       orderId: orderId,
-      transactionHash: 'x402_tx_hash_${orderId ?? 'unknown'}',
+      transactionTimestamp: DateTime.now(),
     );
   }
 }

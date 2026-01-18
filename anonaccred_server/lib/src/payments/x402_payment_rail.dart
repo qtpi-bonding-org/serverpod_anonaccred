@@ -6,7 +6,7 @@ import '../generated/protocol.dart';
 import 'payment_rail_interface.dart';
 
 /// X402 HTTP Payment Rail implementation
-/// 
+///
 /// Implements the x402 protocol for frictionless, API-native payments using
 /// HTTP 402 "Payment Required" status codes.
 class X402PaymentRail implements PaymentRailInterface {
@@ -15,38 +15,43 @@ class X402PaymentRail implements PaymentRailInterface {
     'X402_FACILITATOR_URL',
     defaultValue: 'http://localhost:8090/verify',
   );
-  
+
   static const String _destinationAddress = String.fromEnvironment(
     'X402_DESTINATION_ADDRESS',
     defaultValue: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
   );
-  
+
   @override
   PaymentRail get railType => PaymentRail.x402_http;
-  
+
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
     required String orderId,
   }) async {
     // Generate unique payment reference for X402
-    final paymentRef = 'x402_${orderId}_${DateTime.now().millisecondsSinceEpoch}';
-    
+    final paymentRef =
+        'x402_${orderId}_${DateTime.now().millisecondsSinceEpoch}';
+
     // Validate configuration
     if (_facilitatorUrl.isEmpty || _destinationAddress.isEmpty) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.x402ConfigurationMissing,
-        message: 'X402 configuration missing: facilitator URL or destination address not set',
+        message:
+            'X402 configuration missing: facilitator URL or destination address not set',
         paymentRail: 'x402_http',
         orderId: orderId,
         details: {
           'facilitatorUrl': _facilitatorUrl.isEmpty ? 'missing' : 'configured',
-          'destinationAddress': _destinationAddress.isEmpty ? 'missing' : 'configured',
-          'environmentVariables': 'X402_FACILITATOR_URL, X402_DESTINATION_ADDRESS',
+          'destinationAddress': _destinationAddress.isEmpty
+              ? 'missing'
+              : 'configured',
+          'environmentVariables':
+              'X402_FACILITATOR_URL, X402_DESTINATION_ADDRESS',
         },
       );
     }
-    
+
     // Create X402-specific payment data
     final railData = {
       'facilitatorUrl': _facilitatorUrl,
@@ -57,7 +62,7 @@ class X402PaymentRail implements PaymentRailInterface {
       'timestamp': DateTime.now().toIso8601String(),
       'protocol': 'x402',
     };
-    
+
     return PaymentRequestExtension.withRailData(
       paymentRef: paymentRef,
       amountUSD: amountUSD,
@@ -65,18 +70,20 @@ class X402PaymentRail implements PaymentRailInterface {
       railData: railData,
     );
   }
-  
+
   @override
-  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
+  Future<PaymentResult> processCallback(
+    Map<String, dynamic> callbackData,
+  ) async {
     try {
       // For X402, the callback would typically be the X-PAYMENT header verification
       // This is a placeholder implementation - actual verification will be implemented
       // in task 3 (X-PAYMENT header verification)
-      
+
       final paymentRef = callbackData['paymentRef'] as String?;
       final orderId = callbackData['orderId'] as String?;
       final success = callbackData['success'] as bool? ?? false;
-      
+
       if (paymentRef == null || orderId == null) {
         throw AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentFailed,
@@ -89,11 +96,11 @@ class X402PaymentRail implements PaymentRailInterface {
           },
         );
       }
-      
+
       return PaymentResult(
         success: success,
         orderId: orderId,
-        transactionHash: success ? 'x402_tx_${DateTime.now().millisecondsSinceEpoch}' : null,
+        transactionTimestamp: success ? DateTime.now() : null,
         errorMessage: success ? null : 'X402 payment verification failed',
       );
     } on AnonAccredException {

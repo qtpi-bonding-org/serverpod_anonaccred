@@ -27,7 +27,7 @@ abstract class TransactionPayment
     required this.paymentCurrency,
     required this.paymentAmount,
     this.paymentRef,
-    this.transactionHash,
+    this.transactionTimestamp,
     _i2.OrderStatus? status,
     DateTime? timestamp,
   }) : status = status ?? _i2.OrderStatus.pending,
@@ -43,7 +43,7 @@ abstract class TransactionPayment
     required _i3.Currency paymentCurrency,
     required double paymentAmount,
     String? paymentRef,
-    String? transactionHash,
+    DateTime? transactionTimestamp,
     _i2.OrderStatus? status,
     DateTime? timestamp,
   }) = _TransactionPaymentImpl;
@@ -65,7 +65,11 @@ abstract class TransactionPayment
       ),
       paymentAmount: (jsonSerialization['paymentAmount'] as num).toDouble(),
       paymentRef: jsonSerialization['paymentRef'] as String?,
-      transactionHash: jsonSerialization['transactionHash'] as String?,
+      transactionTimestamp: jsonSerialization['transactionTimestamp'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['transactionTimestamp'],
+            ),
       status: _i2.OrderStatus.fromJson((jsonSerialization['status'] as String)),
       timestamp: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['timestamp'],
@@ -96,7 +100,7 @@ abstract class TransactionPayment
 
   String? paymentRef;
 
-  String? transactionHash;
+  DateTime? transactionTimestamp;
 
   _i2.OrderStatus status;
 
@@ -118,7 +122,7 @@ abstract class TransactionPayment
     _i3.Currency? paymentCurrency,
     double? paymentAmount,
     String? paymentRef,
-    String? transactionHash,
+    DateTime? transactionTimestamp,
     _i2.OrderStatus? status,
     DateTime? timestamp,
   });
@@ -135,7 +139,8 @@ abstract class TransactionPayment
       'paymentCurrency': paymentCurrency.toJson(),
       'paymentAmount': paymentAmount,
       if (paymentRef != null) 'paymentRef': paymentRef,
-      if (transactionHash != null) 'transactionHash': transactionHash,
+      if (transactionTimestamp != null)
+        'transactionTimestamp': transactionTimestamp?.toJson(),
       'status': status.toJson(),
       'timestamp': timestamp.toJson(),
     };
@@ -154,7 +159,8 @@ abstract class TransactionPayment
       'paymentCurrency': paymentCurrency.toJson(),
       'paymentAmount': paymentAmount,
       if (paymentRef != null) 'paymentRef': paymentRef,
-      if (transactionHash != null) 'transactionHash': transactionHash,
+      if (transactionTimestamp != null)
+        'transactionTimestamp': transactionTimestamp?.toJson(),
       'status': status.toJson(),
       'timestamp': timestamp.toJson(),
     };
@@ -203,7 +209,7 @@ class _TransactionPaymentImpl extends TransactionPayment {
     required _i3.Currency paymentCurrency,
     required double paymentAmount,
     String? paymentRef,
-    String? transactionHash,
+    DateTime? transactionTimestamp,
     _i2.OrderStatus? status,
     DateTime? timestamp,
   }) : super._(
@@ -216,7 +222,7 @@ class _TransactionPaymentImpl extends TransactionPayment {
          paymentCurrency: paymentCurrency,
          paymentAmount: paymentAmount,
          paymentRef: paymentRef,
-         transactionHash: transactionHash,
+         transactionTimestamp: transactionTimestamp,
          status: status,
          timestamp: timestamp,
        );
@@ -235,7 +241,7 @@ class _TransactionPaymentImpl extends TransactionPayment {
     _i3.Currency? paymentCurrency,
     double? paymentAmount,
     Object? paymentRef = _Undefined,
-    Object? transactionHash = _Undefined,
+    Object? transactionTimestamp = _Undefined,
     _i2.OrderStatus? status,
     DateTime? timestamp,
   }) {
@@ -249,9 +255,9 @@ class _TransactionPaymentImpl extends TransactionPayment {
       paymentCurrency: paymentCurrency ?? this.paymentCurrency,
       paymentAmount: paymentAmount ?? this.paymentAmount,
       paymentRef: paymentRef is String? ? paymentRef : this.paymentRef,
-      transactionHash: transactionHash is String?
-          ? transactionHash
-          : this.transactionHash,
+      transactionTimestamp: transactionTimestamp is DateTime?
+          ? transactionTimestamp
+          : this.transactionTimestamp,
       status: status ?? this.status,
       timestamp: timestamp ?? this.timestamp,
     );
@@ -309,9 +315,9 @@ class TransactionPaymentUpdateTable
     value,
   );
 
-  _i1.ColumnValue<String, String> transactionHash(String? value) =>
+  _i1.ColumnValue<DateTime, DateTime> transactionTimestamp(DateTime? value) =>
       _i1.ColumnValue(
-        table.transactionHash,
+        table.transactionTimestamp,
         value,
       );
 
@@ -368,8 +374,8 @@ class TransactionPaymentTable extends _i1.Table<int?> {
       'paymentRef',
       this,
     );
-    transactionHash = _i1.ColumnString(
-      'transactionHash',
+    transactionTimestamp = _i1.ColumnDateTime(
+      'transactionTimestamp',
       this,
     );
     status = _i1.ColumnEnum(
@@ -403,7 +409,7 @@ class TransactionPaymentTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString paymentRef;
 
-  late final _i1.ColumnString transactionHash;
+  late final _i1.ColumnDateTime transactionTimestamp;
 
   late final _i1.ColumnEnum<_i2.OrderStatus> status;
 
@@ -420,7 +426,7 @@ class TransactionPaymentTable extends _i1.Table<int?> {
     paymentCurrency,
     paymentAmount,
     paymentRef,
-    transactionHash,
+    transactionTimestamp,
     status,
     timestamp,
   ];
