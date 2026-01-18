@@ -41,9 +41,18 @@ class DeviceEndpoint extends Endpoint {
     String encryptedDataKey,
     String label,
   ) async {
+    session.log('DeviceEndpoint: registerDevice called', level: LogLevel.info);
+    session.log('DeviceEndpoint: accountId: $accountId', level: LogLevel.info);
+    session.log('DeviceEndpoint: deviceSigningPublicKeyHex length: ${deviceSigningPublicKeyHex.length}', level: LogLevel.info);
+    session.log('DeviceEndpoint: deviceSigningPublicKeyHex prefix: ${deviceSigningPublicKeyHex.length > 20 ? deviceSigningPublicKeyHex.substring(0, 20) : deviceSigningPublicKeyHex}...', level: LogLevel.info);
+    session.log('DeviceEndpoint: encryptedDataKey length: ${encryptedDataKey.length}', level: LogLevel.info);
+    session.log('DeviceEndpoint: label: "$label"', level: LogLevel.info);
+    
     try {
       // Validate input parameters
+      session.log('DeviceEndpoint: Validating input parameters...', level: LogLevel.info);
       if (deviceSigningPublicKeyHex.isEmpty) {
+        session.log('DeviceEndpoint: ERROR - deviceSigningPublicKeyHex is empty', level: LogLevel.error);
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.authMissingKey,
@@ -56,6 +65,7 @@ class DeviceEndpoint extends Endpoint {
       }
 
       if (encryptedDataKey.isEmpty) {
+        session.log('DeviceEndpoint: ERROR - encryptedDataKey is empty', level: LogLevel.error);
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.cryptoInvalidMessage,
@@ -68,6 +78,7 @@ class DeviceEndpoint extends Endpoint {
       }
 
       if (label.isEmpty) {
+        session.log('DeviceEndpoint: ERROR - label is empty', level: LogLevel.error);
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.cryptoInvalidMessage,
@@ -80,7 +91,9 @@ class DeviceEndpoint extends Endpoint {
       }
 
       // Validate device signing public key format
+      session.log('DeviceEndpoint: Validating device signing public key format...', level: LogLevel.info);
       if (!CryptoAuth.isValidPublicKey(deviceSigningPublicKeyHex)) {
+        session.log('DeviceEndpoint: ERROR - Invalid device signing public key format', level: LogLevel.error);
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
@@ -95,10 +108,13 @@ class DeviceEndpoint extends Endpoint {
 
         throw exception;
       }
+      session.log('DeviceEndpoint: Device signing public key format is valid', level: LogLevel.info);
 
       // Check if account exists
+      session.log('DeviceEndpoint: Checking if account exists...', level: LogLevel.info);
       final account = await AnonAccount.db.findById(session, accountId);
       if (account == null) {
+        session.log('DeviceEndpoint: ERROR - Account not found, ID: $accountId', level: LogLevel.error);
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.authAccountNotFound,
@@ -109,14 +125,17 @@ class DeviceEndpoint extends Endpoint {
 
         throw exception;
       }
+      session.log('DeviceEndpoint: Account found, ID: $accountId', level: LogLevel.info);
 
       // Check for duplicate device signing public key
+      session.log('DeviceEndpoint: Checking for duplicate device signing public key...', level: LogLevel.info);
       final existingDevice = await AccountDevice.db.findFirstRow(
         session,
         where: (t) => t.deviceSigningPublicKeyHex.equals(deviceSigningPublicKeyHex),
       );
 
       if (existingDevice != null) {
+        session.log('DeviceEndpoint: ERROR - Device signing public key already registered, existing device ID: ${existingDevice.id}', level: LogLevel.error);
         final exception =
             AnonAccredExceptionFactory.createAuthenticationException(
               code: AnonAccredErrorCodes.authDuplicateDevice,
@@ -131,8 +150,10 @@ class DeviceEndpoint extends Endpoint {
 
         throw exception;
       }
+      session.log('DeviceEndpoint: No duplicate device signing public key found', level: LogLevel.info);
 
       // Create new device
+      session.log('DeviceEndpoint: Creating new device...', level: LogLevel.info);
       final device = AccountDevice(
         accountId: accountId,
         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
@@ -143,13 +164,17 @@ class DeviceEndpoint extends Endpoint {
       );
 
       // Insert device into database
+      session.log('DeviceEndpoint: Inserting device into database...', level: LogLevel.info);
       final insertedDevice = await AccountDevice.db.insertRow(session, device);
 
+      session.log('DeviceEndpoint: Device registered successfully with ID: ${insertedDevice.id}', level: LogLevel.info);
       return insertedDevice;
-    } on AuthenticationException {
+    } on AuthenticationException catch (e) {
+      session.log('DeviceEndpoint: Authentication exception: $e', level: LogLevel.error);
       rethrow;
-    } catch (e) {
-      // Log unexpected error
+    } catch (e, stackTrace) {
+      session.log('DeviceEndpoint: Unexpected error: $e', level: LogLevel.error);
+      session.log('DeviceEndpoint: Stack trace: $stackTrace', level: LogLevel.error);
 
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.databaseError,

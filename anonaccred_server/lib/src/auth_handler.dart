@@ -25,17 +25,23 @@ class AnonAccredAuthHandler {
     Session session, 
     String token,
   ) async {
+    session.log('AnonAccredAuthHandler: handleAuthentication called', level: LogLevel.info);
+    session.log('AnonAccredAuthHandler: token length: ${token.length}', level: LogLevel.info);
+    session.log('AnonAccredAuthHandler: token prefix: ${token.length > 20 ? token.substring(0, 20) : token}...', level: LogLevel.info);
+    
     try {
       String? devicePubKey;
       
       // Parse the token parameter - in Serverpod 3.x this contains the full header value
       // Client sends: "Bearer <128-char-hex-public-key>"
       final trimmedToken = token.trim();
+      session.log('AnonAccredAuthHandler: trimmedToken length: ${trimmedToken.length}', level: LogLevel.info);
       
       if (trimmedToken.startsWith('Bearer ')) {
         // Extract public key from Bearer token
         devicePubKey = trimmedToken.substring(7).trim();
-        session.log('Auth: Extracted public key from Bearer token');
+        session.log('AnonAccredAuthHandler: Extracted public key from Bearer token, length: ${devicePubKey.length}', level: LogLevel.info);
+        session.log('AnonAccredAuthHandler: Device public key prefix: ${devicePubKey.length > 20 ? devicePubKey.substring(0, 20) : devicePubKey}...', level: LogLevel.info);
       } else if (trimmedToken.startsWith('Basic ')) {
         // Basic auth - decode base64 (Serverpod default wrapping)
         // Format after decode: ":<public_key>" or just "<public_key>"
@@ -43,35 +49,47 @@ class AnonAccredAuthHandler {
           final decoded = String.fromCharCodes(
             base64Decode(trimmedToken.substring(6).trim()),
           );
+          session.log('AnonAccredAuthHandler: Decoded Basic token: ${decoded.length > 20 ? decoded.substring(0, 20) : decoded}...', level: LogLevel.info);
           // Basic auth format is "username:password", we use empty username
           if (decoded.startsWith(':')) {
             devicePubKey = decoded.substring(1);
           } else {
             devicePubKey = decoded;
           }
-          session.log('Auth: Extracted public key from Basic token');
+          session.log('AnonAccredAuthHandler: Extracted public key from Basic token, length: ${devicePubKey?.length}', level: LogLevel.info);
         } catch (e) {
-          session.log('Auth: Failed to decode Basic token: $e');
+          session.log('AnonAccredAuthHandler: Failed to decode Basic token: $e', level: LogLevel.error);
         }
       } else if (trimmedToken.length == 128 && _isHexString(trimmedToken)) {
         // Raw 128-char hex public key (direct token parameter)
         devicePubKey = trimmedToken;
-        session.log('Auth: Using raw public key from token');
+        session.log('AnonAccredAuthHandler: Using raw public key from token, length: ${devicePubKey.length}', level: LogLevel.info);
       }
       
       if (devicePubKey == null || devicePubKey.isEmpty) {
-        session.log('Authentication failed: Could not extract device public key from token');
+        session.log('AnonAccredAuthHandler: ERROR - Could not extract device public key from token', level: LogLevel.error);
         return null;
       }
       
+      session.log('AnonAccredAuthHandler: Final device public key length: ${devicePubKey.length}', level: LogLevel.info);
+      
       // Validate device public key format
+      session.log('AnonAccredAuthHandler: Validating device public key format...', level: LogLevel.info);
       AnonAccredHelpers.validatePublicKey(devicePubKey, 'authentication');
+      session.log('AnonAccredAuthHandler: Device public key format is valid', level: LogLevel.info);
       
       // Verify device exists and is active
+      session.log('AnonAccredAuthHandler: Looking up device in database...', level: LogLevel.info);
       final device = await AccountDevice.db.findFirstRow(
         session,
         where: (t) => t.deviceSigningPublicKeyHex.equals(devicePubKey),
       );
+      
+      if (device == null) {
+        session.log('AnonAccredAuthHandler: ERROR - Device not found in database', level: LogLevel.error);
+      } else {
+        session.log('AnonAccredAuthHandler: Device found, ID: ${device.id}, accountId: ${device.accountId}, isRevoked: ${device.isRevoked}', level: LogLevel.info);
+      }
       
       final activeDevice = AnonAccredHelpers.requireActiveDevice(
         device, 
@@ -79,20 +97,25 @@ class AnonAccredAuthHandler {
         'authentication',
       );
       
+      session.log('AnonAccredAuthHandler: Device is active, creating AuthenticationInfo...', level: LogLevel.info);
+      
       // Return authentication info with account ID as userId
       // Store device public key in scopes for endpoint access
-      return AuthenticationInfo(
+      final authInfo = AuthenticationInfo(
         activeDevice.accountId.toString(),
         {Scope('device:${activeDevice.deviceSigningPublicKeyHex}')},
         authId: activeDevice.deviceSigningPublicKeyHex,
       );
       
+      session.log('AnonAccredAuthHandler: Authentication successful, userIdentifier: "${authInfo.userId}", authId: "${authInfo.authId}"', level: LogLevel.info);
+      return authInfo;
+      
     } on AuthenticationException catch (e) {
       // Authentication exceptions should return null (authentication failed)
-      session.log('Authentication failed: ${e.toString()}');
+      session.log('AnonAccredAuthHandler: Authentication exception: ${e.toString()}', level: LogLevel.error);
       return null;
     } on Exception catch (e) {
-      session.log('Authentication error: ${e.toString()}');
+      session.log('AnonAccredAuthHandler: Authentication error: ${e.toString()}', level: LogLevel.error);
       return null;
     }
   }
