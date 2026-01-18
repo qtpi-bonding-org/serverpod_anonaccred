@@ -20,9 +20,11 @@ import 'package:anonaccred_client/src/protocol/consume_result.dart' as _i7;
 import 'package:anonaccred_client/src/protocol/account_device.dart' as _i8;
 import 'package:anonaccred_client/src/protocol/authentication_result.dart'
     as _i9;
-import 'package:anonaccred_client/src/protocol/device_pairing_info.dart'
+import 'package:anonaccred_client/src/protocol/device_pairing_event.dart'
     as _i10;
-import 'package:anonaccred_client/src/protocol/payment_request.dart' as _i11;
+import 'package:anonaccred_client/src/protocol/device_pairing_info.dart'
+    as _i11;
+import 'package:anonaccred_client/src/protocol/payment_request.dart' as _i12;
 
 /// Account management endpoints for anonymous identity operations
 ///
@@ -499,6 +501,26 @@ class EndpointDevice extends _i1.EndpointRef {
         {},
       );
 
+  /// Monitor registration status for a specific signing key.
+  ///
+  /// Device B (unauthenticated) calls this to wait for Device A to complete the registration.
+  /// The stream will emit a [DevicePairingEvent] when registration is complete.
+  ///
+  /// Parameters:
+  /// - [signingKeyHex]: Device B's ECDSA P-256 signing public key (128 hex)
+  _i2.Stream<_i10.DevicePairingEvent> monitorRegistration(
+    String signingKeyHex,
+  ) =>
+      caller.callStreamingServerEndpoint<
+        _i2.Stream<_i10.DevicePairingEvent>,
+        _i10.DevicePairingEvent
+      >(
+        'anonaccred.device',
+        'monitorRegistration',
+        {'signingKeyHex': signingKeyHex},
+        {},
+      );
+
   /// Register a new device for the caller's account (QR code pairing flow).
   ///
   /// Device A (authenticated) calls this to register Device B.
@@ -547,9 +569,9 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - [signingPublicKeyHex]: Device's ECDSA P-256 signing public key (128 hex)
   ///
   /// Returns DevicePairingInfo if device is registered, null otherwise.
-  _i2.Future<_i10.DevicePairingInfo?> getDeviceBySigningKey(
+  _i2.Future<_i11.DevicePairingInfo?> getDeviceBySigningKey(
     String signingPublicKeyHex,
-  ) => caller.callServerEndpoint<_i10.DevicePairingInfo?>(
+  ) => caller.callServerEndpoint<_i11.DevicePairingInfo?>(
     'anonaccred.device',
     'getDeviceBySigningKey',
     {'signingPublicKeyHex': signingPublicKeyHex},
@@ -831,12 +853,12 @@ class EndpointPayment extends _i1.EndpointRef {
   /// - [AnonAccredException] for system errors
   ///
   /// Requirements 6.1: Create payment requests using specified rail
-  _i2.Future<_i11.PaymentRequest> initiatePayment(
+  _i2.Future<_i12.PaymentRequest> initiatePayment(
     String publicKey,
     String signature,
     String orderId,
     _i5.PaymentRail railType,
-  ) => caller.callServerEndpoint<_i11.PaymentRequest>(
+  ) => caller.callServerEndpoint<_i12.PaymentRequest>(
     'anonaccred.payment',
     'initiatePayment',
     {

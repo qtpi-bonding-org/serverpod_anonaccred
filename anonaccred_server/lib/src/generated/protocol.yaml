@@ -18,6 +18,7 @@ device:
   - generateAuthChallenge:
   - revokeDevice:
   - listDevices:
+  - monitorRegistration:
   - registerDeviceForAccount:
   - getDeviceBySigningKey:
 iAP:

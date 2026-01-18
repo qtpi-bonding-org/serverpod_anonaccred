@@ -23,9 +23,11 @@ import 'package:anonaccred_server/src/generated/consume_result.dart' as _i8;
 import 'package:anonaccred_server/src/generated/account_device.dart' as _i9;
 import 'package:anonaccred_server/src/generated/authentication_result.dart'
     as _i10;
-import 'package:anonaccred_server/src/generated/device_pairing_info.dart'
+import 'package:anonaccred_server/src/generated/device_pairing_event.dart'
     as _i11;
-import 'package:anonaccred_server/src/generated/payment_request.dart' as _i12;
+import 'package:anonaccred_server/src/generated/device_pairing_info.dart'
+    as _i12;
+import 'package:anonaccred_server/src/generated/payment_request.dart' as _i13;
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -826,6 +828,39 @@ class _DeviceEndpoint {
     });
   }
 
+  _i3.Stream<_i11.DevicePairingEvent> monitorRegistration(
+    _i1.TestSessionBuilder sessionBuilder,
+    String signingKeyHex,
+  ) {
+    var _localTestStreamManager =
+        _i1.TestStreamManager<_i11.DevicePairingEvent>();
+    _i1.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'device',
+              method: 'monitorRegistration',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'device',
+              methodName: 'monitorRegistration',
+              arguments: {'signingKeyHex': signingKeyHex},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+
   _i3.Future<_i9.AccountDevice> registerDeviceForAccount(
     _i1.TestSessionBuilder sessionBuilder,
     String newDeviceSigningPublicKeyHex,
@@ -863,7 +898,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<_i11.DevicePairingInfo?> getDeviceBySigningKey(
+  _i3.Future<_i12.DevicePairingInfo?> getDeviceBySigningKey(
     _i1.TestSessionBuilder sessionBuilder,
     String signingPublicKeyHex,
   ) async {
@@ -888,7 +923,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.DevicePairingInfo?>);
+                as _i3.Future<_i12.DevicePairingInfo?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1302,7 +1337,7 @@ class _PaymentEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i12.PaymentRequest> initiatePayment(
+  _i3.Future<_i13.PaymentRequest> initiatePayment(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -1333,7 +1368,7 @@ class _PaymentEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.PaymentRequest>);
+                as _i3.Future<_i13.PaymentRequest>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

@@ -598,6 +598,28 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['signingPublicKeyHex'],
                   ),
         ),
+        'monitorRegistration': _i1.MethodStreamConnector(
+          name: 'monitorRegistration',
+          params: {
+            'signingKeyHex': _i1.ParameterDescription(
+              name: 'signingKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _i1.MethodStreamReturnType.streamType,
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['device'] as _i4.DeviceEndpoint)
+                  .monitorRegistration(
+                    session,
+                    params['signingKeyHex'],
+                  ),
+        ),
       },
     );
     connectors['iAP'] = _i1.EndpointConnector(
