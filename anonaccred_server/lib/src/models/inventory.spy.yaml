@@ -1,0 +1,22 @@
+# AccountInventory: Balance tracking for consumable items
+# Supports any string-based consumable type defined by parent applications
+class: AccountInventory
+table: account_inventory
+indexes:
+  inventory_idx:
+    fields: accountId, consumableType
+    unique: true
+fields:
+  # Foreign key to account owner
+  accountId: int, relation(parent=anon_account)
+  
+  # Agnostic product identifier - accepts any string (e.g., "storage_days", "api_credits", "premium_features")
+  # No validation against predefined enums - parent applications define their own consumable types
+  consumableType: String
+  
+  # Current balance supporting fractional quantities for flexible pricing models
+  # Examples: 30.5 days of storage, 1000.25 API credits, 0.5 premium licenses
+  quantity: double
+  
+  # Last update timestamp for audit and synchronization
+  lastUpdated: DateTime, default=now

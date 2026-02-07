@@ -1,0 +1,5 @@
+class: ConsumeResult
+fields:
+  success: bool
+  availableBalance: double
+  errorMessage: String?

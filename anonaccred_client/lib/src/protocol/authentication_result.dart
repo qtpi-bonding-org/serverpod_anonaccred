@@ -1,0 +1,144 @@
+/* AUTOMATICALLY GENERATED CODE DO NOT MODIFY */
+/*   To generate run: "serverpod generate"    */
+
+// ignore_for_file: implementation_imports
+// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: public_member_api_docs
+// ignore_for_file: type_literal_in_constant_pattern
+// ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:anonaccred_client/src/protocol/protocol.dart' as _i2;
+
+abstract class AuthenticationResult implements _i1.SerializableModel {
+  AuthenticationResult._({
+    required this.success,
+    this.accountId,
+    this.deviceId,
+    this.errorCode,
+    this.errorMessage,
+    this.details,
+  });
+
+  factory AuthenticationResult({
+    required bool success,
+    int? accountId,
+    int? deviceId,
+    String? errorCode,
+    String? errorMessage,
+    Map<String, String>? details,
+  }) = _AuthenticationResultImpl;
+
+  factory AuthenticationResult.fromJson(
+    Map<String, dynamic> jsonSerialization,
+  ) {
+    return AuthenticationResult(
+      success: jsonSerialization['success'] as bool,
+      accountId: jsonSerialization['accountId'] as int?,
+      deviceId: jsonSerialization['deviceId'] as int?,
+      errorCode: jsonSerialization['errorCode'] as String?,
+      errorMessage: jsonSerialization['errorMessage'] as String?,
+      details: jsonSerialization['details'] == null
+          ? null
+          : _i2.Protocol().deserialize<Map<String, String>>(
+              jsonSerialization['details'],
+            ),
+    );
+  }
+
+  bool success;
+
+  int? accountId;
+
+  int? deviceId;
+
+  String? errorCode;
+
+  String? errorMessage;
+
+  Map<String, String>? details;
+
+  /// Returns a shallow copy of this [AuthenticationResult]
+  /// with some or all fields replaced by the given arguments.
+  @_i1.useResult
+  AuthenticationResult copyWith({
+    bool? success,
+    int? accountId,
+    int? deviceId,
+    String? errorCode,
+    String? errorMessage,
+    Map<String, String>? details,
+  });
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      '__className__': 'anonaccred.AuthenticationResult',
+      'success': success,
+      if (accountId != null) 'accountId': accountId,
+      if (deviceId != null) 'deviceId': deviceId,
+      if (errorCode != null) 'errorCode': errorCode,
+      if (errorMessage != null) 'errorMessage': errorMessage,
+      if (details != null) 'details': details?.toJson(),
+    };
+  }
+
+  @override
+  String toString() {
+    return _i1.SerializationManager.encode(this);
+  }
+}
+
+class _Undefined {}
+
+class _AuthenticationResultImpl extends AuthenticationResult {
+  _AuthenticationResultImpl({
+    required bool success,
+    int? accountId,
+    int? deviceId,
+    String? errorCode,
+    String? errorMessage,
+    Map<String, String>? details,
+  }) : super._(
+         success: success,
+         accountId: accountId,
+         deviceId: deviceId,
+         errorCode: errorCode,
+         errorMessage: errorMessage,
+         details: details,
+       );
+
+  /// Returns a shallow copy of this [AuthenticationResult]
+  /// with some or all fields replaced by the given arguments.
+  @_i1.useResult
+  @override
+  AuthenticationResult copyWith({
+    bool? success,
+    Object? accountId = _Undefined,
+    Object? deviceId = _Undefined,
+    Object? errorCode = _Undefined,
+    Object? errorMessage = _Undefined,
+    Object? details = _Undefined,
+  }) {
+    return AuthenticationResult(
+      success: success ?? this.success,
+      accountId: accountId is int? ? accountId : this.accountId,
+      deviceId: deviceId is int? ? deviceId : this.deviceId,
+      errorCode: errorCode is String? ? errorCode : this.errorCode,
+      errorMessage: errorMessage is String? ? errorMessage : this.errorMessage,
+      details: details is Map<String, String>?
+          ? details
+          : this.details?.map(
+              (
+                key0,
+                value0,
+              ) => MapEntry(
+                key0,
+                value0,
+              ),
+            ),
+    );
+  }
+}

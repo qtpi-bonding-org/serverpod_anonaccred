@@ -1,0 +1,15 @@
+# TransactionConsumable: Individual line items within a transaction
+# Tracks specific consumables purchased in each transaction
+class: TransactionConsumable
+table: transaction_consumable
+fields:
+  # Foreign key to parent transaction
+  transactionId: int, relation(parent=transaction_payment)
+  
+  # Product identifier matching AccountInventory.consumableType
+  # Flexible string-based system supports any consumable type
+  consumableType: String
+  
+  # Quantity purchased in this transaction
+  # Supports fractional quantities for flexible pricing
+  quantity: double

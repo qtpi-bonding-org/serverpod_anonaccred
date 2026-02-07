@@ -1,0 +1,7 @@
+# Authentication Exception
+exception: AuthenticationException
+fields:
+  code: String
+  message: String
+  details: Map<String, String>?
+  operation: String?

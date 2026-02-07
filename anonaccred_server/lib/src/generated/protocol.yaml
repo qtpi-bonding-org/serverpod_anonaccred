@@ -1,2 +1,47 @@
+account:
+  - createAccount:
+  - getAccountById:
+  - getAccountByPublicKey:
+  - getAccountForRecovery:
+commerce:
+  - registerProducts:
+  - getProductCatalog:
+  - createOrder:
+  - getInventory:
+  - getBalance:
+  - consumeInventory:
+  - getProductCatalogWithX402:
+  - getBalanceWithX402:
+device:
+  - registerDevice:
+  - authenticateDevice:
+  - generateAuthChallenge:
+  - revokeDevice:
+  - listDevices:
+  - monitorRegistration:
+  - registerDeviceForAccount:
+  - getDeviceBySigningKey:
+iAP:
+  - validateAppleReceipt:
+  - validateGooglePurchase:
+  - handleAppleWebhook:
+  - handleGoogleWebhook:
+iAPWebhook:
+  - handleAppleWebhook:
+  - handleGoogleWebhook:
 module:
   - hello:
+  - authenticateUser:
+  - processPayment:
+  - manageInventory:
+payment:
+  - initiatePayment:
+  - checkPaymentStatus:
+  - processMoneroWebhook:
+  - processX402Webhook:
+  - processAppleIAPWebhook:
+  - processGoogleIAPWebhook:
+  - requestPaymentStatusWithX402:
+x402:
+  - requestPaidResource:
+  - requestConsumableAccess:

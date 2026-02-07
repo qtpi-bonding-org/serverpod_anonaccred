@@ -1,0 +1,15 @@
+# Payment result data structure for payment rail responses
+# Contains standardized payment completion information
+class: PaymentResult
+fields:
+  # Whether the payment operation was successful
+  success: bool
+  
+  # Associated order identifier (optional)
+  orderId: String?
+  
+  # Transaction timestamp from payment rail for matching (optional)
+  transactionTimestamp: DateTime?
+  
+  # Error message if payment failed (optional)
+  errorMessage: String?

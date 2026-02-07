@@ -1,0 +1,7 @@
+# Currency enumeration for payment processing
+# Supports USD (quote currency) and XMR (Monero privacy coin)
+enum: Currency
+serialized: byName
+values:
+  - USD
+  - XMR

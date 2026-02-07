@@ -1,0 +1,8 @@
+# Inventory Exception
+exception: InventoryException
+fields:
+  code: String
+  message: String
+  details: Map<String, String>?
+  accountId: int?
+  consumableType: String?

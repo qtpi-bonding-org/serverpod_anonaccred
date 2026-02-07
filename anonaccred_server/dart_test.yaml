@@ -1,2 +1,51 @@
+# Configuration for dart test runner
+
+# Test timeout configuration
+timeout: 30s
+
+# Test concurrency
+concurrency: 4
+
+# Test patterns
+test_on: vm
+
+# Test configuration
+platforms:
+  - vm
+
+# Test tags for organizing test suites
 tags:
-  integration: {}
+  unit:
+    description: Unit tests for individual components
+  integration:
+    description: Integration tests with database and Serverpod
+  property:
+    description: Property-based tests for universal properties
+  slow:
+    description: Tests that take longer to execute
+    timeout: 60s
+
+# Test presets
+presets:
+  # Fast preset for development (unit tests only)
+  fast:
+    concurrency: 8
+    
+  # Full preset for comprehensive testing
+  full:
+    timeout: 60s
+    
+  # Property-based testing preset
+  pbt:
+    timeout: 120s
+
+# Test file patterns
+file_reporters:
+  json: test-results.json
+
+# Test coverage
+coverage:
+  # Exclude generated files from coverage
+  exclude:
+    - "lib/src/generated/**"
+    - "test/**"
