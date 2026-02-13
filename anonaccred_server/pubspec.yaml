@@ -32,6 +32,9 @@ dependencies:
   http: ^1.2.0
   googleapis: ^16.0.0
   googleapis_auth: ^2.0.0
+  app_store_server_sdk: ^1.2.10
+  dart_jsonwebtoken: ^3.3.1
+  crypto: ^3.0.3
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'

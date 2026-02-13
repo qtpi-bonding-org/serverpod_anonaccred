@@ -1,0 +1,41 @@
+# AppleConsumableDelivery: Tracks consumable deliveries for Apple IAP transactions
+# Used for idempotency checking and refund processing
+class: AppleConsumableDelivery
+table: apple_consumable_delivery
+fields:
+  # Unique transaction identifier from Apple App Store
+  transactionId: String
+
+  # Original transaction ID for subscription/renewal chains
+  originalTransactionId: String
+
+  # Apple product ID for the purchased item
+  productId: String
+
+  # Account ID that received the consumable
+  accountId: int
+
+  # Internal consumable type (e.g., "coins", "gems")
+  consumableType: String
+
+  # Quantity of consumables delivered
+  quantity: double
+
+  # Order ID from Apple
+  orderId: String
+
+  # When the delivery was recorded
+  deliveredAt: DateTime
+indexes:
+  # Unique index on transactionId for idempotency lookups
+  apple_consumable_delivery_transaction_id_idx:
+    fields: transactionId
+    unique: true
+
+  # Index on accountId for fetching delivery history
+  apple_consumable_delivery_account_idx:
+    fields: accountId
+
+  # Index on originalTransactionId for refund processing
+  apple_consumable_delivery_original_transaction_idx:
+    fields: originalTransactionId

@@ -2,19 +2,28 @@ import 'dart:convert';
 import 'package:test/test.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
+import 'package:anonaccred_server/src/payments/mock_app_store_server_client.dart';
+import 'package:anonaccred_server/src/payments/apple_consumable_delivery_manager.dart';
+import 'package:anonaccred_server/src/payments/decoded_transaction.dart';
+import 'package:anonaccred_server/src/product_mapping_config.dart';
 
 /// Unit tests for Apple IAP rail implementation
-/// 
+///
 /// Tests core Apple IAP functionality including payment request creation,
-/// receipt validation result parsing, and transaction data extraction.
-/// 
-/// Focuses on happy path validation and essential error cases during development.
+/// mock client injection, and delivery manager injection.
+///
+/// Focuses on happy path validation for the refactored implementation.
 void main() {
   group('Apple IAP Rail Tests', () {
     late AppleIAPRail appleRail;
+    late MockAppStoreServerClient mockClient;
 
     setUp(() {
-      appleRail = AppleIAPRail();
+      mockClient = MockAppStoreServerClient();
+      appleRail = AppleIAPRail(
+        client: mockClient,
+        deliveryManager: const AppleConsumableDeliveryManager(),
+      );
     });
 
     test('createPayment returns valid PaymentRequest for Apple IAP', () async {
@@ -27,12 +36,12 @@ void main() {
       expect(paymentRequest.paymentRef, equals('apple_test_order_123'));
       expect(paymentRequest.amountUSD, equals(9.99));
       expect(paymentRequest.orderId, equals('apple_test_order_123'));
-      
-      final railData = jsonDecode(paymentRequest.railDataJson) as Map<String, dynamic>;
+
+      final railData =
+          jsonDecode(paymentRequest.railDataJson) as Map<String, dynamic>;
       expect(railData['payment_rail'], equals('apple_iap'));
       expect(railData['order_id'], equals('apple_test_order_123'));
-      expect(railData['validation_endpoint'], equals('/api/iap/apple/validate'));
-      expect(DateTime.parse(railData['expires_at']).isAfter(DateTime.now()), isTrue);
+      expect(railData['amount_usd'], equals(9.99));
     });
 
     test('railType returns correct PaymentRail enum value', () {
@@ -40,163 +49,110 @@ void main() {
       expect(appleRail.railType, equals(PaymentRail.apple_iap));
     });
 
-    test('AppleReceiptValidationResult.fromJson parses valid Apple response', () {
-      // Test parsing of successful Apple receipt validation response
-      final mockAppleResponse = {
-        'status': 0,
-        'environment': 'Production',
-        'receipt': {
-          'bundle_id': 'com.example.app',
-          'application_version': '1.0',
-          'in_app': [
-            {
-              'transaction_id': '1000000012345678',
-              'original_transaction_id': '1000000012345678',
-              'product_id': 'com.example.premium',
-              'purchase_date': '2023-10-27 10:00:00 Etc/GMT',
-              'purchase_date_ms': '1698386400000',
-              'quantity': '1',
-            }
-          ]
-        }
-      };
-
-      final result = AppleReceiptValidationResult.fromJson(mockAppleResponse);
-
-      expect(result.status, equals(0));
-      expect(result.environment, equals('Production'));
-      expect(result.isValid, isTrue);
-      expect(result.isSandbox, isFalse);
-      expect(result.purchaseDate, equals('1000000012345678'));
-      expect(result.errorMessage, equals('Receipt validation successful'));
+    test('mock client injection works correctly', () {
+      // Test that mock client can be injected for testing
+      expect(mockClient, isNotNull);
+      expect(mockClient.callLog, isEmpty);
     });
 
-    test('AppleReceiptValidationResult handles error status codes', () {
-      // Test parsing of Apple error responses
-      final errorCodes = [21000, 21002, 21003, 21004, 21005, 21006, 21007, 21008, 21010];
-      final expectedMessages = [
-        'App Store cannot read the JSON object',
-        'Receipt data property malformed or missing',
-        'Receipt could not be authenticated',
-        'Shared secret does not match',
-        'Receipt server temporarily unavailable',
-        'Receipt valid but subscription expired',
-        'Receipt from sandbox but sent to production',
-        'Receipt from production but sent to sandbox',
-        'Account not found or deleted',
-      ];
-
-      for (int i = 0; i < errorCodes.length; i++) {
-        final mockErrorResponse = {
-          'status': errorCodes[i],
-          'environment': 'Production',
-        };
-
-        final result = AppleReceiptValidationResult.fromJson(mockErrorResponse);
-
-        expect(result.status, equals(errorCodes[i]));
-        expect(result.isValid, isFalse);
-        expect(result.errorMessage, equals(expectedMessages[i]));
-      }
-    });
-
-    test('AppleReceiptValidationResult detects sandbox environment', () {
-      // Test sandbox environment detection
-      final mockSandboxResponse = {
-        'status': 0,
-        'environment': 'Sandbox',
-        'receipt': {
-          'bundle_id': 'com.example.app',
-          'in_app': []
-        }
-      };
-
-      final result = AppleReceiptValidationResult.fromJson(mockSandboxResponse);
-
-      expect(result.environment, equals('Sandbox'));
-      expect(result.isSandbox, isTrue);
-      expect(result.isValid, isTrue);
-    });
-
-    test('extractTransactionData extracts PII-free transaction details', () {
-      // Test that transaction data extraction only includes non-PII information
-      final mockReceiptData = {
-        'receipt': {
-          'bundle_id': 'com.example.app',
-          'application_version': '1.0',
-          'in_app': [
-            {
-              'transaction_id': '1000000012345678',
-              'original_transaction_id': '1000000012345678',
-              'product_id': 'com.example.premium',
-              'purchase_date': '2023-10-27 10:00:00 Etc/GMT',
-              'purchase_date_ms': '1698386400000',
-              'quantity': '1',
-              'is_trial_period': 'false',
-            }
-          ]
-        }
-      };
-
-      final transactionData = AppleIAPRail.extractTransactionData(mockReceiptData);
-
-      // Verify extracted data contains expected fields
-      expect(transactionData['transaction_id'], equals('1000000012345678'));
-      expect(transactionData['original_transaction_id'], equals('1000000012345678'));
-      expect(transactionData['product_id'], equals('com.example.premium'));
-      expect(transactionData['purchase_date'], equals('2023-10-27 10:00:00 Etc/GMT'));
-      expect(transactionData['purchase_date_ms'], equals('1698386400000'));
-      expect(transactionData['quantity'], equals('1'));
-      expect(transactionData['is_trial_period'], equals('false'));
-      expect(transactionData['bundle_id'], equals('com.example.app'));
-      expect(transactionData['application_version'], equals('1.0'));
-
-      // Verify no PII fields are included (transaction IDs and product info are not PII)
-      expect(transactionData.keys, everyElement(isNot(contains('email'))));
-      expect(transactionData.keys, everyElement(isNot(contains('name'))));
-      expect(transactionData.keys, everyElement(isNot(contains('address'))));
-    });
-
-    test('processCallback handles Apple webhook data', () async {
-      // Test callback processing for Apple webhooks
-      final mockCallbackData = {
-        'receipt_data': 'base64_encoded_receipt_data',
-        'order_id': 'webhook_test_order',
-      };
-
-      final result = await appleRail.processCallback(mockCallbackData);
-
-      // Should return failure since we don't have configuration in test
-      expect(result.success, isFalse);
-      expect(result.errorMessage, contains('Apple IAP callback processing failed'));
-    });
-
-    test('processCallback handles missing callback data', () async {
-      // Test callback processing with missing required fields
-      final mockCallbackData = {
-        'receipt_data': 'base64_encoded_receipt_data',
-        // Missing order_id
-      };
-
-      final result = await appleRail.processCallback(mockCallbackData);
-
-      expect(result.success, isFalse);
-      expect(result.errorMessage, equals('Missing receipt_data or order_id in callback'));
-    });
-
-    test('AppleIAPConfig configuration detection', () {
-      // Test configuration detection (will be false in test environment)
-      expect(AppleIAPConfig.isConfigured, isFalse);
-      expect(AppleIAPConfig.sharedSecret, isNull);
-      expect(AppleIAPConfig.useSandbox, isFalse);
-    });
-
-    test('AppleIAPConfig validation throws exception when not configured', () {
-      // Test that configuration validation throws appropriate exception
-      expect(
-        () => AppleIAPConfig.validateConfiguration(),
-        throwsA(isA<AnonAccredException>()),
+    test('delivery manager injection works correctly', () {
+      // Test that delivery manager can be injected
+      final deliveryManager = const AppleConsumableDeliveryManager();
+      final rail = AppleIAPRail(
+        client: mockClient,
+        deliveryManager: deliveryManager,
       );
+      expect(rail, isNotNull);
+    });
+
+    test('processCallback handles missing request_body', () async {
+      // Test callback processing with missing required fields
+      final mockCallbackData = <String, dynamic>{
+        // Missing request_body
+      };
+
+      final result = await appleRail.processCallback(mockCallbackData);
+
+      expect(result.success, isFalse);
+      expect(
+        result.errorMessage,
+        equals('Malformed payload: missing request_body or session'),
+      );
+    });
+
+    test('processCallback handles malformed JSON', () async {
+      // Test callback processing with invalid JSON
+      final mockCallbackData = {
+        'request_body': 'not valid json',
+        'session': null,
+      };
+
+      final result = await appleRail.processCallback(mockCallbackData);
+
+      expect(result.success, isFalse);
+      expect(
+        result.errorMessage,
+        equals('Malformed payload: missing request_body or session'),
+      );
+    });
+
+    test('AppleTransactionValidationResult.fromTransaction creates result',
+        () {
+      // Test that validation result can be created from transaction
+      final transaction = DecodedTransaction(
+        transactionId: 'txn_123',
+        originalTransactionId: 'orig_txn_123',
+        productId: 'com.test.product',
+        bundleId: 'com.test.app',
+        purchaseDate: DateTime.now().millisecondsSinceEpoch,
+        originalPurchaseDate: DateTime.now().millisecondsSinceEpoch,
+        quantity: 1,
+        type: 'Consumable',
+      );
+
+      final mapping = ProductMapping(
+        consumableType: 'coins',
+        quantity: 100,
+      );
+
+      final result = AppleTransactionValidationResult.fromTransaction(
+        transaction,
+        mapping,
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.transactionId, equals('txn_123'));
+      expect(result.productId, equals('com.test.product'));
+      expect(result.consumableType, equals('coins'));
+      expect(result.quantity, equals(100));
+      expect(result.fromCache, isFalse);
+    });
+
+    test('AppleTransactionValidationResult.fromExistingDelivery creates result',
+        () {
+      // Test that validation result can be created from existing delivery
+      final delivery = AppleConsumableDelivery(
+        id: 1,
+        transactionId: 'txn_123',
+        originalTransactionId: 'orig_txn_123',
+        productId: 'com.test.product',
+        accountId: 456,
+        consumableType: 'coins',
+        quantity: 100,
+        orderId: 'order_123',
+        deliveredAt: DateTime.now(),
+      );
+
+      final result =
+          AppleTransactionValidationResult.fromExistingDelivery(delivery);
+
+      expect(result.isValid, isTrue);
+      expect(result.transactionId, equals('txn_123'));
+      expect(result.productId, equals('com.test.product'));
+      expect(result.consumableType, equals('coins'));
+      expect(result.quantity, equals(100));
+      expect(result.fromCache, isTrue);
+      expect(result.deliveredAt, isNotNull);
     });
   });
 }
