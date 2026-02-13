@@ -941,11 +941,12 @@ class _IAPEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<Map<String, dynamic>> validateAppleReceipt(
+  _i3.Future<Map<String, dynamic>> validateAppleTransaction(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
-    String receiptData,
+    String transactionId,
+    String productId,
     String orderId,
     int accountId,
     String consumableType,
@@ -955,17 +956,18 @@ class _IAPEndpoint {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'iAP',
-            method: 'validateAppleReceipt',
+            method: 'validateAppleTransaction',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'iAP',
-          methodName: 'validateAppleReceipt',
+          methodName: 'validateAppleTransaction',
           parameters: _i1.testObjectToJson({
             'publicKey': publicKey,
             'signature': signature,
-            'receiptData': receiptData,
+            'transactionId': transactionId,
+            'productId': productId,
             'orderId': orderId,
             'accountId': accountId,
             'consumableType': consumableType,

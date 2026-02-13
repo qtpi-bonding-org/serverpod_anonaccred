@@ -626,8 +626,8 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'iAP',
       endpoint: endpoints['iAP']!,
       methodConnectors: {
-        'validateAppleReceipt': _i1.MethodConnector(
-          name: 'validateAppleReceipt',
+        'validateAppleTransaction': _i1.MethodConnector(
+          name: 'validateAppleTransaction',
           params: {
             'publicKey': _i1.ParameterDescription(
               name: 'publicKey',
@@ -639,8 +639,13 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'receiptData': _i1.ParameterDescription(
-              name: 'receiptData',
+            'transactionId': _i1.ParameterDescription(
+              name: 'transactionId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -669,12 +674,13 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['iAP'] as _i5.IAPEndpoint).validateAppleReceipt(
+              ) async => (endpoints['iAP'] as _i5.IAPEndpoint)
+                  .validateAppleTransaction(
                     session,
                     params['publicKey'],
                     params['signature'],
-                    params['receiptData'],
+                    params['transactionId'],
+                    params['productId'],
                     params['orderId'],
                     params['accountId'],
                     params['consumableType'],

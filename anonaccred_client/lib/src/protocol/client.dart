@@ -592,15 +592,16 @@ class EndpointIAP extends _i1.EndpointRef {
   @override
   String get name => 'anonaccred.iAP';
 
-  /// Validate Apple App Store receipt and fulfill purchase
+  /// Validate Apple App Store transaction and fulfill purchase
   ///
-  /// Validates iOS app receipt using Apple's verifyReceipt API and adds
+  /// Validates iOS app transaction using Apple's App Store Server API and adds
   /// purchased consumables to user inventory upon successful validation.
   ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
-  /// - [receiptData]: Base64-encoded receipt from iOS app
+  /// - [transactionId]: Apple transaction ID from the app
+  /// - [productId]: Apple product ID (SKU)
   /// - [orderId]: Order ID for transaction tracking
   /// - [accountId]: Account ID for inventory management
   /// - [consumableType]: Type of consumable being purchased
@@ -608,23 +609,25 @@ class EndpointIAP extends _i1.EndpointRef {
   ///
   /// Returns: Validation result with transaction details or error information
   ///
-  /// Requirements 2.1, 2.2, 2.3: Apple receipt validation
+  /// Requirements 2.1, 2.2, 2.3: Apple transaction validation
   /// Requirements 1.4: Inventory fulfillment integration
-  _i2.Future<Map<String, dynamic>> validateAppleReceipt(
+  _i2.Future<Map<String, dynamic>> validateAppleTransaction(
     String publicKey,
     String signature,
-    String receiptData,
+    String transactionId,
+    String productId,
     String orderId,
     int accountId,
     String consumableType,
     double quantity,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
     'anonaccred.iAP',
-    'validateAppleReceipt',
+    'validateAppleTransaction',
     {
       'publicKey': publicKey,
       'signature': signature,
-      'receiptData': receiptData,
+      'transactionId': transactionId,
+      'productId': productId,
       'orderId': orderId,
       'accountId': accountId,
       'consumableType': consumableType,

@@ -15,15 +15,16 @@ import '../payments/rails/google_iap_rail.dart';
 ///
 /// Requirements 1.1, 1.4: Mobile IAP validation with inventory fulfillment
 class IAPEndpoint extends Endpoint {
-  /// Validate Apple App Store receipt and fulfill purchase
+  /// Validate Apple App Store transaction and fulfill purchase
   ///
-  /// Validates iOS app receipt using Apple's verifyReceipt API and adds
+  /// Validates iOS app transaction using Apple's App Store Server API and adds
   /// purchased consumables to user inventory upon successful validation.
   ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
-  /// - [receiptData]: Base64-encoded receipt from iOS app
+  /// - [transactionId]: Apple transaction ID from the app
+  /// - [productId]: Apple product ID (SKU)
   /// - [orderId]: Order ID for transaction tracking
   /// - [accountId]: Account ID for inventory management
   /// - [consumableType]: Type of consumable being purchased
@@ -31,13 +32,14 @@ class IAPEndpoint extends Endpoint {
   ///
   /// Returns: Validation result with transaction details or error information
   ///
-  /// Requirements 2.1, 2.2, 2.3: Apple receipt validation
+  /// Requirements 2.1, 2.2, 2.3: Apple transaction validation
   /// Requirements 1.4: Inventory fulfillment integration
-  Future<Map<String, dynamic>> validateAppleReceipt(
+  Future<Map<String, dynamic>> validateAppleTransaction(
     Session session,
     String publicKey,
     String signature,
-    String receiptData,
+    String transactionId,
+    String productId,
     String orderId,
     int accountId,
     String consumableType,
@@ -45,14 +47,17 @@ class IAPEndpoint extends Endpoint {
   ) async {
     try {
       // Validate authentication
-      await _validateAuthentication(session, publicKey, signature, 'validateAppleReceipt');
+      await _validateAuthentication(session, publicKey, signature, 'validateAppleTransaction');
 
       // Validate parameters
-      if (receiptData.isEmpty) {
+      if (transactionId.isEmpty || productId.isEmpty) {
         throw AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentValidationFailed,
-          message: 'Receipt data cannot be empty',
-          details: {'receiptData': 'empty'},
+          message: 'Transaction ID and product ID are required',
+          details: {
+            'transactionId': transactionId.isEmpty ? 'empty' : 'provided',
+            'productId': productId.isEmpty ? 'empty' : 'provided',
+          },
         );
       }
 
@@ -76,31 +81,30 @@ class IAPEndpoint extends Endpoint {
         );
       }
 
-      // Create Apple IAP rail and validate receipt
+      // Create Apple IAP rail and validate transaction
       final appleRail = AppleIAPRail();
-      final validationResult = await appleRail.validateReceipt(receiptData);
+      final validationResult = await appleRail.validateTransaction(
+        session: session,
+        transactionId: transactionId,
+        productId: productId,
+        accountId: accountId,
+      );
 
       if (!validationResult.isValid) {
         session.log(
-          'Apple receipt validation failed: ${validationResult.errorMessage}',
+          'Apple transaction validation failed: ${validationResult.transactionId}',
           level: LogLevel.warning,
         );
 
         return {
           'success': false,
-          'error': 'Receipt validation failed',
+          'error': 'Transaction validation failed',
           'details': {
-            'apple_status': validationResult.status,
-            'error_message': validationResult.errorMessage,
-            'environment': validationResult.environment,
+            'transaction_id': validationResult.transactionId,
+            'product_id': validationResult.productId,
           },
         };
       }
-
-      // Extract transaction data (PII-free)
-      final transactionData = AppleIAPRail.extractTransactionData({
-        'receipt': validationResult.receipt,
-      });
 
       // Add consumables to inventory
       await InventoryManager.addToInventory(
@@ -111,19 +115,19 @@ class IAPEndpoint extends Endpoint {
       );
 
       session.log(
-        'Apple IAP validation successful: ${transactionData['transaction_id']}',
+        'Apple IAP validation successful: ${validationResult.transactionId}',
         level: LogLevel.info,
       );
 
       return {
         'success': true,
-        'transaction_id': transactionData['transaction_id'],
-        'product_id': transactionData['product_id'],
-        'purchase_date': transactionData['purchase_date'],
+        'transaction_id': validationResult.transactionId,
+        'product_id': validationResult.productId,
+        'purchase_date': validationResult.purchaseDate?.toIso8601String(),
         'quantity_added': quantity,
-        'consumable_type': consumableType,
-        'environment': validationResult.environment,
+        'consumable_type': validationResult.consumableType,
         'order_id': orderId,
+        'from_cache': validationResult.fromCache,
       };
 
     } on AuthenticationException {
@@ -135,11 +139,13 @@ class IAPEndpoint extends Endpoint {
     } catch (e) {
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
-        message: 'Unexpected error validating Apple receipt: ${e.toString()}',
+        message: 'Unexpected error validating Apple transaction: ${e.toString()}',
         details: {
           'error': e.toString(),
           'orderId': orderId,
           'accountId': accountId.toString(),
+          'transactionId': transactionId,
+          'productId': productId,
         },
       );
     }

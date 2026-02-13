@@ -100,7 +100,7 @@ abstract class AppleConsumableDelivery
   @override
   Map<String, dynamic> toJson() {
     return {
-      '__className__': 'AppleConsumableDelivery',
+      '__className__': 'anonaccred.AppleConsumableDelivery',
       if (id != null) 'id': id,
       'transactionId': transactionId,
       'originalTransactionId': originalTransactionId,
@@ -116,7 +116,7 @@ abstract class AppleConsumableDelivery
   @override
   Map<String, dynamic> toJsonForProtocol() {
     return {
-      '__className__': 'AppleConsumableDelivery',
+      '__className__': 'anonaccred.AppleConsumableDelivery',
       if (id != null) 'id': id,
       'transactionId': transactionId,
       'originalTransactionId': originalTransactionId,

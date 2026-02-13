@@ -22,7 +22,7 @@ device:
   - registerDeviceForAccount:
   - getDeviceBySigningKey:
 iAP:
-  - validateAppleReceipt:
+  - validateAppleTransaction:
   - validateGooglePurchase:
   - handleAppleWebhook:
   - handleGoogleWebhook:
