@@ -3,6 +3,7 @@ import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import 'payment_manager.dart';
 import 'payment_processor.dart';
+import 'webhook_signature_validator.dart';
 
 /// Simple webhook handler for processing external payment callbacks
 ///
@@ -167,6 +168,28 @@ class WebhookHandler {
   static bool isValidWebhookData(Map<String, dynamic> webhookData) {
     // Basic validation - webhook should not be empty
     return webhookData.isNotEmpty;
+  }
+
+  /// Validate webhook signature for Google webhooks
+  ///
+  /// Validates the webhook signature using HMAC-SHA256 with Google's public key.
+  /// Throws HTTP 401 if signature is invalid.
+  ///
+  /// [session] - Serverpod session for logging
+  /// [payload] - Raw webhook payload (JSON string)
+  /// [signature] - Signature from request headers
+  ///
+  /// Requirements 8.3, 8.5: Validate signatures and throw HTTP 401 for invalid
+  static void validateWebhookSignature({
+    required Session session,
+    required String payload,
+    required String signature,
+  }) {
+    WebhookSignatureValidator.validateSignatureOrThrow(
+      session: session,
+      payload: payload,
+      signature: signature,
+    );
   }
 
   /// Extract order ID from webhook data if present

@@ -69,10 +69,12 @@ abstract class TransactionPayment implements _i1.SerializableModel {
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['transactionTimestamp'],
             ),
-      status: _i2.OrderStatus.fromJson((jsonSerialization['status'] as String)),
-      timestamp: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['timestamp'],
-      ),
+      status: jsonSerialization['status'] == null
+          ? null
+          : _i2.OrderStatus.fromJson((jsonSerialization['status'] as String)),
+      timestamp: jsonSerialization['timestamp'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['timestamp']),
     );
   }
 

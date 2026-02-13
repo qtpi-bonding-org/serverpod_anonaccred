@@ -521,9 +521,17 @@ class DeviceEndpoint extends Endpoint {
     String newDeviceEncryptedDataKey,
     String label,
   ) async {
+    session.log(
+      'DeviceEndpoint: registerDeviceForAccount called',
+      level: LogLevel.info,
+    );
     try {
       // Require authentication (revoked devices already blocked by auth handler)
       if (session.authenticated == null) {
+        session.log(
+          'DeviceEndpoint: ERROR - Not authenticated',
+          level: LogLevel.error,
+        );
         throw AnonAccredExceptionFactory.createAuthenticationException(
           code: AnonAccredErrorCodes.authMissingKey,
           message: 'Authentication required to register new device',
@@ -534,12 +542,21 @@ class DeviceEndpoint extends Endpoint {
 
       // Get caller's device → derive accountId
       final callerDeviceKey = AnonAccredAuthHandler.getDevicePublicKey(session);
+      session.log(
+        'DeviceEndpoint: Caller device key: ${callerDeviceKey.substring(0, 10)}...',
+        level: LogLevel.info,
+      );
+
       final callerDevice = await AccountDevice.db.findFirstRow(
         session,
         where: (t) => t.deviceSigningPublicKeyHex.equals(callerDeviceKey),
       );
 
       if (callerDevice == null) {
+        session.log(
+          'DeviceEndpoint: ERROR - Caller device not found in DB',
+          level: LogLevel.error,
+        );
         throw AnonAccredExceptionFactory.createAuthenticationException(
           code: AnonAccredErrorCodes.authDeviceNotFound,
           message: 'Caller device not found',
@@ -547,6 +564,11 @@ class DeviceEndpoint extends Endpoint {
           details: {'callerDeviceKey': callerDeviceKey},
         );
       }
+
+      session.log(
+        'DeviceEndpoint: Registering new device for account ID: ${callerDevice.accountId}',
+        level: LogLevel.info,
+      );
 
       // Validate new device key format
       AnonAccredHelpers.validatePublicKey(

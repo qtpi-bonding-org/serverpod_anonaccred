@@ -36,9 +36,11 @@ abstract class AccountInventory
       accountId: jsonSerialization['accountId'] as int,
       consumableType: jsonSerialization['consumableType'] as String,
       quantity: (jsonSerialization['quantity'] as num).toDouble(),
-      lastUpdated: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['lastUpdated'],
-      ),
+      lastUpdated: jsonSerialization['lastUpdated'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['lastUpdated'],
+            ),
     );
   }
 

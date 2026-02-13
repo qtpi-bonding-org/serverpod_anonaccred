@@ -42,10 +42,10 @@ abstract class AccountDevice implements _i1.SerializableModel {
           jsonSerialization['deviceSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       label: jsonSerialization['label'] as String,
-      lastActive: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['lastActive'],
-      ),
-      isRevoked: jsonSerialization['isRevoked'] as bool,
+      lastActive: jsonSerialization['lastActive'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['lastActive']),
+      isRevoked: jsonSerialization['isRevoked'] as bool?,
     );
   }
 

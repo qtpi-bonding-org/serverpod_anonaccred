@@ -36,9 +36,9 @@ abstract class AnonAccount implements _i1.SerializableModel {
           jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       ultimatePublicKey: jsonSerialization['ultimatePublicKey'] as String,
-      createdAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['createdAt'],
-      ),
+      createdAt: jsonSerialization['createdAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
     );
   }
 

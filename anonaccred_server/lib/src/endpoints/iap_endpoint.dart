@@ -218,9 +218,11 @@ class IAPEndpoint extends Endpoint {
       // Create Google IAP rail and validate purchase
       final googleRail = GoogleIAPRail();
       final validationResult = await googleRail.validatePurchase(
+        session: session,
         packageName: packageName,
         productId: productId,
         purchaseToken: purchaseToken,
+        accountId: accountId,
       );
 
       if (!validationResult.isValid) {

@@ -12,34 +12,41 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
-abstract class AccountInventory implements _i1.SerializableModel {
-  AccountInventory._({
+abstract class ConsumableDelivery implements _i1.SerializableModel {
+  ConsumableDelivery._({
     this.id,
+    required this.purchaseToken,
+    required this.productId,
     required this.accountId,
     required this.consumableType,
     required this.quantity,
-    DateTime? lastUpdated,
-  }) : lastUpdated = lastUpdated ?? DateTime.now();
+    required this.orderId,
+    required this.deliveredAt,
+  });
 
-  factory AccountInventory({
+  factory ConsumableDelivery({
     int? id,
+    required String purchaseToken,
+    required String productId,
     required int accountId,
     required String consumableType,
     required double quantity,
-    DateTime? lastUpdated,
-  }) = _AccountInventoryImpl;
+    required String orderId,
+    required DateTime deliveredAt,
+  }) = _ConsumableDeliveryImpl;
 
-  factory AccountInventory.fromJson(Map<String, dynamic> jsonSerialization) {
-    return AccountInventory(
+  factory ConsumableDelivery.fromJson(Map<String, dynamic> jsonSerialization) {
+    return ConsumableDelivery(
       id: jsonSerialization['id'] as int?,
+      purchaseToken: jsonSerialization['purchaseToken'] as String,
+      productId: jsonSerialization['productId'] as String,
       accountId: jsonSerialization['accountId'] as int,
       consumableType: jsonSerialization['consumableType'] as String,
       quantity: (jsonSerialization['quantity'] as num).toDouble(),
-      lastUpdated: jsonSerialization['lastUpdated'] == null
-          ? null
-          : _i1.DateTimeJsonExtension.fromJson(
-              jsonSerialization['lastUpdated'],
-            ),
+      orderId: jsonSerialization['orderId'] as String,
+      deliveredAt: _i1.DateTimeJsonExtension.fromJson(
+        jsonSerialization['deliveredAt'],
+      ),
     );
   }
 
@@ -48,33 +55,45 @@ abstract class AccountInventory implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
+  String purchaseToken;
+
+  String productId;
+
   int accountId;
 
   String consumableType;
 
   double quantity;
 
-  DateTime lastUpdated;
+  String orderId;
 
-  /// Returns a shallow copy of this [AccountInventory]
+  DateTime deliveredAt;
+
+  /// Returns a shallow copy of this [ConsumableDelivery]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
-  AccountInventory copyWith({
+  ConsumableDelivery copyWith({
     int? id,
+    String? purchaseToken,
+    String? productId,
     int? accountId,
     String? consumableType,
     double? quantity,
-    DateTime? lastUpdated,
+    String? orderId,
+    DateTime? deliveredAt,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
-      '__className__': 'anonaccred.AccountInventory',
+      '__className__': 'anonaccred.ConsumableDelivery',
       if (id != null) 'id': id,
+      'purchaseToken': purchaseToken,
+      'productId': productId,
       'accountId': accountId,
       'consumableType': consumableType,
       'quantity': quantity,
-      'lastUpdated': lastUpdated.toJson(),
+      'orderId': orderId,
+      'deliveredAt': deliveredAt.toJson(),
     };
   }
 
@@ -86,38 +105,50 @@ abstract class AccountInventory implements _i1.SerializableModel {
 
 class _Undefined {}
 
-class _AccountInventoryImpl extends AccountInventory {
-  _AccountInventoryImpl({
+class _ConsumableDeliveryImpl extends ConsumableDelivery {
+  _ConsumableDeliveryImpl({
     int? id,
+    required String purchaseToken,
+    required String productId,
     required int accountId,
     required String consumableType,
     required double quantity,
-    DateTime? lastUpdated,
+    required String orderId,
+    required DateTime deliveredAt,
   }) : super._(
          id: id,
+         purchaseToken: purchaseToken,
+         productId: productId,
          accountId: accountId,
          consumableType: consumableType,
          quantity: quantity,
-         lastUpdated: lastUpdated,
+         orderId: orderId,
+         deliveredAt: deliveredAt,
        );
 
-  /// Returns a shallow copy of this [AccountInventory]
+  /// Returns a shallow copy of this [ConsumableDelivery]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   @override
-  AccountInventory copyWith({
+  ConsumableDelivery copyWith({
     Object? id = _Undefined,
+    String? purchaseToken,
+    String? productId,
     int? accountId,
     String? consumableType,
     double? quantity,
-    DateTime? lastUpdated,
+    String? orderId,
+    DateTime? deliveredAt,
   }) {
-    return AccountInventory(
+    return ConsumableDelivery(
       id: id is int? ? id : this.id,
+      purchaseToken: purchaseToken ?? this.purchaseToken,
+      productId: productId ?? this.productId,
       accountId: accountId ?? this.accountId,
       consumableType: consumableType ?? this.consumableType,
       quantity: quantity ?? this.quantity,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
+      orderId: orderId ?? this.orderId,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
     );
   }
 }

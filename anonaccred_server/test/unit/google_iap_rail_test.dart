@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:test/test.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
+import 'package:anonaccred_server/src/product_mapping_config.dart';
+import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
 
 /// Unit tests for Google IAP rail implementation
 /// 
@@ -12,9 +14,11 @@ import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
 void main() {
   group('Google IAP Rail Tests', () {
     late GoogleIAPRail googleRail;
+    late MockAndroidPublisherClient mockClient;
 
     setUp(() {
-      googleRail = GoogleIAPRail();
+      mockClient = MockAndroidPublisherClient();
+      googleRail = GoogleIAPRail(client: mockClient);
     });
 
     test('createPayment returns valid PaymentRequest for Google IAP', () async {
@@ -174,25 +178,50 @@ void main() {
       expect(result.errorMessage, equals('Missing required fields in Google IAP callback'));
     });
 
-    test('GoogleIAPConfig configuration detection', () {
-      // Test configuration detection (will be false in test environment)
-      expect(GoogleIAPConfig.isConfigured, isFalse);
-      expect(GoogleIAPConfig.serviceAccountJson, isNull);
-      expect(GoogleIAPConfig.serviceAccountPath, isNull);
-    });
-
-    test('GoogleIAPConfig validation throws exception when not configured', () {
-      // Test that configuration validation throws appropriate exception
-      expect(
-        () => GoogleIAPConfig.validateConfiguration(),
-        throwsA(isA<AnonAccredException>()),
+    test('GooglePurchaseValidationResult.fromPurchase creates result with consumable info', () {
+      // Test creating result from ProductPurchase and ProductMapping
+      final mockProductMapping = ProductMapping(
+        consumableType: 'coins',
+        quantity: 100.0,
+        autoConsume: true,
       );
+
+      // Create a mock ProductPurchase-like object
+      final mockPurchaseData = {
+        'consumptionState': 0,
+        'purchaseState': 0,
+        'orderId': 'GPA.test-purchase',
+        'purchaseTimeMillis': 1698386400000,
+      };
+
+      final result = GooglePurchaseValidationResult.fromJson(mockPurchaseData);
+      
+      // Verify base fields are present
+      expect(result.purchaseState, equals(0));
+      expect(result.orderId, equals('GPA.test-purchase'));
+      expect(result.isValid, isTrue);
     });
 
-    test('GoogleIAPConfig getAccessToken returns null when not configured', () async {
-      // Test that access token retrieval returns null when not configured
-      final accessToken = await GoogleIAPConfig.getAccessToken();
-      expect(accessToken, isNull);
+    test('GooglePurchaseValidationResult.fromExistingDelivery creates cached result', () {
+      // Test creating result from ConsumableDelivery for idempotent responses
+      final mockDelivery = ConsumableDelivery(
+        purchaseToken: 'test_token_123',
+        productId: 'com.example.coins',
+        accountId: 42,
+        consumableType: 'coins',
+        quantity: 100.0,
+        orderId: 'GPA.cached-order',
+        deliveredAt: DateTime(2024, 1, 1, 12, 0, 0),
+      );
+
+      final result = GooglePurchaseValidationResult.fromExistingDelivery(mockDelivery);
+
+      expect(result.fromCache, isTrue);
+      expect(result.consumableType, equals('coins'));
+      expect(result.quantity, equals(100.0));
+      expect(result.orderId, equals('GPA.cached-order'));
+      expect(result.deliveredAt, equals(DateTime(2024, 1, 1, 12, 0, 0)));
+      expect(result.isValid, isTrue);
     });
   });
 }

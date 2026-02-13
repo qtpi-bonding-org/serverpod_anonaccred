@@ -1,0 +1,16 @@
+class: ConsumableDelivery
+table: consumable_delivery
+indexes:
+  consumable_delivery_purchase_token_idx:
+    fields: purchaseToken
+    unique: true
+  consumable_delivery_account_idx:
+    fields: accountId
+fields:
+  purchaseToken: String
+  productId: String
+  accountId: int
+  consumableType: String
+  quantity: double
+  orderId: String
+  deliveredAt: DateTime
