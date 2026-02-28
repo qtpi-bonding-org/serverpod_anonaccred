@@ -39,69 +39,6 @@ import 'dart:convert';
 /// The JWT is signed with Apple's private key and can be verified using
 /// Apple's public certificates.
 class DecodedTransaction {
-  /// Unique identifier for this transaction.
-  ///
-  /// This is Apple's unique transaction ID and serves as the primary
-  /// identifier for the transaction. Used as the idempotency key for
-  /// delivery tracking.
-  final String transactionId;
-
-  /// Original transaction identifier.
-  ///
-  /// For subscriptions and renewals, this identifies the original purchase.
-  /// For one-time purchases, this is typically the same as [transactionId].
-  final String originalTransactionId;
-
-  /// Product identifier (SKU) for the purchased item.
-  ///
-  /// This matches the product ID configured in App Store Connect and
-  /// is used to map to internal consumable types.
-  final String productId;
-
-  /// iOS application bundle identifier.
-  ///
-  /// The bundle ID of the app where the purchase was made.
-  /// Used to verify the transaction belongs to the correct app.
-  final String bundleId;
-
-  /// Purchase date in milliseconds since epoch.
-  ///
-  /// The timestamp when the transaction was completed.
-  final int purchaseDate;
-
-  /// Original purchase date in milliseconds since epoch.
-  ///
-  /// For subscriptions, this is the date of the original subscription.
-  /// For one-time purchases, this is typically the same as [purchaseDate].
-  final int originalPurchaseDate;
-
-  /// Apple's web order line item ID (optional).
-  ///
-  /// A unique identifier for the order line item. May be null for some
-  /// transaction types.
-  final String? webOrderLineItemId;
-
-  /// Number of items purchased.
-  ///
-  /// For consumables, this indicates how many units were purchased.
-  /// Typically 1 for most transactions.
-  final int quantity;
-
-  /// Transaction type.
-  ///
-  /// Indicates the type of in-app purchase:
-  /// - "Consumable": Items that can be purchased multiple times
-  /// - "Non-Consumable": One-time purchases
-  /// - "Auto-Renewable Subscription": Recurring subscriptions
-  /// - "Non-Renewing Subscription": Time-limited subscriptions
-  final String type;
-
-  /// Optional app-specific account token.
-  ///
-  /// A UUID that associates the transaction with a user account in your app.
-  /// This is set by the app when initiating the purchase and can be used
-  /// to link the transaction to your internal user ID.
-  final String? appAccountToken;
 
   /// Creates a new DecodedTransaction instance.
   ///
@@ -114,9 +51,7 @@ class DecodedTransaction {
     required this.bundleId,
     required this.purchaseDate,
     required this.originalPurchaseDate,
-    this.webOrderLineItemId,
-    required this.quantity,
-    required this.type,
+    required this.quantity, required this.type, this.webOrderLineItemId,
     this.appAccountToken,
   });
 
@@ -222,10 +157,72 @@ class DecodedTransaction {
       appAccountToken: getOptionalClaim<String>('appAccountToken'),
     );
   }
+  /// Unique identifier for this transaction.
+  ///
+  /// This is Apple's unique transaction ID and serves as the primary
+  /// identifier for the transaction. Used as the idempotency key for
+  /// delivery tracking.
+  final String transactionId;
+
+  /// Original transaction identifier.
+  ///
+  /// For subscriptions and renewals, this identifies the original purchase.
+  /// For one-time purchases, this is typically the same as [transactionId].
+  final String originalTransactionId;
+
+  /// Product identifier (SKU) for the purchased item.
+  ///
+  /// This matches the product ID configured in App Store Connect and
+  /// is used to map to internal consumable types.
+  final String productId;
+
+  /// iOS application bundle identifier.
+  ///
+  /// The bundle ID of the app where the purchase was made.
+  /// Used to verify the transaction belongs to the correct app.
+  final String bundleId;
+
+  /// Purchase date in milliseconds since epoch.
+  ///
+  /// The timestamp when the transaction was completed.
+  final int purchaseDate;
+
+  /// Original purchase date in milliseconds since epoch.
+  ///
+  /// For subscriptions, this is the date of the original subscription.
+  /// For one-time purchases, this is typically the same as [purchaseDate].
+  final int originalPurchaseDate;
+
+  /// Apple's web order line item ID (optional).
+  ///
+  /// A unique identifier for the order line item. May be null for some
+  /// transaction types.
+  final String? webOrderLineItemId;
+
+  /// Number of items purchased.
+  ///
+  /// For consumables, this indicates how many units were purchased.
+  /// Typically 1 for most transactions.
+  final int quantity;
+
+  /// Transaction type.
+  ///
+  /// Indicates the type of in-app purchase:
+  /// - "Consumable": Items that can be purchased multiple times
+  /// - "Non-Consumable": One-time purchases
+  /// - "Auto-Renewable Subscription": Recurring subscriptions
+  /// - "Non-Renewing Subscription": Time-limited subscriptions
+  final String type;
+
+  /// Optional app-specific account token.
+  ///
+  /// A UUID that associates the transaction with a user account in your app.
+  /// This is set by the app when initiating the purchase and can be used
+  /// to link the transaction to your internal user ID.
+  final String? appAccountToken;
 
   @override
-  String toString() {
-    return 'DecodedTransaction{'
+  String toString() => 'DecodedTransaction{'
         'transactionId: $transactionId, '
         'originalTransactionId: $originalTransactionId, '
         'productId: $productId, '
@@ -237,7 +234,6 @@ class DecodedTransaction {
         'type: $type, '
         'appAccountToken: $appAccountToken'
         '}';
-  }
 
   @override
   bool operator ==(Object other) =>

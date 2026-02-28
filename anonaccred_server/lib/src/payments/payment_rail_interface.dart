@@ -48,12 +48,10 @@ extension PaymentRequestExtension on PaymentRequest {
     required double amountUSD,
     required String orderId,
     required Map<String, dynamic> railData,
-  }) {
-    return PaymentRequest(
+  }) => PaymentRequest(
       paymentRef: paymentRef,
       amountUSD: amountUSD,
       orderId: orderId,
       railDataJson: jsonEncode(railData),
     );
-  }
 }

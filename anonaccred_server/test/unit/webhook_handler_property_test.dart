@@ -1,8 +1,9 @@
 import 'dart:math';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
+import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase4, Property 3: Webhook Processing Idempotency**
 /// **Validates: Requirements 4.4**
@@ -11,16 +12,13 @@ void main() {
   final random = Random();
 
   group('Webhook Handler Property Tests', () {
-    setUp(() {
-      // Clear rails before each test to ensure clean state
-      PaymentManager.clearRails();
-    });
+    setUp(PaymentManager.clearRails);
 
     test(
       'Property 3: Webhook Processing Idempotency - For any webhook payload, processing it multiple times should not cause duplicate transaction status changes',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random test data
           final railType = PaymentRail.values[random.nextInt(PaymentRail.values.length)];
           final orderId = 'order_${random.nextInt(999999)}';
@@ -47,7 +45,7 @@ void main() {
           
           // Process the same webhook multiple times (idempotency test)
           final subsequentResults = <PaymentResult>[];
-          for (int j = 0; j < 3; j++) {
+          for (var j = 0; j < 3; j++) {
             final result = await mockRail.processCallback(webhookData);
             subsequentResults.add(result);
           }
@@ -112,7 +110,7 @@ void main() {
           
           // Call processCallback multiple times with same data
           final results = <PaymentResult>[];
-          for (int i = 0; i < 5; i++) {
+          for (var i = 0; i < 5; i++) {
             final result = await mockRail.processCallback(webhookData);
             results.add(result);
           }
@@ -142,9 +140,9 @@ void main() {
         };
         
         // Multiple calls should all throw the same type of error
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           expect(
-            () async => await errorRail.processCallback(webhookData),
+            () async => errorRail.processCallback(webhookData),
             throwsA(isA<Exception>()),
           );
         }
@@ -157,14 +155,14 @@ void main() {
 
 /// Mock implementation of PaymentRailInterface for webhook testing
 class MockWebhookRail implements PaymentRailInterface {
+  
+  MockWebhookRail(this._railType, this._orderId, this._transactionTimestamp, this._success);
   final PaymentRail _railType;
   final String _orderId;
   final String _transactionTimestamp;
   final bool _success;
   int callCount = 0;
   final List<PaymentResult> results = [];
-  
-  MockWebhookRail(this._railType, this._orderId, this._transactionTimestamp, this._success);
   
   @override
   PaymentRail get railType => _railType;
@@ -205,10 +203,10 @@ class MockWebhookRail implements PaymentRailInterface {
 
 /// Mock rail that throws errors for testing error handling
 class ErrorThrowingWebhookRail implements PaymentRailInterface {
-  final PaymentRail _railType;
-  int callCount = 0;
   
   ErrorThrowingWebhookRail(this._railType);
+  final PaymentRail _railType;
+  int callCount = 0;
   
   @override
   PaymentRail get railType => _railType;

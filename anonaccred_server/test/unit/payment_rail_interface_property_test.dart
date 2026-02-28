@@ -1,9 +1,10 @@
 import 'dart:math';
+
+import 'package:anonaccred_server/src/generated/payment_rail.dart';
+import 'package:anonaccred_server/src/generated/payment_request.dart';
+import 'package:anonaccred_server/src/generated/payment_result.dart';
+import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:test/test.dart';
-import '../../lib/src/generated/payment_rail.dart';
-import '../../lib/src/generated/payment_request.dart';
-import '../../lib/src/generated/payment_result.dart';
-import '../../lib/src/payments/payment_rail_interface.dart';
 
 /// **Feature: anonaccred-phase4, Property 1: Payment Rail Registration**
 /// **Validates: Requirements 2.1, 2.2**
@@ -16,7 +17,7 @@ void main() {
       'Property 1: Payment Rail Registration - For any payment rail registered with the Payment Manager, it should be retrievable by its rail type',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Create a mock payment rail for testing
           final mockRail = MockPaymentRail(PaymentRail.values[i % PaymentRail.values.length]);
           
@@ -77,7 +78,7 @@ void main() {
         // Clear any existing rails
         PaymentManager.clearRails();
         
-        final railType = PaymentRail.x402_http;
+        const railType = PaymentRail.x402_http;
         
         // Register first rail
         final firstRail = MockPaymentRail(railType);
@@ -114,9 +115,9 @@ void main() {
 
 /// Mock implementation of PaymentRailInterface for testing
 class MockPaymentRail implements PaymentRailInterface {
-  final PaymentRail _railType;
   
   MockPaymentRail(this._railType);
+  final PaymentRail _railType;
   
   @override
   PaymentRail get railType => _railType;
@@ -160,9 +161,7 @@ class PaymentManager {
   }
   
   /// Get payment rail by type (Requirement 2.2)
-  static PaymentRailInterface? getRail(PaymentRail railType) {
-    return _rails[railType];
-  }
+  static PaymentRailInterface? getRail(PaymentRail railType) => _rails[railType];
   
   /// Clear all registered rails (for testing)
   static void clearRails() {
@@ -170,7 +169,5 @@ class PaymentManager {
   }
   
   /// Get all registered rail types (for testing)
-  static List<PaymentRail> getRegisteredRailTypes() {
-    return _rails.keys.toList();
-  }
+  static List<PaymentRail> getRegisteredRailTypes() => _rails.keys.toList();
 }

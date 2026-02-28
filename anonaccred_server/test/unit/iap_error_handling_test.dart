@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
+import 'package:test/test.dart';
 
 /// Unit tests for IAP error handling scenarios
 /// 
@@ -80,12 +80,12 @@ void main() {
   group('IAP Configuration Error Handling', () {
     test('Apple configuration validation handles missing config', () {
       // Test configuration validation (will fail in test environment)
-      expect(() => AppleIAPConfig.validateConfiguration(), throwsA(isA<Exception>()));
+      expect(AppleIAPConfig.validateConfiguration, throwsA(isA<Exception>()));
     });
 
     test('Google configuration validation handles missing config', () {
       // Test configuration validation (will fail in test environment)
-      expect(() => GoogleIAPConfig.validateConfiguration(), throwsA(isA<Exception>()));
+      expect(GoogleIAPConfig.validateConfiguration, throwsA(isA<Exception>()));
     });
   });
 }

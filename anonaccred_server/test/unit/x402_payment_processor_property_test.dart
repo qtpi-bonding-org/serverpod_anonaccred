@@ -1,6 +1,7 @@
 import 'dart:math';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
+import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase5, Property 1: HTTP 402 Response Format**
 /// **Validates: Requirements 1.2, 1.4**
@@ -16,7 +17,7 @@ void main() {
       'Property 1: HTTP 402 Response Format - For any payment requirement, the HTTP 402 response should contain amount, destination address, and order ID',
       () {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random test data
           final amount = (random.nextDouble() * 1000) + 0.01; // $0.01 to $1000
           final orderId = 'order_${random.nextInt(999999)}';
@@ -136,7 +137,7 @@ void main() {
     test(
       'Property 1 Extension: JSON response structure validation',
       () {
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final amount = (random.nextDouble() * 100) + 1.0;
           final orderId = 'json_test_${random.nextInt(1000)}';
           
@@ -177,7 +178,7 @@ void main() {
       'Property 3: Payment Verification - For any request with X-PAYMENT header, facilitator verification should determine access',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Test case 1: Missing X-PAYMENT header should return false
           final emptyHeaders = <String, String>{};
           final resultEmpty = await X402PaymentProcessor.verifyPayment(emptyHeaders);
@@ -229,7 +230,7 @@ void main() {
       'Property 3 Extension: Payment verification header extraction consistency',
       () async {
         // Test that header extraction works consistently across different formats
-        final paymentPayload = 'test_payment_payload_123';
+        const paymentPayload = 'test_payment_payload_123';
         
         final headerFormats = [
           {'X-PAYMENT': paymentPayload},

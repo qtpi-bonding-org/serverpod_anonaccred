@@ -11,10 +11,10 @@ import '../generated/protocol.dart';
 ///
 /// Requirements 2.1, 2.2, 2.3, 2.4, 2.5: AndroidPublisher API integration
 class AndroidPublisherClient {
-  final AndroidPublisherApi _api;
 
   AndroidPublisherClient(AuthClient authClient)
       : _api = AndroidPublisherApi(authClient);
+  final AndroidPublisherApi _api;
 
   /// Validate purchase by retrieving purchase details
   ///
@@ -138,7 +138,7 @@ class AndroidPublisherClient {
   ///
   /// Requirements 2.5: Handle API errors using googleapis error types
   PaymentException _handleApiError(
-    dynamic error,
+    error,
     String message,
     Map<String, dynamic> details,
   ) {

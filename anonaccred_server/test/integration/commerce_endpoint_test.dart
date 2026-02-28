@@ -1,7 +1,7 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/inventory_manager.dart';
 import 'package:anonaccred_server/src/price_registry.dart';
+import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 

@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
 import 'package:anonaccred_server/src/product_mapping_config.dart';
-import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
+import 'package:test/test.dart';
 
 /// Unit tests for Google IAP rail implementation
 /// 
@@ -81,7 +82,7 @@ void main() {
       ];
       final expectedValid = [true, false, false];
 
-      for (int i = 0; i < purchaseStates.length; i++) {
+      for (var i = 0; i < purchaseStates.length; i++) {
         final mockResponse = {
           'consumptionState': 0,
           'purchaseState': purchaseStates[i],
@@ -183,7 +184,6 @@ void main() {
       final mockProductMapping = ProductMapping(
         consumableType: 'coins',
         quantity: 100.0,
-        autoConsume: true,
       );
 
       // Create a mock ProductPurchase-like object
@@ -211,7 +211,7 @@ void main() {
         consumableType: 'coins',
         quantity: 100.0,
         orderId: 'GPA.cached-order',
-        deliveredAt: DateTime(2024, 1, 1, 12, 0, 0),
+        deliveredAt: DateTime(2024, 1, 1, 12),
       );
 
       final result = GooglePurchaseValidationResult.fromExistingDelivery(mockDelivery);
@@ -220,7 +220,7 @@ void main() {
       expect(result.consumableType, equals('coins'));
       expect(result.quantity, equals(100.0));
       expect(result.orderId, equals('GPA.cached-order'));
-      expect(result.deliveredAt, equals(DateTime(2024, 1, 1, 12, 0, 0)));
+      expect(result.deliveredAt, equals(DateTime(2024, 1, 1, 12)));
       expect(result.isValid, isTrue);
     });
   });

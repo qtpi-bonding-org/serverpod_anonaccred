@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/payments/apple_jwt_auth_client.dart';
+import 'package:test/test.dart';
 
 /// Verification tests for Apple JWT authentication
 ///

@@ -27,7 +27,7 @@ void main() {
         const deviceKey = 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
         mockSession.authenticated = AuthenticationInfo(
           'user123',
-          {Scope('device:$deviceKey')},
+          {const Scope('device:$deviceKey')},
           authId: deviceKey,
         );
         final result = AnonAccredAuthHandler.getDevicePublicKey(mockSession);
@@ -38,7 +38,7 @@ void main() {
         final mockSession = _MockSession();
         mockSession.authenticated = AuthenticationInfo(
           'user123',
-          {Scope('other:scope'), Scope('another:scope')},
+          {const Scope('other:scope'), const Scope('another:scope')},
           authId: 'auth123',
         );
         final result = AnonAccredAuthHandler.getDevicePublicKey(mockSession);
@@ -47,7 +47,7 @@ void main() {
 
       test('property: getDevicePublicKey should extract device keys from scopes', () {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final mockSession = _MockSession();
           final deviceKey = _generateValidEd25519PublicKey(random);
           final userId = 'user${random.nextInt(1000)}';
@@ -81,7 +81,7 @@ void main() {
 
       test('property: handleAuthentication should handle various session types', () async {
         // Property-based test with 5 iterations for development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final mockSession = _MockSession();
           final token = 'token${random.nextInt(1000)}';
           

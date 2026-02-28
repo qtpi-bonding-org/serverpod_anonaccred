@@ -1,11 +1,12 @@
 import 'package:serverpod/serverpod.dart';
+
 import '../exception_factory.dart';
 import '../generated/payment_rail.dart';
 import '../generated/payment_request.dart';
 import 'payment_rail_interface.dart';
-import 'x402_payment_rail.dart';
 import 'rails/apple_iap_rail.dart';
 import 'rails/google_iap_rail.dart';
+import 'x402_payment_rail.dart';
 
 /// Payment Manager factory for routing payment requests to appropriate rails
 /// 
@@ -30,9 +31,7 @@ class PaymentManager {
   /// Returns the registered rail implementation or null if not found
   /// 
   /// Requirement 2.2: Payment requests can be routed to the specified payment rail
-  static PaymentRailInterface? getRail(PaymentRail railType) {
-    return _rails[railType];
-  }
+  static PaymentRailInterface? getRail(PaymentRail railType) => _rails[railType];
   
   /// Create a payment using the specified payment rail
   /// 
@@ -48,10 +47,7 @@ class PaymentManager {
   /// Requirements 2.2, 2.3: Route requests to appropriate rails with error handling
   /// Requirement 9.1: Log payment creation with order ID, rail type, and amount details
   static Future<PaymentRequest> createPayment({
-    Session? session,
-    required PaymentRail railType,
-    required double amountUSD,
-    required String orderId,
+    required PaymentRail railType, required double amountUSD, required String orderId, Session? session,
   }) async {
     // Log payment creation initiation (Requirement 9.1)
     session?.log(
@@ -116,9 +112,7 @@ class PaymentManager {
   /// Get all registered payment rail types
   /// 
   /// Returns a list of all currently registered payment rail types
-  static List<PaymentRail> getRegisteredRailTypes() {
-    return _rails.keys.toList();
-  }
+  static List<PaymentRail> getRegisteredRailTypes() => _rails.keys.toList();
   
   /// Clear all registered payment rails (primarily for testing)
   /// 
@@ -132,9 +126,7 @@ class PaymentManager {
   /// [railType] - The payment rail type to check
   /// 
   /// Returns true if the rail is registered, false otherwise
-  static bool isRailRegistered(PaymentRail railType) {
-    return _rails.containsKey(railType);
-  }
+  static bool isRailRegistered(PaymentRail railType) => _rails.containsKey(railType);
   
   /// Initialize X402 payment rail (simple registration)
   /// 

@@ -1,7 +1,9 @@
 import 'dart:math';
-import 'package:test/test.dart';
-import 'package:serverpod/serverpod.dart';
+
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart';
+import 'package:test/test.dart';
+
 import '../integration/test_tools/serverpod_test_tools.dart';
 
 /// **Feature: anonaccred-phase3, Property 4: Inventory Addition Consistency**
@@ -18,7 +20,7 @@ void main() {
       'Property 4: Inventory Addition Consistency - For any inventory addition operation, the system should correctly increment balances or create new records while updating timestamps',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random test data
           final consumableType = _generateRandomConsumableType();
           final quantity = _generateRandomQuantity();
@@ -198,7 +200,7 @@ void main() {
 
       // Create a real account for this test
       final publicKey = _generateRandomPublicKey();
-      final encryptedDataKey = 'test_encrypted_data_key_invalid';
+      const encryptedDataKey = 'test_encrypted_data_key_invalid';
 
       final account = await endpoints.account.createAccount(
         sessionBuilder,
@@ -245,7 +247,7 @@ void main() {
 
       // Create a real account for this test
       final publicKey = _generateRandomPublicKey();
-      final encryptedDataKey = 'test_encrypted_data_key_fractional';
+      const encryptedDataKey = 'test_encrypted_data_key_fractional';
 
       final account = await endpoints.account.createAccount(
         sessionBuilder,
@@ -300,7 +302,7 @@ void main() {
       'Property 5: Inventory Query Accuracy - For any inventory query operation, the system should return accurate balance information without modifying existing data',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Create a real account for this test
           final publicKey = _generateRandomPublicKey();
           final encryptedDataKey = 'test_encrypted_data_key_query_$i';
@@ -335,7 +337,7 @@ void main() {
           final quantities = <double>[];
           final numItems = random.nextInt(5) + 1; // 1-5 items
 
-          for (int j = 0; j < numItems; j++) {
+          for (var j = 0; j < numItems; j++) {
             final consumableType = _generateRandomConsumableType();
             final quantity = _generateRandomQuantity();
 
@@ -358,7 +360,7 @@ void main() {
           expect(fullInventory.length, equals(numItems));
 
           // Verify each item is present with correct data
-          for (int j = 0; j < numItems; j++) {
+          for (var j = 0; j < numItems; j++) {
             final expectedType = consumableTypes[j];
             final expectedQuantity = quantities[j];
 
@@ -388,7 +390,7 @@ void main() {
           );
 
           // Perform multiple queries
-          for (int j = 0; j < 3; j++) {
+          for (var j = 0; j < 3; j++) {
             await InventoryManager.getInventory(session, accountId);
             for (final type in consumableTypes) {
               await InventoryManager.getBalance(
@@ -409,7 +411,7 @@ void main() {
             equals(inventoryBeforeQueries.length),
           );
 
-          for (int j = 0; j < inventoryBeforeQueries.length; j++) {
+          for (var j = 0; j < inventoryBeforeQueries.length; j++) {
             final before = inventoryBeforeQueries[j];
             final after = inventoryAfterQueries
                 .where((inv) => inv.consumableType == before.consumableType)
@@ -421,7 +423,7 @@ void main() {
 
           // Test concurrent queries don't interfere (Requirement 5.4)
           final futures = <Future>[];
-          for (int j = 0; j < 5; j++) {
+          for (var j = 0; j < 5; j++) {
             futures.add(InventoryManager.getInventory(session, accountId));
             for (final type in consumableTypes) {
               futures.add(
@@ -438,7 +440,7 @@ void main() {
 
           // Verify all concurrent queries returned consistent results
           final inventoryResults = results
-              .where((r) => r is List<AccountInventory>)
+              .whereType<List<AccountInventory>>()
               .cast<List<AccountInventory>>();
           for (final inventoryResult in inventoryResults) {
             expect(inventoryResult.length, equals(numItems));
@@ -456,7 +458,7 @@ void main() {
       'Property 6: Empty Account Handling - For any query on non-existent accounts, the system should return empty inventory lists without errors',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Create a real account for this test
           final publicKey = _generateRandomPublicKey();
           final encryptedDataKey = 'test_encrypted_data_key_empty_$i';
@@ -488,7 +490,7 @@ void main() {
           expect(balance, equals(0.0));
 
           // Test multiple consumable types on empty account
-          for (int j = 0; j < 3; j++) {
+          for (var j = 0; j < 3; j++) {
             final randomType = _generateRandomConsumableType();
             final randomBalance = await InventoryManager.getBalance(
               session,
@@ -516,7 +518,7 @@ String _generateRandomPublicKey() {
   final buffer = StringBuffer();
 
   // Generate 128 hex characters for ECDSA P-256 public key (not Ed25519)
-  for (int i = 0; i < 128; i++) {
+  for (var i = 0; i < 128; i++) {
     buffer.write(random.nextInt(16).toRadixString(16));
   }
 

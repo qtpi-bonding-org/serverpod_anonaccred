@@ -219,7 +219,7 @@ class OrderManager {
         // Get all consumables for this transaction
         final consumables = await TransactionConsumable.db.find(
           session,
-          where: (t) => t.transactionId.equals(transaction.id!),
+          where: (t) => t.transactionId.equals(transaction.id),
           transaction: dbTransaction,
         );
 

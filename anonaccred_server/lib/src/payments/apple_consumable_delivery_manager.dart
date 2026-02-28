@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
-import 'package:anonaccred_server/src/generated/apple_consumable_delivery.dart';
-import 'package:anonaccred_server/src/payments/i_consumable_delivery_manager.dart';
+import '../generated/apple_consumable_delivery.dart';
+import 'i_consumable_delivery_manager.dart';
 
 /// Apple IAP implementation of IConsumableDeliveryManager.
 ///
@@ -59,19 +59,17 @@ class AppleConsumableDeliveryManager
       deliveredAt: DateTime.now(),
     );
 
-    return await AppleConsumableDelivery.db.insertRow(session, delivery);
+    return AppleConsumableDelivery.db.insertRow(session, delivery);
   }
 
   @override
   Future<List<AppleConsumableDelivery>> getDeliveriesForAccount(
     Session session,
     int accountId,
-  ) async {
-    return await AppleConsumableDelivery.db.find(
+  ) async => AppleConsumableDelivery.db.find(
       session,
       where: (t) => t.accountId.equals(accountId),
     );
-  }
 
   /// Apple-specific: Find deliveries by original transaction ID.
   ///
@@ -85,10 +83,8 @@ class AppleConsumableDeliveryManager
   Future<List<AppleConsumableDelivery>> findByOriginalTransactionId(
     Session session,
     String originalTransactionId,
-  ) async {
-    return await AppleConsumableDelivery.db.find(
+  ) async => AppleConsumableDelivery.db.find(
       session,
       where: (t) => t.originalTransactionId.equals(originalTransactionId),
     );
-  }
 }

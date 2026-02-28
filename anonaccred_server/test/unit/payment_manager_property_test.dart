@@ -1,12 +1,13 @@
 import 'dart:math';
-import 'package:test/test.dart';
-import 'package:serverpod/serverpod.dart';
+
+import 'package:anonaccred_server/src/generated/payment_exception.dart';
 import 'package:anonaccred_server/src/generated/payment_rail.dart';
 import 'package:anonaccred_server/src/generated/payment_request.dart';
 import 'package:anonaccred_server/src/generated/payment_result.dart';
-import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
-import 'package:anonaccred_server/src/generated/payment_exception.dart';
+import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
+import 'package:serverpod/serverpod.dart';
+import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase4, Property 2: Payment Request Creation**
 /// **Validates: Requirements 1.2, 3.1**
@@ -27,7 +28,7 @@ void main() {
       'Property 2: Payment Request Creation - For any valid payment parameters, creating a payment through a registered rail should return a PaymentRequest with paymentRef, amountUSD, and orderId populated',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random test data
           final railType = PaymentRail.values[random.nextInt(PaymentRail.values.length)];
           final amountUSD = (random.nextDouble() * 1000) + 0.01; // $0.01 to $1000
@@ -71,12 +72,12 @@ void main() {
         PaymentManager.clearRails();
         
         for (final railType in PaymentRail.values) {
-          final amountUSD = 100.0;
-          final orderId = 'order_test';
+          const amountUSD = 100.0;
+          const orderId = 'order_test';
           
           // Attempt to create payment with unregistered rail (Requirement 2.3)
           expect(
-            () async => await PaymentManager.createPayment(
+            () async => PaymentManager.createPayment(
               
               railType: railType,
               amountUSD: amountUSD,
@@ -171,7 +172,7 @@ void main() {
         
         // Verify that rail errors are wrapped in PaymentException
         expect(
-          () async => await PaymentManager.createPayment(
+          () async => PaymentManager.createPayment(
             
             railType: railType,
             amountUSD: amountUSD,
@@ -190,10 +191,10 @@ void main() {
 
 /// Mock implementation of PaymentRailInterface for testing
 class MockPaymentRail implements PaymentRailInterface {
-  final PaymentRail _railType;
-  final String? customData;
   
   MockPaymentRail(this._railType, {this.customData});
+  final PaymentRail _railType;
+  final String? customData;
   
   @override
   PaymentRail get railType => _railType;
@@ -212,7 +213,7 @@ class MockPaymentRail implements PaymentRailInterface {
         'railType': railType.toString(),
         'mockData': 'test_data',
         'timestamp': DateTime.now().toIso8601String(),
-        if (customData != null) 'customData': customData!,
+        if (customData != null) 'customData': customData,
       },
     );
   }
@@ -230,9 +231,9 @@ class MockPaymentRail implements PaymentRailInterface {
 
 /// Mock rail that throws errors for testing error handling
 class ErrorThrowingMockRail implements PaymentRailInterface {
-  final PaymentRail _railType;
   
   ErrorThrowingMockRail(this._railType);
+  final PaymentRail _railType;
   
   @override
   PaymentRail get railType => _railType;
@@ -254,7 +255,7 @@ class ErrorThrowingMockRail implements PaymentRailInterface {
 class MockSession {
   final List<LogEntry> logEntries = [];
   
-  void log(String message, {LogLevel? level, dynamic exception}) {
+  void log(String message, {LogLevel? level, exception}) {
     logEntries.add(LogEntry(
       message: message,
       level: level ?? LogLevel.info,
@@ -265,13 +266,13 @@ class MockSession {
 
 /// Log entry for tracking mock session logs
 class LogEntry {
-  final String message;
-  final LogLevel level;
-  final dynamic exception;
   
   LogEntry({
     required this.message,
     required this.level,
     this.exception,
   });
+  final String message;
+  final LogLevel level;
+  final dynamic exception;
 }

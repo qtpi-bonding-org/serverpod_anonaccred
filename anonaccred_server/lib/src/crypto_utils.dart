@@ -115,7 +115,7 @@ class CryptoUtils {
       final signatureBytes = hexToBytes(signature);
       
       // Normalize public key to raw format (remove 04 prefix if present)
-      String normalizedKey = publicKey;
+      var normalizedKey = publicKey;
       if (publicKey.length == 130 && publicKey.startsWith('04')) {
         normalizedKey = publicKey.substring(2);
       }
@@ -194,8 +194,8 @@ class CryptoUtils {
 
   /// Converts bytes to BigInt (big-endian)
   static BigInt _bytesToBigInt(Uint8List bytes) {
-    BigInt result = BigInt.zero;
-    for (int i = 0; i < bytes.length; i++) {
+    var result = BigInt.zero;
+    for (var i = 0; i < bytes.length; i++) {
       result = (result << 8) + BigInt.from(bytes[i]);
     }
     return result;

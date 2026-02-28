@@ -20,7 +20,6 @@ import '../webhook_signature_validator.dart';
 ///
 /// Requirements 3.1, 3.2, 3.3: Google purchase validation with service account authentication
 class GoogleIAPRail implements PaymentRailInterface {
-  final AndroidPublisherClient _client;
 
   /// Create GoogleIAPRail with optional dependency injection
   ///
@@ -34,6 +33,7 @@ class GoogleIAPRail implements PaymentRailInterface {
   /// Requirements 9.4: Support dependency injection for testing
   GoogleIAPRail({AndroidPublisherClient? client})
       : _client = client ?? _createDefaultClient();
+  final AndroidPublisherClient _client;
 
   /// Create default AndroidPublisherClient using GoogleAuthClient
   ///
@@ -466,17 +466,6 @@ class GoogleIAPRail implements PaymentRailInterface {
 /// Structured representation of Google Play Developer API response.
 /// Provides convenient access to validation status and purchase details.
 class GooglePurchaseValidationResult {
-  final int consumptionState;
-  final int purchaseState;
-  final String? developerPayload;
-  final String? orderId;
-  final int? purchaseTimeMillis;
-  final int? purchaseType;
-  final int? acknowledgementState;
-  final String? consumableType;
-  final double? quantity;
-  final bool fromCache;
-  final DateTime? deliveredAt;
 
   GooglePurchaseValidationResult({
     required this.consumptionState,
@@ -509,8 +498,8 @@ class GooglePurchaseValidationResult {
     ProductPurchase productPurchase,
   ) {
     // Extract values, converting types as needed
-    int consumptionState = 0;
-    int purchaseState = 0;
+    var consumptionState = 0;
+    var purchaseState = 0;
     
     // Handle consumptionState - may be int or String
     if (productPurchase.consumptionState != null) {
@@ -534,12 +523,12 @@ class GooglePurchaseValidationResult {
     
     String? developerPayload;
     if (productPurchase.developerPayload is String) {
-      developerPayload = productPurchase.developerPayload as String;
+      developerPayload = productPurchase.developerPayload! as String;
     }
     
     String? orderId;
     if (productPurchase.orderId is String) {
-      orderId = productPurchase.orderId as String;
+      orderId = productPurchase.orderId! as String;
     }
     
     return GooglePurchaseValidationResult(
@@ -569,16 +558,13 @@ class GooglePurchaseValidationResult {
       acknowledgementState: base.acknowledgementState,
       consumableType: mapping.consumableType,
       quantity: mapping.quantity,
-      fromCache: false,
-      deliveredAt: null,
     );
   }
 
   /// Create from existing delivery record (for cached/idempotent responses)
   factory GooglePurchaseValidationResult.fromExistingDelivery(
     ConsumableDelivery delivery,
-  ) {
-    return GooglePurchaseValidationResult(
+  ) => GooglePurchaseValidationResult(
       consumptionState: 0,
       purchaseState: 0,
       orderId: delivery.orderId,
@@ -587,7 +573,17 @@ class GooglePurchaseValidationResult {
       fromCache: true,
       deliveredAt: delivery.deliveredAt,
     );
-  }
+  final int consumptionState;
+  final int purchaseState;
+  final String? developerPayload;
+  final String? orderId;
+  final int? purchaseTimeMillis;
+  final int? purchaseType;
+  final int? acknowledgementState;
+  final String? consumableType;
+  final double? quantity;
+  final bool fromCache;
+  final DateTime? deliveredAt;
 
   /// Helper to parse int fields that may be int or String
   static int? _parseIntField(Object? value) {

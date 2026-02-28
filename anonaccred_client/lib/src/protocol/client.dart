@@ -159,11 +159,7 @@ class EndpointCommerce extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<Map<String, double>>(
     'anonaccred.commerce',
     'registerProducts',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'products': products,
-    },
+    {'publicKey': publicKey, 'signature': signature, 'products': products},
   );
 
   /// Get the complete product catalog
@@ -243,11 +239,7 @@ class EndpointCommerce extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<List<_i6.AccountInventory>>(
     'anonaccred.commerce',
     'getInventory',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'accountId': accountId,
-    },
+    {'publicKey': publicKey, 'signature': signature, 'accountId': accountId},
   );
 
   /// Get balance for a specific consumable type
@@ -272,16 +264,12 @@ class EndpointCommerce extends _i1.EndpointRef {
     String signature,
     int accountId,
     String consumableType,
-  ) => caller.callServerEndpoint<double>(
-    'anonaccred.commerce',
-    'getBalance',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'accountId': accountId,
-      'consumableType': consumableType,
-    },
-  );
+  ) => caller.callServerEndpoint<double>('anonaccred.commerce', 'getBalance', {
+    'publicKey': publicKey,
+    'signature': signature,
+    'accountId': accountId,
+    'consumableType': consumableType,
+  });
 
   /// Consume inventory using atomic utilities
   ///
@@ -341,11 +329,7 @@ class EndpointCommerce extends _i1.EndpointRef {
   }) => caller.callServerEndpoint<Map<String, dynamic>>(
     'anonaccred.commerce',
     'getProductCatalogWithX402',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'headers': headers,
-    },
+    {'publicKey': publicKey, 'signature': signature, 'headers': headers},
   );
 
   /// Get inventory balance with X402 pay-per-query integration
@@ -447,10 +431,7 @@ class EndpointDevice extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<_i9.AuthenticationResult>(
     'anonaccred.device',
     'authenticateDevice',
-    {
-      'challenge': challenge,
-      'signature': signature,
-    },
+    {'challenge': challenge, 'signature': signature},
   );
 
   /// Generate authentication challenge
@@ -459,12 +440,15 @@ class EndpointDevice extends _i1.EndpointRef {
   /// The challenge should be signed by the client's private key and returned
   /// for verification via authenticateDevice.
   ///
+  /// Parameters:
+  /// - [devicePublicKey]: The device's ECDSA P-256 signing public key (128 hex chars)
+  ///
   /// Returns a hex-encoded challenge string.
-  _i2.Future<String> generateAuthChallenge() =>
+  _i2.Future<String> generateAuthChallenge(String devicePublicKey) =>
       caller.callServerEndpoint<String>(
         'anonaccred.device',
         'generateAuthChallenge',
-        {},
+        {'devicePublicKey': devicePublicKey},
       );
 
   /// Revoke device access
@@ -480,11 +464,9 @@ class EndpointDevice extends _i1.EndpointRef {
   ///
   /// Throws AuthenticationException if device validation fails or device not found.
   _i2.Future<bool> revokeDevice(int deviceId) =>
-      caller.callServerEndpoint<bool>(
-        'anonaccred.device',
-        'revokeDevice',
-        {'deviceId': deviceId},
-      );
+      caller.callServerEndpoint<bool>('anonaccred.device', 'revokeDevice', {
+        'deviceId': deviceId,
+      });
 
   /// List account devices
   ///
@@ -514,12 +496,9 @@ class EndpointDevice extends _i1.EndpointRef {
       caller.callStreamingServerEndpoint<
         _i2.Stream<_i10.DevicePairingEvent>,
         _i10.DevicePairingEvent
-      >(
-        'anonaccred.device',
-        'monitorRegistration',
-        {'signingKeyHex': signingKeyHex},
-        {},
-      );
+      >('anonaccred.device', 'monitorRegistration', {
+        'signingKeyHex': signingKeyHex,
+      }, {});
 
   /// Register a new device for the caller's account (QR code pairing flow).
   ///
@@ -784,11 +763,7 @@ class EndpointModule extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<bool>(
     'anonaccred.module',
     'authenticateUser',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'challenge': challenge,
-    },
+    {'publicKey': publicKey, 'signature': signature, 'challenge': challenge},
   );
 
   /// Processes a payment through specified payment rail
@@ -800,11 +775,7 @@ class EndpointModule extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<String>(
     'anonaccred.module',
     'processPayment',
-    {
-      'orderId': orderId,
-      'paymentRail': paymentRail,
-      'amount': amount,
-    },
+    {'orderId': orderId, 'paymentRail': paymentRail, 'amount': amount},
   );
 
   /// Manages inventory operations (check balance, add consumables)
@@ -814,16 +785,12 @@ class EndpointModule extends _i1.EndpointRef {
     String consumableType,
     String operation,
     int? quantity,
-  ) => caller.callServerEndpoint<int>(
-    'anonaccred.module',
-    'manageInventory',
-    {
-      'accountId': accountId,
-      'consumableType': consumableType,
-      'operation': operation,
-      'quantity': quantity,
-    },
-  );
+  ) => caller.callServerEndpoint<int>('anonaccred.module', 'manageInventory', {
+    'accountId': accountId,
+    'consumableType': consumableType,
+    'operation': operation,
+    'quantity': quantity,
+  });
 }
 
 /// Payment endpoints for AnonAccred Phase 4 payment rail architecture
@@ -897,11 +864,7 @@ class EndpointPayment extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<_i4.TransactionPayment>(
     'anonaccred.payment',
     'checkPaymentStatus',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'orderId': orderId,
-    },
+    {'publicKey': publicKey, 'signature': signature, 'orderId': orderId},
   );
 
   /// Process webhook for Monero payment rail

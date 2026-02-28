@@ -1,7 +1,6 @@
+import 'package:anonaccred_server/src/payments/x402_interceptor.dart';
+import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
 import 'package:test/test.dart';
-
-import '../../lib/src/payments/x402_interceptor.dart';
-import '../../lib/src/payments/x402_payment_processor.dart';
 
 /// Integration tests for X402 endpoint integration
 /// 
@@ -33,7 +32,7 @@ void main() {
     test('should validate configuration requirements', () {
       // This test verifies that configuration validation works
       // In a real environment, this would check actual environment variables
-      expect(() => X402Interceptor.validateConfiguration(), throwsA(isA<Exception>()));
+      expect(X402Interceptor.validateConfiguration, throwsA(isA<Exception>()));
     });
   });
 

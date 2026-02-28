@@ -1,7 +1,9 @@
 import 'dart:math';
-import 'package:test/test.dart';
-import 'package:serverpod/serverpod.dart';
+
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart';
+import 'package:test/test.dart';
+
 import '../integration/test_tools/serverpod_test_tools.dart';
 
 /// **Feature: anonaccred-phase3, Property 9: Consumption Utility Success**
@@ -15,7 +17,7 @@ void main() {
       'Property 9: Consumption Utility Success - For any consumption request with sufficient balance, the utility should atomically decrement the balance and return success',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random test data
           final consumableType = _generateRandomConsumableType();
           final initialQuantity = _generateRandomQuantity();
@@ -156,7 +158,7 @@ void main() {
         final consumableTypes = <String>[];
         final quantities = <double>[];
 
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           final consumableType = _generateRandomConsumableType();
           final quantity = _generateRandomQuantity();
 
@@ -174,7 +176,7 @@ void main() {
         // Test consumption from each type independently
         final expectedBalances = List<double>.from(quantities);
 
-        for (int i = 0; i < consumableTypes.length; i++) {
+        for (var i = 0; i < consumableTypes.length; i++) {
           final consumableType = consumableTypes[i];
           final initialQuantity = expectedBalances[i];
           final consumeQuantity = initialQuantity * 0.3; // Consume 30%
@@ -197,7 +199,7 @@ void main() {
           expectedBalances[i] = initialQuantity - consumeQuantity;
 
           // Verify all balances match expected values
-          for (int j = 0; j < consumableTypes.length; j++) {
+          for (var j = 0; j < consumableTypes.length; j++) {
             final actualBalance = await InventoryManager.getBalance(
               session,
               accountId: accountId,
@@ -395,7 +397,7 @@ void main() {
 
       // Launch concurrent consumption operations
       final futures = <Future<ConsumeResult>>[];
-      for (int i = 0; i < numConcurrentOperations; i++) {
+      for (var i = 0; i < numConcurrentOperations; i++) {
         futures.add(
           InventoryUtils.tryConsume(
             session,
@@ -445,7 +447,7 @@ String _generateRandomPublicKey() {
   final buffer = StringBuffer();
 
   // Generate 128 hex characters for ECDSA P-256 public key (not Ed25519)
-  for (int i = 0; i < 128; i++) {
+  for (var i = 0; i < 128; i++) {
     buffer.write(random.nextInt(16).toRadixString(16));
   }
 

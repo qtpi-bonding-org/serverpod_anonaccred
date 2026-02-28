@@ -1,21 +1,14 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
+import 'package:anonaccred_server/src/payments/payment_processor.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/webhook_handler.dart';
-import 'package:anonaccred_server/src/payments/payment_processor.dart';
+import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 
 /// Mock payment rail for testing complete payment flows
 class MockPaymentRail implements PaymentRailInterface {
-  @override
-  PaymentRail get railType => PaymentRail.monero;
-
-  final bool shouldSucceed;
-  final bool shouldThrowOnCreate;
-  final bool shouldThrowOnCallback;
-  final String? customPaymentRef;
 
   MockPaymentRail({
     this.shouldSucceed = true,
@@ -23,6 +16,13 @@ class MockPaymentRail implements PaymentRailInterface {
     this.shouldThrowOnCallback = false,
     this.customPaymentRef,
   });
+  @override
+  PaymentRail get railType => PaymentRail.monero;
+
+  final bool shouldSucceed;
+  final bool shouldThrowOnCreate;
+  final bool shouldThrowOnCallback;
+  final String? customPaymentRef;
 
   @override
   Future<PaymentRequest> createPayment({
@@ -41,7 +41,7 @@ class MockPaymentRail implements PaymentRailInterface {
         'mockRail': true,
         'paymentAddress': 'mock_address_123',
         'expirationTime': DateTime.now()
-            .add(Duration(hours: 1))
+            .add(const Duration(hours: 1))
             .toIso8601String(),
       },
     );
@@ -120,7 +120,7 @@ void main() {
 
       test('successful payment flow with mock rail', () async {
         // Register mock payment rail
-        final mockRail = MockPaymentRail(shouldSucceed: true);
+        final mockRail = MockPaymentRail();
         PaymentManager.registerRail(mockRail);
 
         // Step 1: Initiate payment
@@ -293,7 +293,7 @@ void main() {
 
       test('webhook idempotency - duplicate processing', () async {
         // Register mock payment rail
-        final mockRail = MockPaymentRail(shouldSucceed: true);
+        final mockRail = MockPaymentRail();
         PaymentManager.registerRail(mockRail);
 
         // Process webhook first time directly
@@ -424,7 +424,7 @@ void main() {
 
       test('webhook processing with invalid order ID', () async {
         // Register mock payment rail
-        final mockRail = MockPaymentRail(shouldSucceed: true);
+        final mockRail = MockPaymentRail();
         PaymentManager.registerRail(mockRail);
 
         // Process webhook with non-existent order ID directly
@@ -457,7 +457,7 @@ void main() {
 
       test('payment rail data serialization round trip', () async {
         // Register mock payment rail with complex rail data
-        final mockRail = MockPaymentRail(shouldSucceed: true);
+        final mockRail = MockPaymentRail();
         PaymentManager.registerRail(mockRail);
 
         // Initiate payment
@@ -542,8 +542,7 @@ class _MockX402Rail implements PaymentRailInterface {
   Future<PaymentRequest> createPayment({
     required double amountUSD,
     required String orderId,
-  }) async {
-    return PaymentRequestExtension.withRailData(
+  }) async => PaymentRequestExtension.withRailData(
       paymentRef: 'x402_payment_ref_$orderId',
       amountUSD: amountUSD,
       orderId: orderId,
@@ -553,7 +552,6 @@ class _MockX402Rail implements PaymentRailInterface {
         'acceptHeader': 'application/vnd.x402+json',
       },
     );
-  }
 
   @override
   Future<PaymentResult> processCallback(

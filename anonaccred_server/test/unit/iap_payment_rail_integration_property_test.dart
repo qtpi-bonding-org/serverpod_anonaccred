@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
+import 'package:test/test.dart';
 
 /// Property tests for payment rail integration consistency
 /// 
@@ -24,7 +25,7 @@ void main() {
     group('Payment Rail Registration Consistency', () {
       test('Property: IAP rails register with correct rail types', () {
         // Test with 5 iterations as per development guidelines
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           PaymentManager.clearRails();
           
           // Register individual rails
@@ -53,7 +54,7 @@ void main() {
     group('Payment Request Consistency', () {
       test('Property: IAP payment requests follow consistent structure', () async {
         // Test with 5 iterations as per development guidelines
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final orderIdApple = 'test_apple_order_$i';
           final orderIdGoogle = 'test_google_order_$i';
           final amount = 9.99 + i;
@@ -93,7 +94,7 @@ void main() {
     group('Payment Rail Interface Compliance', () {
       test('Property: IAP rails implement PaymentRailInterface correctly', () {
         // Test with 5 iterations as per development guidelines
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final appleRail = AppleIAPRail();
           final googleRail = GoogleIAPRail();
           
@@ -131,7 +132,7 @@ void main() {
     group('Payment Manager Integration', () {
       test('Property: Payment Manager handles IAP rails consistently', () async {
         // Test with 5 iterations as per development guidelines
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Property: Manager can create payments for both IAP types
           final applePayment = await PaymentManager.createPayment(
             railType: PaymentRail.apple_iap,

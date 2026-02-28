@@ -1,7 +1,7 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/apple_product_mapping_config.dart';
 import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:test/test.dart';
 
 /// Unit tests for Apple product mapping configuration
 ///
@@ -12,10 +12,7 @@ import 'package:anonaccred_server/src/generated/protocol.dart';
 /// - Configuration validation
 void main() {
   group('AppleProductMappingConfig Tests', () {
-    tearDown(() {
-      // Clean up static state after each test
-      AppleProductMappingConfig.clearMappings();
-    });
+    tearDown(AppleProductMappingConfig.clearMappings);
 
     test('getMapping returns null for unmapped product ID', () {
       // Test that unmapped product IDs return null

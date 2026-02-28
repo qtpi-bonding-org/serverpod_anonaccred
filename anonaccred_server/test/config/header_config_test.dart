@@ -1,5 +1,5 @@
+import 'package:anonaccred_server/src/config/header_config.dart';
 import 'package:test/test.dart';
-import '../../lib/src/config/header_config.dart';
 
 void main() {
   group('AnonAccredHeaderConfig', () {
@@ -83,7 +83,7 @@ void main() {
 
     test('should validate configuration successfully with valid prefix', () {
       // This should not throw
-      expect(() => AnonAccredHeaderConfig.validateConfiguration(), returnsNormally);
+      expect(AnonAccredHeaderConfig.validateConfiguration, returnsNormally);
     });
 
     test('should log configuration details', () {

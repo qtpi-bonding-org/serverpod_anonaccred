@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:quanitya_cloud_server/src/models/i_consumable_delivery.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('IConsumableDelivery Interface', () {
@@ -12,7 +12,7 @@ void main() {
           consumableType: 'coins',
           quantity: 100.0,
           orderId: 'order_abc123',
-          deliveredAt: DateTime(2024, 1, 15, 10, 30, 0),
+          deliveredAt: DateTime(2024, 1, 15, 10, 30),
           paymentRail: 'apple_iap',
           productId: 'com.app.coins_100',
           idempotencyKey: 'transaction_xyz789',
@@ -38,7 +38,7 @@ void main() {
       test('returns correct deliveredAt', () {
         expect(
           mockDelivery.deliveredAt,
-          equals(DateTime(2024, 1, 15, 10, 30, 0)),
+          equals(DateTime(2024, 1, 15, 10, 30)),
         );
       });
 
@@ -60,7 +60,7 @@ void main() {
           consumableType: 'gems',
           quantity: 50.0,
           orderId: 'order_def456',
-          deliveredAt: DateTime(2024, 2, 20, 14, 45, 0),
+          deliveredAt: DateTime(2024, 2, 20, 14, 45),
           paymentRail: 'google_iap',
           productId: 'com.app.gems_50',
           idempotencyKey: 'purchase_token_abc',
@@ -134,6 +134,17 @@ void main() {
 
 /// Mock implementation of IConsumableDelivery for unit testing.
 class MockConsumableDelivery implements IConsumableDelivery {
+
+  MockConsumableDelivery({
+    required this.accountId,
+    required this.consumableType,
+    required this.quantity,
+    required this.orderId,
+    required this.deliveredAt,
+    required this.paymentRail,
+    required this.productId,
+    required this.idempotencyKey,
+  });
   @override
   final int accountId;
 
@@ -157,21 +168,20 @@ class MockConsumableDelivery implements IConsumableDelivery {
 
   @override
   final String idempotencyKey;
+}
 
-  MockConsumableDelivery({
+/// Test implementation for Apple IAP delivery.
+class AppleConsumableDeliveryTestImpl implements IConsumableDelivery {
+
+  AppleConsumableDeliveryTestImpl({
     required this.accountId,
     required this.consumableType,
     required this.quantity,
     required this.orderId,
     required this.deliveredAt,
-    required this.paymentRail,
     required this.productId,
-    required this.idempotencyKey,
+    required this.transactionId,
   });
-}
-
-/// Test implementation for Apple IAP delivery.
-class AppleConsumableDeliveryTestImpl implements IConsumableDelivery {
   @override
   final int accountId;
 
@@ -192,16 +202,6 @@ class AppleConsumableDeliveryTestImpl implements IConsumableDelivery {
 
   final String transactionId;
 
-  AppleConsumableDeliveryTestImpl({
-    required this.accountId,
-    required this.consumableType,
-    required this.quantity,
-    required this.orderId,
-    required this.deliveredAt,
-    required this.productId,
-    required this.transactionId,
-  });
-
   @override
   String get paymentRail => 'apple_iap';
 
@@ -211,6 +211,16 @@ class AppleConsumableDeliveryTestImpl implements IConsumableDelivery {
 
 /// Test implementation for Google IAP delivery.
 class GoogleConsumableDeliveryTestImpl implements IConsumableDelivery {
+
+  GoogleConsumableDeliveryTestImpl({
+    required this.accountId,
+    required this.consumableType,
+    required this.quantity,
+    required this.orderId,
+    required this.deliveredAt,
+    required this.productId,
+    required this.purchaseToken,
+  });
   @override
   final int accountId;
 
@@ -230,16 +240,6 @@ class GoogleConsumableDeliveryTestImpl implements IConsumableDelivery {
   final String productId;
 
   final String purchaseToken;
-
-  GoogleConsumableDeliveryTestImpl({
-    required this.accountId,
-    required this.consumableType,
-    required this.quantity,
-    required this.orderId,
-    required this.deliveredAt,
-    required this.productId,
-    required this.purchaseToken,
-  });
 
   @override
   String get paymentRail => 'google_iap';

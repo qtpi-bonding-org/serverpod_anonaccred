@@ -77,7 +77,7 @@ class AnonAccredAuthHandler {
             devicePubKey = decoded;
           }
           session.log(
-            'AnonAccredAuthHandler: Extracted public key from Basic token, length: ${devicePubKey?.length}',
+            'AnonAccredAuthHandler: Extracted public key from Basic token, length: ${devicePubKey.length}',
             level: LogLevel.info,
           );
         } catch (e) {
@@ -182,9 +182,7 @@ class AnonAccredAuthHandler {
   }
 
   /// Helper to check if a string is valid hexadecimal
-  static bool _isHexString(String s) {
-    return RegExp(r'^[0-9a-fA-F]+$').hasMatch(s);
-  }
+  static bool _isHexString(String s) => RegExp(r'^[0-9a-fA-F]+$').hasMatch(s);
 
   /// Helper to extract device public key from authenticated session
   /// For use in endpoints that need the device public key

@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
-import '../generated/protocol.dart';
+
 import '../exception_factory.dart';
+import '../generated/protocol.dart';
 
 /// Simple payment processor utilities for transaction status updates
 ///

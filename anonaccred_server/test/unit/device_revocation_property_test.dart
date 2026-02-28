@@ -1,9 +1,10 @@
 import 'dart:math';
 
-import 'package:test/test.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
-import '../integration/test_tools/serverpod_test_tools.dart';
+import 'package:test/test.dart';
+
 import '../integration/test_tools/auth_test_helper.dart';
+import '../integration/test_tools/serverpod_test_tools.dart';
 
 /// **Feature: anonaccred-phase2, Property 6: Revocation enforcement**
 /// **Validates: Requirements 3.5, 4.2**

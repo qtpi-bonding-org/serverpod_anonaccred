@@ -1,11 +1,11 @@
-import 'package:test/test.dart';
-import 'package:serverpod/serverpod.dart';
 import 'package:anonaccred_server/src/generated/payment_exception.dart';
 import 'package:anonaccred_server/src/generated/payment_rail.dart';
 import 'package:anonaccred_server/src/generated/payment_request.dart';
 import 'package:anonaccred_server/src/generated/payment_result.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
+import 'package:serverpod/serverpod.dart';
+import 'package:test/test.dart';
 
 /// Unit tests for PaymentManager operations
 /// Tests rail registration, retrieval, payment creation routing, and error handling
@@ -143,7 +143,7 @@ void main() {
         
         // Attempt to create payment with unsupported rail (Requirement 2.3)
         expect(
-          () async => await PaymentManager.createPayment(
+          () async => PaymentManager.createPayment(
             
             railType: PaymentRail.x402_http,
             amountUSD: 100.0,
@@ -188,7 +188,7 @@ void main() {
         
         // Attempt payment creation
         expect(
-          () async => await PaymentManager.createPayment(
+          () async => PaymentManager.createPayment(
             
             railType: PaymentRail.x402_http,
             amountUSD: 100.0,
@@ -248,13 +248,13 @@ void main() {
 
 /// Mock implementation of PaymentRailInterface for testing
 class MockPaymentRail implements PaymentRailInterface {
+  
+  MockPaymentRail(this._railType);
   final PaymentRail _railType;
   int createPaymentCallCount = 0;
   int processCallbackCallCount = 0;
   double? lastAmountUSD;
   String? lastOrderId;
-  
-  MockPaymentRail(this._railType);
   
   @override
   PaymentRail get railType => _railType;
@@ -294,9 +294,9 @@ class MockPaymentRail implements PaymentRailInterface {
 
 /// Mock rail that throws generic errors for testing error handling
 class ErrorThrowingMockRail implements PaymentRailInterface {
-  final PaymentRail _railType;
   
   ErrorThrowingMockRail(this._railType);
+  final PaymentRail _railType;
   
   @override
   PaymentRail get railType => _railType;
@@ -317,9 +317,9 @@ class ErrorThrowingMockRail implements PaymentRailInterface {
 
 /// Mock rail that throws PaymentException for testing exception preservation
 class PaymentExceptionThrowingMockRail implements PaymentRailInterface {
-  final PaymentRail _railType;
   
   PaymentExceptionThrowingMockRail(this._railType);
+  final PaymentRail _railType;
   
   @override
   PaymentRail get railType => _railType;
@@ -350,7 +350,7 @@ class PaymentExceptionThrowingMockRail implements PaymentRailInterface {
 class MockSession {
   final List<LogEntry> logEntries = [];
   
-  void log(String message, {LogLevel? level, dynamic exception}) {
+  void log(String message, {LogLevel? level, exception}) {
     logEntries.add(LogEntry(
       message: message,
       level: level ?? LogLevel.info,
@@ -361,13 +361,13 @@ class MockSession {
 
 /// Log entry for tracking mock session logs
 class LogEntry {
-  final String message;
-  final LogLevel level;
-  final dynamic exception;
   
   LogEntry({
     required this.message,
     required this.level,
     this.exception,
   });
+  final String message;
+  final LogLevel level;
+  final dynamic exception;
 }

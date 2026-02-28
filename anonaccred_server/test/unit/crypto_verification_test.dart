@@ -1,7 +1,8 @@
 import 'dart:typed_data';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/crypto_utils.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('CryptoUtils Verification Tests', () {
@@ -57,7 +58,7 @@ void main() {
       
       // Invalid public key (wrong length)
       expect(
-        () async => await CryptoUtils.verifySignature(
+        () async => CryptoUtils.verifySignature(
           message: 'test',
           signature: 'a' * 128,
           publicKey: 'a' * 64, // Wrong length for ECDSA P-256
@@ -67,7 +68,7 @@ void main() {
 
       // Invalid signature (wrong length)
       expect(
-        () async => await CryptoUtils.verifySignature(
+        () async => CryptoUtils.verifySignature(
           message: 'test',
           signature: 'a' * 64, // Wrong length
           publicKey: 'a' * 128,
@@ -142,7 +143,7 @@ void main() {
     test('error handling for invalid inputs', () async {
       // Invalid public key format should throw
       expect(
-        () async => await CryptoUtils.verifySignature(
+        () async => CryptoUtils.verifySignature(
           message: 'test',
           signature: 'a' * 128,
           publicKey: 'invalid',
@@ -152,7 +153,7 @@ void main() {
 
       // Invalid signature format should throw
       expect(
-        () async => await CryptoUtils.verifySignature(
+        () async => CryptoUtils.verifySignature(
           message: 'test',
           signature: 'invalid',
           publicKey: 'a' * 128,
@@ -162,7 +163,7 @@ void main() {
 
       // Empty message should throw
       expect(
-        () async => await CryptoUtils.verifySignature(
+        () async => CryptoUtils.verifySignature(
           message: '',
           signature: 'a' * 128,
           publicKey: 'a' * 128,

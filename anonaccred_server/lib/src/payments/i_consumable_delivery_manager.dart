@@ -1,5 +1,5 @@
 import 'package:serverpod/serverpod.dart';
-import 'i_consumable_delivery.dart';
+import 'apple_consumable_delivery_manager.dart' show AppleConsumableDeliveryManager;
 
 /// Abstract interface for managing consumable delivery records.
 ///

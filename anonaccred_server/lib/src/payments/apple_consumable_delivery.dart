@@ -1,5 +1,5 @@
-import 'package:anonaccred_server/src/generated/apple_consumable_delivery.dart';
-import 'package:anonaccred_server/src/payments/i_consumable_delivery.dart';
+import '../generated/apple_consumable_delivery.dart';
+import 'i_consumable_delivery.dart';
 
 /// Apple IAP implementation of IConsumableDelivery.
 ///
@@ -8,18 +8,9 @@ import 'package:anonaccred_server/src/payments/i_consumable_delivery.dart';
 /// - paymentRail: 'apple_iap'
 /// - idempotencyKey: transactionId
 class AppleConsumableDeliveryImpl implements IConsumableDelivery {
-  final AppleConsumableDelivery _generated;
 
   AppleConsumableDeliveryImpl({
-    int? id,
-    required String transactionId,
-    required String originalTransactionId,
-    required String productId,
-    required int accountId,
-    required String consumableType,
-    required double quantity,
-    required String orderId,
-    required DateTime deliveredAt,
+    required String transactionId, required String originalTransactionId, required String productId, required int accountId, required String consumableType, required double quantity, required String orderId, required DateTime deliveredAt, int? id,
   }) : _generated = AppleConsumableDelivery(
          id: id,
          transactionId: transactionId,
@@ -35,8 +26,7 @@ class AppleConsumableDeliveryImpl implements IConsumableDelivery {
   /// Creates an AppleConsumableDeliveryImpl from a generated AppleConsumableDelivery.
   factory AppleConsumableDeliveryImpl.fromGenerated(
     AppleConsumableDelivery generated,
-  ) {
-    return AppleConsumableDeliveryImpl(
+  ) => AppleConsumableDeliveryImpl(
       id: generated.id,
       transactionId: generated.transactionId,
       originalTransactionId: generated.originalTransactionId,
@@ -47,7 +37,7 @@ class AppleConsumableDeliveryImpl implements IConsumableDelivery {
       orderId: generated.orderId,
       deliveredAt: generated.deliveredAt,
     );
-  }
+  final AppleConsumableDelivery _generated;
 
   /// Access to the generated AppleConsumableDelivery for database operations.
   AppleConsumableDelivery get generated => _generated;
@@ -58,16 +48,22 @@ class AppleConsumableDeliveryImpl implements IConsumableDelivery {
 
   String get originalTransactionId => _generated.originalTransactionId;
 
+  @override
   String get productId => _generated.productId;
 
+  @override
   int get accountId => _generated.accountId;
 
+  @override
   String get consumableType => _generated.consumableType;
 
+  @override
   double get quantity => _generated.quantity;
 
+  @override
   String get orderId => _generated.orderId;
 
+  @override
   DateTime get deliveredAt => _generated.deliveredAt;
 
   @override
@@ -76,11 +72,8 @@ class AppleConsumableDeliveryImpl implements IConsumableDelivery {
   @override
   String get idempotencyKey => transactionId;
 
-  Map<String, dynamic> toJson() {
-    return _generated.toJson();
-  }
+  Map<String, dynamic> toJson() => _generated.toJson();
 
-  String toString() {
-    return _generated.toString();
-  }
+  @override
+  String toString() => _generated.toString();
 }

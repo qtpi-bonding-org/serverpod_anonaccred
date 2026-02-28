@@ -1,6 +1,5 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart';
 import '../payments/rails/apple_iap_rail.dart';
 import '../payments/rails/google_iap_rail.dart';
 

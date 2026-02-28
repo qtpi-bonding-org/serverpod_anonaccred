@@ -4,6 +4,7 @@ import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
+import '../nonce_storage.dart';
 
 /// Device management endpoints for ECDSA P-256 device registration and authentication
 ///
@@ -310,11 +311,27 @@ class DeviceEndpoint extends Endpoint {
         'authenticateDevice',
       );
 
-      // Verify challenge-response signature
+      // Verify nonce exists in Redis and remove it (single use)
+      final nonceStorage = DeviceNonceStorage(session);
+      final nonceValid = await nonceStorage.verifyAndRemoveNonce(
+        publicKey,
+        challenge,
+      );
+
+      if (!nonceValid) {
+        return AuthenticationResultFactory.failure(
+          errorCode: AnonAccredErrorCodes.authChallengeExpired,
+          errorMessage: 'Invalid or expired challenge nonce',
+          details: {'challenge': challenge},
+        );
+      }
+
+      // Verify challenge-response signature (skip timestamp validation - Redis handles freshness)
       final verificationResult = await CryptoAuth.verifyChallengeResponse(
         publicKey,
         challenge,
         signature,
+        skipTimestampValidation: true,
       );
 
       if (verificationResult.success) {
@@ -353,9 +370,45 @@ class DeviceEndpoint extends Endpoint {
   /// The challenge should be signed by the client's private key and returned
   /// for verification via authenticateDevice.
   ///
+  /// Parameters:
+  /// - [devicePublicKey]: The device's ECDSA P-256 signing public key (128 hex chars)
+  ///
   /// Returns a hex-encoded challenge string.
-  Future<String> generateAuthChallenge(Session session) async =>
-      CryptoAuth.generateChallenge();
+  ///
+  /// Throws AuthenticationException if device is not found or is revoked.
+  Future<String> generateAuthChallenge(
+    Session session,
+    String devicePublicKey,
+  ) async {
+    // Validate device exists and is active
+    final device = await AccountDevice.db.findFirstRow(
+      session,
+      where: (t) => t.deviceSigningPublicKeyHex.equals(devicePublicKey),
+    );
+
+    if (device == null) {
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.authDeviceNotFound,
+        message: 'Device not found',
+        operation: 'generateAuthChallenge',
+        details: {'devicePublicKey': devicePublicKey},
+      );
+    }
+
+    if (device.isRevoked) {
+      final deviceIdStr = device.id != null ? device.id.toString() : 'unknown';
+      throw AnonAccredExceptionFactory.createAuthenticationException(
+        code: AnonAccredErrorCodes.authDeviceRevoked,
+        message: 'Device has been revoked',
+        operation: 'generateAuthChallenge',
+        details: {'deviceId': deviceIdStr},
+      );
+    }
+
+    // Generate and store nonce in Redis
+    final nonceStorage = DeviceNonceStorage(session);
+    return nonceStorage.generateAndStoreNonce(devicePublicKey);
+  }
 
   /// Revoke device access
   ///
@@ -487,10 +540,10 @@ class DeviceEndpoint extends Endpoint {
     final channelName = 'pairing-updates-$signingKeyHex';
 
     // Subscribe to the channel
-    var stream = session.messages.createStream<DevicePairingEvent>(channelName);
+    final stream = session.messages.createStream<DevicePairingEvent>(channelName);
 
     // Forward events to the client
-    await for (var event in stream) {
+    await for (final event in stream) {
       yield event;
     }
   }

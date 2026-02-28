@@ -62,7 +62,7 @@ class MockAppStoreServerClient implements AppStoreServerClient {
       return _mockTransactions[transactionId]!;
     }
 
-    throw ApiException(404, error: const ApiError(4040000, 'Transaction not found'));
+    throw const ApiException(404, error: ApiError(4040000, 'Transaction not found'));
   }
 
   @override
@@ -89,7 +89,7 @@ class MockAppStoreServerClient implements AppStoreServerClient {
       'orderId': orderId,
     }));
 
-    throw ApiException(501, error: const ApiError(5010000, 'Not implemented in mock'));
+    throw const ApiException(501, error: ApiError(5010000, 'Not implemented in mock'));
   }
 }
 
@@ -98,13 +98,13 @@ class MockAppStoreServerClient implements AppStoreServerClient {
 /// Used for test verification to ensure the correct API methods were called
 /// with the expected parameters.
 class ApiCall {
+
+  ApiCall(this.method, this.parameters);
   /// The name of the API method that was called
   final String method;
 
   /// The parameters passed to the API method
   final Map<String, String> parameters;
-
-  ApiCall(this.method, this.parameters);
 
   @override
   String toString() => 'ApiCall{method: $method, parameters: $parameters}';
@@ -122,7 +122,7 @@ class ApiCall {
 
   bool _mapsEqual(Map<String, String> a, Map<String, String> b) {
     if (a.length != b.length) return false;
-    for (var key in a.keys) {
+    for (final key in a.keys) {
       if (a[key] != b[key]) return false;
     }
     return true;

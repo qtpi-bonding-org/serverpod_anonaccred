@@ -366,14 +366,12 @@ class PaymentEndpoint extends Endpoint {
         headers: headers ?? <String, String>{},
         resourceId: 'payment_status_$orderId',
         amount: 0.50, // $0.50 for payment status access
-        onPaymentRequired: () async {
-          return await X402Interceptor.generatePaymentRequired(
+        onPaymentRequired: () async => X402Interceptor.generatePaymentRequired(
             session: session,
             resourceId: 'payment_status_$orderId',
             amount: 0.50,
             description: 'Access to payment status for order $orderId',
-          );
-        },
+          ),
         onPaymentVerified: () async {
           // Payment verified - provide payment status
           final transaction = await PaymentProcessor.getTransactionByExternalId(
@@ -395,7 +393,7 @@ class PaymentEndpoint extends Endpoint {
             'orderId': orderId,
             'status': transaction.status.name,
             'amount': transaction.price,
-            'paymentRail': transaction.paymentRail?.name,
+            'paymentRail': transaction.paymentRail.name,
             'paymentRef': transaction.paymentRef,
             'accessTime': DateTime.now().toIso8601String(),
             'paymentMethod': 'x402_http',

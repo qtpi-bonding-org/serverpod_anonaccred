@@ -1,6 +1,7 @@
-import 'package:test/test.dart';
-import 'package:anonaccred_server/anonaccred_server.dart';
 import 'dart:math';
+
+import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase1-5, Property 1: Exception Structure Consistency**
 /// **Validates: Requirements 1.1, 1.2**
@@ -11,7 +12,7 @@ void main() {
       'Property 1: Exception Structure Consistency - All AnonAccred exceptions should have consistent structure',
       () {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random exception data
           final code = _generateRandomErrorCode();
           final message = _generateRandomMessage();
@@ -91,7 +92,7 @@ void main() {
 
     test('Property 1: Exception serialization consistency', () {
       // Run 5 iterations during development
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         final code = _generateRandomErrorCode();
         final message = _generateRandomMessage();
         final details = _generateRandomDetails();

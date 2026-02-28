@@ -4,9 +4,6 @@ import 'exception_factory.dart';
 
 /// Represents a mapping from a Google product ID to a consumable type and quantity.
 class ProductMapping {
-  final String consumableType;
-  final double quantity;
-  final bool autoConsume;
 
   ProductMapping({
     required this.consumableType,
@@ -14,13 +11,14 @@ class ProductMapping {
     this.autoConsume = true,
   });
 
-  factory ProductMapping.fromJson(Map<String, dynamic> json) {
-    return ProductMapping(
+  factory ProductMapping.fromJson(Map<String, dynamic> json) => ProductMapping(
       consumableType: json['type'] as String,
       quantity: (json['quantity'] as num).toDouble(),
       autoConsume: json['auto_consume'] as bool? ?? true,
     );
-  }
+  final String consumableType;
+  final double quantity;
+  final bool autoConsume;
 }
 
 /// Configuration for mapping product IDs to consumable types.

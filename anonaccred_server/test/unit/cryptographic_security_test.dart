@@ -17,7 +17,7 @@ void main() {
       'Property 5: Cryptographic data isolation - For any account or device creation, the system should store only public keys and encrypted data keys, never private keys or unencrypted data',
       () {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random cryptographic data
           final publicMasterKey = _generateFakePublicKeyString();
           final encryptedMasterDataKey = _generateRandomEncryptedData();
@@ -88,7 +88,7 @@ void main() {
       'Property 6: Encryption separation - For any account with multiple devices, the system should maintain separate encrypted data keys for master account access and individual device access',
       () {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate master account data
           final publicMasterKey = _generateFakePublicKeyString();
           final encryptedMasterDataKey = _generateRandomEncryptedData();
@@ -104,7 +104,7 @@ void main() {
           final devices = <AccountDevice>[];
           final deviceCount = 2 + random.nextInt(4); // 2-5 devices
 
-          for (int j = 0; j < deviceCount; j++) {
+          for (var j = 0; j < deviceCount; j++) {
             final device = AccountDevice(
               accountId: random.nextInt(10000) + 1,
               deviceSigningPublicKeyHex: _generateFakePublicKeyString(),
@@ -126,8 +126,8 @@ void main() {
           }
 
           // Verify each device has unique encryption
-          for (int j = 0; j < devices.length; j++) {
-            for (int k = j + 1; k < devices.length; k++) {
+          for (var j = 0; j < devices.length; j++) {
+            for (var k = j + 1; k < devices.length; k++) {
               expect(
                 devices[j].encryptedDataKey,
                 isNot(equals(devices[k].encryptedDataKey)),
@@ -158,7 +158,7 @@ void main() {
       'Property 20: Signature verification support - For any valid ECDSA P-256 signature and public key pair, the system should correctly validate the signature',
       () async {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate valid ECDSA P-256 format data
           final publicKey = _generateFakePublicKeyString();
           final signature = _generateFakeSignatureString();
@@ -204,7 +204,7 @@ void main() {
 
           // Test format validation
           expect(
-            () async => await CryptoUtils.verifySignature(
+            () async => CryptoUtils.verifySignature(
               message: message,
               signature: 'invalid_signature',
               publicKey: publicKey,
@@ -213,7 +213,7 @@ void main() {
           );
 
           expect(
-            () async => await CryptoUtils.verifySignature(
+            () async => CryptoUtils.verifySignature(
               message: message,
               signature: signature,
               publicKey: 'invalid_key',
@@ -235,7 +235,7 @@ void main() {
       'Property 21: Cryptographic error security - For any cryptographic operation failure, error information should be provided without exposing key material',
       () async {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Test invalid public key format
           final invalidPublicKeys = [
             'too_short',

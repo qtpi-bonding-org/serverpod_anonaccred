@@ -85,9 +85,7 @@ class X402PaymentProcessor {
   /// Use this method when you need to distinguish between different types of failures.
   /// 
   /// Requirements 2.1, 2.2: Extract X-PAYMENT header and verify through facilitator
-  static Future<bool> verifyPaymentWithDetails(Map<String, String> headers) async {
-    return await _verifyPaymentInternal(headers);
-  }
+  static Future<bool> verifyPaymentWithDetails(Map<String, String> headers) async => _verifyPaymentInternal(headers);
 
   /// Internal payment verification logic with proper error handling
   static Future<bool> _verifyPaymentInternal(Map<String, String> headers) async {
@@ -216,13 +214,6 @@ class X402PaymentProcessor {
 /// Contains all necessary information for programmatic payment completion
 /// following the x402 protocol specification.
 class X402PaymentResponse {
-  final double amount;
-  final String currency;
-  final String destination;
-  final String orderId;
-  final String facilitator;
-  final String protocol;
-  final String timestamp;
 
   const X402PaymentResponse({
     required this.amount,
@@ -234,17 +225,6 @@ class X402PaymentResponse {
     required this.timestamp,
   });
 
-  /// Convert to JSON map for HTTP response body
-  Map<String, dynamic> toJson() => {
-    'amount': amount,
-    'currency': currency,
-    'destination': destination,
-    'orderId': orderId,
-    'facilitator': facilitator,
-    'protocol': protocol,
-    'timestamp': timestamp,
-  };
-
   /// Create from JSON map
   factory X402PaymentResponse.fromJson(Map<String, dynamic> json) => X402PaymentResponse(
     amount: (json['amount'] as num).toDouble(),
@@ -255,4 +235,22 @@ class X402PaymentResponse {
     protocol: json['protocol'] as String,
     timestamp: json['timestamp'] as String,
   );
+  final double amount;
+  final String currency;
+  final String destination;
+  final String orderId;
+  final String facilitator;
+  final String protocol;
+  final String timestamp;
+
+  /// Convert to JSON map for HTTP response body
+  Map<String, dynamic> toJson() => {
+    'amount': amount,
+    'currency': currency,
+    'destination': destination,
+    'orderId': orderId,
+    'facilitator': facilitator,
+    'protocol': protocol,
+    'timestamp': timestamp,
+  };
 }

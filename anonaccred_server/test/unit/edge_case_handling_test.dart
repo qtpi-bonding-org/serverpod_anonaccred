@@ -1,7 +1,8 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
-import '../integration/test_tools/serverpod_test_tools.dart';
+import 'package:test/test.dart';
+
 import '../integration/test_tools/auth_test_helper.dart';
+import '../integration/test_tools/serverpod_test_tools.dart';
 
 void main() {
   withServerpod('Edge Case Handling Tests', (sessionBuilder, endpoints) {

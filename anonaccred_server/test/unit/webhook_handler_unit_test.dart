@@ -1,8 +1,8 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/webhook_handler.dart';
+import 'package:test/test.dart';
 
 /// Unit tests for WebhookHandler operations
 /// Tests webhook routing, transaction status updates, and error handling
@@ -10,10 +10,7 @@ import 'package:anonaccred_server/src/payments/webhook_handler.dart';
 
 void main() {
   group('WebhookHandler Unit Tests', () {
-    setUp(() {
-      // Clear rails before each test to ensure clean state
-      PaymentManager.clearRails();
-    });
+    setUp(PaymentManager.clearRails);
 
     group('Webhook Routing to Correct Rails', () {
       test('should route webhook to correct registered rail', () async {
@@ -84,7 +81,6 @@ void main() {
         // Register mock rail that returns successful result
         final mockRail = MockWebhookRail(
           PaymentRail.x402_http,
-          shouldSucceed: true,
         );
         PaymentManager.registerRail(mockRail);
 
@@ -161,7 +157,7 @@ void main() {
 
         // Test that rail throws error (Requirement 4.3)
         expect(
-          () async => await errorRail.processCallback(webhookData),
+          () async => errorRail.processCallback(webhookData),
           throwsA(isA<Exception>()),
         );
 
@@ -183,7 +179,7 @@ void main() {
 
         // Test that rail throws PaymentException
         expect(
-          () async => await paymentExceptionRail.processCallback(webhookData),
+          () async => paymentExceptionRail.processCallback(webhookData),
           throwsA(isA<PaymentException>()),
         );
 
@@ -250,18 +246,18 @@ void main() {
 
 /// Mock implementation of PaymentRailInterface for webhook testing
 class MockWebhookRail implements PaymentRailInterface {
-  final PaymentRail _railType;
-  final bool shouldSucceed;
-  final bool includeOrderId;
-
-  int processCallbackCallCount = 0;
-  Map<String, dynamic>? lastCallbackData;
 
   MockWebhookRail(
     this._railType, {
     this.shouldSucceed = true,
     this.includeOrderId = true,
   });
+  final PaymentRail _railType;
+  final bool shouldSucceed;
+  final bool includeOrderId;
+
+  int processCallbackCallCount = 0;
+  Map<String, dynamic>? lastCallbackData;
 
   @override
   PaymentRail get railType => _railType;
@@ -270,8 +266,7 @@ class MockWebhookRail implements PaymentRailInterface {
   Future<PaymentRequest> createPayment({
     required double amountUSD,
     required String orderId,
-  }) async {
-    return PaymentRequestExtension.withRailData(
+  }) async => PaymentRequestExtension.withRailData(
       paymentRef: 'mock_payment_ref_$orderId',
       amountUSD: amountUSD,
       orderId: orderId,
@@ -280,7 +275,6 @@ class MockWebhookRail implements PaymentRailInterface {
         'mockData': 'webhook_test_data',
       },
     );
-  }
 
   @override
   Future<PaymentResult> processCallback(
@@ -300,9 +294,9 @@ class MockWebhookRail implements PaymentRailInterface {
 
 /// Mock rail that throws errors for testing error handling
 class ErrorThrowingWebhookRail implements PaymentRailInterface {
-  final PaymentRail _railType;
 
   ErrorThrowingWebhookRail(this._railType);
+  final PaymentRail _railType;
 
   @override
   PaymentRail get railType => _railType;
@@ -325,9 +319,9 @@ class ErrorThrowingWebhookRail implements PaymentRailInterface {
 
 /// Mock rail that throws PaymentException for testing exception handling
 class PaymentExceptionThrowingWebhookRail implements PaymentRailInterface {
-  final PaymentRail _railType;
 
   PaymentExceptionThrowingWebhookRail(this._railType);
+  final PaymentRail _railType;
 
   @override
   PaymentRail get railType => _railType;

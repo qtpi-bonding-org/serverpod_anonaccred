@@ -1,13 +1,10 @@
-import 'package:test/test.dart';
-import 'package:serverpod/serverpod.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('X402 Integration Tests', () {
-    setUp(() {
-      // Clear any existing rails before each test
-      PaymentManager.clearRails();
-    });
+    setUp(PaymentManager.clearRails);
     
     test('should register X402 rail and create payment through PaymentManager', () async {
       // Initialize X402 rail
@@ -132,9 +129,9 @@ class MockSession implements Session {
 
 /// Mock payment rail for testing compatibility
 class MockPaymentRail implements PaymentRailInterface {
-  final PaymentRail _railType;
   
   MockPaymentRail(this._railType);
+  final PaymentRail _railType;
   
   @override
   PaymentRail get railType => _railType;
@@ -143,8 +140,7 @@ class MockPaymentRail implements PaymentRailInterface {
   Future<PaymentRequest> createPayment({
     required double amountUSD,
     required String orderId,
-  }) async {
-    return PaymentRequestExtension.withRailData(
+  }) async => PaymentRequestExtension.withRailData(
       paymentRef: 'mock_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
       amountUSD: amountUSD,
       orderId: orderId,
@@ -153,14 +149,11 @@ class MockPaymentRail implements PaymentRailInterface {
         'mockData': 'test_data',
       },
     );
-  }
   
   @override
-  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
-    return PaymentResult(
+  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async => PaymentResult(
       success: true,
       orderId: callbackData['orderId'] as String?,
       transactionTimestamp: 'mock_tx_${DateTime.now().millisecondsSinceEpoch}',
     );
-  }
 }

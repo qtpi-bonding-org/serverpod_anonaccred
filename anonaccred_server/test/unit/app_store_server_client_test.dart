@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/payments/app_store_server_client.dart';
 import 'package:anonaccred_server/src/payments/apple_jwt_auth_client.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('AppStoreServerClient', () {

@@ -7,10 +7,10 @@ import 'android_publisher_client.dart';
 /// Used for test verification to ensure the correct methods were called
 /// with the correct parameters.
 class ApiCall {
-  final String methodName;
-  final Map<String, dynamic> parameters;
 
   ApiCall(this.methodName, this.parameters);
+  final String methodName;
+  final Map<String, dynamic> parameters;
 
   @override
   String toString() => '$methodName($parameters)';
@@ -75,6 +75,7 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
   /// Throws: [ApiRequestError] if purchase token not found in mock data
   ///
   /// Requirements 9.3: getPurchase() returning mock data or throwing ApiRequestError
+  @override
   Future<ProductPurchase> getPurchase({
     required String packageName,
     required String productId,
@@ -103,6 +104,7 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
   /// - [purchaseToken]: Purchase token from Android app
   ///
   /// Requirements 9.4: acknowledgePurchase() with call logging
+  @override
   Future<void> acknowledgePurchase({
     required String packageName,
     required String productId,
@@ -125,6 +127,7 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
   /// - [purchaseToken]: Purchase token from Android app
   ///
   /// Requirements 9.4: consumePurchase() with call logging
+  @override
   Future<void> consumePurchase({
     required String packageName,
     required String productId,

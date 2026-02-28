@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/generated/protocol.dart';
-import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
-import 'package:anonaccred_server/src/payments/mock_app_store_server_client.dart';
 import 'package:anonaccred_server/src/payments/apple_consumable_delivery_manager.dart';
 import 'package:anonaccred_server/src/payments/decoded_transaction.dart';
+import 'package:anonaccred_server/src/payments/mock_app_store_server_client.dart';
+import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
 import 'package:anonaccred_server/src/product_mapping_config.dart';
+import 'package:test/test.dart';
 
 /// Unit tests for Apple IAP rail implementation
 ///
@@ -57,7 +58,7 @@ void main() {
 
     test('delivery manager injection works correctly', () {
       // Test that delivery manager can be injected
-      final deliveryManager = const AppleConsumableDeliveryManager();
+      const deliveryManager = AppleConsumableDeliveryManager();
       final rail = AppleIAPRail(
         client: mockClient,
         deliveryManager: deliveryManager,

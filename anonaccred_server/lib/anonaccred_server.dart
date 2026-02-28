@@ -99,38 +99,33 @@
 /// final result = await rail?.processCallback(callbackData);
 /// ```
 
+library;
+
 // Authentication handler for Serverpod integration
 export 'src/auth_handler.dart';
-
 // Configuration system
 export 'src/config/header_config.dart';
-
 // Core cryptographic utilities
 export 'src/crypto_auth.dart';
 export 'src/crypto_utils.dart';
-
 // Exception handling and error classification system
 export 'src/error_classification.dart';
 export 'src/exception_factory.dart';
-
-// Helper utilities for reducing code duplication
-export 'src/helpers.dart';
-
 // Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';
-
+// Helper utilities for reducing code duplication
+export 'src/helpers.dart';
 // Commerce foundation - Price Registry, Order Management, and Inventory Management
 export 'src/inventory_manager.dart';
 export 'src/inventory_utils.dart';
 export 'src/order_manager.dart';
-export 'src/price_registry.dart';
-
 // Payment system foundation - Payment Rails, Manager, and Processor
 export 'src/payments/payment_manager.dart';
 export 'src/payments/payment_processor.dart';
 export 'src/payments/payment_rail_interface.dart';
 export 'src/payments/x402_interceptor.dart';
 export 'src/payments/x402_payment_rail.dart';
+export 'src/price_registry.dart';
 
 // Transaction utilities removed - use Serverpod built-in patterns

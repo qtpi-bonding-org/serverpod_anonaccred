@@ -1,3 +1,7 @@
+import '../../anonaccred_server.dart' show AppleConsumableDelivery;
+import '../generated/apple_consumable_delivery.dart' show AppleConsumableDelivery;
+import '../generated/protocol.dart' show AppleConsumableDelivery;
+
 /// Abstract interface for consumable delivery records across all payment rails.
 ///
 /// This interface defines the contract for tracking consumable deliveries

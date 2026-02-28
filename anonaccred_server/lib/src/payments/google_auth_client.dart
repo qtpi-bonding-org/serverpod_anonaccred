@@ -12,10 +12,10 @@ import '../exception_factory.dart';
 ///
 /// Requirements 1.1, 1.2, 1.3, 1.4, 1.5: OAuth 2.0 service account authentication
 class GoogleAuthClient {
-  final ServiceAccountCredentials credentials;
-  AccessToken? _cachedToken;
 
   GoogleAuthClient({required this.credentials});
+  final ServiceAccountCredentials credentials;
+  AccessToken? _cachedToken;
 
   /// Load credentials from environment variables or service account file
   ///
@@ -90,7 +90,7 @@ class GoogleAuthClient {
     if (_cachedToken != null && !_isExpired(_cachedToken!)) {
       return _cachedToken!.data;
     }
-    return await _refreshToken();
+    return _refreshToken();
   }
 
   /// Refresh access token using JWT flow with googleapis_auth
@@ -139,7 +139,7 @@ class GoogleAuthClient {
     final expiryTime = token.expiry;
 
     // Consider expired if within 60 seconds of expiry
-    final safetyMargin = const Duration(seconds: 60);
+    const safetyMargin = Duration(seconds: 60);
     return DateTime.now().add(safetyMargin).isAfter(expiryTime);
   }
 }

@@ -22,8 +22,7 @@ void main() {
 
         // Step 2: Create account
         const encryptedDataKey = 'encrypted_account_data_key_12345';
-        const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' +
-                                  'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKeyHex,
@@ -94,8 +93,7 @@ void main() {
 
         // Step 2: Create account
         const encryptedDataKey = 'encrypted_account_data_key_lookup';
-        const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' +
-                                  'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+        const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKeyHex,
@@ -116,8 +114,7 @@ void main() {
 
         // Step 4: Test lookup with non-existent key
         const nonExistentPublicKey =
-            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' +
-            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
         final nonExistentAccount = await endpoints.account.getAccountByPublicKey(
           sessionBuilder,
           nonExistentPublicKey,
@@ -155,12 +152,10 @@ void main() {
       test('device registration validation workflow', () async {
         // Create test account
         const accountPublicKey =
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
-            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_8';
         const ultimatePublicKey = 
-            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
-            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final testAccount = await endpoints.account.createAccount(
           sessionBuilder,
@@ -200,8 +195,7 @@ void main() {
           () => endpoints.device.registerDevice(
             sessionBuilder,
             99999, // Non-existent account
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
-            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
             'encrypted_device_data_key',
             'Test Device',
           ),

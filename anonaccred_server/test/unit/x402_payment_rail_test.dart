@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:serverpod/serverpod.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('X402PaymentRail', () {
@@ -86,9 +86,7 @@ void main() {
   });
 
   group('PaymentManager X402 Integration', () {
-    setUp(() {
-      PaymentManager.clearRails();
-    });
+    setUp(PaymentManager.clearRails);
 
     test('should initialize X402 payment rail', () {
       // Create a mock session for testing

@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:serverpod/serverpod.dart';
+
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
 import '../../product_mapping_config.dart';
+import '../app_store_server_client.dart';
 import '../apple_consumable_delivery_manager.dart';
 import '../apple_jwt_auth_client.dart';
-import '../app_store_server_client.dart';
 import '../decoded_transaction.dart';
 import '../notification_signature_validator.dart';
 import '../payment_rail_interface.dart';
@@ -22,8 +23,6 @@ import '../payment_rail_interface.dart';
 ///
 /// Requirements 2.1, 2.2, 2.3: App Store Server SDK integration
 class AppleIAPRail implements PaymentRailInterface {
-  final AppStoreServerClient _client;
-  final AppleConsumableDeliveryManager _deliveryManager;
 
   /// Creates a new AppleIAPRail instance.
   ///
@@ -35,6 +34,8 @@ class AppleIAPRail implements PaymentRailInterface {
   }) : _client = client ?? _createDefaultClient(),
        _deliveryManager =
            deliveryManager ?? const AppleConsumableDeliveryManager();
+  final AppStoreServerClient _client;
+  final AppleConsumableDeliveryManager _deliveryManager;
 
   /// Creates the default App Store Server API client using environment credentials.
   static AppStoreServerClient _createDefaultClient() {
@@ -263,7 +264,7 @@ class AppleIAPRail implements PaymentRailInterface {
     );
 
     return history.signedTransactions
-        .map((signedTxn) => _decodeSignedTransaction(signedTxn))
+        .map(_decodeSignedTransaction)
         .toList();
   }
 
@@ -338,7 +339,7 @@ class AppleIAPRail implements PaymentRailInterface {
     // Split JWT and decode payload (middle part)
     final parts = signedPayload.split('.');
     if (parts.length != 3) {
-      throw FormatException('Invalid JWT format');
+      throw const FormatException('Invalid JWT format');
     }
 
     final payloadPart = parts[1];
@@ -358,24 +359,13 @@ class AppleIAPRail implements PaymentRailInterface {
   /// Returns a [DecodedTransaction] with all transaction details.
   ///
   /// Requirements 2.5, 7.2
-  DecodedTransaction _decodeSignedTransaction(String signedTransaction) {
-    return DecodedTransaction.fromJWT(signedTransaction);
-  }
+  DecodedTransaction _decodeSignedTransaction(String signedTransaction) => DecodedTransaction.fromJWT(signedTransaction);
 }
 
 /// Apple transaction validation result.
 ///
 /// Contains validation status and delivery information.
 class AppleTransactionValidationResult {
-  final bool isValid;
-  final String? transactionId;
-  final String? originalTransactionId;
-  final String? productId;
-  final DateTime? purchaseDate;
-  final String? consumableType;
-  final double? quantity;
-  final bool fromCache;
-  final DateTime? deliveredAt;
 
   AppleTransactionValidationResult({
     required this.isValid,
@@ -393,8 +383,7 @@ class AppleTransactionValidationResult {
   factory AppleTransactionValidationResult.fromTransaction(
     DecodedTransaction transaction,
     ProductMapping mapping,
-  ) {
-    return AppleTransactionValidationResult(
+  ) => AppleTransactionValidationResult(
       isValid: true,
       transactionId: transaction.transactionId,
       originalTransactionId: transaction.originalTransactionId,
@@ -404,15 +393,12 @@ class AppleTransactionValidationResult {
       ),
       consumableType: mapping.consumableType,
       quantity: mapping.quantity,
-      fromCache: false,
     );
-  }
 
   /// Create result from an existing delivery record (idempotent case).
   factory AppleTransactionValidationResult.fromExistingDelivery(
     AppleConsumableDelivery delivery,
-  ) {
-    return AppleTransactionValidationResult(
+  ) => AppleTransactionValidationResult(
       isValid: true,
       transactionId: delivery.transactionId,
       originalTransactionId: delivery.originalTransactionId,
@@ -422,5 +408,13 @@ class AppleTransactionValidationResult {
       fromCache: true,
       deliveredAt: delivery.deliveredAt,
     );
-  }
+  final bool isValid;
+  final String? transactionId;
+  final String? originalTransactionId;
+  final String? productId;
+  final DateTime? purchaseDate;
+  final String? consumableType;
+  final double? quantity;
+  final bool fromCache;
+  final DateTime? deliveredAt;
 }

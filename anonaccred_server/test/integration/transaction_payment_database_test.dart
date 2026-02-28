@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 
@@ -102,8 +102,6 @@ void main() {
           paymentRail: PaymentRail.x402_http,
           paymentCurrency: Currency.USD,
           paymentAmount: 5.99,
-          paymentRef: null,
-          transactionTimestamp: null,
           status: OrderStatus.pending,
         );
 
@@ -164,8 +162,6 @@ void main() {
           paymentRail: PaymentRail.apple_iap,
           paymentCurrency: Currency.USD,
           paymentAmount: 15.99,
-          paymentRef: null,
-          transactionTimestamp: null,
           status: OrderStatus.pending,
         );
 

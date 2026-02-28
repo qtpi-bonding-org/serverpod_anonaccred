@@ -1,6 +1,7 @@
 import 'dart:math';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase3, Property 1: Price Registry Consistency**
 /// **Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5**
@@ -16,7 +17,7 @@ void main() {
       'Property 1: Price Registry Consistency - For any product registration operation, the price registry should correctly store, update, and retrieve product definitions with accurate pricing information',
       () {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final registry = PriceRegistry();
 
           // Generate random test data
@@ -48,7 +49,7 @@ void main() {
 
           // Test multiple products
           final additionalProducts = <String, double>{};
-          for (int j = 0; j < 3; j++) {
+          for (var j = 0; j < 3; j++) {
             final additionalSku = _generateRandomSku();
             final additionalPrice = _generateRandomPrice();
             additionalProducts[additionalSku] = additionalPrice;

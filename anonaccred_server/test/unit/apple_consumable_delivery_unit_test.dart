@@ -1,7 +1,7 @@
-import 'package:test/test.dart';
 import 'package:quanitya_cloud_server/src/generated/apple_consumable_delivery.dart';
 import 'package:quanitya_cloud_server/src/models/apple_consumable_delivery.dart';
 import 'package:quanitya_cloud_server/src/models/i_consumable_delivery.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('AppleConsumableDelivery', () {
@@ -18,7 +18,7 @@ void main() {
           consumableType: 'coins',
           quantity: 100.0,
           orderId: 'order_abc123',
-          deliveredAt: DateTime(2024, 1, 15, 10, 30, 0),
+          deliveredAt: DateTime(2024, 1, 15, 10, 30),
         );
       });
 
@@ -57,7 +57,7 @@ void main() {
       test('returns correct deliveredAt', () {
         expect(
           delivery.deliveredAt,
-          equals(DateTime(2024, 1, 15, 10, 30, 0)),
+          equals(DateTime(2024, 1, 15, 10, 30)),
         );
       });
 
@@ -90,7 +90,7 @@ void main() {
           consumableType: 'gems',
           quantity: 50.0,
           orderId: 'order_xyz789',
-          deliveredAt: DateTime(2024, 2, 20, 14, 45, 0),
+          deliveredAt: DateTime(2024, 2, 20, 14, 45),
         );
 
         final delivery = AppleConsumableDeliveryImpl.fromGenerated(generated);
@@ -103,7 +103,7 @@ void main() {
         expect(delivery.consumableType, equals('gems'));
         expect(delivery.quantity, equals(50.0));
         expect(delivery.orderId, equals('order_xyz789'));
-        expect(delivery.deliveredAt, equals(DateTime(2024, 2, 20, 14, 45, 0)));
+        expect(delivery.deliveredAt, equals(DateTime(2024, 2, 20, 14, 45)));
         expect(delivery.paymentRail, equals('apple_iap'));
         expect(delivery.idempotencyKey, equals('txn_xyz789'));
       });

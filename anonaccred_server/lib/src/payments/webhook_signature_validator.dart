@@ -104,8 +104,8 @@ class WebhookSignatureValidator {
       return false;
     }
 
-    int result = 0;
-    for (int i = 0; i < a.length; i++) {
+    var result = 0;
+    for (var i = 0; i < a.length; i++) {
       result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
     }
 

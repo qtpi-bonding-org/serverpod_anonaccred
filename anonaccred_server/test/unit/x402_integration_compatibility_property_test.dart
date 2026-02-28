@@ -1,11 +1,12 @@
 import 'dart:math';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/generated/payment_rail.dart';
 import 'package:anonaccred_server/src/generated/payment_request.dart';
 import 'package:anonaccred_server/src/generated/payment_result.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/x402_payment_rail.dart';
+import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase5, Property 6: Integration Compatibility**
 /// **Validates: Requirements 3.1, 3.2, 3.3**
@@ -14,16 +15,13 @@ void main() {
   final random = Random();
 
   group('X402 Integration Compatibility Property Tests', () {
-    setUp(() {
-      // Clear rails before each test to ensure clean state
-      PaymentManager.clearRails();
-    });
+    setUp(PaymentManager.clearRails);
 
     test(
       'Property 6: Integration Compatibility - For any X402 payment operation, the system should integrate with existing AnonAccred payment patterns',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random test data
           final amountUSD =
               (random.nextDouble() * 1000) + 0.01; // $0.01 to $1000
@@ -150,7 +148,7 @@ void main() {
         };
 
         expect(
-          () async => await x402Rail.processCallback(invalidCallbackData),
+          () async => x402Rail.processCallback(invalidCallbackData),
           throwsA(isA<Exception>()),
         );
 
@@ -177,7 +175,7 @@ void main() {
         final x402Rail = X402PaymentRail();
         PaymentManager.registerRail(x402Rail);
 
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final amountUSD = (random.nextDouble() * 100) + 1.0;
           final orderId = 'serialization_test_${random.nextInt(1000)}';
 
@@ -245,9 +243,9 @@ void main() {
 
 /// Mock implementation of PaymentRailInterface for testing compatibility
 class MockPaymentRail implements PaymentRailInterface {
-  final PaymentRail _railType;
 
   MockPaymentRail(this._railType);
+  final PaymentRail _railType;
 
   @override
   PaymentRail get railType => _railType;
@@ -256,8 +254,7 @@ class MockPaymentRail implements PaymentRailInterface {
   Future<PaymentRequest> createPayment({
     required double amountUSD,
     required String orderId,
-  }) async {
-    return PaymentRequestExtension.withRailData(
+  }) async => PaymentRequestExtension.withRailData(
       paymentRef:
           'mock_payment_ref_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
       amountUSD: amountUSD,
@@ -268,16 +265,13 @@ class MockPaymentRail implements PaymentRailInterface {
         'timestamp': DateTime.now().toIso8601String(),
       },
     );
-  }
 
   @override
   Future<PaymentResult> processCallback(
     Map<String, dynamic> callbackData,
-  ) async {
-    return PaymentResult(
+  ) async => PaymentResult(
       success: true,
       orderId: callbackData['orderId'] as String?,
       transactionTimestamp: DateTime.now(),
     );
-  }
 }

@@ -77,13 +77,13 @@ void main() {
       // Invalid public key format should throw
       expect(
         () async =>
-            await CryptoAuth.verifySignature('invalid', data, validSignature),
+            CryptoAuth.verifySignature('invalid', data, validSignature),
         throwsA(isA<AuthenticationException>()),
       );
 
       // Invalid signature format should throw
       expect(
-        () async => await CryptoAuth.verifySignature(validKey, data, 'invalid'),
+        () async => CryptoAuth.verifySignature(validKey, data, 'invalid'),
         throwsA(isA<AuthenticationException>()),
       );
     });
@@ -153,7 +153,7 @@ void main() {
 
       // Invalid public key format should throw
       expect(
-        () async => await CryptoAuth.verifyMessageSignature(
+        () async => CryptoAuth.verifyMessageSignature(
           'invalid',
           message,
           validSignature,

@@ -1,9 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:test/test.dart';
-import 'package:anonaccred_server/src/payments/apple_jwt_auth_client.dart';
 import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/apple_jwt_auth_client.dart';
+import 'package:test/test.dart';
 
 /// Unit tests for Apple JWT authentication client
 ///
@@ -15,7 +13,8 @@ import 'package:anonaccred_server/src/generated/protocol.dart';
 void main() {
   group('AppleJWTAuthClient Tests', () {
     // Valid EC private key in PEM format for testing
-    const testPrivateKey = '''-----BEGIN PRIVATE KEY-----
+    const testPrivateKey = '''
+-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
 -----END PRIVATE KEY-----''';
     const testKeyId = 'TEST_KEY_ID';
@@ -45,7 +44,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
     test('fromEnvironment throws for missing credentials', () {
       // Test error handling when environment variables are missing
       expect(
-        () => AppleJWTAuthClient.fromEnvironment(),
+        AppleJWTAuthClient.fromEnvironment,
         throwsA(isA<AnonAccredException>()),
       );
     });
@@ -91,7 +90,8 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
 
   group('AppleJWTAuthClient Token Structure Tests', () {
     // Use a valid EC private key for token generation tests
-    const testPrivateKey = '''-----BEGIN PRIVATE KEY-----
+    const testPrivateKey = '''
+-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
 -----END PRIVATE KEY-----''';
     const testKeyId = 'TEST_KEY_ID';
@@ -128,7 +128,8 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
   });
 
   group('AppleJWTAuthClient Environment Loading', () {
-    const testPrivateKey = '''-----BEGIN PRIVATE KEY-----
+    const testPrivateKey = '''
+-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
 -----END PRIVATE KEY-----''';
 
@@ -137,7 +138,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
       // Note: We can't actually modify Platform.environment in tests,
       // but we can verify the validation logic works
       expect(
-        () => AppleJWTAuthClient.fromEnvironment(),
+        AppleJWTAuthClient.fromEnvironment,
         throwsA(isA<AnonAccredException>()),
       );
     });
@@ -145,7 +146,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
     test('fromEnvironment fails with empty private key', () {
       // Test error handling for empty private key
       expect(
-        () => AppleJWTAuthClient.fromEnvironment(),
+        AppleJWTAuthClient.fromEnvironment,
         throwsA(isA<AnonAccredException>()),
       );
     });
@@ -153,7 +154,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
     test('fromEnvironment fails with missing key ID', () {
       // Test error handling for missing key ID
       expect(
-        () => AppleJWTAuthClient.fromEnvironment(),
+        AppleJWTAuthClient.fromEnvironment,
         throwsA(isA<AnonAccredException>()),
       );
     });

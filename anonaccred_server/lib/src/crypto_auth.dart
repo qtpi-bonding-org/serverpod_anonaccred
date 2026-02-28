@@ -32,7 +32,7 @@ class AuthenticationResultFactory {
 
 /// Cryptographic authentication core for ECDSA P-256 signature operations.
 ///
-/// This class provides high-level authentication operations while maintaining 
+/// This class provides high-level authentication operations while maintaining
 /// strict privacy-by-design principles:
 /// - Only handles public keys and signature verification
 /// - Never generates, stores, or processes private keys
@@ -82,13 +82,15 @@ class CryptoAuth {
   /// - [publicKeyHex]: ECDSA P-256 public key as hex string (128-130 chars)
   /// - [challenge]: The challenge string that was signed
   /// - [signatureHex]: Signature of the challenge (128 hex chars)
+  /// - [skipTimestampValidation]: If true, skips timestamp validation (use when Redis provides freshness)
   ///
   /// Returns AuthenticationResult with success/failure information.
   static Future<AuthenticationResult> verifyChallengeResponse(
     String publicKeyHex,
     String challenge,
-    String signatureHex,
-  ) async {
+    String signatureHex, {
+    bool skipTimestampValidation = false,
+  }) async {
     try {
       // Validate inputs first
       if (!isValidPublicKey(publicKeyHex)) {
@@ -121,22 +123,27 @@ class CryptoAuth {
         );
       }
 
-      // Validate challenge expiration
-      try {
-        if (!CryptoUtils.isChallengeValid(challenge)) {
+      // Validate challenge expiration (skip if Redis handles freshness)
+      if (!skipTimestampValidation) {
+        try {
+          if (!CryptoUtils.isChallengeValid(challenge)) {
+            return AuthenticationResultFactory.failure(
+              errorCode: AnonAccredErrorCodes.authChallengeExpired,
+              errorMessage: 'Authentication challenge has expired',
+              details: {
+                'challenge': challenge,
+                'validityDuration': '5 minutes',
+              },
+            );
+          }
+        } on AuthenticationException catch (e) {
+          // Challenge format validation failed
           return AuthenticationResultFactory.failure(
-            errorCode: AnonAccredErrorCodes.authChallengeExpired,
-            errorMessage: 'Authentication challenge has expired',
-            details: {'challenge': challenge, 'validityDuration': '5 minutes'},
+            errorCode: e.code,
+            errorMessage: e.message,
+            details: e.details,
           );
         }
-      } on AuthenticationException catch (e) {
-        // Challenge format validation failed
-        return AuthenticationResultFactory.failure(
-          errorCode: e.code,
-          errorMessage: e.message,
-          details: e.details,
-        );
       }
 
       // Perform signature verification (auto-detects algorithm)

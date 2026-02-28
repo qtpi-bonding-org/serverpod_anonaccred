@@ -1,7 +1,7 @@
-import 'package:test/test.dart';
-import 'package:serverpod/serverpod.dart';
 import 'package:quanitya_cloud_server/src/models/i_consumable_delivery.dart';
 import 'package:quanitya_cloud_server/src/models/i_consumable_delivery_manager.dart';
+import 'package:serverpod/serverpod.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('IConsumableDeliveryManager Interface', () {
@@ -210,6 +210,17 @@ void main() {
 
 /// Mock implementation of IConsumableDelivery for unit testing.
 class MockConsumableDelivery implements IConsumableDelivery {
+
+  MockConsumableDelivery({
+    required this.accountId,
+    required this.consumableType,
+    required this.quantity,
+    required this.orderId,
+    required this.deliveredAt,
+    required this.paymentRail,
+    required this.productId,
+    required this.idempotencyKey,
+  });
   @override
   final int accountId;
 
@@ -233,17 +244,6 @@ class MockConsumableDelivery implements IConsumableDelivery {
 
   @override
   final String idempotencyKey;
-
-  MockConsumableDelivery({
-    required this.accountId,
-    required this.consumableType,
-    required this.quantity,
-    required this.orderId,
-    required this.deliveredAt,
-    required this.paymentRail,
-    required this.productId,
-    required this.idempotencyKey,
-  });
 }
 
 /// Mock delivery manager for testing the interface.
@@ -255,9 +255,7 @@ class MockDeliveryManager implements IConsumableDeliveryManager<MockConsumableDe
   Future<MockConsumableDelivery?> findByIdempotencyKey(
     Session session,
     String idempotencyKey,
-  ) async {
-    return _deliveries[idempotencyKey];
-  }
+  ) async => _deliveries[idempotencyKey];
 
   @override
   Future<MockConsumableDelivery> recordDelivery(
@@ -291,13 +289,21 @@ class MockDeliveryManager implements IConsumableDeliveryManager<MockConsumableDe
   Future<List<MockConsumableDelivery>> getDeliveriesForAccount(
     Session session,
     int accountId,
-  ) async {
-    return _accountDeliveries[accountId] ?? [];
-  }
+  ) async => _accountDeliveries[accountId] ?? [];
 }
 
 /// Apple-specific test delivery implementation.
 class AppleTestDelivery implements IConsumableDelivery {
+
+  AppleTestDelivery({
+    required this.accountId,
+    required this.consumableType,
+    required this.quantity,
+    required this.orderId,
+    required this.deliveredAt,
+    required this.productId,
+    required this.transactionId,
+  });
   @override
   final int accountId;
 
@@ -318,16 +324,6 @@ class AppleTestDelivery implements IConsumableDelivery {
 
   final String transactionId;
 
-  AppleTestDelivery({
-    required this.accountId,
-    required this.consumableType,
-    required this.quantity,
-    required this.orderId,
-    required this.deliveredAt,
-    required this.productId,
-    required this.transactionId,
-  });
-
   @override
   String get paymentRail => 'apple_iap';
 
@@ -337,6 +333,16 @@ class AppleTestDelivery implements IConsumableDelivery {
 
 /// Google-specific test delivery implementation.
 class GoogleTestDelivery implements IConsumableDelivery {
+
+  GoogleTestDelivery({
+    required this.accountId,
+    required this.consumableType,
+    required this.quantity,
+    required this.orderId,
+    required this.deliveredAt,
+    required this.productId,
+    required this.purchaseToken,
+  });
   @override
   final int accountId;
 
@@ -357,16 +363,6 @@ class GoogleTestDelivery implements IConsumableDelivery {
 
   final String purchaseToken;
 
-  GoogleTestDelivery({
-    required this.accountId,
-    required this.consumableType,
-    required this.quantity,
-    required this.orderId,
-    required this.deliveredAt,
-    required this.productId,
-    required this.purchaseToken,
-  });
-
   @override
   String get paymentRail => 'google_iap';
 
@@ -382,9 +378,7 @@ class AppleMockDeliveryManager implements IConsumableDeliveryManager<AppleTestDe
   Future<AppleTestDelivery?> findByIdempotencyKey(
     Session session,
     String idempotencyKey,
-  ) async {
-    return _deliveries[idempotencyKey];
-  }
+  ) async => _deliveries[idempotencyKey];
 
   @override
   Future<AppleTestDelivery> recordDelivery(
@@ -414,9 +408,7 @@ class AppleMockDeliveryManager implements IConsumableDeliveryManager<AppleTestDe
   Future<List<AppleTestDelivery>> getDeliveriesForAccount(
     Session session,
     int accountId,
-  ) async {
-    return _deliveries.values.where((d) => d.accountId == accountId).toList();
-  }
+  ) async => _deliveries.values.where((d) => d.accountId == accountId).toList();
 }
 
 /// Google-specific mock delivery manager.
@@ -427,9 +419,7 @@ class GoogleMockDeliveryManager implements IConsumableDeliveryManager<GoogleTest
   Future<GoogleTestDelivery?> findByIdempotencyKey(
     Session session,
     String idempotencyKey,
-  ) async {
-    return _deliveries[idempotencyKey];
-  }
+  ) async => _deliveries[idempotencyKey];
 
   @override
   Future<GoogleTestDelivery> recordDelivery(
@@ -459,15 +449,11 @@ class GoogleMockDeliveryManager implements IConsumableDeliveryManager<GoogleTest
   Future<List<GoogleTestDelivery>> getDeliveriesForAccount(
     Session session,
     int accountId,
-  ) async {
-    return _deliveries.values.where((d) => d.accountId == accountId).toList();
-  }
+  ) async => _deliveries.values.where((d) => d.accountId == accountId).toList();
 }
 
 /// Mock session for testing.
 class MockSession implements Session {
   @override
-  dynamic noSuchMethod(Invocation invocation) {
-    return null;
-  }
+  dynamic noSuchMethod(Invocation invocation) => null;
 }

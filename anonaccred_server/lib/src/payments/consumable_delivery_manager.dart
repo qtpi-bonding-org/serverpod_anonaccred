@@ -52,7 +52,7 @@ class ConsumableDeliveryManager {
       deliveredAt: DateTime.now(),
     );
 
-    return await ConsumableDelivery.db.insertRow(session, delivery);
+    return ConsumableDelivery.db.insertRow(session, delivery);
   }
 
   /// Get delivery record for refund processing.
@@ -64,7 +64,5 @@ class ConsumableDeliveryManager {
   static Future<ConsumableDelivery?> getDeliveryForRefund(
     Session session,
     String purchaseToken,
-  ) async {
-    return await findByPurchaseToken(session, purchaseToken);
-  }
+  ) async => findByPurchaseToken(session, purchaseToken);
 }

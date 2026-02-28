@@ -12,13 +12,14 @@ void main() {
     test('AnonAccount protocol class works correctly', () {
       final account = AnonAccount(
         id: 1,
-        publicMasterKey: 'a' * 64, // Valid 64-char hex string
+        ultimateSigningPublicKeyHex: 'a' * 128, // Valid 128-char hex string (ECDSA P-256)
         encryptedDataKey: 'encrypted_data_key_example',
+        ultimatePublicKey: 'b' * 128, // Valid 128-char hex string (ECDSA P-256)
         createdAt: DateTime.now(),
       );
       
       expect(account.id, equals(1));
-      expect(account.publicMasterKey, equals('a' * 64));
+      expect(account.ultimateSigningPublicKeyHex, equals('a' * 128));
       expect(account.encryptedDataKey, equals('encrypted_data_key_example'));
       expect(account.createdAt, isA<DateTime>());
     });
@@ -27,7 +28,7 @@ void main() {
       final device = AccountDevice(
         id: 1,
         accountId: 123,
-        publicSubKey: 'b' * 64, // Valid 64-char hex string
+        deviceSigningPublicKeyHex: 'b' * 128, // Valid 128-char hex string (ECDSA P-256)
         encryptedDataKey: 'device_encrypted_key',
         label: 'Test Device',
         lastActive: DateTime.now(),
@@ -36,7 +37,7 @@ void main() {
       
       expect(device.id, equals(1));
       expect(device.accountId, equals(123));
-      expect(device.publicSubKey, equals('b' * 64));
+      expect(device.deviceSigningPublicKeyHex, equals('b' * 128));
       expect(device.encryptedDataKey, equals('device_encrypted_key'));
       expect(device.label, equals('Test Device'));
       expect(device.isRevoked, isFalse);
@@ -69,7 +70,6 @@ void main() {
         paymentCurrency: Currency.XMR,
         paymentAmount: 0.05,
         paymentRef: 'payment_ref_123',
-        transactionHash: 'tx_hash_abc123def456',
         status: OrderStatus.paid,
         timestamp: DateTime.now(),
       );
@@ -82,7 +82,6 @@ void main() {
       expect(transaction.paymentCurrency, equals(Currency.XMR));
       expect(transaction.paymentAmount, equals(0.05));
       expect(transaction.paymentRef, equals('payment_ref_123'));
-      expect(transaction.transactionHash, equals('tx_hash_abc123def456'));
       expect(transaction.status, equals(OrderStatus.paid));
     });
     
@@ -200,8 +199,9 @@ void main() {
       
       final account = AnonAccount(
         id: 1,
-        publicMasterKey: 'c' * 64,
+        ultimateSigningPublicKeyHex: 'c' * 128,
         encryptedDataKey: 'test_key',
+        ultimatePublicKey: 'd' * 128,
         createdAt: DateTime.now(),
       );
       
@@ -210,7 +210,7 @@ void main() {
       
       final json = account.toJson();
       expect(json, isA<Map<String, dynamic>>());
-      expect(json['publicMasterKey'], equals('c' * 64));
+      expect(json['ultimateSigningPublicKeyHex'], equals('c' * 128));
       expect(json['encryptedDataKey'], equals('test_key'));
     });
   });
@@ -237,13 +237,14 @@ void main() {
       expect(() {
         final account = AnonAccount(
           id: 1,
-          publicMasterKey: 'd' * 64,
+          ultimateSigningPublicKeyHex: 'd' * 128,
           encryptedDataKey: 'integration_test',
+          ultimatePublicKey: 'e' * 128,
           createdAt: DateTime.now(),
         );
         
         // Test that the object can be created and used
-        expect(account.publicMasterKey, isNotEmpty);
+        expect(account.ultimateSigningPublicKeyHex, isNotEmpty);
       }, returnsNormally);
     });
   });

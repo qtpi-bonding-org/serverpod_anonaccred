@@ -1,5 +1,7 @@
 import 'package:app_store_server_sdk/app_store_server_sdk.dart';
+import '../../anonaccred_server.dart' show PaymentException, AnonAccredException;
 import '../exception_factory.dart';
+import '../generated/protocol.dart' show PaymentException, AnonAccredException;
 import 'apple_jwt_auth_client.dart';
 
 /// Wrapper around app_store_server_sdk for type-safe access to App Store Server API.
@@ -30,7 +32,6 @@ import 'apple_jwt_auth_client.dart';
 /// );
 /// ```
 class AppStoreServerClient {
-  final AppStoreServerAPI _api;
 
   /// Creates a new AppStoreServerClient instance.
   ///
@@ -56,6 +57,7 @@ class AppStoreServerClient {
                   ),
           ),
         );
+  final AppStoreServerAPI _api;
 
   /// Get transaction information for a given transaction ID.
   ///

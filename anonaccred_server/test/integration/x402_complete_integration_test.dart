@@ -1,5 +1,4 @@
 import 'package:anonaccred_server/anonaccred_server.dart';
-import 'package:anonaccred_server/src/payments/x402_interceptor.dart';
 import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
 import 'package:test/test.dart';
 
@@ -198,7 +197,7 @@ void main() {
       test('should handle configuration validation', () {
         // Test configuration validation (will throw due to missing env vars in test)
         expect(
-          () => X402Interceptor.validateConfiguration(),
+          X402Interceptor.validateConfiguration,
           throwsA(isA<PaymentException>()),
         );
       });
@@ -229,9 +228,7 @@ void main() {
             onPaymentRequired: () async {
               throw Exception('Payment required callback error');
             },
-            onPaymentVerified: () async {
-              return {'success': true};
-            },
+            onPaymentVerified: () async => {'success': true},
           );
 
           // Should handle error gracefully and return payment required as fallback
@@ -365,7 +362,7 @@ void main() {
 
           // Generate multiple payment requirements concurrently
           final futures = <Future<Map<String, dynamic>>>[];
-          for (int i = 0; i < 5; i++) {
+          for (var i = 0; i < 5; i++) {
             futures.add(
               X402Interceptor.generatePaymentRequired(
                 session: session,
@@ -406,7 +403,7 @@ void main() {
           final sessions = List.generate(3, (_) => sessionBuilder.build());
 
           final paymentRequests = <PaymentRequest>[];
-          for (int i = 0; i < sessions.length; i++) {
+          for (var i = 0; i < sessions.length; i++) {
             final request = await PaymentManager.createPayment(
               session: sessions[i],
               railType: PaymentRail.x402_http,
@@ -427,7 +424,7 @@ void main() {
           expect(uniqueRefs.length, equals(paymentRefs.length));
 
           // All should have correct amounts
-          for (int i = 0; i < paymentRequests.length; i++) {
+          for (var i = 0; i < paymentRequests.length; i++) {
             expect(paymentRequests[i].amountUSD, equals(5.0 + i));
             expect(
               paymentRequests[i].orderId,
@@ -442,9 +439,9 @@ void main() {
 
 /// Mock payment rail for testing compatibility
 class MockPaymentRail implements PaymentRailInterface {
-  final PaymentRail _railType;
 
   MockPaymentRail(this._railType);
+  final PaymentRail _railType;
 
   @override
   PaymentRail get railType => _railType;

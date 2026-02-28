@@ -5,12 +5,6 @@ import '../exception_factory.dart';
 /// Handles JWT authentication using Apple private keys with ES256 algorithm.
 /// Used to authenticate with the App Store Server API.
 class AppleJWTAuthClient {
-  final String privateKey;
-  final String keyId;
-  final String issuerId;
-  final String bundleId;
-  String? _cachedToken;
-  DateTime? _tokenExpiry;
 
   /// Creates a new AppleJWTAuthClient instance.
   ///
@@ -24,6 +18,12 @@ class AppleJWTAuthClient {
     required this.issuerId,
     required this.bundleId,
   });
+  final String privateKey;
+  final String keyId;
+  final String issuerId;
+  final String bundleId;
+  String? _cachedToken;
+  DateTime? _tokenExpiry;
 
   /// Load credentials from environment variables.
   /// Required: APPLE_PRIVATE_KEY, APPLE_KEY_ID, APPLE_ISSUER_ID, APPLE_BUNDLE_ID

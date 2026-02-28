@@ -1,6 +1,8 @@
 import 'dart:math';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:test/test.dart';
+
 import '../integration/test_tools/serverpod_test_tools.dart';
 
 /// **Feature: anonaccred-phase3, Property 2: Order Creation Integrity**
@@ -20,7 +22,7 @@ void main() {
       'Property 2: Order Creation Integrity - For any valid order creation request, the system should generate a unique transaction with pending status and correct price calculation based on current registry prices',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final registry = PriceRegistry();
 
           // Generate random test data
@@ -124,8 +126,8 @@ void main() {
           await TransactionPayment.db.deleteWhere(
             session,
             where: (t) =>
-                t.id.equals(transaction.id!) |
-                t.id.equals(secondTransaction.id!),
+                t.id.equals(transaction.id) |
+                t.id.equals(secondTransaction.id),
           );
           registry.clearRegistry();
         }
@@ -136,7 +138,7 @@ void main() {
       'Property 3: Order Validation - For any order creation request with unregistered consumable types, the system should reject the order with appropriate error messaging',
       () async {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final registry = PriceRegistry();
 
           // Generate test data with some registered and some unregistered products
@@ -249,7 +251,7 @@ void main() {
       // Test that calculateTotal works independently of order creation
       final registry = PriceRegistry();
 
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         final items = _generateRandomValidItems();
 
         // Register products with known prices
@@ -332,7 +334,7 @@ void main() {
       'Property 7: Order Fulfillment Completeness - For any order fulfillment operation, the system should add all order items to inventory and update transaction status to completed',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final registry = PriceRegistry();
           final session = sessionBuilder.build();
 
@@ -456,7 +458,7 @@ void main() {
             postSecondFulfillInventory.length,
             equals(preSecondFulfillInventory.length),
           );
-          for (int j = 0; j < preSecondFulfillInventory.length; j++) {
+          for (var j = 0; j < preSecondFulfillInventory.length; j++) {
             expect(
               postSecondFulfillInventory[j].quantity,
               equals(preSecondFulfillInventory[j].quantity),
@@ -470,7 +472,7 @@ void main() {
           );
           await TransactionPayment.db.deleteWhere(
             session,
-            where: (t) => t.id.equals(transaction.id!),
+            where: (t) => t.id.equals(transaction.id),
           );
           await AccountInventory.db.deleteWhere(
             session,
@@ -501,7 +503,7 @@ Map<String, double> _generateRandomValidItems() {
   final itemCount = random.nextInt(3) + 1; // 1-3 items
   final items = <String, double>{};
 
-  for (int i = 0; i < itemCount; i++) {
+  for (var i = 0; i < itemCount; i++) {
     final prefix = skuPrefixes[random.nextInt(skuPrefixes.length)];
     final suffix = skuSuffixes[random.nextInt(skuSuffixes.length)];
     final number = random.nextInt(1000);

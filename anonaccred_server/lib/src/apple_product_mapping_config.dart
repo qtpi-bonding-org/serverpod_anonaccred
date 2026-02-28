@@ -4,20 +4,18 @@ import 'exception_factory.dart';
 
 /// Represents a mapping from an Apple product ID to a consumable type and quantity.
 class AppleProductMapping {
-  final String consumableType;
-  final double quantity;
 
   AppleProductMapping({
     required this.consumableType,
     required this.quantity,
   });
 
-  factory AppleProductMapping.fromJson(Map<String, dynamic> json) {
-    return AppleProductMapping(
+  factory AppleProductMapping.fromJson(Map<String, dynamic> json) => AppleProductMapping(
       consumableType: json['type'] as String,
       quantity: (json['quantity'] as num).toDouble(),
     );
-  }
+  final String consumableType;
+  final double quantity;
 }
 
 /// Configuration for mapping Apple product IDs to consumable types.

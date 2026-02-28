@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/endpoints/iap_webhook_endpoint.dart';
+import 'package:test/test.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
 
@@ -20,7 +20,7 @@ void main() {
 
     group('Apple Webhook Processing', () {
       test('handleAppleWebhook processes valid webhook data', () async {
-        final session = await sessionBuilder.build();
+        final session = sessionBuilder.build();
         
         final webhookData = {
           'receipt_data': 'mock_receipt_data',
@@ -34,7 +34,7 @@ void main() {
       });
 
       test('handleAppleWebhook handles invalid webhook data', () async {
-        final session = await sessionBuilder.build();
+        final session = sessionBuilder.build();
         
         final invalidWebhookData = <String, dynamic>{};
 
@@ -47,7 +47,7 @@ void main() {
 
     group('Google Webhook Processing', () {
       test('handleGoogleWebhook processes valid webhook data', () async {
-        final session = await sessionBuilder.build();
+        final session = sessionBuilder.build();
         
         final webhookData = {
           'package_name': 'com.example.app',
@@ -63,7 +63,7 @@ void main() {
       });
 
       test('handleGoogleWebhook handles invalid webhook data', () async {
-        final session = await sessionBuilder.build();
+        final session = sessionBuilder.build();
         
         final invalidWebhookData = <String, dynamic>{};
 

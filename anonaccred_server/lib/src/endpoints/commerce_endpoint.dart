@@ -452,14 +452,12 @@ class CommerceEndpoint extends Endpoint {
         headers: headers ?? <String, String>{},
         resourceId: 'product_catalog',
         amount: 0.25, // $0.25 for catalog access
-        onPaymentRequired: () async {
-          return await X402Interceptor.generatePaymentRequired(
+        onPaymentRequired: () async => X402Interceptor.generatePaymentRequired(
             session: session,
             resourceId: 'product_catalog',
             amount: 0.25,
             description: 'Access to complete product catalog',
-          );
-        },
+          ),
         onPaymentVerified: () async {
           // Payment verified - provide product catalog
           final registry = PriceRegistry();
@@ -539,14 +537,12 @@ class CommerceEndpoint extends Endpoint {
         headers: headers ?? <String, String>{},
         resourceId: 'balance_${accountId}_$consumableType',
         amount: 0.05, // $0.05 for balance query
-        onPaymentRequired: () async {
-          return await X402Interceptor.generatePaymentRequired(
+        onPaymentRequired: () async => X402Interceptor.generatePaymentRequired(
             session: session,
             resourceId: 'balance_${accountId}_$consumableType',
             amount: 0.05,
             description: 'Balance query for $consumableType',
-          );
-        },
+          ),
         onPaymentVerified: () async {
           // Payment verified - provide balance information
           final balance = await InventoryManager.getBalance(

@@ -1,8 +1,8 @@
-import 'package:test/test.dart';
-import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
-import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/error_classification.dart';
+import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
+import 'package:test/test.dart';
 
 /// Test for X402 error handling improvements
 /// 
@@ -34,7 +34,7 @@ void main() {
       
       // Test missing X-PAYMENT header
       expect(
-        () async => await X402PaymentProcessor.verifyPaymentWithDetails({}),
+        () async => X402PaymentProcessor.verifyPaymentWithDetails({}),
         returnsNormally, // Missing header returns false, doesn't throw
       );
       
@@ -43,7 +43,7 @@ void main() {
 
       // Test facilitator unavailable (will throw exception)
       expect(
-        () async => await X402PaymentProcessor.verifyPaymentWithDetails({
+        () async => X402PaymentProcessor.verifyPaymentWithDetails({
           'X-PAYMENT': 'valid_looking_payload_123'
         }),
         throwsA(isA<PaymentException>()),

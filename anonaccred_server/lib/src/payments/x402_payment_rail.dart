@@ -1,7 +1,4 @@
 import '../exception_factory.dart';
-import '../generated/payment_rail.dart';
-import '../generated/payment_request.dart';
-import '../generated/payment_result.dart';
 import '../generated/protocol.dart';
 import 'payment_rail_interface.dart';
 
