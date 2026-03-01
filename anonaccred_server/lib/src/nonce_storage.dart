@@ -1,39 +1,34 @@
-import 'dart:convert';
-
 import 'package:serverpod/serverpod.dart';
 
-class DeviceNonceList {
+class DeviceNonceList implements SerializableModel {
+  final List<String> nonces;
 
   DeviceNonceList({required this.nonces});
 
-  factory DeviceNonceList.fromJson(Map<String, dynamic> json) => DeviceNonceList(
-      nonces: (json['nonces'] as List<dynamic>)
-          .map((e) => e.toString())
-          .toList(),
-    );
+  @override
+  Map<String, dynamic> toJson() => {'nonces': nonces};
+
+  factory DeviceNonceList.fromJson(Map<String, dynamic> json) =>
+      DeviceNonceList(
+        nonces: (json['nonces'] as List<dynamic>)
+            .map((e) => e.toString())
+            .toList(),
+      );
 
   factory DeviceNonceList.empty() => DeviceNonceList(nonces: []);
-  final List<String> nonces;
 
-  DeviceNonceList copyWith({List<String>? nonces}) => DeviceNonceList(nonces: nonces ?? this.nonces);
-
-  Map<String, dynamic> toJson() => {'__className__': 'DeviceNonceList', 'nonces': nonces};
-
-  String toJsonString() => jsonEncode(toJson());
-
-  static DeviceNonceList fromJsonString(String jsonStr) => DeviceNonceList.fromJson(
-      jsonDecode(jsonStr) as Map<String, dynamic>,
-    );
+  @override
+  Map<String, dynamic> toJsonForProtocol() => toJson();
 }
 
 class DeviceNonceStorage {
-
-  DeviceNonceStorage(this._session);
   static const String _keyPrefix = 'anonaccred:nonces:';
   static const int _maxNoncesPerDevice = 10;
   static const Duration _nonceTTL = Duration(minutes: 5);
 
   final Session _session;
+
+  DeviceNonceStorage(this._session);
 
   String _getKey(String devicePublicKey) => '$_keyPrefix$devicePublicKey';
 
@@ -41,16 +36,18 @@ class DeviceNonceStorage {
     final nonce = _generateNonce();
     final key = _getKey(devicePublicKey);
 
-    final existingNonces = await _getNonces(key);
-    final nonces = [nonce, ...existingNonces];
+    final existing = await _session.caches.local.get<DeviceNonceList>(key);
+    List<String> nonces = existing?.nonces ?? [];
+
+    nonces = [nonce, ...nonces];
 
     if (nonces.length > _maxNoncesPerDevice) {
-      nonces.removeRange(_maxNoncesPerDevice, nonces.length);
+      nonces = nonces.take(_maxNoncesPerDevice).toList();
     }
 
-    await _cache.put(
+    await _session.caches.local.put(
       key,
-      DeviceNonceList(nonces: nonces).toJsonString(),
+      DeviceNonceList(nonces: nonces),
       lifetime: _nonceTTL,
     );
 
@@ -62,36 +59,27 @@ class DeviceNonceStorage {
     String nonce,
   ) async {
     final key = _getKey(devicePublicKey);
-    final nonces = await _getNonces(key);
+    final stored = await _session.caches.local.get<DeviceNonceList>(key);
 
+    if (stored == null) return false;
+
+    List<String> nonces = List<String>.from(stored.nonces);
     final index = nonces.indexOf(nonce);
-    if (index == -1) {
-      return false;
-    }
+    if (index == -1) return false;
 
     nonces.removeAt(index);
 
     if (nonces.isEmpty) {
-      await _cache.invalidateKey(key);
+      await _session.caches.local.invalidateKey(key);
     } else {
-      await _cache.put(
+      await _session.caches.local.put(
         key,
-        DeviceNonceList(nonces: nonces).toJsonString(),
+        DeviceNonceList(nonces: nonces),
         lifetime: _nonceTTL,
       );
     }
 
     return true;
-  }
-
-  dynamic get _cache => _session.caches.global;
-
-  Future<List<String>> _getNonces(String key) async {
-    final jsonData = await _cache.get<String>(key);
-    if (jsonData == null) return [];
-    final jsonStr = jsonData.toString();
-    if (jsonStr.isEmpty) return [];
-    return DeviceNonceList.fromJsonString(jsonStr).nonces;
   }
 
   String _generateNonce() {

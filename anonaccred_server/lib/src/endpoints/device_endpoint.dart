@@ -405,9 +405,8 @@ class DeviceEndpoint extends Endpoint {
       );
     }
 
-    // Generate and store nonce in Redis
-    final nonceStorage = DeviceNonceStorage(session);
-    return nonceStorage.generateAndStoreNonce(devicePublicKey);
+    // Generate challenge using crypto utils (embedded timestamp for freshness)
+    return CryptoAuth.generateChallenge();
   }
 
   /// Revoke device access
@@ -540,7 +539,9 @@ class DeviceEndpoint extends Endpoint {
     final channelName = 'pairing-updates-$signingKeyHex';
 
     // Subscribe to the channel
-    final stream = session.messages.createStream<DevicePairingEvent>(channelName);
+    final stream = session.messages.createStream<DevicePairingEvent>(
+      channelName,
+    );
 
     // Forward events to the client
     await for (final event in stream) {

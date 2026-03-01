@@ -39,7 +39,10 @@ void main() {
 
         expect(device.id, isNotNull);
         expect(device.accountId, equals(testAccount.id));
-        expect(device.deviceSigningPublicKeyHex, equals(deviceSigningPublicKeyHex));
+        expect(
+          device.deviceSigningPublicKeyHex,
+          equals(deviceSigningPublicKeyHex),
+        );
         expect(device.encryptedDataKey, equals(encryptedDataKey));
         expect(device.label, equals(label));
         expect(device.isRevoked, isFalse);
@@ -93,39 +96,36 @@ void main() {
       },
     );
 
-    test(
-      'registerDevice - should reject invalid public subkey format',
-      () async {
-        // Create a test account first
-        const accountPublicKey =
-            '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-            '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const accountEncryptedDataKey = 'encrypted_test_data_key_3';
-
-        final testAccount = await endpoints.account.createAccount(
-          sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
+    test('registerDevice - should reject invalid public subkey format', () async {
+      // Create a test account first
+      const accountPublicKey =
           '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-          '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // ultimatePublicKey
-        );
+          '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      const accountEncryptedDataKey = 'encrypted_test_data_key_3';
 
-        const invalidDeviceSigningPublicKeyHex = 'invalid_key_format';
-        const encryptedDataKey = 'device_encrypted_data_key';
-        const label = 'Test Device';
+      final testAccount = await endpoints.account.createAccount(
+        sessionBuilder,
+        accountPublicKey,
+        accountEncryptedDataKey,
+        '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+        '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // ultimatePublicKey
+      );
 
-        expect(
-          () => endpoints.device.registerDevice(
-            sessionBuilder,
-            testAccount.id!,
-            invalidDeviceSigningPublicKeyHex,
-            encryptedDataKey,
-            label,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      },
-    );
+      const invalidDeviceSigningPublicKeyHex = 'invalid_key_format';
+      const encryptedDataKey = 'device_encrypted_data_key';
+      const label = 'Test Device';
+
+      expect(
+        () => endpoints.device.registerDevice(
+          sessionBuilder,
+          testAccount.id!,
+          invalidDeviceSigningPublicKeyHex,
+          encryptedDataKey,
+          label,
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
 
     test(
       'registerDevice - should reject registration for non-existent account',
@@ -151,11 +151,42 @@ void main() {
     );
 
     test('generateAuthChallenge - should generate unique challenges', () async {
+      // First create an account and device
+      const accountPublicKey =
+          '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      const accountEncryptedDataKey = 'encrypted_test_data_key_challenge';
+
+      final testAccount = await endpoints.account.createAccount(
+        sessionBuilder,
+        accountPublicKey,
+        accountEncryptedDataKey,
+        '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+        '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+      );
+
+      const deviceSigningPublicKeyHex =
+          'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      const encryptedDataKey = 'device_encrypted_data_key_challenge';
+      const label = 'Challenge Test Device';
+
+      await endpoints.device.registerDevice(
+        sessionBuilder,
+        testAccount.id!,
+        deviceSigningPublicKeyHex,
+        encryptedDataKey,
+        label,
+      );
+
+      // Now generate challenges
       final challenge1 = await endpoints.device.generateAuthChallenge(
         sessionBuilder,
+        deviceSigningPublicKeyHex,
       );
       final challenge2 = await endpoints.device.generateAuthChallenge(
         sessionBuilder,
+        deviceSigningPublicKeyHex,
       );
 
       expect(challenge1, isNotEmpty);
