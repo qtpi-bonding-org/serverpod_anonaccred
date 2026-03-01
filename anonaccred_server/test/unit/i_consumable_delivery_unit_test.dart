@@ -1,4 +1,4 @@
-import 'package:quanitya_cloud_server/src/models/i_consumable_delivery.dart';
+import 'package:anonaccred_server/src/payments/i_consumable_delivery.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -36,10 +36,7 @@ void main() {
       });
 
       test('returns correct deliveredAt', () {
-        expect(
-          mockDelivery.deliveredAt,
-          equals(DateTime(2024, 1, 15, 10, 30)),
-        );
+        expect(mockDelivery.deliveredAt, equals(DateTime(2024, 1, 15, 10, 30)));
       });
 
       test('returns correct paymentRail', () {
@@ -134,7 +131,6 @@ void main() {
 
 /// Mock implementation of IConsumableDelivery for unit testing.
 class MockConsumableDelivery implements IConsumableDelivery {
-
   MockConsumableDelivery({
     required this.accountId,
     required this.consumableType,
@@ -172,7 +168,6 @@ class MockConsumableDelivery implements IConsumableDelivery {
 
 /// Test implementation for Apple IAP delivery.
 class AppleConsumableDeliveryTestImpl implements IConsumableDelivery {
-
   AppleConsumableDeliveryTestImpl({
     required this.accountId,
     required this.consumableType,
@@ -211,7 +206,6 @@ class AppleConsumableDeliveryTestImpl implements IConsumableDelivery {
 
 /// Test implementation for Google IAP delivery.
 class GoogleConsumableDeliveryTestImpl implements IConsumableDelivery {
-
   GoogleConsumableDeliveryTestImpl({
     required this.accountId,
     required this.consumableType,

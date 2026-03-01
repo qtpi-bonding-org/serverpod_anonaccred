@@ -1,5 +1,5 @@
-import 'package:quanitya_cloud_server/src/models/i_consumable_delivery.dart';
-import 'package:quanitya_cloud_server/src/models/i_consumable_delivery_manager.dart';
+import 'package:anonaccred_server/src/payments/i_consumable_delivery.dart';
+import 'package:anonaccred_server/src/payments/i_consumable_delivery_manager.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
@@ -15,7 +15,10 @@ void main() {
       });
 
       test('findByIdempotencyKey returns null for non-existent key', () async {
-        final result = await manager.findByIdempotencyKey(session, 'non_existent');
+        final result = await manager.findByIdempotencyKey(
+          session,
+          'non_existent',
+        );
         expect(result, isNull);
       });
 
@@ -30,7 +33,10 @@ void main() {
           platformSpecificData: {'transactionId': 'transaction_xyz789'},
         );
 
-        final result = await manager.findByIdempotencyKey(session, 'transaction_xyz789');
+        final result = await manager.findByIdempotencyKey(
+          session,
+          'transaction_xyz789',
+        );
         expect(result, isNotNull);
         expect(result!.idempotencyKey, equals('transaction_xyz789'));
         expect(result.accountId, equals(12345));
@@ -57,87 +63,108 @@ void main() {
         expect(delivery.deliveredAt, isNotNull);
       });
 
-      test('recordDelivery extracts transactionId from platformSpecificData', () async {
-        final delivery = await manager.recordDelivery(
-          session,
-          productId: 'com.app.gems_50',
-          accountId: 67890,
-          consumableType: 'gems',
-          quantity: 50.0,
-          orderId: 'order_def456',
-          platformSpecificData: {'transactionId': 'txn_gems_001'},
-        );
+      test(
+        'recordDelivery extracts transactionId from platformSpecificData',
+        () async {
+          final delivery = await manager.recordDelivery(
+            session,
+            productId: 'com.app.gems_50',
+            accountId: 67890,
+            consumableType: 'gems',
+            quantity: 50.0,
+            orderId: 'order_def456',
+            platformSpecificData: {'transactionId': 'txn_gems_001'},
+          );
 
-        expect(delivery.idempotencyKey, equals('txn_gems_001'));
-      });
+          expect(delivery.idempotencyKey, equals('txn_gems_001'));
+        },
+      );
 
-      test('getDeliveriesForAccount returns empty list for account with no deliveries', () async {
-        final result = await manager.getDeliveriesForAccount(session, 99999);
-        expect(result, isEmpty);
-      });
+      test(
+        'getDeliveriesForAccount returns empty list for account with no deliveries',
+        () async {
+          final result = await manager.getDeliveriesForAccount(session, 99999);
+          expect(result, isEmpty);
+        },
+      );
 
-      test('getDeliveriesForAccount returns all deliveries for account', () async {
-        await manager.recordDelivery(
-          session,
-          productId: 'com.app.coins_100',
-          accountId: 12345,
-          consumableType: 'coins',
-          quantity: 100.0,
-          orderId: 'order_1',
-          platformSpecificData: {'transactionId': 'txn_1'},
-        );
-        await manager.recordDelivery(
-          session,
-          productId: 'com.app.gems_50',
-          accountId: 12345,
-          consumableType: 'gems',
-          quantity: 50.0,
-          orderId: 'order_2',
-          platformSpecificData: {'transactionId': 'txn_2'},
-        );
-        await manager.recordDelivery(
-          session,
-          productId: 'com.app.coins_200',
-          accountId: 12345,
-          consumableType: 'coins',
-          quantity: 200.0,
-          orderId: 'order_3',
-          platformSpecificData: {'transactionId': 'txn_3'},
-        );
+      test(
+        'getDeliveriesForAccount returns all deliveries for account',
+        () async {
+          await manager.recordDelivery(
+            session,
+            productId: 'com.app.coins_100',
+            accountId: 12345,
+            consumableType: 'coins',
+            quantity: 100.0,
+            orderId: 'order_1',
+            platformSpecificData: {'transactionId': 'txn_1'},
+          );
+          await manager.recordDelivery(
+            session,
+            productId: 'com.app.gems_50',
+            accountId: 12345,
+            consumableType: 'gems',
+            quantity: 50.0,
+            orderId: 'order_2',
+            platformSpecificData: {'transactionId': 'txn_2'},
+          );
+          await manager.recordDelivery(
+            session,
+            productId: 'com.app.coins_200',
+            accountId: 12345,
+            consumableType: 'coins',
+            quantity: 200.0,
+            orderId: 'order_3',
+            platformSpecificData: {'transactionId': 'txn_3'},
+          );
 
-        final result = await manager.getDeliveriesForAccount(session, 12345);
-        expect(result, hasLength(3));
-        expect(result.map((d) => d.consumableType), containsAll(['coins', 'gems']));
-      });
+          final result = await manager.getDeliveriesForAccount(session, 12345);
+          expect(result, hasLength(3));
+          expect(
+            result.map((d) => d.consumableType),
+            containsAll(['coins', 'gems']),
+          );
+        },
+      );
 
-      test('getDeliveriesForAccount only returns deliveries for specified account', () async {
-        await manager.recordDelivery(
-          session,
-          productId: 'com.app.coins_100',
-          accountId: 12345,
-          consumableType: 'coins',
-          quantity: 100.0,
-          orderId: 'order_1',
-          platformSpecificData: {'transactionId': 'txn_1'},
-        );
-        await manager.recordDelivery(
-          session,
-          productId: 'com.app.coins_100',
-          accountId: 67890,
-          consumableType: 'coins',
-          quantity: 100.0,
-          orderId: 'order_2',
-          platformSpecificData: {'transactionId': 'txn_2'},
-        );
+      test(
+        'getDeliveriesForAccount only returns deliveries for specified account',
+        () async {
+          await manager.recordDelivery(
+            session,
+            productId: 'com.app.coins_100',
+            accountId: 12345,
+            consumableType: 'coins',
+            quantity: 100.0,
+            orderId: 'order_1',
+            platformSpecificData: {'transactionId': 'txn_1'},
+          );
+          await manager.recordDelivery(
+            session,
+            productId: 'com.app.coins_100',
+            accountId: 67890,
+            consumableType: 'coins',
+            quantity: 100.0,
+            orderId: 'order_2',
+            platformSpecificData: {'transactionId': 'txn_2'},
+          );
 
-        final result12345 = await manager.getDeliveriesForAccount(session, 12345);
-        final result67890 = await manager.getDeliveriesForAccount(session, 67890);
+          final result12345 = await manager.getDeliveriesForAccount(
+            session,
+            12345,
+          );
+          final result67890 = await manager.getDeliveriesForAccount(
+            session,
+            67890,
+          );
 
-        expect(result12345, hasLength(1));
-        expect(result67890, hasLength(1));
-        expect(result12345.first.accountId, equals(12345));
-        expect(result67890.first.accountId, equals(67890));
-      });
+          expect(result12345, hasLength(1));
+          expect(result67890, hasLength(1));
+          expect(result12345.first.accountId, equals(12345));
+          expect(result67890.first.accountId, equals(67890));
+        },
+      );
 
       test('idempotency - same transactionId returns same delivery', () async {
         final delivery1 = await manager.recordDelivery(
@@ -150,7 +177,10 @@ void main() {
           platformSpecificData: {'transactionId': 'txn_idempotent'},
         );
 
-        final existing = await manager.findByIdempotencyKey(session, 'txn_idempotent');
+        final existing = await manager.findByIdempotencyKey(
+          session,
+          'txn_idempotent',
+        );
         expect(existing, isNotNull);
         expect(existing!.idempotencyKey, equals(delivery1.idempotencyKey));
       });
@@ -159,19 +189,34 @@ void main() {
         final appleManager = AppleMockDeliveryManager();
         final googleManager = GoogleMockDeliveryManager();
 
-        expect(appleManager, isA<IConsumableDeliveryManager<IConsumableDelivery>>());
-        expect(googleManager, isA<IConsumableDeliveryManager<IConsumableDelivery>>());
+        expect(
+          appleManager,
+          isA<IConsumableDeliveryManager<IConsumableDelivery>>(),
+        );
+        expect(
+          googleManager,
+          isA<IConsumableDeliveryManager<IConsumableDelivery>>(),
+        );
       });
     });
 
     group('Interface Contract Verification', () {
-      test('IConsumableDeliveryManager can be implemented with generic type', () {
-        final appleManager = AppleMockDeliveryManager();
-        final googleManager = GoogleMockDeliveryManager();
+      test(
+        'IConsumableDeliveryManager can be implemented with generic type',
+        () {
+          final appleManager = AppleMockDeliveryManager();
+          final googleManager = GoogleMockDeliveryManager();
 
-        expect(appleManager, isA<IConsumableDeliveryManager<AppleTestDelivery>>());
-        expect(googleManager, isA<IConsumableDeliveryManager<GoogleTestDelivery>>());
-      });
+          expect(
+            appleManager,
+            isA<IConsumableDeliveryManager<AppleTestDelivery>>(),
+          );
+          expect(
+            googleManager,
+            isA<IConsumableDeliveryManager<GoogleTestDelivery>>(),
+          );
+        },
+      );
 
       test('findByIdempotencyKey signature is correct', () async {
         final manager = AppleMockDeliveryManager();
@@ -210,7 +255,6 @@ void main() {
 
 /// Mock implementation of IConsumableDelivery for unit testing.
 class MockConsumableDelivery implements IConsumableDelivery {
-
   MockConsumableDelivery({
     required this.accountId,
     required this.consumableType,
@@ -247,7 +291,8 @@ class MockConsumableDelivery implements IConsumableDelivery {
 }
 
 /// Mock delivery manager for testing the interface.
-class MockDeliveryManager implements IConsumableDeliveryManager<MockConsumableDelivery> {
+class MockDeliveryManager
+    implements IConsumableDeliveryManager<MockConsumableDelivery> {
   final _deliveries = <String, MockConsumableDelivery>{};
   final _accountDeliveries = <int, List<MockConsumableDelivery>>{};
 
@@ -267,7 +312,8 @@ class MockDeliveryManager implements IConsumableDeliveryManager<MockConsumableDe
     required String orderId,
     required Map<String, dynamic> platformSpecificData,
   }) async {
-    final transactionId = platformSpecificData['transactionId'] as String? ?? 'unknown';
+    final transactionId =
+        platformSpecificData['transactionId'] as String? ?? 'unknown';
     final delivery = MockConsumableDelivery(
       accountId: accountId,
       consumableType: consumableType,
@@ -294,7 +340,6 @@ class MockDeliveryManager implements IConsumableDeliveryManager<MockConsumableDe
 
 /// Apple-specific test delivery implementation.
 class AppleTestDelivery implements IConsumableDelivery {
-
   AppleTestDelivery({
     required this.accountId,
     required this.consumableType,
@@ -333,7 +378,6 @@ class AppleTestDelivery implements IConsumableDelivery {
 
 /// Google-specific test delivery implementation.
 class GoogleTestDelivery implements IConsumableDelivery {
-
   GoogleTestDelivery({
     required this.accountId,
     required this.consumableType,
@@ -371,7 +415,8 @@ class GoogleTestDelivery implements IConsumableDelivery {
 }
 
 /// Apple-specific mock delivery manager.
-class AppleMockDeliveryManager implements IConsumableDeliveryManager<AppleTestDelivery> {
+class AppleMockDeliveryManager
+    implements IConsumableDeliveryManager<AppleTestDelivery> {
   final _deliveries = <String, AppleTestDelivery>{};
 
   @override
@@ -390,7 +435,8 @@ class AppleMockDeliveryManager implements IConsumableDeliveryManager<AppleTestDe
     required String orderId,
     required Map<String, dynamic> platformSpecificData,
   }) async {
-    final transactionId = platformSpecificData['transactionId'] as String? ?? 'unknown';
+    final transactionId =
+        platformSpecificData['transactionId'] as String? ?? 'unknown';
     final delivery = AppleTestDelivery(
       accountId: accountId,
       consumableType: consumableType,
@@ -412,7 +458,8 @@ class AppleMockDeliveryManager implements IConsumableDeliveryManager<AppleTestDe
 }
 
 /// Google-specific mock delivery manager.
-class GoogleMockDeliveryManager implements IConsumableDeliveryManager<GoogleTestDelivery> {
+class GoogleMockDeliveryManager
+    implements IConsumableDeliveryManager<GoogleTestDelivery> {
   final _deliveries = <String, GoogleTestDelivery>{};
 
   @override
@@ -431,7 +478,8 @@ class GoogleMockDeliveryManager implements IConsumableDeliveryManager<GoogleTest
     required String orderId,
     required Map<String, dynamic> platformSpecificData,
   }) async {
-    final purchaseToken = platformSpecificData['purchaseToken'] as String? ?? 'unknown';
+    final purchaseToken =
+        platformSpecificData['purchaseToken'] as String? ?? 'unknown';
     final delivery = GoogleTestDelivery(
       accountId: accountId,
       consumableType: consumableType,

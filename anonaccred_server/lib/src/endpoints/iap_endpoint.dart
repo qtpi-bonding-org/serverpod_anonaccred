@@ -47,7 +47,12 @@ class IAPEndpoint extends Endpoint {
   ) async {
     try {
       // Validate authentication
-      await _validateAuthentication(session, publicKey, signature, 'validateAppleTransaction');
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'validateAppleTransaction',
+      );
 
       // Validate parameters
       if (transactionId.isEmpty || productId.isEmpty) {
@@ -129,17 +134,28 @@ class IAPEndpoint extends Endpoint {
         'order_id': orderId,
         'from_cache': validationResult.fromCache,
       };
-
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
       rethrow;
     } on InventoryException {
       rethrow;
+    } on AnonAccredException catch (e) {
+      // Convert configuration errors to PaymentException for this endpoint
+      if (e.code == AnonAccredErrorCodes.configurationMissing) {
+        throw AnonAccredExceptionFactory.createPaymentException(
+          code: e.code,
+          message: e.message,
+          details: e.details,
+          paymentRail: 'apple_iap',
+        );
+      }
+      rethrow;
     } catch (e) {
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
-        message: 'Unexpected error validating Apple transaction: ${e.toString()}',
+        message:
+            'Unexpected error validating Apple transaction: ${e.toString()}',
         details: {
           'error': e.toString(),
           'orderId': orderId,
@@ -186,7 +202,12 @@ class IAPEndpoint extends Endpoint {
   ) async {
     try {
       // Validate authentication
-      await _validateAuthentication(session, publicKey, signature, 'validateGooglePurchase');
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'validateGooglePurchase',
+      );
 
       // Validate parameters
       if (packageName.isEmpty || productId.isEmpty || purchaseToken.isEmpty) {
@@ -295,12 +316,23 @@ class IAPEndpoint extends Endpoint {
         'acknowledged': acknowledged,
         'transaction_order_id': orderId,
       };
-
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
       rethrow;
     } on InventoryException {
+      rethrow;
+    } on AnonAccredException catch (e) {
+      // Convert configuration errors to PaymentException for this endpoint
+      if (e.code == AnonAccredErrorCodes.configurationMissing) {
+        throw AnonAccredExceptionFactory.createPaymentException(
+          code: e.code,
+          message: e.message,
+          orderId: orderId,
+          paymentRail: 'google_iap',
+          details: e.details,
+        );
+      }
       rethrow;
     } catch (e) {
       throw AnonAccredExceptionFactory.createException(
@@ -333,10 +365,7 @@ class IAPEndpoint extends Endpoint {
     Map<String, dynamic> webhookData,
   ) async {
     try {
-      session.log(
-        'Received Apple webhook notification',
-        level: LogLevel.info,
-      );
+      session.log('Received Apple webhook notification', level: LogLevel.info);
 
       // TODO: Implement Apple webhook processing
       // This would include:
@@ -350,7 +379,6 @@ class IAPEndpoint extends Endpoint {
         'message': 'Apple webhook processed (placeholder)',
         'timestamp': DateTime.now().toIso8601String(),
       };
-
     } catch (e) {
       session.log(
         'Apple webhook processing failed: ${e.toString()}',
@@ -382,10 +410,7 @@ class IAPEndpoint extends Endpoint {
     Map<String, dynamic> webhookData,
   ) async {
     try {
-      session.log(
-        'Received Google webhook notification',
-        level: LogLevel.info,
-      );
+      session.log('Received Google webhook notification', level: LogLevel.info);
 
       // TODO: Implement Google webhook processing
       // This would include:
@@ -399,7 +424,6 @@ class IAPEndpoint extends Endpoint {
         'message': 'Google webhook processed (placeholder)',
         'timestamp': DateTime.now().toIso8601String(),
       };
-
     } catch (e) {
       session.log(
         'Google webhook processing failed: ${e.toString()}',

@@ -11,6 +11,7 @@ import '../apple_jwt_auth_client.dart';
 import '../decoded_transaction.dart';
 import '../notification_signature_validator.dart';
 import '../payment_rail_interface.dart';
+import '../../inventory_manager.dart';
 
 /// Apple In-App Purchase payment rail implementation using app_store_server_sdk.
 ///
@@ -23,7 +24,6 @@ import '../payment_rail_interface.dart';
 ///
 /// Requirements 2.1, 2.2, 2.3: App Store Server SDK integration
 class AppleIAPRail implements PaymentRailInterface {
-
   /// Creates a new AppleIAPRail instance.
   ///
   /// [client] - Optional AppStoreServerClient for dependency injection (defaults to production client)
@@ -31,16 +31,30 @@ class AppleIAPRail implements PaymentRailInterface {
   AppleIAPRail({
     AppStoreServerClient? client,
     AppleConsumableDeliveryManager? deliveryManager,
-  }) : _client = client ?? _createDefaultClient(),
+  }) : _client = client,
        _deliveryManager =
            deliveryManager ?? const AppleConsumableDeliveryManager();
-  final AppStoreServerClient _client;
+
+  final AppStoreServerClient? _client;
   final AppleConsumableDeliveryManager _deliveryManager;
 
-  /// Creates the default App Store Server API client using environment credentials.
-  static AppStoreServerClient _createDefaultClient() {
+  /// Factory to create and initialize AppleIAPRail asynchronously
+  static Future<AppleIAPRail> create() async {
     final authClient = AppleJWTAuthClient.fromEnvironment();
-    return AppStoreServerClient(authClient);
+    final client = AppStoreServerClient(authClient);
+    return AppleIAPRail(client: client);
+  }
+
+  /// Internal helper to get the client, throws if not initialized
+  AppStoreServerClient get _appStoreClient {
+    if (_client == null) {
+      throw AnonAccredException(
+        code: AnonAccredErrorCodes.configurationMissing,
+        message:
+            'Apple IAP rail not initialized. Use AppleIAPRail.create() or provide a client.',
+      );
+    }
+    return _client!;
   }
 
   @override
@@ -57,8 +71,17 @@ class AppleIAPRail implements PaymentRailInterface {
       paymentRef: orderId,
       amountUSD: amountUSD,
       orderId: orderId,
-      railDataJson:
-          '{"payment_rail":"apple_iap","order_id":"$orderId","amount_usd":$amountUSD}',
+      railDataJson: jsonEncode({
+        'payment_rail': 'apple_iap',
+        'order_id': orderId,
+        'amount_usd': amountUSD,
+        'validation_endpoint': '/api/iap/apple/validate',
+        'instructions':
+            'Complete purchase in iOS app, then submit transaction ID for validation',
+        'expires_at': DateTime.now()
+            .add(const Duration(hours: 24))
+            .toIso8601String(),
+      }),
     );
   }
 
@@ -93,7 +116,7 @@ class AppleIAPRail implements PaymentRailInterface {
 
       // Validate notification signature
       try {
-        NotificationSignatureValidator.validateSignatureOrThrow(
+        await NotificationSignatureValidator.validateSignatureOrThrow(
           session: session,
           signedPayload: signedPayload,
         );
@@ -177,7 +200,9 @@ class AppleIAPRail implements PaymentRailInterface {
     }
 
     // 2. Validate with Apple API
-    final historyResponse = await _client.getTransactionInfo(transactionId);
+    final historyResponse = await _appStoreClient.getTransactionInfo(
+      transactionId,
+    );
 
     // 3. Decode and verify the signed transaction
     if (historyResponse.signedTransactions.isEmpty) {
@@ -229,14 +254,13 @@ class AppleIAPRail implements PaymentRailInterface {
         },
       );
 
-      // Note: InventoryManager.addToInventory would be called here
-      // This is commented out as it depends on the inventory system implementation
-      // await InventoryManager.addToInventory(
-      //   session,
-      //   accountId: accountId,
-      //   consumableType: mapping.consumableType,
-      //   quantity: mapping.quantity,
-      // );
+      await InventoryManager.updateInventoryBalance(
+        session,
+        accountId: accountId,
+        consumableType: mapping.consumableType,
+        quantityDelta: mapping.quantity,
+        transaction: transaction,
+      );
     });
 
     return AppleTransactionValidationResult.fromTransaction(
@@ -259,13 +283,11 @@ class AppleIAPRail implements PaymentRailInterface {
     required Session session,
     required String originalTransactionId,
   }) async {
-    final history = await _client.getTransactionHistory(
+    final history = await _appStoreClient.getTransactionHistory(
       originalTransactionId: originalTransactionId,
     );
 
-    return history.signedTransactions
-        .map(_decodeSignedTransaction)
-        .toList();
+    return history.signedTransactions.map(_decodeSignedTransaction).toList();
   }
 
   /// Process refund notification.
@@ -359,14 +381,14 @@ class AppleIAPRail implements PaymentRailInterface {
   /// Returns a [DecodedTransaction] with all transaction details.
   ///
   /// Requirements 2.5, 7.2
-  DecodedTransaction _decodeSignedTransaction(String signedTransaction) => DecodedTransaction.fromJWT(signedTransaction);
+  DecodedTransaction _decodeSignedTransaction(String signedTransaction) =>
+      DecodedTransaction.fromJWT(signedTransaction);
 }
 
 /// Apple transaction validation result.
 ///
 /// Contains validation status and delivery information.
 class AppleTransactionValidationResult {
-
   AppleTransactionValidationResult({
     required this.isValid,
     this.transactionId,
@@ -384,30 +406,28 @@ class AppleTransactionValidationResult {
     DecodedTransaction transaction,
     ProductMapping mapping,
   ) => AppleTransactionValidationResult(
-      isValid: true,
-      transactionId: transaction.transactionId,
-      originalTransactionId: transaction.originalTransactionId,
-      productId: transaction.productId,
-      purchaseDate: DateTime.fromMillisecondsSinceEpoch(
-        transaction.purchaseDate,
-      ),
-      consumableType: mapping.consumableType,
-      quantity: mapping.quantity,
-    );
+    isValid: true,
+    transactionId: transaction.transactionId,
+    originalTransactionId: transaction.originalTransactionId,
+    productId: transaction.productId,
+    purchaseDate: DateTime.fromMillisecondsSinceEpoch(transaction.purchaseDate),
+    consumableType: mapping.consumableType,
+    quantity: mapping.quantity,
+  );
 
   /// Create result from an existing delivery record (idempotent case).
   factory AppleTransactionValidationResult.fromExistingDelivery(
     AppleConsumableDelivery delivery,
   ) => AppleTransactionValidationResult(
-      isValid: true,
-      transactionId: delivery.transactionId,
-      originalTransactionId: delivery.originalTransactionId,
-      productId: delivery.productId,
-      consumableType: delivery.consumableType,
-      quantity: delivery.quantity,
-      fromCache: true,
-      deliveredAt: delivery.deliveredAt,
-    );
+    isValid: true,
+    transactionId: delivery.transactionId,
+    originalTransactionId: delivery.originalTransactionId,
+    productId: delivery.productId,
+    consumableType: delivery.consumableType,
+    quantity: delivery.quantity,
+    fromCache: true,
+    deliveredAt: delivery.deliveredAt,
+  );
   final bool isValid;
   final String? transactionId;
   final String? originalTransactionId;

@@ -1,133 +1,220 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:pointycastle/export.dart';
 import 'package:serverpod/serverpod.dart';
 
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 
-/// Validates Apple App Store Server Notification signatures.
-///
-/// Implements JWT signature chain validation using Apple's public keys to ensure
-/// that notifications are authentic and come from Apple.
-///
-/// Requirements 6.1, 7.1, 7.2, 7.4: Notification signature validation
+const String _appleJwksUrl = 'https://api.appstoreconnect.apple.com/v1/certs';
+const Duration _jwksCacheExpiry = Duration(hours: 24);
+
+class _ApplePublicKey {
+  final String kid;
+  final String kty;
+  final String use;
+  final String alg;
+  final String n;
+  final String e;
+
+  _ApplePublicKey({
+    required this.kid,
+    required this.kty,
+    required this.use,
+    required this.alg,
+    required this.n,
+    required this.e,
+  });
+
+  factory _ApplePublicKey.fromJson(Map<String, dynamic> json) {
+    return _ApplePublicKey(
+      kid: json['kid'] as String,
+      kty: json['kty'] as String,
+      use: json['use'] as String,
+      alg: json['alg'] as String,
+      n: json['n'] as String,
+      e: json['e'] as String,
+    );
+  }
+}
+
+class _JWKSCache {
+  static List<_ApplePublicKey>? _keys;
+  static DateTime? _lastFetched;
+
+  static bool get isExpired {
+    if (_keys == null || _lastFetched == null) return true;
+    return DateTime.now().isAfter(_lastFetched!.add(_jwksCacheExpiry));
+  }
+
+  static void set(List<_ApplePublicKey> keys) {
+    _keys = keys;
+    _lastFetched = DateTime.now();
+  }
+
+  static List<_ApplePublicKey>? get() => _keys;
+}
+
 class NotificationSignatureValidator {
-  /// Extract signed payload from notification request body.
-  ///
-  /// Apple App Store Server Notifications V2 contain a signed payload in the
-  /// request body. This method extracts the signedPayload field from the JSON body.
-  ///
-  /// Parameters:
-  /// - [requestBody]: The raw request body as a string (JSON)
-  ///
-  /// Returns: The signed payload (JWT string) if found, null otherwise
-  ///
-  /// Requirements 7.1: Extract signed payload from request body
   static String? extractSignedPayload(String requestBody) {
     try {
       final decoded = jsonDecode(requestBody) as Map<String, dynamic>;
       return decoded['signedPayload'] as String?;
-    } on FormatException {
-      // Invalid JSON format
-      return null;
     } catch (e) {
-      // Other parsing errors
       return null;
     }
   }
 
-  /// Validate notification signature using JWT signature chain.
-  ///
-  /// Verifies that the notification JWT was signed by Apple using the expected
-  /// public key. This validates the JWT signature chain using Apple's root certificates.
-  ///
-  /// Parameters:
-  /// - [signedPayload]: The signed JWT payload from the notification
-  ///
-  /// Returns: true if signature is valid, false if invalid
-  ///
-  /// Requirements 7.2: Verify JWT signature chain using Apple's public keys
-  static bool validateSignature({
-    required String signedPayload,
-  }) {
+  static Future<bool> validateSignature({required String signedPayload}) async {
     try {
-      // Split JWT into parts (header.payload.signature)
       final parts = signedPayload.split('.');
       if (parts.length != 3) {
         return false;
       }
 
-      // Decode the header to check algorithm and key ID
       final header = _decodeJWTHeader(parts[0]);
       if (header == null) {
         return false;
       }
 
-      // Verify the algorithm is ES256 (ECDSA with P-256 and SHA-256)
       if (header['alg'] != 'ES256') {
         return false;
       }
 
-      // Get Apple root certificates for signature verification
-      final rootCerts = _loadAppleRootCertificates();
-      if (rootCerts.isEmpty) {
+      final keyId = header['kid'] as String?;
+      if (keyId == null) {
         return false;
       }
 
-      // TODO: Implement actual JWT signature verification using Apple's public keys
-      // This would require:
-      // 1. Extract the x5c (certificate chain) from the JWT header
-      // 2. Verify the certificate chain against Apple root certificates
-      // 3. Extract the public key from the leaf certificate
-      // 4. Verify the JWT signature using the public key and ES256 algorithm
-      //
-      // For MVP, we'll do basic JWT structure validation
-      // Full signature verification requires additional crypto libraries
+      final keys = await _fetchJWKS();
+      if (keys == null || keys.isEmpty) {
+        return false;
+      }
 
-      // Basic validation: check JWT structure is valid
-      return _isValidJWTStructure(signedPayload);
+      final key = _findKeyById(keys, keyId);
+      if (key == null) {
+        return false;
+      }
+
+      return _verifyES256Signature(
+        signedPayload: signedPayload,
+        publicKey: key,
+      );
     } catch (e) {
-      // If there's an error validating the signature, it's invalid
       return false;
     }
   }
 
-  /// Load Apple root certificates from configuration.
-  ///
-  /// Reads Apple's root certificates from environment variables or configuration
-  /// files. These certificates are used to verify the JWT signature chain.
-  ///
-  /// Returns: List of Apple root certificate strings
-  ///
-  /// Requirements 7.4: Load Apple root certificates from configuration
-  static List<String> _loadAppleRootCertificates() {
-    // Try to load from environment variable
-    final certsEnv = Platform.environment['APPLE_ROOT_CERTIFICATES'];
-    if (certsEnv != null && certsEnv.isNotEmpty) {
-      // Certificates can be provided as a JSON array of strings
-      try {
-        final decoded = jsonDecode(certsEnv);
-        if (decoded is List) {
-          return decoded.map((e) => e.toString()).toList();
-        }
-      } on FormatException {
-        // If not JSON, treat as single certificate
-        return [certsEnv];
+  static _ApplePublicKey? _findKeyById(
+    List<_ApplePublicKey> keys,
+    String keyId,
+  ) {
+    for (final key in keys) {
+      if (key.kid == keyId) {
+        return key;
       }
     }
-
-    // For MVP, return empty list if not configured
-    // In production, this should throw a configuration error
-    return [];
+    return null;
   }
 
-  /// Decode JWT header to extract algorithm and key information.
-  ///
-  /// Parameters:
-  /// - [headerPart]: The base64url-encoded JWT header
-  ///
-  /// Returns: Decoded header as a Map, or null if decoding fails
+  static Future<List<_ApplePublicKey>?> _fetchJWKS() async {
+    if (!_JWKSCache.isExpired) {
+      return _JWKSCache.get();
+    }
+
+    try {
+      final client = HttpClient();
+      final request = await client.getUrl(Uri.parse(_appleJwksUrl));
+      request.headers.set('Accept', 'application/json');
+      final response = await request.close();
+
+      if (response.statusCode != 200) {
+        return null;
+      }
+
+      final responseBody = await response.transform(utf8.decoder).join();
+      final decoded = jsonDecode(responseBody) as Map<String, dynamic>;
+      final keysList = decoded['keys'] as List<dynamic>;
+      final keys = keysList
+          .map((k) => _ApplePublicKey.fromJson(k as Map<String, dynamic>))
+          .toList();
+
+      _JWKSCache.set(keys);
+      return keys;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static bool _verifyES256Signature({
+    required String signedPayload,
+    required _ApplePublicKey publicKey,
+  }) {
+    try {
+      final parts = signedPayload.split('.');
+      final signingInput = '${parts[0]}.${parts[1]}';
+      final signatureBytes = _base64UrlDecode(parts[2]);
+
+      final publicKeyParams = _createPublicKey(publicKey);
+
+      final signer = ECDSASigner(SHA256Digest())
+        ..init(false, PublicKeyParameter<ECPublicKey>(publicKeyParams));
+
+      final messageBytes = Uint8List.fromList(utf8.encode(signingInput));
+
+      final r = BigInt.parse(
+        _bytesToHex(signatureBytes.sublist(0, signatureBytes.length ~/ 2)),
+        radix: 16,
+      );
+      final s = BigInt.parse(
+        _bytesToHex(signatureBytes.sublist(signatureBytes.length ~/ 2)),
+        radix: 16,
+      );
+
+      return signer.verifySignature(messageBytes, ECSignature(r, s));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static ECPublicKey _createPublicKey(_ApplePublicKey key) {
+    final n = _base64UrlDecodeBigInt(key.n);
+    final e = _base64UrlDecodeBigInt(key.e);
+
+    final x = n >> 256;
+    final y = n & ((BigInt.one << 256) - BigInt.one);
+
+    final curve = ECDomainParameters('P-256');
+    final point = curve.curve.createPoint(x, y);
+
+    return ECPublicKey(point, curve);
+  }
+
+  static BigInt _base64UrlDecodeBigInt(String input) {
+    final normalized = input.replaceAll('-', '+').replaceAll('_', '/');
+    final padded = normalized.padRight(
+      normalized.length + (4 - normalized.length % 4) % 4,
+      '=',
+    );
+    final bytes = base64Decode(padded);
+    return BigInt.parse(_bytesToHex(bytes), radix: 16);
+  }
+
+  static String _bytesToHex(List<int> bytes) {
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  static List<int> _base64UrlDecode(String input) {
+    final normalized = input.replaceAll('-', '+').replaceAll('_', '/');
+    final padded = normalized.padRight(
+      normalized.length + (4 - normalized.length % 4) % 4,
+      '=',
+    );
+    return base64Decode(padded);
+  }
+
   static Map<String, dynamic>? _decodeJWTHeader(String headerPart) {
     try {
       final normalized = base64Url.normalize(headerPart);
@@ -138,55 +225,20 @@ class NotificationSignatureValidator {
     }
   }
 
-  /// Check if JWT has valid structure (3 parts, valid base64url encoding).
-  ///
-  /// Parameters:
-  /// - [jwt]: The JWT string to validate
-  ///
-  /// Returns: true if JWT structure is valid, false otherwise
-  static bool _isValidJWTStructure(String jwt) {
-    final parts = jwt.split('.');
-    if (parts.length != 3) {
-      return false;
-    }
-
-    // Try to decode each part to verify it's valid base64url
-    try {
-      for (final part in parts) {
-        final normalized = base64Url.normalize(part);
-        base64Url.decode(normalized);
-      }
-      return true;
-    } catch (e) {
-      return false;
-    }
+  static void refreshJWKS() {
+    _JWKSCache.set([]);
   }
 
-  /// Validate signature and throw HTTP 401 for invalid signatures.
-  ///
-  /// Validates the notification signature and throws an HTTP 401 exception if invalid.
-  /// Also logs the validation failure with request details.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session for logging
-  /// - [signedPayload]: The signed JWT payload from the notification
-  ///
-  /// Throws: [AnonAccredException] with HTTP 401 if signature is invalid
-  ///
-  /// Requirements 7.3, 7.5: Throw HTTP 401 for invalid signatures and log failures
-  static void validateSignatureOrThrow({
+  static Future<void> validateSignatureOrThrow({
     required Session session,
     required String signedPayload,
-  }) {
-    if (!validateSignature(signedPayload: signedPayload)) {
-      // Compute payload hash for logging
+  }) async {
+    final isValid = await validateSignature(signedPayload: signedPayload);
+    if (!isValid) {
       final payloadHash = sha256.convert(utf8.encode(signedPayload)).toString();
-
-      // Extract signature part (last part of JWT)
       final parts = signedPayload.split('.');
       final signature = parts.length == 3 ? parts[2] : 'invalid';
 
-      // Log validation failure with request details
       session.log(
         'Apple notification signature validation failed - '
         'Timestamp: ${DateTime.now().toIso8601String()}, '

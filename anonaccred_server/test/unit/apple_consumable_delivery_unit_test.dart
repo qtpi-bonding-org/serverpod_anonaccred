@@ -1,6 +1,6 @@
-import 'package:quanitya_cloud_server/src/generated/apple_consumable_delivery.dart';
-import 'package:quanitya_cloud_server/src/models/apple_consumable_delivery.dart';
-import 'package:quanitya_cloud_server/src/models/i_consumable_delivery.dart';
+import 'package:anonaccred_server/src/generated/apple_consumable_delivery.dart';
+import 'package:anonaccred_server/src/payments/apple_consumable_delivery.dart';
+import 'package:anonaccred_server/src/payments/i_consumable_delivery.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -55,10 +55,7 @@ void main() {
       });
 
       test('returns correct deliveredAt', () {
-        expect(
-          delivery.deliveredAt,
-          equals(DateTime(2024, 1, 15, 10, 30)),
-        );
+        expect(delivery.deliveredAt, equals(DateTime(2024, 1, 15, 10, 30)));
       });
 
       test('returns correct productId', () {
@@ -148,7 +145,10 @@ void main() {
           deliveredAt: DateTime.now(),
         );
 
-        expect(delivery1.idempotencyKey, isNot(equals(delivery2.idempotencyKey)));
+        expect(
+          delivery1.idempotencyKey,
+          isNot(equals(delivery2.idempotencyKey)),
+        );
         expect(delivery1.idempotencyKey, equals('txn_unique_1'));
         expect(delivery2.idempotencyKey, equals('txn_unique_2'));
       });
