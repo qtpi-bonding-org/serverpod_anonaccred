@@ -1,0 +1,10 @@
+class: ReceiptHash
+table: receipt_hash
+fields:
+  hash: String # SHA256 of Store ID
+  paymentRail: PaymentRail
+  processedAt: DateTime, default=now
+indexes:
+  hash_idx:
+    fields: hash
+    unique: true

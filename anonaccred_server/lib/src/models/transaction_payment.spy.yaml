@@ -1,0 +1,21 @@
+class: TransactionPayment
+table: transaction_payment
+fields:
+  railProductId: int, relation(parent=rail_product)
+  internalTransactionId: String # UUID
+  priceCurrency: Currency # Quote Currency (e.g. USD)
+  price: double # Total Quote Price
+  paymentRail: PaymentRail # The rail used
+  paymentCurrency: Currency # Actual Currency paid
+  paymentAmount: double # Amount paid
+  paymentRef: String # Store Transaction ID (Apple/Google)
+  transactionTimestamp: DateTime # MATCH KEY (Exact Store Time)
+  clientReference: String? # Optional Client UUID
+  status: OrderStatus
+indexes:
+  internal_tx_id_idx:
+    fields: internalTransactionId
+    unique: true
+  timestamp_idx:
+    fields: transactionTimestamp
+    unique: false

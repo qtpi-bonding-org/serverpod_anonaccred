@@ -1,0 +1,10 @@
+class: RailProduct
+table: rail_product
+fields:
+  rail: PaymentRail # apple_iap, google_iap, monero, manual, etc
+  storeProductId: String # e.g. 'com.app.pro_monthly' (The Store SKU)
+  isActive: bool # For versioning: false if discontinued/updated
+indexes:
+  store_product_idx:
+    fields: rail, storeProductId
+    unique: false

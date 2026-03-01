@@ -1,7 +1,42 @@
 # Currency enumeration for payment processing
-# Supports USD (quote currency) and XMR (Monero privacy coin)
 enum: Currency
 serialized: byName
 values:
   - USD
   - XMR
+  - EUR
+
+---
+
+# Order status enumeration
+enum: OrderStatus
+serialized: byName
+values:
+  - pending
+  - processing
+  - paid
+  - failed
+  - cancelled
+
+---
+
+# Payment rail enumeration
+enum: PaymentRail
+serialized: byName
+values:
+  - apple_iap
+  - google_iap
+  - monero
+  - manual
+  - stripe
+  - x402_http
+
+---
+
+# Entitlement type enumeration
+enum: EntitlementType
+serialized: byName
+values:
+  - consumable
+  - subscription
+  - onetime

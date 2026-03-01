@@ -1,0 +1,10 @@
+class: AccountEntitlement
+table: account_entitlement
+fields:
+  accountId: int, relation(parent=anon_account)
+  entitlementId: int, relation(parent=entitlement)
+  balance: double # Current running total
+indexes:
+  account_entitlement_idx:
+    fields: accountId, entitlementId
+    unique: true
