@@ -16,13 +16,20 @@ void main() {
     group('Account Creation → Device Registration → Authentication Flow', () {
       test('complete happy path workflow with real ECDSA P-256 signatures', () async {
         // Step 1: Generate ECDSA P-256 key pair for account (simulating client-side)
-        final accountKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
+        final accountKeyPair = await EcdsaPrivateKey.generateKey(
+          EllipticCurve.p256,
+        );
         final accountPublicKey = await accountKeyPair.publicKey.exportRawKey();
-        final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+        final accountPublicKeyHex = accountPublicKey
+            .sublist(1)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join();
 
         // Step 2: Create account
         const encryptedDataKey = 'encrypted_account_data_key_12345';
-        const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const ultimatePublicKey =
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKeyHex,
@@ -31,13 +38,21 @@ void main() {
         );
 
         expect(account.id, isNotNull);
-        expect(account.ultimateSigningPublicKeyHex, equals(accountPublicKeyHex));
+        expect(
+          account.ultimateSigningPublicKeyHex,
+          equals(accountPublicKeyHex),
+        );
         expect(account.encryptedDataKey, equals(encryptedDataKey));
 
         // Step 3: Generate ECDSA P-256 key pair for device (simulating client-side)
-        final deviceKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
+        final deviceKeyPair = await EcdsaPrivateKey.generateKey(
+          EllipticCurve.p256,
+        );
         final devicePublicKey = await deviceKeyPair.publicKey.exportRawKey();
-        final devicePublicKeyHex = devicePublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+        final devicePublicKeyHex = devicePublicKey
+            .sublist(1)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join();
 
         // Step 4: Register device
         const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
@@ -59,9 +74,15 @@ void main() {
         expect(device.isRevoked, isFalse);
 
         // Step 5: Test challenge generation (doesn't require auth)
-        final challenge = await endpoints.device.generateAuthChallenge(sessionBuilder);
+        final challenge = await endpoints.device.generateAuthChallenge(
+          sessionBuilder,
+          devicePublicKeyHex,
+        );
         expect(challenge, isNotEmpty);
-        expect(challenge.length, greaterThan(10)); // Should be a reasonable challenge
+        expect(
+          challenge.length,
+          greaterThan(10),
+        ); // Should be a reasonable challenge
 
         // Step 6: Test that protected endpoints require authentication
         // These should all fail because we don't have proper authentication in test environment
@@ -87,13 +108,20 @@ void main() {
 
       test('account lookup workflow', () async {
         // Step 1: Generate ECDSA P-256 key pair for account
-        final accountKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
+        final accountKeyPair = await EcdsaPrivateKey.generateKey(
+          EllipticCurve.p256,
+        );
         final accountPublicKey = await accountKeyPair.publicKey.exportRawKey();
-        final accountPublicKeyHex = accountPublicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+        final accountPublicKeyHex = accountPublicKey
+            .sublist(1)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join();
 
         // Step 2: Create account
         const encryptedDataKey = 'encrypted_account_data_key_lookup';
-        const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+        const ultimatePublicKey =
+            'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+            'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
         final account = await endpoints.account.createAccount(
           sessionBuilder,
           accountPublicKeyHex,
@@ -114,11 +142,10 @@ void main() {
 
         // Step 4: Test lookup with non-existent key
         const nonExistentPublicKey =
-            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-        final nonExistentAccount = await endpoints.account.getAccountByPublicKey(
-          sessionBuilder,
-          nonExistentPublicKey,
-        );
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        final nonExistentAccount = await endpoints.account
+            .getAccountByPublicKey(sessionBuilder, nonExistentPublicKey);
         expect(nonExistentAccount, isNull);
       });
 
@@ -152,10 +179,12 @@ void main() {
       test('device registration validation workflow', () async {
         // Create test account
         const accountPublicKey =
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_8';
-        const ultimatePublicKey = 
-            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        const ultimatePublicKey =
+            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         final testAccount = await endpoints.account.createAccount(
           sessionBuilder,
@@ -195,7 +224,8 @@ void main() {
           () => endpoints.device.registerDevice(
             sessionBuilder,
             99999, // Non-existent account
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
             'encrypted_device_data_key',
             'Test Device',
           ),

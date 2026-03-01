@@ -36,7 +36,7 @@ class DeviceNonceStorage {
     final nonce = _generateNonce();
     final key = _getKey(devicePublicKey);
 
-    final existing = await _session.caches.local.get<DeviceNonceList>(key);
+    final existing = await _session.caches.global.get<DeviceNonceList>(key);
     List<String> nonces = existing?.nonces ?? [];
 
     nonces = [nonce, ...nonces];
@@ -45,7 +45,7 @@ class DeviceNonceStorage {
       nonces = nonces.take(_maxNoncesPerDevice).toList();
     }
 
-    await _session.caches.local.put(
+    await _session.caches.global.put(
       key,
       DeviceNonceList(nonces: nonces),
       lifetime: _nonceTTL,
@@ -59,7 +59,7 @@ class DeviceNonceStorage {
     String nonce,
   ) async {
     final key = _getKey(devicePublicKey);
-    final stored = await _session.caches.local.get<DeviceNonceList>(key);
+    final stored = await _session.caches.global.get<DeviceNonceList>(key);
 
     if (stored == null) return false;
 
@@ -70,9 +70,9 @@ class DeviceNonceStorage {
     nonces.removeAt(index);
 
     if (nonces.isEmpty) {
-      await _session.caches.local.invalidateKey(key);
+      await _session.caches.global.invalidateKey(key);
     } else {
-      await _session.caches.local.put(
+      await _session.caches.global.put(
         key,
         DeviceNonceList(nonces: nonces),
         lifetime: _nonceTTL,
