@@ -6,6 +6,7 @@ import 'package:anonaccred_server/src/generated/payment_request.dart';
 import 'package:anonaccred_server/src/generated/payment_result.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
+import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
@@ -227,6 +228,9 @@ class MockPaymentRail implements PaymentRailInterface {
       transactionTimestamp: DateTime.now(),
     );
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }
 
 /// Mock rail that throws errors for testing error handling
@@ -250,6 +254,9 @@ class ErrorThrowingMockRail implements PaymentRailInterface {
   Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
     throw Exception('Mock callback error for testing');
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }
 /// Mock Session for testing payment manager operations
 class MockSession {

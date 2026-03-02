@@ -141,7 +141,7 @@ class EndpointCommerce extends _i1.EndpointRef {
   /// This endpoint requires authentication and validates all input parameters.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [products]: Map of product SKUs to USD prices
   ///
@@ -266,7 +266,7 @@ class EndpointCommerce extends _i1.EndpointRef {
   /// for AI agents and autonomous systems.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [headers]: HTTP headers (may contain X-PAYMENT)
   ///
@@ -527,7 +527,7 @@ class EndpointIAP extends _i1.EndpointRef {
   /// record on-the-fly from the verified receipt.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [transactionId]: Apple transaction ID from the app
   /// - [productId]: Apple product ID (SKU)
@@ -559,7 +559,7 @@ class EndpointIAP extends _i1.EndpointRef {
   /// record on-the-fly from the verified purchase token.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [packageName]: Android app package name
   /// - [productId]: Google product ID (SKU)
@@ -607,13 +607,10 @@ class EndpointIAP extends _i1.EndpointRef {
   );
 }
 
-/// Basic IAP webhook endpoint for Apple and Google notifications
+/// IAP webhook endpoint for Apple and Google notifications.
 ///
-/// Provides minimal webhook support for future expansion.
-/// Handles basic webhook routing and signature validation.
-///
-/// Requirements 8.1: Create placeholder webhook endpoints
-/// Requirements 8.2: Add basic webhook signature validation
+/// Uses PaymentManager.getRail() to get initialized rail instances,
+/// injects the session into callbackData so rails can access the database.
 /// {@category Endpoint}
 class EndpointIAPWebhook extends _i1.EndpointRef {
   EndpointIAPWebhook(_i1.EndpointCaller caller) : super(caller);
@@ -622,11 +619,6 @@ class EndpointIAPWebhook extends _i1.EndpointRef {
   String get name => 'anonaccred.iAPWebhook';
 
   /// Handle Apple App Store Server Notifications
-  ///
-  /// Basic webhook handler for Apple's server-to-server notifications.
-  /// Currently provides minimal processing for future expansion.
-  ///
-  /// Requirements 8.1: Apple webhook endpoint
   _i2.Future<String> handleAppleWebhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
         'anonaccred.iAPWebhook',
@@ -635,11 +627,6 @@ class EndpointIAPWebhook extends _i1.EndpointRef {
       );
 
   /// Handle Google Play Real-time Developer Notifications
-  ///
-  /// Basic webhook handler for Google's real-time notifications.
-  /// Currently provides minimal processing for future expansion.
-  ///
-  /// Requirements 8.1: Google webhook endpoint
   _i2.Future<String> handleGoogleWebhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
         'anonaccred.iAPWebhook',
@@ -661,7 +648,7 @@ class EndpointModule extends _i1.EndpointRef {
     {'name': name},
   );
 
-  /// Authenticates a user using Ed25519 signature verification
+  /// Authenticates a user using ECDSA P-256 signature verification
   /// Throws AuthenticationException on failure
   _i2.Future<bool> authenticateUser(
     String publicKey,
@@ -781,7 +768,7 @@ class EndpointX402 extends _i1.EndpointRef {
   /// micropayments without human intervention.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [resourceId]: The resource being requested
   /// - [accountId]: Account ID for inventory management
@@ -815,7 +802,7 @@ class EndpointX402 extends _i1.EndpointRef {
   /// Supports micropayments for AI agents and autonomous systems.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [consumableType]: Type of consumable to access
   /// - [quantity]: Amount to consume

@@ -19,7 +19,7 @@ class IAPEndpoint extends Endpoint {
   /// record on-the-fly from the verified receipt.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [transactionId]: Apple transaction ID from the app
   /// - [productId]: Apple product ID (SKU)
@@ -110,7 +110,7 @@ class IAPEndpoint extends Endpoint {
   /// record on-the-fly from the verified purchase token.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [packageName]: Android app package name
   /// - [productId]: Google product ID (SKU)
@@ -219,7 +219,7 @@ class IAPEndpoint extends Endpoint {
     };
   }
 
-  /// Validates authentication using Ed25519 signature verification.
+  /// Validates authentication using ECDSA P-256 signature verification.
   Future<void> _validateAuthentication(
     Session session,
     String publicKey,

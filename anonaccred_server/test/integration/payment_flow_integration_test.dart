@@ -5,6 +5,7 @@ import 'package:anonaccred_server/src/payments/payment_processor.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/webhook_handler.dart';
 import 'package:anonaccred_server/src/price_registry.dart';
+import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
@@ -66,6 +67,9 @@ class MockPaymentRail implements PaymentRailInterface {
       errorMessage: shouldSucceed ? null : 'Mock payment failed',
     );
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }
 
 /// Integration tests for complete payment flow validation
@@ -592,4 +596,7 @@ class _MockX402Rail implements PaymentRailInterface {
       transactionTimestamp: DateTime.now(),
     );
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }

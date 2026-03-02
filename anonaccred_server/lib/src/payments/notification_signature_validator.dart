@@ -17,8 +17,9 @@ class _ApplePublicKey {
     required this.kty,
     required this.use,
     required this.alg,
-    required this.n,
-    required this.e,
+    required this.x,
+    required this.y,
+    required this.crv,
   });
 
   factory _ApplePublicKey.fromJson(Map<String, dynamic> json) => _ApplePublicKey(
@@ -26,15 +27,17 @@ class _ApplePublicKey {
       kty: json['kty'] as String,
       use: json['use'] as String,
       alg: json['alg'] as String,
-      n: json['n'] as String,
-      e: json['e'] as String,
+      x: json['x'] as String,
+      y: json['y'] as String,
+      crv: json['crv'] as String? ?? 'P-256',
     );
   final String kid;
   final String kty;
   final String use;
   final String alg;
-  final String n;
-  final String e;
+  final String x;
+  final String y;
+  final String crv;
 }
 
 class _JWKSCache {
@@ -85,14 +88,23 @@ class NotificationSignatureValidator {
         return false;
       }
 
-      final keys = await _fetchJWKS();
+      var keys = await _fetchJWKS();
       if (keys == null || keys.isEmpty) {
         return false;
       }
 
-      final key = _findKeyById(keys, keyId);
+      var key = _findKeyById(keys, keyId);
       if (key == null) {
-        return false;
+        // Key rotation: refresh JWKS once and retry
+        refreshJWKS();
+        keys = await _fetchJWKS();
+        if (keys == null || keys.isEmpty) {
+          return false;
+        }
+        key = _findKeyById(keys, keyId);
+        if (key == null) {
+          return false;
+        }
       }
 
       return _verifyES256Signature(
@@ -177,13 +189,11 @@ class NotificationSignatureValidator {
   }
 
   static ECPublicKey _createPublicKey(_ApplePublicKey key) {
-    final n = _base64UrlDecodeBigInt(key.n);
-    final e = _base64UrlDecodeBigInt(key.e);
+    final x = _base64UrlDecodeBigInt(key.x);
+    final y = _base64UrlDecodeBigInt(key.y);
 
-    final x = n >> 256;
-    final y = n & ((BigInt.one << 256) - BigInt.one);
-
-    final curve = ECDomainParameters('P-256');
+    final curveName = key.crv == 'P-256' ? 'secp256r1' : key.crv;
+    final curve = ECDomainParameters(curveName);
     final point = curve.curve.createPoint(x, y);
 
     return ECPublicKey(point, curve);
@@ -221,7 +231,8 @@ class NotificationSignatureValidator {
   }
 
   static void refreshJWKS() {
-    _JWKSCache.set([]);
+    _JWKSCache._keys = null;
+    _JWKSCache._lastFetched = null;
   }
 
   static Future<void> validateSignatureOrThrow({

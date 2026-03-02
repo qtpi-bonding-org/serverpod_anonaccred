@@ -6,6 +6,7 @@ import 'package:anonaccred_server/src/generated/payment_result.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/x402_payment_rail.dart';
+import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase5, Property 6: Integration Compatibility**
@@ -290,4 +291,7 @@ class MockPaymentRail implements PaymentRailInterface {
     internalTransactionId: callbackData['internalTransactionId'] as String?,
     transactionTimestamp: DateTime.now(),
   );
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }

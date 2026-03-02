@@ -7,6 +7,7 @@ import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
 import 'package:anonaccred_server/src/price_registry.dart';
+import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
@@ -36,6 +37,9 @@ class MockPaymentRail implements PaymentRailInterface {
   Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
     return PaymentResult(success: true);
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }
 
 void main() {

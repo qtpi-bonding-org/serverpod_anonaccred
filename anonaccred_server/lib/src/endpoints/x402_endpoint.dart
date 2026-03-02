@@ -25,7 +25,7 @@ class X402Endpoint extends Endpoint {
   /// micropayments without human intervention.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [resourceId]: The resource being requested
   /// - [accountId]: Account ID for inventory management
@@ -110,7 +110,7 @@ class X402Endpoint extends Endpoint {
   /// Supports micropayments for AI agents and autonomous systems.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [consumableType]: Type of consumable to access
   /// - [quantity]: Amount to consume
@@ -346,7 +346,7 @@ class X402Endpoint extends Endpoint {
     };
   }
 
-  /// Validates authentication using Ed25519 signature verification
+  /// Validates authentication using ECDSA P-256 signature verification
   ///
   /// This is a simplified authentication check that validates the public key format
   /// and signature. In a production system, this would include more sophisticated
@@ -354,7 +354,7 @@ class X402Endpoint extends Endpoint {
   ///
   /// Parameters:
   /// - [session]: Serverpod session for logging
-  /// - [publicKey]: Ed25519 public key as hex string
+  /// - [publicKey]: ECDSA P-256 public key as hex string
   /// - [signature]: Signature to verify
   /// - [operation]: Operation name for logging
   ///
@@ -379,7 +379,7 @@ class X402Endpoint extends Endpoint {
     if (!CryptoAuth.isValidPublicKey(publicKey)) {
       throw AnonAccredExceptionFactory.createAuthenticationException(
         code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-        message: 'Invalid Ed25519 public key format',
+        message: 'Invalid ECDSA P-256 public key format',
         operation: operation,
         details: {
           'publicKeyLength': publicKey.length.toString(),

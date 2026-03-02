@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:googleapis/androidpublisher/v3.dart';
+import 'package:googleapis/androidpublisher/v3.dart' hide RefundEvent;
 import 'package:serverpod/serverpod.dart';
 
 import '../../crypto_utils.dart'; // REQUIRED for hashing
@@ -8,6 +8,8 @@ import '../../entitlement_manager.dart';
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
 import '../../product_mapping_config.dart';
+import '../../refund_event.dart';
+import '../../refund_manager.dart';
 import '../android_publisher_client.dart';
 import '../google_auth_client.dart';
 import '../payment_rail_interface.dart';
@@ -123,7 +125,10 @@ class GoogleIAPRail implements PaymentRailInterface {
 
       // Handle refund notifications
       if (notificationType == 'refund' && session != null) {
-        await processRefundWebhook(session, callbackData);
+        final event = extractRefundEvent(callbackData);
+        if (event != null) {
+          await RefundManager.processRefund(session, event);
+        }
         return PaymentResult(success: true, internalTransactionId: orderId);
       }
 
@@ -178,54 +183,26 @@ class GoogleIAPRail implements PaymentRailInterface {
     }
   }
 
-  /// Process refund webhook from Google Real-time Developer Notifications
-  ///
-  /// Handles refund notifications by looking up the delivery record to determine
-  /// what was delivered, then logging the refund event. Does not automatically
-  /// remove consumables from inventory.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session for database operations and logging
-  /// - [webhookData]: Parsed webhook payload from Google
-  ///
-  /// Requirements 7.2, 7.3, 7.4, 7.5: Refund webhook processing
-  Future<void> processRefundWebhook(
-    Session session,
-    Map<String, dynamic> webhookData,
-  ) async {
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) {
     try {
-      final purchaseToken = webhookData['purchaseToken'] as String?;
-      if (purchaseToken == null) {
-        session.log(
-          'Refund webhook missing purchaseToken',
-          level: LogLevel.warning,
-        );
-        return;
-      }
+      final purchaseToken = notificationData['purchase_token'] as String? ??
+          notificationData['purchaseToken'] as String?;
+      final orderId = notificationData['order_id'] as String? ??
+          notificationData['orderId'] as String?;
 
-      // Find what was delivered via hash (Purely for logging/security in the new system)
-      final purchaseHash = CryptoUtils.sha256Hash(purchaseToken);
-      final hashRecord = await ReceiptHash.db.findFirstRow(
-        session,
-        where: (t) => t.hash.equals(purchaseHash),
-      );
+      if (purchaseToken == null || orderId == null) return null;
 
-      if (hashRecord != null) {
-        session.log(
-          'Refund processed for Google purchase (Hash: $purchaseHash)',
-          level: LogLevel.warning,
-        );
-      } else {
-        session.log(
-          'Refund webhook for unknown purchase token: $purchaseToken',
-          level: LogLevel.warning,
-        );
-      }
-    } catch (e) {
-      session.log(
-        'Error processing refund webhook: ${e.toString()}',
-        level: LogLevel.error,
+      return RefundEvent(
+        rail: PaymentRail.google_iap,
+        receiptHash: CryptoUtils.sha256Hash(purchaseToken),
+        paymentRef: orderId,
+        productId: notificationData['product_id'] as String? ??
+            notificationData['productId'] as String?,
+        rawData: notificationData,
       );
+    } catch (_) {
+      return null;
     }
   }
 

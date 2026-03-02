@@ -90,7 +90,7 @@ class PaymentEndpoint extends Endpoint {
     }
   }
 
-  /// Validates authentication using Ed25519 signature verification.
+  /// Validates authentication using ECDSA P-256 signature verification.
   Future<void> _validateAuthentication(
     Session session,
     String publicKey,

@@ -1,22 +1,17 @@
+import 'dart:convert';
+
 import 'package:serverpod/serverpod.dart';
 
-import '../payments/rails/apple_iap_rail.dart';
-import '../payments/rails/google_iap_rail.dart';
+import '../generated/protocol.dart';
+import '../payments/payment_manager.dart';
+import '../payments/payment_rail_interface.dart';
 
-/// Basic IAP webhook endpoint for Apple and Google notifications
+/// IAP webhook endpoint for Apple and Google notifications.
 ///
-/// Provides minimal webhook support for future expansion.
-/// Handles basic webhook routing and signature validation.
-///
-/// Requirements 8.1: Create placeholder webhook endpoints
-/// Requirements 8.2: Add basic webhook signature validation
+/// Uses PaymentManager.getRail() to get initialized rail instances,
+/// injects the session into callbackData so rails can access the database.
 class IAPWebhookEndpoint extends Endpoint {
   /// Handle Apple App Store Server Notifications
-  ///
-  /// Basic webhook handler for Apple's server-to-server notifications.
-  /// Currently provides minimal processing for future expansion.
-  ///
-  /// Requirements 8.1: Apple webhook endpoint
   Future<String> handleAppleWebhook(
     Session session,
     Map<String, dynamic> webhookData,
@@ -24,23 +19,22 @@ class IAPWebhookEndpoint extends Endpoint {
     try {
       session.log('Apple webhook received', level: LogLevel.info);
 
-      // Basic webhook processing using Apple IAP rail
-      final appleRail = AppleIAPRail();
-      final result = await appleRail.processCallback(webhookData);
-
-      if (result.success) {
-        session.log(
-          'Apple webhook processed successfully: ${result.internalTransactionId}',
-          level: LogLevel.info,
-        );
-        return 'OK';
-      } else {
-        session.log(
-          'Apple webhook processing failed: ${result.errorMessage}',
-          level: LogLevel.warning,
-        );
-        return 'ERROR';
+      final rail = PaymentManager.getRail(PaymentRail.apple_iap);
+      if (rail == null) {
+        // Lazy init: try to initialize now
+        await PaymentManager.initializeAppleIAPRail(session);
+        final retryRail = PaymentManager.getRail(PaymentRail.apple_iap);
+        if (retryRail == null) {
+          session.log(
+            'Apple IAP rail not available',
+            level: LogLevel.error,
+          );
+          return 'ERROR';
+        }
+        return _processApple(session, retryRail, webhookData);
       }
+
+      return _processApple(session, rail, webhookData);
     } catch (e) {
       session.log(
         'Apple webhook error: ${e.toString()}',
@@ -50,12 +44,40 @@ class IAPWebhookEndpoint extends Endpoint {
     }
   }
 
+  Future<String> _processApple(
+    Session session,
+    PaymentRailInterface rail,
+    Map<String, dynamic> webhookData,
+  ) async {
+    // Construct callbackData with session and request_body
+    final callbackData = <String, dynamic>{
+      'session': session,
+      ...webhookData,
+    };
+
+    // Apple processCallback expects 'request_body' — construct from webhookData if absent
+    if (!callbackData.containsKey('request_body') && webhookData.isNotEmpty) {
+      callbackData['request_body'] = jsonEncode(webhookData);
+    }
+
+    final result = await rail.processCallback(callbackData);
+
+    if (result.success) {
+      session.log(
+        'Apple webhook processed successfully: ${result.internalTransactionId}',
+        level: LogLevel.info,
+      );
+      return 'OK';
+    } else {
+      session.log(
+        'Apple webhook processing failed: ${result.errorMessage}',
+        level: LogLevel.warning,
+      );
+      return 'ERROR';
+    }
+  }
+
   /// Handle Google Play Real-time Developer Notifications
-  ///
-  /// Basic webhook handler for Google's real-time notifications.
-  /// Currently provides minimal processing for future expansion.
-  ///
-  /// Requirements 8.1: Google webhook endpoint
   Future<String> handleGoogleWebhook(
     Session session,
     Map<String, dynamic> webhookData,
@@ -63,23 +85,22 @@ class IAPWebhookEndpoint extends Endpoint {
     try {
       session.log('Google webhook received', level: LogLevel.info);
 
-      // Basic webhook processing using Google IAP rail
-      final googleRail = GoogleIAPRail();
-      final result = await googleRail.processCallback(webhookData);
-
-      if (result.success) {
-        session.log(
-          'Google webhook processed successfully: ${result.internalTransactionId}',
-          level: LogLevel.info,
-        );
-        return 'OK';
-      } else {
-        session.log(
-          'Google webhook processing failed: ${result.errorMessage}',
-          level: LogLevel.warning,
-        );
-        return 'ERROR';
+      final rail = PaymentManager.getRail(PaymentRail.google_iap);
+      if (rail == null) {
+        // Lazy init
+        await PaymentManager.initializeGoogleIAPRail(session);
+        final retryRail = PaymentManager.getRail(PaymentRail.google_iap);
+        if (retryRail == null) {
+          session.log(
+            'Google IAP rail not available',
+            level: LogLevel.error,
+          );
+          return 'ERROR';
+        }
+        return _processGoogle(session, retryRail, webhookData);
       }
+
+      return _processGoogle(session, rail, webhookData);
     } catch (e) {
       session.log(
         'Google webhook error: ${e.toString()}',
@@ -89,20 +110,31 @@ class IAPWebhookEndpoint extends Endpoint {
     }
   }
 
-  /// Basic webhook signature validation
-  ///
-  /// Placeholder for webhook signature validation.
-  /// Currently returns true for all requests (minimal implementation).
-  ///
-  /// Requirements 8.2: Basic webhook signature validation
-  /// Requirements 8.3: Keep implementation minimal for future expansion
-  bool validateWebhookSignature(
-    String payload,
-    String signature,
-    String secret,
-  ) {
-    // TODO: Implement proper signature validation when needed
-    // For now, return true to allow webhook processing
-    return true;
+  Future<String> _processGoogle(
+    Session session,
+    PaymentRailInterface rail,
+    Map<String, dynamic> webhookData,
+  ) async {
+    // Inject session into callbackData
+    final callbackData = <String, dynamic>{
+      'session': session,
+      ...webhookData,
+    };
+
+    final result = await rail.processCallback(callbackData);
+
+    if (result.success) {
+      session.log(
+        'Google webhook processed successfully: ${result.internalTransactionId}',
+        level: LogLevel.info,
+      );
+      return 'OK';
+    } else {
+      session.log(
+        'Google webhook processing failed: ${result.errorMessage}',
+        level: LogLevel.warning,
+      );
+      return 'ERROR';
+    }
   }
 }

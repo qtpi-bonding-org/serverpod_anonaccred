@@ -1,10 +1,16 @@
 import 'dart:convert';
 
+import 'package:anonaccred_server/src/crypto_utils.dart';
+import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
 import 'package:anonaccred_server/src/product_mapping_config.dart';
+import 'package:anonaccred_server/src/refund_manager.dart';
+import 'package:googleapis/androidpublisher/v3.dart' show ProductPurchase;
 import 'package:test/test.dart';
+
+import '../integration/test_tools/serverpod_test_tools.dart';
 
 /// Unit tests for Google IAP rail implementation
 ///
@@ -244,5 +250,281 @@ void main() {
         expect(result.isValid, isTrue);
       },
     );
+  });
+
+  // ---------------------------------------------------------------------------
+  // Tests requiring a database session (withServerpod)
+  // ---------------------------------------------------------------------------
+  withServerpod('Google IAP Rail - validatePurchase', (
+    sessionBuilder,
+    endpoints,
+  ) {
+    late MockAndroidPublisherClient mockClient;
+    late GoogleIAPRail googleRail;
+
+    setUp(() {
+      mockClient = MockAndroidPublisherClient();
+      googleRail = GoogleIAPRail(client: mockClient);
+      ProductMappingConfig.clearMappings();
+    });
+
+    tearDown(() {
+      ProductMappingConfig.clearMappings();
+    });
+
+    group('error paths — no DB writes occur', () {
+      test('throws when Google API returns ApiRequestError for unknown token',
+          () async {
+        final session = sessionBuilder.build();
+
+        // mockClient throws ApiRequestError by default for unknown tokens
+        await expectLater(
+          googleRail.validatePurchase(
+            session: session,
+            packageName: 'com.quanitya.app',
+            productId: 'com.quanitya.coins_100',
+            purchaseToken: 'unknown_token_404',
+            accountId: 1,
+          ),
+          throwsA(isA<PaymentException>()),
+        );
+
+        expect(mockClient.callLog, hasLength(1));
+        expect(mockClient.callLog.first.methodName, equals('getPurchase'));
+      });
+
+      test('throws when purchase is in canceled state (purchaseState=1)',
+          () async {
+        final session = sessionBuilder.build();
+        const token = 'token_canceled_purchase';
+
+        mockClient.addMockPurchase(
+          token,
+          ProductPurchase(purchaseState: 1, consumptionState: 0),
+        );
+
+        await expectLater(
+          googleRail.validatePurchase(
+            session: session,
+            packageName: 'com.quanitya.app',
+            productId: 'com.quanitya.coins_100',
+            purchaseToken: token,
+            accountId: 1,
+          ),
+          throwsA(isA<PaymentException>()),
+        );
+      });
+
+      test('throws when purchase is in pending state (purchaseState=2)',
+          () async {
+        final session = sessionBuilder.build();
+        const token = 'token_pending_purchase';
+
+        mockClient.addMockPurchase(
+          token,
+          ProductPurchase(purchaseState: 2, consumptionState: 0),
+        );
+
+        await expectLater(
+          googleRail.validatePurchase(
+            session: session,
+            packageName: 'com.quanitya.app',
+            productId: 'com.quanitya.coins_100',
+            purchaseToken: token,
+            accountId: 1,
+          ),
+          throwsA(isA<PaymentException>()),
+        );
+      });
+
+      test('throws when no product mapping is configured for product ID',
+          () async {
+        final session = sessionBuilder.build();
+        const token = 'token_no_mapping';
+        const productId = 'com.quanitya.unmapped_product';
+
+        // ProductMappingConfig was cleared in setUp — no mappings exist
+        mockClient.addMockPurchase(
+          token,
+          ProductPurchase(purchaseState: 0, consumptionState: 0),
+        );
+
+        await expectLater(
+          googleRail.validatePurchase(
+            session: session,
+            packageName: 'com.quanitya.app',
+            productId: productId,
+            purchaseToken: token,
+            accountId: 1,
+          ),
+          throwsA(isA<AnonAccredException>()),
+        );
+      });
+    });
+
+    group('idempotency', () {
+      test('returns fromCache=true when receipt hash already exists', () async {
+        final session = sessionBuilder.build();
+        const token = 'token_already_processed';
+
+        // Pre-insert the hash as if this purchase was already delivered
+        final hash = CryptoUtils.sha256Hash(token);
+        await ReceiptHash.db.insertRow(
+          session,
+          ReceiptHash(hash: hash, paymentRail: PaymentRail.google_iap),
+        );
+
+        final result = await googleRail.validatePurchase(
+          session: session,
+          packageName: 'com.quanitya.app',
+          productId: 'com.quanitya.coins_100',
+          purchaseToken: token,
+          accountId: 1,
+        );
+
+        expect(result.isValid, isTrue);
+        expect(result.fromCache, isTrue);
+      });
+
+      test('does not call Google API when receipt hash already exists',
+          () async {
+        final session = sessionBuilder.build();
+        const token = 'token_cache_no_api_call';
+
+        final hash = CryptoUtils.sha256Hash(token);
+        await ReceiptHash.db.insertRow(
+          session,
+          ReceiptHash(hash: hash, paymentRail: PaymentRail.google_iap),
+        );
+
+        await googleRail.validatePurchase(
+          session: session,
+          packageName: 'com.quanitya.app',
+          productId: 'com.quanitya.coins_100',
+          purchaseToken: token,
+          accountId: 1,
+        );
+
+        expect(mockClient.callLog, isEmpty);
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // extractRefundEvent + refund webhook flow
+  // ---------------------------------------------------------------------------
+  group('Google IAP Rail - extractRefundEvent', () {
+    late MockAndroidPublisherClient mockClient;
+    late GoogleIAPRail googleRail;
+
+    setUp(() {
+      mockClient = MockAndroidPublisherClient();
+      googleRail = GoogleIAPRail(client: mockClient);
+      RefundManager.resetHandler();
+    });
+
+    tearDown(() {
+      RefundManager.resetHandler();
+    });
+
+    test('extracts RefundEvent from valid notification data', () {
+      const token = 'token_refund_extract';
+      const orderId = 'GPA.order_refund_extract';
+
+      final event = googleRail.extractRefundEvent({
+        'purchase_token': token,
+        'order_id': orderId,
+        'product_id': 'com.quanitya.coins_100',
+      });
+
+      expect(event, isNotNull);
+      expect(event!.rail, equals(PaymentRail.google_iap));
+      expect(event.paymentRef, equals(orderId));
+      expect(event.receiptHash, equals(CryptoUtils.sha256Hash(token)));
+      expect(event.productId, equals('com.quanitya.coins_100'));
+    });
+
+    test('extracts RefundEvent with alternative key names', () {
+      const token = 'token_refund_alt';
+      const orderId = 'GPA.order_refund_alt';
+
+      final event = googleRail.extractRefundEvent({
+        'purchaseToken': token,
+        'orderId': orderId,
+      });
+
+      expect(event, isNotNull);
+      expect(event!.paymentRef, equals(orderId));
+      expect(event.receiptHash, equals(CryptoUtils.sha256Hash(token)));
+    });
+
+    test('returns null when purchaseToken is missing', () {
+      final event = googleRail.extractRefundEvent({
+        'order_id': 'GPA.test',
+      });
+      expect(event, isNull);
+    });
+
+    test('returns null when orderId is missing', () {
+      final event = googleRail.extractRefundEvent({
+        'purchase_token': 'token_test',
+      });
+      expect(event, isNull);
+    });
+
+    test('returns null when both fields missing', () {
+      final event = googleRail.extractRefundEvent(<String, dynamic>{});
+      expect(event, isNull);
+    });
+  });
+
+  withServerpod('Google IAP Rail - processCallback refund flow', (
+    sessionBuilder,
+    endpoints,
+  ) {
+    late MockAndroidPublisherClient mockClient;
+    late GoogleIAPRail googleRail;
+
+    setUp(() {
+      mockClient = MockAndroidPublisherClient();
+      googleRail = GoogleIAPRail(client: mockClient);
+      RefundManager.resetHandler();
+    });
+
+    tearDown(() {
+      RefundManager.resetHandler();
+    });
+
+    test('processCallback for refund notification calls RefundManager',
+        () async {
+      final session = sessionBuilder.build();
+      const token = 'token_refund_callback';
+      const orderId = 'GPA.order_refund_callback';
+
+      // Pre-insert the hash
+      final hash = CryptoUtils.sha256Hash(token);
+      await ReceiptHash.db.insertRow(
+        session,
+        ReceiptHash(hash: hash, paymentRail: PaymentRail.google_iap),
+      );
+
+      // Register hook to verify RefundManager receives the event
+      var hookCalled = false;
+      RefundManager.onRefund((s, event, context) async {
+        hookCalled = true;
+        expect(event.paymentRef, equals(orderId));
+        return RefundAction.ignore;
+      });
+
+      final result = await googleRail.processCallback({
+        'notification_type': 'refund',
+        'purchase_token': token,
+        'order_id': orderId,
+        'session': session,
+      });
+
+      expect(result.success, isTrue);
+      expect(hookCalled, isTrue);
+    });
   });
 }

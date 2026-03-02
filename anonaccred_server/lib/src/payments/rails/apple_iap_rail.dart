@@ -7,6 +7,8 @@ import '../../entitlement_manager.dart';
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
 import '../../product_mapping_config.dart';
+import '../../refund_event.dart';
+import '../../refund_manager.dart';
 import '../app_store_server_client.dart';
 import '../apple_jwt_auth_client.dart';
 import '../notification_signature_validator.dart';
@@ -128,9 +130,12 @@ class AppleIAPRail implements PaymentRailInterface {
       final notificationData = _decodeNotificationPayload(signedPayload);
       final notificationType = notificationData['notificationType'] as String?;
 
-      // Route refund notifications to processRefundNotification()
+      // Route refund notifications to RefundManager
       if (notificationType == 'REFUND') {
-        await processRefundNotification(session, notificationData);
+        final event = extractRefundEvent(notificationData);
+        if (event != null) {
+          await RefundManager.processRefund(session, event);
+        }
         return PaymentResult(
           success: true,
           errorMessage: 'Refund notification acknowledged',
@@ -343,58 +348,30 @@ class AppleIAPRail implements PaymentRailInterface {
     return history.signedTransactions.map(_decodeSignedTransaction).toList();
   }
 
-  /// Process refund notification.
-  ///
-  /// Logs refund information but does not automatically remove consumables from inventory.
-  ///
-  /// [session] - The database session
-  /// [notificationData] - The decoded notification data from Apple
-  ///
-  /// Requirements 6.2, 6.3, 6.4, 6.5
-  Future<void> processRefundNotification(
-    Session session,
-    Map<String, dynamic> notificationData,
-  ) async {
-    // Extract transaction info from notification data
-    final data = notificationData['data'] as Map<String, dynamic>?;
-    if (data == null) {
-      session.log(
-        'Refund notification missing data field',
-        level: LogLevel.warning,
-      );
-      return;
-    }
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) {
+    try {
+      final data = notificationData['data'] as Map<String, dynamic>?;
+      if (data == null) return null;
 
-    final signedTransactionInfo = data['signedTransactionInfo'] as String?;
-    if (signedTransactionInfo == null) {
-      session.log(
-        'Refund notification missing signedTransactionInfo',
-        level: LogLevel.warning,
-      );
-      return;
-    }
+      final signedTransactionInfo = data['signedTransactionInfo'] as String?;
+      if (signedTransactionInfo == null) return null;
 
-    // Decode the transaction to get the transaction ID
-    final transaction = _decodeSignedTransaction(signedTransactionInfo);
-    final transactionId = transaction.transactionId;
+      final transaction = _decodeSignedTransaction(signedTransactionInfo);
+      final transactionId = transaction.transactionId;
 
-    // Find what was delivered via hash (Purely for logging in the new system)
-    final transactionHash = CryptoUtils.sha256Hash(transactionId);
-    final hashRecord = await ReceiptHash.db.findFirstRow(
-      session,
-      where: (t) => t.hash.equals(transactionHash),
-    );
-
-    if (hashRecord != null) {
-      session.log(
-        'Refund processed for transaction: $transactionId (Hash: $transactionHash)',
-        level: LogLevel.warning,
+      return RefundEvent(
+        rail: PaymentRail.apple_iap,
+        receiptHash: CryptoUtils.sha256Hash(transactionId),
+        paymentRef: transactionId,
+        productId: transaction.productId,
+        purchaseTimestamp: DateTime.fromMillisecondsSinceEpoch(
+          transaction.purchaseDate,
+        ),
+        rawData: notificationData,
       );
-    } else {
-      session.log(
-        'Refund notification for unknown transaction: $transactionId',
-        level: LogLevel.warning,
-      );
+    } catch (_) {
+      return null;
     }
   }
 

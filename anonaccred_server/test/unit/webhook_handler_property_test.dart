@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
+import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase4, Property 3: Webhook Processing Idempotency**
@@ -236,6 +237,9 @@ class MockWebhookRail implements PaymentRailInterface {
     results.add(result);
     return result;
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }
 
 /// Mock rail that throws errors for testing error handling
@@ -262,4 +266,7 @@ class ErrorThrowingWebhookRail implements PaymentRailInterface {
     callCount++;
     throw Exception('Mock callback error for testing');
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }

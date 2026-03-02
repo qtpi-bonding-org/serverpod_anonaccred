@@ -3,7 +3,7 @@
 /// Provides anonymous credential system with privacy-by-design architecture
 /// for Serverpod applications. Features include:
 ///
-/// - Ed25519-based cryptographic authentication with account and device management
+/// - ECDSA P-256-based cryptographic authentication with account and device management
 /// - Challenge-response authentication system for secure device access
 /// - Multi-device support with individual subkeys and revocation capability
 /// - Zero-PII architecture with encrypted data storage (never decrypted server-side)
@@ -105,5 +105,8 @@ export 'src/payments/payment_rail_interface.dart';
 export 'src/payments/x402_interceptor.dart';
 export 'src/payments/x402_payment_rail.dart';
 export 'src/price_registry.dart';
+// Refund system
+export 'src/refund_event.dart';
+export 'src/refund_manager.dart';
 
 // Transaction utilities removed - use Serverpod built-in patterns

@@ -2,6 +2,7 @@ import 'dart:convert';
 import '../generated/payment_rail.dart';
 import '../generated/payment_request.dart';
 import '../generated/payment_result.dart';
+import '../refund_event.dart';
 
 /// Abstract interface for payment rail implementations
 ///
@@ -29,6 +30,11 @@ abstract class PaymentRailInterface {
   ///
   /// Returns a [PaymentResult] indicating success/failure and transaction details
   Future<PaymentResult> processCallback(Map<String, dynamic> callbackData);
+
+  /// Extract a standardized refund event from rail-specific notification data.
+  ///
+  /// Returns null if the notification is not a valid refund notification.
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData);
 }
 
 /// Extension to provide convenient access to rail-specific data

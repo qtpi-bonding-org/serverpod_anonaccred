@@ -185,6 +185,66 @@ class EntitlementManager {
     }
   }
 
+  /// Revokes entitlement from an account by debiting the balance.
+  ///
+  /// Clamps at zero (never goes negative). Creates a ConsumptionLog entry
+  /// with the provided reason. No-op if no AccountEntitlement record exists.
+  static Future<void> revokeEntitlement(
+    Session session, {
+    required int accountId,
+    required int entitlementId,
+    required double quantity,
+    required String reason,
+  }) async {
+    if (quantity <= 0) return;
+
+    try {
+      await session.db.transaction((transaction) async {
+        final record = await AccountEntitlement.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.accountId.equals(accountId) &
+              t.entitlementId.equals(entitlementId),
+          transaction: transaction,
+        );
+
+        if (record == null) return; // Nothing to revoke
+
+        final debit = quantity > record.balance ? record.balance : quantity;
+        if (debit <= 0) return;
+
+        await AccountEntitlement.db.updateRow(
+          session,
+          record.copyWith(balance: record.balance - debit),
+          transaction: transaction,
+        );
+
+        await ConsumptionLog.db.insertRow(
+          session,
+          ConsumptionLog(
+            accountId: accountId,
+            entitlementId: entitlementId,
+            amount: debit,
+            reason: reason,
+            timestamp: DateTime.now(),
+          ),
+          transaction: transaction,
+        );
+      });
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw AnonAccredExceptionFactory.createInventoryException(
+        code: AnonAccredErrorCodes.databaseError,
+        message: 'Failed to revoke entitlement: ${e.toString()}',
+        accountId: accountId,
+        details: {
+          'error': e.toString(),
+          'entitlementId': entitlementId.toString(),
+        },
+      );
+    }
+  }
+
   /// Gets the current balance for an entitlement by tag.
   static Future<double> getEntitlementBalance(
     Session session, {

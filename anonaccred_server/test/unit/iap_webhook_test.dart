@@ -74,17 +74,5 @@ void main() {
       });
     });
 
-    group('Webhook Signature Validation', () {
-      test('validateWebhookSignature returns true for all requests (minimal implementation)', () {
-        // Test basic signature validation (currently always returns true)
-        final isValid = endpoint.validateWebhookSignature(
-          'test_payload',
-          'test_signature',
-          'test_secret',
-        );
-        
-        expect(isValid, isTrue);
-      });
-    });
   });
 }

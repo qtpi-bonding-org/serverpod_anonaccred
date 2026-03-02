@@ -2,6 +2,7 @@ import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/webhook_handler.dart';
+import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:test/test.dart';
 
 /// Unit tests for WebhookHandler operations
@@ -300,6 +301,9 @@ class MockWebhookRail implements PaymentRailInterface {
       errorMessage: shouldSucceed ? null : 'Mock payment failed',
     );
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }
 
 /// Mock rail that throws errors for testing error handling
@@ -324,6 +328,9 @@ class ErrorThrowingWebhookRail implements PaymentRailInterface {
   ) async {
     throw Exception('Mock webhook processing error');
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }
 
 /// Mock rail that throws PaymentException for testing exception handling
@@ -354,4 +361,7 @@ class PaymentExceptionThrowingWebhookRail implements PaymentRailInterface {
       message: 'Rail-specific webhook processing error',
     );
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }

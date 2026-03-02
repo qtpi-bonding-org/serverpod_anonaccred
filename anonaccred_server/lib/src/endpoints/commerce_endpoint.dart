@@ -21,7 +21,7 @@ class CommerceEndpoint extends Endpoint {
   /// This endpoint requires authentication and validates all input parameters.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [products]: Map of product SKUs to USD prices
   ///
@@ -339,7 +339,7 @@ class CommerceEndpoint extends Endpoint {
   /// for AI agents and autonomous systems.
   ///
   /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
+  /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [headers]: HTTP headers (may contain X-PAYMENT)
   ///
@@ -461,7 +461,7 @@ class CommerceEndpoint extends Endpoint {
     }
   }
 
-  /// Validates authentication using Ed25519 signature verification
+  /// Validates authentication using ECDSA P-256 signature verification
   ///
   /// This is a simplified authentication check that validates the public key format
   /// and signature. In a production system, this would include more sophisticated
@@ -469,7 +469,7 @@ class CommerceEndpoint extends Endpoint {
   ///
   /// Parameters:
   /// - [session]: Serverpod session for logging
-  /// - [publicKey]: Ed25519 public key as hex string
+  /// - [publicKey]: ECDSA P-256 public key as hex string
   /// - [signature]: Signature to verify
   /// - [operation]: Operation name for logging
   ///
@@ -498,7 +498,7 @@ class CommerceEndpoint extends Endpoint {
       final exception =
           AnonAccredExceptionFactory.createAuthenticationException(
             code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
-            message: 'Invalid Ed25519 public key format',
+            message: 'Invalid ECDSA P-256 public key format',
             operation: operation,
             details: {
               'publicKeyLength': publicKey.length.toString(),

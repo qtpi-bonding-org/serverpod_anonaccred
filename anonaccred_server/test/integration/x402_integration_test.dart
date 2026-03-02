@@ -1,4 +1,5 @@
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
@@ -163,4 +164,7 @@ class MockPaymentRail implements PaymentRailInterface {
     internalTransactionId: callbackData['internalTransactionId'] as String?,
     transactionTimestamp: DateTime.now(),
   );
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) => null;
 }

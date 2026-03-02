@@ -6,3 +6,4 @@ values:
   - paid
   - failed
   - cancelled
+  - refunded

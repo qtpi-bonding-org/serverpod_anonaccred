@@ -1,5 +1,6 @@
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
+import '../refund_event.dart';
 import 'payment_rail_interface.dart';
 
 /// X402 HTTP Payment Rail implementation
@@ -67,6 +68,10 @@ class X402PaymentRail implements PaymentRailInterface {
       railData: railData,
     );
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) =>
+      null; // X402 does not support refund notifications
 
   @override
   Future<PaymentResult> processCallback(

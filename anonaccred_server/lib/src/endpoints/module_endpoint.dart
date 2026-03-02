@@ -10,7 +10,7 @@ import '../generated/protocol.dart';
 class ModuleEndpoint extends Endpoint {
   Future<String> hello(Session session, String name) async => 'Hello $name';
 
-  /// Authenticates a user using Ed25519 signature verification
+  /// Authenticates a user using ECDSA P-256 signature verification
   /// Throws AuthenticationException on failure
   Future<bool> authenticateUser(
     Session session,
