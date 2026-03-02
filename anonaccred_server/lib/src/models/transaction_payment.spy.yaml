@@ -8,10 +8,11 @@ fields:
   paymentRail: PaymentRail # The rail used
   paymentCurrency: Currency # Actual Currency paid
   paymentAmount: double # Amount paid
-  paymentRef: String # Store Transaction ID (Apple/Google)
+  paymentRef: String? # Store Transaction ID (Apple/Google)
   transactionTimestamp: DateTime # MATCH KEY (Exact Store Time)
   clientReference: String? # Optional Client UUID
   status: OrderStatus
+  railDataJson: String? # Rail-specific metadata for client completion
 indexes:
   internal_tx_id_idx:
     fields: internalTransactionId

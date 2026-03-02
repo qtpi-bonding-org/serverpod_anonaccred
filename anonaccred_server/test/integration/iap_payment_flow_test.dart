@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
@@ -39,12 +41,12 @@ void main() {
         final paymentRequest = await PaymentManager.createPayment(
           railType: PaymentRail.apple_iap,
           amountUSD: 9.99,
-          orderId: 'test_apple_flow_001',
+          internalTransactionId: 'test_apple_flow_001',
         );
 
         expect(paymentRequest.paymentRef, equals('test_apple_flow_001'));
         expect(paymentRequest.amountUSD, equals(9.99));
-        expect(paymentRequest.orderId, equals('test_apple_flow_001'));
+        expect(paymentRequest.internalTransactionId, equals('test_apple_flow_001'));
 
         // Verify rail data contains Apple IAP information
         expect(paymentRequest.railDataJson, contains('apple_iap'));
@@ -60,7 +62,7 @@ void main() {
             await PaymentManager.createPayment(
               railType: PaymentRail.apple_iap,
               amountUSD: 4.99,
-              orderId: 'test_apple_config_001',
+              internalTransactionId: 'test_apple_config_001',
             );
           }, returnsNormally);
         },
@@ -74,16 +76,20 @@ void main() {
         final paymentRequest = await PaymentManager.createPayment(
           railType: PaymentRail.google_iap,
           amountUSD: 14.99,
-          orderId: 'test_google_flow_001',
+          internalTransactionId: 'test_google_flow_001',
         );
 
         expect(paymentRequest.paymentRef, equals('test_google_flow_001'));
         expect(paymentRequest.amountUSD, equals(14.99));
-        expect(paymentRequest.orderId, equals('test_google_flow_001'));
+        expect(paymentRequest.internalTransactionId, equals('test_google_flow_001'));
 
         // Verify rail data contains Google IAP information
         expect(paymentRequest.railDataJson, contains('google_iap'));
         expect(paymentRequest.railDataJson, contains('validation_endpoint'));
+
+        // Verify extractTransactionData works with the created payment data
+        final railData = jsonDecode(paymentRequest.railDataJson) as Map<String, dynamic>;
+        expect(railData['internal_transaction_id'], equals('test_google_flow_001'));
       });
 
       test(
@@ -95,7 +101,7 @@ void main() {
             await PaymentManager.createPayment(
               railType: PaymentRail.google_iap,
               amountUSD: 7.99,
-              orderId: 'test_google_config_001',
+              internalTransactionId: 'test_google_config_001',
             );
           }, returnsNormally);
         },
@@ -117,7 +123,7 @@ void main() {
           await PaymentManager.createPayment(
             railType: PaymentRail.apple_iap,
             amountUSD: 9.99,
-            orderId: 'test_unsupported_001',
+            internalTransactionId: 'test_unsupported_001',
           );
         }, throwsA(isA<PaymentException>()));
       });

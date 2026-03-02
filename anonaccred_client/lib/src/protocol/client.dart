@@ -13,9 +13,9 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:anonaccred_client/src/protocol/account.dart' as _i3;
-import 'package:anonaccred_client/src/protocol/transaction.dart' as _i4;
+import 'package:anonaccred_client/src/protocol/transaction_payment.dart' as _i4;
 import 'package:anonaccred_client/src/protocol/payment_rail.dart' as _i5;
-import 'package:anonaccred_client/src/protocol/inventory.dart' as _i6;
+import 'package:anonaccred_client/src/protocol/account_entitlement.dart' as _i6;
 import 'package:anonaccred_client/src/protocol/consume_result.dart' as _i7;
 import 'package:anonaccred_client/src/protocol/account_device.dart' as _i8;
 import 'package:anonaccred_client/src/protocol/authentication_result.dart'
@@ -24,7 +24,6 @@ import 'package:anonaccred_client/src/protocol/device_pairing_event.dart'
     as _i10;
 import 'package:anonaccred_client/src/protocol/device_pairing_info.dart'
     as _i11;
-import 'package:anonaccred_client/src/protocol/payment_request.dart' as _i12;
 
 /// Account management endpoints for anonymous identity operations
 ///
@@ -159,7 +158,36 @@ class EndpointCommerce extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<Map<String, double>>(
     'anonaccred.commerce',
     'registerProducts',
-    {'publicKey': publicKey, 'signature': signature, 'products': products},
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'products': products,
+    },
+  );
+
+  /// Initiate a transaction payment
+  ///
+  /// Wraps CommerceManager.initiateTransactionPayment to provide endpoint access.
+  _i2.Future<_i4.TransactionPayment> initiatePayment(
+    String publicKey,
+    String signature,
+    int accountId,
+    _i5.PaymentRail rail,
+    String storeProductId, {
+    String? clientReference,
+    double? customPrice,
+  }) => caller.callServerEndpoint<_i4.TransactionPayment>(
+    'anonaccred.commerce',
+    'initiatePayment',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'accountId': accountId,
+      'rail': rail,
+      'storeProductId': storeProductId,
+      'clientReference': clientReference,
+      'customPrice': customPrice,
+    },
   );
 
   /// Get the complete product catalog
@@ -180,130 +208,53 @@ class EndpointCommerce extends _i1.EndpointRef {
         {},
       );
 
-  /// Create a new order for consumable items
-  ///
-  /// Creates a pending transaction record with the specified items and pricing.
-  /// Requires authentication and validates all items against the price registry.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: The account ID creating the order
-  /// - [items]: Map of consumable types to quantities
-  /// - [paymentRail]: Payment method to be used
-  ///
-  /// Returns: The created TransactionPayment record
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [PaymentException] for invalid order data
-  /// - [AnonAccredException] for system errors
-  _i2.Future<_i4.TransactionPayment> createOrder(
+  /// Get entitlements for an account
+  _i2.Future<List<_i6.AccountEntitlement>> getEntitlements(
     String publicKey,
     String signature,
     int accountId,
-    Map<String, double> items,
-    _i5.PaymentRail paymentRail,
-  ) => caller.callServerEndpoint<_i4.TransactionPayment>(
+  ) => caller.callServerEndpoint<List<_i6.AccountEntitlement>>(
     'anonaccred.commerce',
-    'createOrder',
+    'getEntitlements',
     {
       'publicKey': publicKey,
       'signature': signature,
       'accountId': accountId,
-      'items': items,
-      'paymentRail': paymentRail,
     },
   );
 
-  /// Get inventory for an account
-  ///
-  /// Returns all consumable types and their current balances for the specified account.
-  /// Requires authentication to ensure only authorized access to inventory data.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: The account ID to query inventory for
-  ///
-  /// Returns: List of AccountInventory records
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [InventoryException] for inventory access errors
-  /// - [AnonAccredException] for system errors
-  _i2.Future<List<_i6.AccountInventory>> getInventory(
+  /// Get balance for a specific entitlement tag
+  _i2.Future<double> getEntitlementBalance(
     String publicKey,
     String signature,
     int accountId,
-  ) => caller.callServerEndpoint<List<_i6.AccountInventory>>(
+    String tag,
+  ) => caller.callServerEndpoint<double>(
     'anonaccred.commerce',
-    'getInventory',
-    {'publicKey': publicKey, 'signature': signature, 'accountId': accountId},
-  );
-
-  /// Get balance for a specific consumable type
-  ///
-  /// Returns the current balance for the specified consumable type and account.
-  /// Requires authentication to ensure only authorized access to balance data.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: The account ID to check balance for
-  /// - [consumableType]: The consumable type to check
-  ///
-  /// Returns: Current balance as double
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [InventoryException] for inventory access errors
-  /// - [AnonAccredException] for system errors
-  _i2.Future<double> getBalance(
-    String publicKey,
-    String signature,
-    int accountId,
-    String consumableType,
-  ) => caller.callServerEndpoint<double>('anonaccred.commerce', 'getBalance', {
-    'publicKey': publicKey,
-    'signature': signature,
-    'accountId': accountId,
-    'consumableType': consumableType,
-  });
-
-  /// Consume inventory using atomic utilities
-  ///
-  /// Attempts to consume a specified quantity from account inventory using
-  /// the optional InventoryUtils. This endpoint provides atomic consumption
-  /// operations for parent applications that choose to use them.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: The account ID to consume inventory from
-  /// - [consumableType]: The consumable type to consume
-  /// - [quantity]: Amount to consume (must be positive)
-  ///
-  /// Returns: ConsumeResult with operation outcome and balance information
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [InventoryException] for invalid consumption parameters
-  /// - [AnonAccredException] for system errors
-  _i2.Future<_i7.ConsumeResult> consumeInventory(
-    String publicKey,
-    String signature,
-    int accountId,
-    String consumableType,
-    double quantity,
-  ) => caller.callServerEndpoint<_i7.ConsumeResult>(
-    'anonaccred.commerce',
-    'consumeInventory',
+    'getEntitlementBalance',
     {
       'publicKey': publicKey,
       'signature': signature,
       'accountId': accountId,
-      'consumableType': consumableType,
+      'tag': tag,
+    },
+  );
+
+  /// Consume entitlement using atomic utilities
+  _i2.Future<_i7.ConsumeResult> consumeEntitlement(
+    String publicKey,
+    String signature,
+    int accountId,
+    String tag,
+    double quantity,
+  ) => caller.callServerEndpoint<_i7.ConsumeResult>(
+    'anonaccred.commerce',
+    'consumeEntitlement',
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'accountId': accountId,
+      'tag': tag,
       'quantity': quantity,
     },
   );
@@ -329,38 +280,28 @@ class EndpointCommerce extends _i1.EndpointRef {
   }) => caller.callServerEndpoint<Map<String, dynamic>>(
     'anonaccred.commerce',
     'getProductCatalogWithX402',
-    {'publicKey': publicKey, 'signature': signature, 'headers': headers},
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'headers': headers,
+    },
   );
 
-  /// Get inventory balance with X402 pay-per-query integration
-  ///
-  /// Demonstrates X402 integration for inventory queries with micropayments.
-  /// Supports autonomous systems that need to check balances programmatically.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: Account ID to check balance for
-  /// - [consumableType]: Consumable type to check
-  /// - [headers]: HTTP headers (may contain X-PAYMENT)
-  ///
-  /// Returns: Either HTTP 402 payment requirement or balance information
-  ///
-  /// Requirements 5.4, 5.5: Support AI agents with pay-per-use model
-  _i2.Future<Map<String, dynamic>> getBalanceWithX402(
+  /// Get entitlement balance with X402 pay-per-query integration
+  _i2.Future<Map<String, dynamic>> getEntitlementBalanceWithX402(
     String publicKey,
     String signature,
     int accountId,
-    String consumableType, {
+    String tag, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<Map<String, dynamic>>(
     'anonaccred.commerce',
-    'getBalanceWithX402',
+    'getEntitlementBalanceWithX402',
     {
       'publicKey': publicKey,
       'signature': signature,
       'accountId': accountId,
-      'consumableType': consumableType,
+      'tag': tag,
       'headers': headers,
     },
   );
@@ -431,7 +372,10 @@ class EndpointDevice extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<_i9.AuthenticationResult>(
     'anonaccred.device',
     'authenticateDevice',
-    {'challenge': challenge, 'signature': signature},
+    {
+      'challenge': challenge,
+      'signature': signature,
+    },
   );
 
   /// Generate authentication challenge
@@ -444,6 +388,8 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - [devicePublicKey]: The device's ECDSA P-256 signing public key (128 hex chars)
   ///
   /// Returns a hex-encoded challenge string.
+  ///
+  /// Throws AuthenticationException if device is not found or is revoked.
   _i2.Future<String> generateAuthChallenge(String devicePublicKey) =>
       caller.callServerEndpoint<String>(
         'anonaccred.device',
@@ -464,9 +410,11 @@ class EndpointDevice extends _i1.EndpointRef {
   ///
   /// Throws AuthenticationException if device validation fails or device not found.
   _i2.Future<bool> revokeDevice(int deviceId) =>
-      caller.callServerEndpoint<bool>('anonaccred.device', 'revokeDevice', {
-        'deviceId': deviceId,
-      });
+      caller.callServerEndpoint<bool>(
+        'anonaccred.device',
+        'revokeDevice',
+        {'deviceId': deviceId},
+      );
 
   /// List account devices
   ///
@@ -496,9 +444,12 @@ class EndpointDevice extends _i1.EndpointRef {
       caller.callStreamingServerEndpoint<
         _i2.Stream<_i10.DevicePairingEvent>,
         _i10.DevicePairingEvent
-      >('anonaccred.device', 'monitorRegistration', {
-        'signingKeyHex': signingKeyHex,
-      }, {});
+      >(
+        'anonaccred.device',
+        'monitorRegistration',
+        {'signingKeyHex': signingKeyHex},
+        {},
+      );
 
   /// Register a new device for the caller's account (QR code pairing flow).
   ///
@@ -557,13 +508,12 @@ class EndpointDevice extends _i1.EndpointRef {
   );
 }
 
-/// In-App Purchase endpoint for Apple and Google IAP validation
+/// In-App Purchase endpoint for Apple and Google IAP validation.
 ///
-/// Provides server-side validation of mobile app store purchases while maintaining
-/// privacy-first architecture. Integrates with existing inventory management and
-/// transaction recording systems.
-///
-/// Requirements 1.1, 1.4: Mobile IAP validation with inventory fulfillment
+/// Implements a "Reactive & Anonymous" fulfillment flow.
+/// 1. Identity-Linked Inventory: Adds coins directly to the account balance.
+/// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountId.
+/// 3. The Bridge: EphemeralAuditLog links the two for 7 days, then breaks.
 /// {@category Endpoint}
 class EndpointIAP extends _i1.EndpointRef {
   EndpointIAP(_i1.EndpointCaller caller) : super(caller);
@@ -571,35 +521,26 @@ class EndpointIAP extends _i1.EndpointRef {
   @override
   String get name => 'anonaccred.iAP';
 
-  /// Validate Apple App Store transaction and fulfill purchase
+  /// Validate Apple App Store transaction and fulfill purchase.
   ///
-  /// Validates iOS app transaction using Apple's App Store Server API and adds
-  /// purchased consumables to user inventory upon successful validation.
+  /// This endpoint is reactive: if no order exists, it creates the financial
+  /// record on-the-fly from the verified receipt.
   ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [transactionId]: Apple transaction ID from the app
   /// - [productId]: Apple product ID (SKU)
-  /// - [orderId]: Order ID for transaction tracking
   /// - [accountId]: Account ID for inventory management
-  /// - [consumableType]: Type of consumable being purchased
-  /// - [quantity]: Quantity of consumables purchased
-  ///
-  /// Returns: Validation result with transaction details or error information
-  ///
-  /// Requirements 2.1, 2.2, 2.3: Apple transaction validation
-  /// Requirements 1.4: Inventory fulfillment integration
+  /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
   _i2.Future<Map<String, dynamic>> validateAppleTransaction(
     String publicKey,
     String signature,
     String transactionId,
     String productId,
-    String orderId,
-    int accountId,
-    String consumableType,
-    double quantity,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    int accountId, {
+    String? internalTransactionId,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
     'anonaccred.iAP',
     'validateAppleTransaction',
     {
@@ -607,45 +548,33 @@ class EndpointIAP extends _i1.EndpointRef {
       'signature': signature,
       'transactionId': transactionId,
       'productId': productId,
-      'orderId': orderId,
       'accountId': accountId,
-      'consumableType': consumableType,
-      'quantity': quantity,
+      'internalTransactionId': internalTransactionId,
     },
   );
 
-  /// Validate Google Play purchase and fulfill purchase
+  /// Validate Google Play purchase and fulfill purchase.
   ///
-  /// Validates Android app purchase using Google Play Developer API and adds
-  /// purchased consumables to user inventory upon successful validation.
-  /// Also acknowledges the purchase as required by Google.
+  /// This endpoint is reactive: if no order exists, it creates the financial
+  /// record on-the-fly from the verified purchase token.
   ///
   /// Parameters:
   /// - [publicKey]: Ed25519 public key for authentication
   /// - [signature]: Signature of the request data
   /// - [packageName]: Android app package name
-  /// - [productId]: In-app product ID (SKU)
-  /// - [purchaseToken]: Purchase token from Android app
-  /// - [orderId]: Order ID for transaction tracking
+  /// - [productId]: Google product ID (SKU)
+  /// - [purchaseToken]: Google purchase token
   /// - [accountId]: Account ID for inventory management
-  /// - [consumableType]: Type of consumable being purchased
-  /// - [quantity]: Quantity of consumables purchased
-  ///
-  /// Returns: Validation result with transaction details or error information
-  ///
-  /// Requirements 3.1, 3.2, 3.3: Google purchase validation and acknowledgment
-  /// Requirements 1.4: Inventory fulfillment integration
+  /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
   _i2.Future<Map<String, dynamic>> validateGooglePurchase(
     String publicKey,
     String signature,
     String packageName,
     String productId,
     String purchaseToken,
-    String orderId,
-    int accountId,
-    String consumableType,
-    double quantity,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    int accountId, {
+    String? internalTransactionId,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
     'anonaccred.iAP',
     'validateGooglePurchase',
     {
@@ -654,24 +583,12 @@ class EndpointIAP extends _i1.EndpointRef {
       'packageName': packageName,
       'productId': productId,
       'purchaseToken': purchaseToken,
-      'orderId': orderId,
       'accountId': accountId,
-      'consumableType': consumableType,
-      'quantity': quantity,
+      'internalTransactionId': internalTransactionId,
     },
   );
 
-  /// Handle Apple server-to-server notifications (webhook)
-  ///
-  /// Processes webhook notifications from Apple about purchase events.
-  /// This is a placeholder for future webhook implementation.
-  ///
-  /// Parameters:
-  /// - [webhookData]: Webhook payload from Apple
-  ///
-  /// Returns: Acknowledgment of webhook processing
-  ///
-  /// Requirements 8.1: Process Apple server-to-server notifications
+  /// Placeholder for Apple server-to-server notifications.
   _i2.Future<Map<String, dynamic>> handleAppleWebhook(
     Map<String, dynamic> webhookData,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
@@ -680,17 +597,7 @@ class EndpointIAP extends _i1.EndpointRef {
     {'webhookData': webhookData},
   );
 
-  /// Handle Google Real-time Developer Notifications (webhook)
-  ///
-  /// Processes webhook notifications from Google about purchase events.
-  /// This is a placeholder for future webhook implementation.
-  ///
-  /// Parameters:
-  /// - [webhookData]: Webhook payload from Google
-  ///
-  /// Returns: Acknowledgment of webhook processing
-  ///
-  /// Requirements 8.2: Process Google Real-time Developer Notifications
+  /// Placeholder for Google purchase notifications.
   _i2.Future<Map<String, dynamic>> handleGoogleWebhook(
     Map<String, dynamic> webhookData,
   ) => caller.callServerEndpoint<Map<String, dynamic>>(
@@ -763,40 +670,52 @@ class EndpointModule extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<bool>(
     'anonaccred.module',
     'authenticateUser',
-    {'publicKey': publicKey, 'signature': signature, 'challenge': challenge},
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'challenge': challenge,
+    },
   );
 
   /// Processes a payment through specified payment rail
   /// Throws PaymentException on failure
   _i2.Future<String> processPayment(
-    String orderId,
+    String internalTransactionId,
     String paymentRail,
     double amount,
   ) => caller.callServerEndpoint<String>(
     'anonaccred.module',
     'processPayment',
-    {'orderId': orderId, 'paymentRail': paymentRail, 'amount': amount},
+    {
+      'internalTransactionId': internalTransactionId,
+      'paymentRail': paymentRail,
+      'amount': amount,
+    },
   );
 
-  /// Manages inventory operations (check balance, add consumables)
+  /// Manages entitlement operations (check balance, grant)
   /// Throws InventoryException on failure
-  _i2.Future<int> manageInventory(
+  _i2.Future<double> manageEntitlements(
     int accountId,
-    String consumableType,
+    String tag,
     String operation,
-    int? quantity,
-  ) => caller.callServerEndpoint<int>('anonaccred.module', 'manageInventory', {
-    'accountId': accountId,
-    'consumableType': consumableType,
-    'operation': operation,
-    'quantity': quantity,
-  });
+    double? quantity,
+  ) => caller.callServerEndpoint<double>(
+    'anonaccred.module',
+    'manageEntitlements',
+    {
+      'accountId': accountId,
+      'tag': tag,
+      'operation': operation,
+      'quantity': quantity,
+    },
+  );
 }
 
-/// Payment endpoints for AnonAccred Phase 4 payment rail architecture
+/// Payment endpoints for managing non-IAP rails (Monero, X402, etc).
 ///
-/// Provides endpoints for payment initiation, status checking, and webhook processing
-/// while maintaining the established authentication and error handling patterns.
+/// Note: IAP rails (Apple/Google) are now handled via IAPEndpoint for better
+/// reactive fulfillment coupling.
 /// {@category Endpoint}
 class EndpointPayment extends _i1.EndpointRef {
   EndpointPayment(_i1.EndpointCaller caller) : super(caller);
@@ -804,80 +723,24 @@ class EndpointPayment extends _i1.EndpointRef {
   @override
   String get name => 'anonaccred.payment';
 
-  /// Initiate a payment using the specified payment rail
+  /// Check the status of a payment transaction.
   ///
-  /// Creates a payment request through the appropriate payment rail and updates
-  /// the transaction with payment reference information.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [orderId]: External order ID for the transaction
-  /// - [railType]: Payment rail to use for processing
-  ///
-  /// Returns: PaymentRequest with payment details and rail-specific metadata
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [PaymentException] for payment processing errors
-  /// - [AnonAccredException] for system errors
-  ///
-  /// Requirements 6.1: Create payment requests using specified rail
-  _i2.Future<_i12.PaymentRequest> initiatePayment(
-    String publicKey,
-    String signature,
-    String orderId,
-    _i5.PaymentRail railType,
-  ) => caller.callServerEndpoint<_i12.PaymentRequest>(
-    'anonaccred.payment',
-    'initiatePayment',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'orderId': orderId,
-      'railType': railType,
-    },
-  );
-
-  /// Check the status of a payment transaction
-  ///
-  /// Returns the current status and details of a payment transaction.
-  /// Requires authentication to ensure only authorized access to payment data.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [orderId]: External order ID to check status for
-  ///
-  /// Returns: TransactionPayment with current status and payment details
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [PaymentException] for transaction not found
-  /// - [AnonAccredException] for system errors
-  ///
-  /// Requirements 6.2: Return current transaction and payment status
+  /// Uses internalTransactionId for the check.
   _i2.Future<_i4.TransactionPayment> checkPaymentStatus(
     String publicKey,
     String signature,
-    String orderId,
+    String internalTransactionId,
   ) => caller.callServerEndpoint<_i4.TransactionPayment>(
     'anonaccred.payment',
     'checkPaymentStatus',
-    {'publicKey': publicKey, 'signature': signature, 'orderId': orderId},
+    {
+      'publicKey': publicKey,
+      'signature': signature,
+      'internalTransactionId': internalTransactionId,
+    },
   );
 
-  /// Process webhook for Monero payment rail
-  ///
-  /// Handles webhook callbacks from Monero payment services.
-  /// This endpoint does not require authentication as it's called by external services.
-  ///
-  /// Parameters:
-  /// - [webhookData]: Raw webhook payload from Monero service
-  ///
-  /// Returns: Success message
-  ///
-  /// Requirements 6.4: Process callbacks and update transaction status
+  /// Process Monero webhook.
   _i2.Future<String> processMoneroWebhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
         'anonaccred.payment',
@@ -885,91 +748,13 @@ class EndpointPayment extends _i1.EndpointRef {
         {'webhookData': webhookData},
       );
 
-  /// Process webhook for X402 HTTP payment rail
-  ///
-  /// Handles webhook callbacks from X402 HTTP payment services.
-  /// This endpoint does not require authentication as it's called by external services.
-  ///
-  /// Parameters:
-  /// - [webhookData]: Raw webhook payload from X402 service
-  ///
-  /// Returns: Success message
-  ///
-  /// Requirements 6.4: Process callbacks and update transaction status
+  /// Process X402 webhook.
   _i2.Future<String> processX402Webhook(Map<String, dynamic> webhookData) =>
       caller.callServerEndpoint<String>(
         'anonaccred.payment',
         'processX402Webhook',
         {'webhookData': webhookData},
       );
-
-  /// Process webhook for Apple IAP payment rail
-  ///
-  /// Handles webhook callbacks from Apple In-App Purchase services.
-  /// This endpoint does not require authentication as it's called by external services.
-  ///
-  /// Parameters:
-  /// - [webhookData]: Raw webhook payload from Apple IAP service
-  ///
-  /// Returns: Success message
-  ///
-  /// Requirements 6.4: Process callbacks and update transaction status
-  _i2.Future<String> processAppleIAPWebhook(Map<String, dynamic> webhookData) =>
-      caller.callServerEndpoint<String>(
-        'anonaccred.payment',
-        'processAppleIAPWebhook',
-        {'webhookData': webhookData},
-      );
-
-  /// Process webhook for Google IAP payment rail
-  ///
-  /// Handles webhook callbacks from Google In-App Purchase services.
-  /// This endpoint does not require authentication as it's called by external services.
-  ///
-  /// Parameters:
-  /// - [webhookData]: Raw webhook payload from Google IAP service
-  ///
-  /// Returns: Success message
-  ///
-  /// Requirements 6.4: Process callbacks and update transaction status
-  _i2.Future<String> processGoogleIAPWebhook(
-    Map<String, dynamic> webhookData,
-  ) => caller.callServerEndpoint<String>(
-    'anonaccred.payment',
-    'processGoogleIAPWebhook',
-    {'webhookData': webhookData},
-  );
-
-  /// Request payment status with X402 integration
-  ///
-  /// Demonstrates X402 integration with existing payment endpoints.
-  /// This endpoint can be accessed with or without payment, showcasing
-  /// the X402 protocol flow for pay-per-use API access.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [orderId]: Order ID to check status for
-  /// - [headers]: HTTP headers (may contain X-PAYMENT)
-  ///
-  /// Returns: Either HTTP 402 payment requirement or payment status
-  ///
-  /// Requirements 5.1, 5.2, 5.3: X402 endpoint integration
-  _i2.Future<Map<String, dynamic>> requestPaymentStatusWithX402(
-    String publicKey,
-    String signature,
-    String orderId, {
-    Map<String, String>? headers,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.payment',
-    'requestPaymentStatusWithX402',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'orderId': orderId,
-      'headers': headers,
-    },
-  );
 }
 
 /// X402 HTTP Payment Rail endpoint integration
@@ -1043,7 +828,7 @@ class EndpointX402 extends _i1.EndpointRef {
   _i2.Future<Map<String, dynamic>> requestConsumableAccess(
     String publicKey,
     String signature,
-    String consumableType,
+    String tag,
     double quantity,
     int accountId, {
     Map<String, String>? headers,
@@ -1053,7 +838,7 @@ class EndpointX402 extends _i1.EndpointRef {
     {
       'publicKey': publicKey,
       'signature': signature,
-      'consumableType': consumableType,
+      'tag': tag,
       'quantity': quantity,
       'accountId': accountId,
       'headers': headers,

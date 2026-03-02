@@ -24,7 +24,7 @@ void main() {
         final originalRequest = PaymentRequestExtension.withRailData(
           paymentRef: 'test-ref-$i',
           amountUSD: 10.0 + random.nextDouble() * 90.0,
-          orderId: 'order-$i',
+          internalTransactionId: 'order-$i',
           railData: railData,
         );
         
@@ -58,7 +58,7 @@ void main() {
       final request = PaymentRequestExtension.withRailData(
         paymentRef: 'test-ref-empty',
         amountUSD: 25.0,
-        orderId: 'order-empty',
+        internalTransactionId: 'order-empty',
         railData: <String, dynamic>{},
       );
       
@@ -92,7 +92,7 @@ void main() {
       final request = PaymentRequestExtension.withRailData(
         paymentRef: 'test-ref-complex',
         amountUSD: 102.5,
-        orderId: 'order-complex',
+        internalTransactionId: 'order-complex',
         railData: complexData,
       );
       

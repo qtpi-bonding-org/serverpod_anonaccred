@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
+import 'package:anonaccred_server/src/payments/mock_app_store_server_client.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
@@ -19,7 +21,9 @@ void main() {
     setUp(() {
       // Clear and reinitialize for each test
       PaymentManager.clearRails();
-      PaymentManager.initializeAllRails();
+      // Register rails with mock clients
+      PaymentManager.registerRail(AppleIAPRail(client: MockAppStoreServerClient()));
+      PaymentManager.registerRail(GoogleIAPRail(client: MockAndroidPublisherClient()));
     });
 
     group('Payment Rail Registration Consistency', () {
@@ -28,9 +32,9 @@ void main() {
         for (var i = 0; i < 5; i++) {
           PaymentManager.clearRails();
           
-          // Register individual rails
-          final appleRail = AppleIAPRail();
-          final googleRail = GoogleIAPRail();
+          // Register individual rails with mock clients
+          final appleRail = AppleIAPRail(client: MockAppStoreServerClient());
+          final googleRail = GoogleIAPRail(client: MockAndroidPublisherClient());
           
           PaymentManager.registerRail(appleRail);
           PaymentManager.registerRail(googleRail);
@@ -55,33 +59,33 @@ void main() {
       test('Property: IAP payment requests follow consistent structure', () async {
         // Test with 5 iterations as per development guidelines
         for (var i = 0; i < 5; i++) {
-          final orderIdApple = 'test_apple_order_$i';
-          final orderIdGoogle = 'test_google_order_$i';
+          final internalTransactionIdApple = 'test_apple_order_$i';
+          final internalTransactionIdGoogle = 'test_google_order_$i';
           final amount = 9.99 + i;
           
           // Create Apple IAP payment
           final applePayment = await PaymentManager.createPayment(
             railType: PaymentRail.apple_iap,
             amountUSD: amount,
-            orderId: orderIdApple,
+            internalTransactionId: internalTransactionIdApple,
           );
           
           // Create Google IAP payment
           final googlePayment = await PaymentManager.createPayment(
             railType: PaymentRail.google_iap,
             amountUSD: amount,
-            orderId: orderIdGoogle,
+            internalTransactionId: internalTransactionIdGoogle,
           );
           
           // Property: All payment requests have required fields
-          expect(applePayment.paymentRef, equals(orderIdApple));
+          expect(applePayment.paymentRef, equals(internalTransactionIdApple));
           expect(applePayment.amountUSD, equals(amount));
-          expect(applePayment.orderId, equals(orderIdApple));
+          expect(applePayment.internalTransactionId, equals(internalTransactionIdApple));
           expect(applePayment.railDataJson, isNotEmpty);
           
-          expect(googlePayment.paymentRef, equals(orderIdGoogle));
+          expect(googlePayment.paymentRef, equals(internalTransactionIdGoogle));
           expect(googlePayment.amountUSD, equals(amount));
-          expect(googlePayment.orderId, equals(orderIdGoogle));
+          expect(googlePayment.internalTransactionId, equals(internalTransactionIdGoogle));
           expect(googlePayment.railDataJson, isNotEmpty);
           
           // Property: Rail data contains platform-specific information
@@ -106,14 +110,14 @@ void main() {
           expect(() async {
             await appleRail.createPayment(
               amountUSD: 9.99,
-              orderId: 'test_$i',
+              internalTransactionId: 'test_$i',
             );
           }, returnsNormally);
           
           expect(() async {
             await googleRail.createPayment(
               amountUSD: 9.99,
-              orderId: 'test_$i',
+              internalTransactionId: 'test_$i',
             );
           }, returnsNormally);
           
@@ -137,23 +141,23 @@ void main() {
           final applePayment = await PaymentManager.createPayment(
             railType: PaymentRail.apple_iap,
             amountUSD: 4.99,
-            orderId: 'manager_test_apple_$i',
+            internalTransactionId: 'manager_test_apple_$i',
           );
           
           final googlePayment = await PaymentManager.createPayment(
             railType: PaymentRail.google_iap,
             amountUSD: 7.99,
-            orderId: 'manager_test_google_$i',
+            internalTransactionId: 'manager_test_google_$i',
           );
           
           // Property: Manager returns consistent payment structures
           expect(applePayment.paymentRef, isNotEmpty);
           expect(applePayment.amountUSD, isPositive);
-          expect(applePayment.orderId, isNotEmpty);
+          expect(applePayment.internalTransactionId, isNotEmpty);
           
           expect(googlePayment.paymentRef, isNotEmpty);
           expect(googlePayment.amountUSD, isPositive);
-          expect(googlePayment.orderId, isNotEmpty);
+          expect(googlePayment.internalTransactionId, isNotEmpty);
           
           // Property: Rail data is properly formatted JSON
           expect(() => jsonDecode(applePayment.railDataJson), returnsNormally);

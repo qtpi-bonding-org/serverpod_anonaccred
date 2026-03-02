@@ -3,15 +3,15 @@ import 'dart:convert';
 import 'package:googleapis/androidpublisher/v3.dart';
 import 'package:serverpod/serverpod.dart';
 
+import '../../crypto_utils.dart'; // REQUIRED for hashing
+import '../../entitlement_manager.dart';
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
-import '../../inventory_manager.dart';
 import '../../product_mapping_config.dart';
 import '../android_publisher_client.dart';
-import '../consumable_delivery_manager.dart';
+import '../google_auth_client.dart';
 import '../payment_rail_interface.dart';
 import '../webhook_signature_validator.dart';
-import '../google_auth_client.dart';
 
 /// Google Play In-App Purchase payment rail implementation
 ///
@@ -43,7 +43,7 @@ class GoogleIAPRail implements PaymentRailInterface {
             'Google IAP rail not initialized. Use GoogleIAPRail.create() or provide a client.',
       );
     }
-    return _client!;
+    return _client;
   }
 
   /// Factory to create and initialize GoogleIAPRail asynchronously
@@ -52,19 +52,9 @@ class GoogleIAPRail implements PaymentRailInterface {
   /// Throws [AnonAccredException] if initialization fails.
   static Future<GoogleIAPRail> create() async {
     final authClient = await GoogleAuthClient.fromEnvironment();
-    final publisherClient = AndroidPublisherClient(
-      authClient as dynamic,
-    ); // GoogleAuthClient is not AuthClient but provides one
+    final authenticatedClient = await authClient.createAuthenticatedClient();
+    final publisherClient = AndroidPublisherClient(authenticatedClient);
     return GoogleIAPRail(client: publisherClient);
-  }
-
-  /// Create default AndroidPublisherClient using GoogleAuthClient
-  ///
-  /// DEPRECATED: Use GoogleIAPRail.create() instead.
-  static AndroidPublisherClient _createDefaultClient() {
-    // This is kept for backward compatibility with the field initializer
-    // but should not be called at runtime. The factory handles this.
-    return null as dynamic;
   }
 
   @override
@@ -73,17 +63,17 @@ class GoogleIAPRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     // For IAP, the payment request provides information for the mobile app
     // The actual payment happens in the mobile app, then purchase token is validated
     return PaymentRequest(
-      paymentRef: orderId,
+      paymentRef: internalTransactionId,
       amountUSD: amountUSD,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       railDataJson: jsonEncode({
         'payment_rail': 'google_iap',
-        'order_id': orderId,
+        'internal_transaction_id': internalTransactionId,
         'amount_usd': amountUSD,
         'validation_endpoint': '/api/iap/google/validate',
         'instructions':
@@ -134,7 +124,7 @@ class GoogleIAPRail implements PaymentRailInterface {
       // Handle refund notifications
       if (notificationType == 'refund' && session != null) {
         await processRefundWebhook(session, callbackData);
-        return PaymentResult(success: true, orderId: orderId);
+        return PaymentResult(success: true, internalTransactionId: orderId);
       }
 
       // Handle malformed payloads
@@ -170,7 +160,7 @@ class GoogleIAPRail implements PaymentRailInterface {
 
       return PaymentResult(
         success: isValid,
-        orderId: orderId,
+        internalTransactionId: purchase.orderId ?? '',
         transactionTimestamp: purchase.purchaseTimeMillis != null
             ? DateTime.fromMillisecondsSinceEpoch(
                 purchase.purchaseTimeMillis! as int,
@@ -213,23 +203,18 @@ class GoogleIAPRail implements PaymentRailInterface {
         return;
       }
 
-      // Find what was delivered
-      final delivery = await ConsumableDeliveryManager.getDeliveryForRefund(
+      // Find what was delivered via hash (Purely for logging/security in the new system)
+      final purchaseHash = CryptoUtils.sha256Hash(purchaseToken);
+      final hashRecord = await ReceiptHash.db.findFirstRow(
         session,
-        purchaseToken,
+        where: (t) => t.hash.equals(purchaseHash),
       );
 
-      if (delivery != null) {
-        // Log refund event with purchase token, product ID, and delivered quantity
+      if (hashRecord != null) {
         session.log(
-          'Refund processed for purchase: $purchaseToken, '
-          'product: ${delivery.productId}, '
-          'delivered: ${delivery.quantity} ${delivery.consumableType}',
+          'Refund processed for Google purchase (Hash: $purchaseHash)',
           level: LogLevel.warning,
         );
-
-        // Note: We don't automatically remove from inventory
-        // This is a business decision - log for manual review
       } else {
         session.log(
           'Refund webhook for unknown purchase token: $purchaseToken',
@@ -268,18 +253,24 @@ class GoogleIAPRail implements PaymentRailInterface {
     required String productId,
     required String purchaseToken,
     required int accountId,
+    String? internalTransactionId,
   }) async {
     try {
-      // 1. Check for existing delivery (idempotency)
-      final existingDelivery =
-          await ConsumableDeliveryManager.findByPurchaseToken(
-            session,
-            purchaseToken,
-          );
+      // 1. Hash the purchase token for blind idempotency
+      final purchaseHash = CryptoUtils.sha256Hash(purchaseToken);
 
-      if (existingDelivery != null) {
-        return GooglePurchaseValidationResult.fromExistingDelivery(
-          existingDelivery,
+      // 2. Check for existing delivery via hash (idempotency)
+      final existingHash = await ReceiptHash.db.findFirstRow(
+        session,
+        where: (t) => t.hash.equals(purchaseHash),
+      );
+
+      if (existingHash != null) {
+        // Already handled - return success with fromCache
+        return GooglePurchaseValidationResult(
+          purchaseState: 0,
+          consumptionState: 1,
+          fromCache: true,
         );
       }
 
@@ -309,25 +300,78 @@ class GoogleIAPRail implements PaymentRailInterface {
         );
       }
 
-      // 5. Record delivery and add to inventory (atomic)
-      await session.db.transaction((transaction) async {
-        await ConsumableDeliveryManager.recordDelivery(
+      // 5. Atomic Transaction: Record permanent hash, ephemeral audit, financial record, and inventory credit
+      await session.db.transaction((dbTransaction) async {
+        // a. Record the purchase hash permanently (blind idempotency)
+        await ReceiptHash.db.insertRow(
           session,
-          purchaseToken: purchaseToken,
-          productId: productId,
-          accountId: accountId,
-          consumableType: mapping.consumableType,
-          quantity: mapping.quantity,
-          orderId: purchase.orderId ?? 'unknown',
+          ReceiptHash(hash: purchaseHash, paymentRail: PaymentRail.google_iap),
+          transaction: dbTransaction,
         );
 
-        await InventoryManager.updateInventoryBalance(
-          session,
-          accountId: accountId,
-          consumableType: mapping.consumableType,
-          quantityDelta: mapping.quantity,
-          transaction: transaction,
+        // b. Record the EPHEMERAL accreditation (Bridge account to time for 7-day refund support)
+        final purchaseTime = DateTime.fromMillisecondsSinceEpoch(
+          purchase.purchaseTimeMillis != null
+              ? int.parse(purchase.purchaseTimeMillis!)
+              : 0,
         );
+
+        await EphemeralAccreditation.db.insertRow(
+          session,
+          EphemeralAccreditation(
+            accountId: accountId,
+            transactionTimestamp: purchaseTime,
+          ),
+          transaction: dbTransaction,
+        );
+
+        // c. Create the PERMANENT financial record on-the-fly
+        final internalTxId = internalTransactionId ?? const Uuid().v4();
+
+        // Find the RailProduct for this SKU
+        final railProduct = await RailProduct.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.rail.equals(PaymentRail.google_iap) &
+              t.storeProductId.equals(productId),
+          transaction: dbTransaction,
+        );
+
+        final txPayment = await TransactionPayment.db.insertRow(
+          session,
+          TransactionPayment(
+            railProductId: railProduct?.id ?? 0,
+            internalTransactionId: internalTxId,
+            priceCurrency: Currency.USD,
+            price: 0.0,
+            paymentRail: PaymentRail.google_iap,
+            paymentCurrency: Currency.USD,
+            paymentAmount: 0.0,
+            paymentRef: purchase.orderId ?? '',
+            transactionTimestamp: purchaseTime,
+            clientReference: internalTxId,
+            status: OrderStatus.paid,
+          ),
+          transaction: dbTransaction,
+        );
+
+        // d. Credit user inventory based on grants
+        if (railProduct != null) {
+          final grants = await RailProductGrant.db.find(
+            session,
+            where: (t) => t.railProductId.equals(railProduct.id),
+            transaction: dbTransaction,
+          );
+
+          for (final grant in grants) {
+            await EntitlementManager.grantEntitlementById(
+              session,
+              accountId: accountId,
+              entitlementId: grant.entitlementId,
+              quantity: grant.quantity,
+            );
+          }
+        }
       });
 
       // 6. Acknowledge purchase (async, don't block)
@@ -487,11 +531,11 @@ class GooglePurchaseValidationResult {
     required this.consumptionState,
     required this.purchaseState,
     this.developerPayload,
-    this.orderId,
+    this.internalTransactionId,
     this.purchaseTimeMillis,
     this.purchaseType,
     this.acknowledgementState,
-    this.consumableType,
+    this.tag,
     this.quantity,
     this.fromCache = false,
     this.deliveredAt,
@@ -503,7 +547,7 @@ class GooglePurchaseValidationResult {
         consumptionState: json['consumptionState'] as int? ?? 0,
         purchaseState: json['purchaseState'] as int? ?? 0,
         developerPayload: json['developerPayload'] as String?,
-        orderId: json['orderId'] as String?,
+        internalTransactionId: json['orderId'] as String? ?? json['internalTransactionId'] as String?,
         purchaseTimeMillis: json['purchaseTimeMillis'] as int?,
         purchaseType: json['purchaseType'] as int?,
         acknowledgementState: json['acknowledgementState'] as int?,
@@ -539,19 +583,19 @@ class GooglePurchaseValidationResult {
 
     String? developerPayload;
     if (productPurchase.developerPayload is String) {
-      developerPayload = productPurchase.developerPayload! as String;
+      developerPayload = productPurchase.developerPayload;
     }
 
     String? orderId;
     if (productPurchase.orderId is String) {
-      orderId = productPurchase.orderId! as String;
+      orderId = productPurchase.orderId;
     }
 
     return GooglePurchaseValidationResult(
       consumptionState: consumptionState,
       purchaseState: purchaseState,
       developerPayload: developerPayload,
-      orderId: orderId,
+      internalTransactionId: orderId,
       purchaseTimeMillis: _parseIntField(productPurchase.purchaseTimeMillis),
       purchaseType: _parseIntField(productPurchase.purchaseType),
       acknowledgementState: _parseIntField(
@@ -572,35 +616,22 @@ class GooglePurchaseValidationResult {
       consumptionState: base.consumptionState,
       purchaseState: base.purchaseState,
       developerPayload: base.developerPayload,
-      orderId: base.orderId,
+      internalTransactionId: base.internalTransactionId,
       purchaseTimeMillis: base.purchaseTimeMillis,
       purchaseType: base.purchaseType,
       acknowledgementState: base.acknowledgementState,
-      consumableType: mapping.consumableType,
+      tag: mapping.consumableType,
       quantity: mapping.quantity,
     );
   }
-
-  /// Create from existing delivery record (for cached/idempotent responses)
-  factory GooglePurchaseValidationResult.fromExistingDelivery(
-    ConsumableDelivery delivery,
-  ) => GooglePurchaseValidationResult(
-    consumptionState: 0,
-    purchaseState: 0,
-    orderId: delivery.orderId,
-    consumableType: delivery.consumableType,
-    quantity: delivery.quantity,
-    fromCache: true,
-    deliveredAt: delivery.deliveredAt,
-  );
   final int consumptionState;
   final int purchaseState;
   final String? developerPayload;
-  final String? orderId;
+  final String? internalTransactionId;
   final int? purchaseTimeMillis;
   final int? purchaseType;
   final int? acknowledgementState;
-  final String? consumableType;
+  final String? tag;
   final double? quantity;
   final bool fromCache;
   final DateTime? deliveredAt;

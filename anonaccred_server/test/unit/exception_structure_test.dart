@@ -46,13 +46,13 @@ void main() {
           );
 
           // Test payment exception
-          final orderId = _generateRandomOrderId();
+          final internalTransactionId = _generateRandomTransactionId();
           final paymentRail = _generateRandomPaymentRail();
           final paymentException =
               AnonAccredExceptionFactory.createPaymentException(
                 code: code,
                 message: message,
-                orderId: orderId,
+                internalTransactionId: internalTransactionId,
                 paymentRail: paymentRail,
                 details: details,
               );
@@ -61,20 +61,20 @@ void main() {
             paymentException,
             code,
             message,
-            orderId,
+            internalTransactionId,
             paymentRail,
             details,
           );
 
           // Test inventory exception
           final accountId = _generateRandomAccountId();
-          final consumableType = _generateRandomConsumableType();
+          final tag = _generateRandomTag();
           final inventoryException =
               AnonAccredExceptionFactory.createInventoryException(
                 code: code,
                 message: message,
                 accountId: accountId,
-                consumableType: consumableType,
+                tag: tag,
                 details: details,
               );
 
@@ -83,7 +83,7 @@ void main() {
             code,
             message,
             accountId,
-            consumableType,
+            tag,
             details,
           );
         }
@@ -152,13 +152,16 @@ void _verifyPaymentExceptionStructure(
   PaymentException exception,
   String expectedCode,
   String expectedMessage,
-  String? expectedOrderId,
+  String? expectedInternalTransactionId,
   String? expectedPaymentRail,
   Map<String, String>? expectedDetails,
 ) {
   expect(exception.code, equals(expectedCode));
   expect(exception.message, equals(expectedMessage));
-  expect(exception.orderId, equals(expectedOrderId));
+  expect(
+    exception.internalTransactionId,
+    equals(expectedInternalTransactionId),
+  );
   expect(exception.paymentRail, equals(expectedPaymentRail));
   expect(exception.details, equals(expectedDetails));
   expect(exception.toString(), contains(expectedCode));
@@ -170,13 +173,13 @@ void _verifyInventoryExceptionStructure(
   String expectedCode,
   String expectedMessage,
   int? expectedAccountId,
-  String? expectedConsumableType,
+  String? expectedTag,
   Map<String, String>? expectedDetails,
 ) {
   expect(exception.code, equals(expectedCode));
   expect(exception.message, equals(expectedMessage));
   expect(exception.accountId, equals(expectedAccountId));
-  expect(exception.consumableType, equals(expectedConsumableType));
+  expect(exception.tag, equals(expectedTag));
   expect(exception.details, equals(expectedDetails));
   expect(exception.toString(), contains(expectedCode));
   expect(exception.toString(), contains(expectedMessage));
@@ -229,7 +232,7 @@ String? _generateRandomOperation() {
   return operations[Random().nextInt(operations.length)];
 }
 
-String? _generateRandomOrderId() {
+String? _generateRandomTransactionId() {
   if (Random().nextBool()) {
     return null; // Sometimes no order ID
   }
@@ -254,7 +257,7 @@ int? _generateRandomAccountId() {
   return Random().nextInt(10000) + 1;
 }
 
-String? _generateRandomConsumableType() {
+String? _generateRandomTag() {
   if (Random().nextBool()) {
     return null; // Sometimes no consumable type
   }

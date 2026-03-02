@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:anonaccred_server/src/crypto_utils.dart';
+import 'package:crypto/crypto.dart' as crypto_lib;
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';
 
@@ -19,7 +20,9 @@ void main() {
 
       // Step 3: Client signs the challenge (simulated)
       final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
-      final signatureBytes = await keyPair.privateKey.signBytes(challengeBytes, Hash.sha256);
+      // Pre-hash to match CryptoUtils behavior (both sides hash internally)
+      final hashedChallenge = crypto_lib.sha256.convert(challengeBytes).bytes;
+      final signatureBytes = await keyPair.privateKey.signBytes(Uint8List.fromList(hashedChallenge), Hash.sha256);
       final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Step 4: Server verifies the signature
@@ -46,7 +49,9 @@ void main() {
 
       // Client B signs the challenge with their key
       final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
-      final signatureBytes = await keyPairB.privateKey.signBytes(challengeBytes, Hash.sha256);
+      // Pre-hash to match CryptoUtils behavior
+      final hashedChallenge = crypto_lib.sha256.convert(challengeBytes).bytes;
+      final signatureBytes = await keyPairB.privateKey.signBytes(Uint8List.fromList(hashedChallenge), Hash.sha256);
       final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Server tries to verify with Client A's public key (should fail)

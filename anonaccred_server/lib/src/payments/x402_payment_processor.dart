@@ -4,7 +4,7 @@ import '../exception_factory.dart';
 import '../generated/protocol.dart';
 
 /// X402 Payment Processor for HTTP 402 response generation and payment verification
-/// 
+///
 /// Implements the x402 protocol for generating HTTP 402 "Payment Required" responses
 /// and verifying X-PAYMENT headers for stateless, API-native payments.
 class X402PaymentProcessor {
@@ -13,32 +13,35 @@ class X402PaymentProcessor {
     'X402_FACILITATOR_URL',
     defaultValue: 'http://localhost:8090/verify',
   );
-  
+
   static const String _destinationAddress = String.fromEnvironment(
     'X402_DESTINATION_ADDRESS',
     defaultValue: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
   );
 
   /// Generate HTTP 402 response data with payment requirements
-  /// 
+  ///
   /// Creates payment requirement data following the x402 protocol.
   /// The response includes all necessary information for programmatic payment completion.
-  /// 
+  ///
   /// Requirements 1.2, 1.4: Include payment amount, currency, destination address, and order ID
   static X402PaymentResponse generatePaymentRequired({
     required double amount,
-    required String orderId,
+    required String internalTransactionId,
   }) {
     // Validate configuration
     if (_facilitatorUrl.isEmpty || _destinationAddress.isEmpty) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.x402ConfigurationMissing,
-        message: 'X402 configuration missing: facilitator URL or destination address not set',
+        message:
+            'X402 configuration missing: facilitator URL or destination address not set',
         paymentRail: 'x402_http',
-        orderId: orderId,
+        internalTransactionId: internalTransactionId,
         details: {
           'facilitatorUrl': _facilitatorUrl.isEmpty ? 'missing' : 'configured',
-          'destinationAddress': _destinationAddress.isEmpty ? 'missing' : 'configured',
+          'destinationAddress': _destinationAddress.isEmpty
+              ? 'missing'
+              : 'configured',
         },
       );
     }
@@ -48,7 +51,7 @@ class X402PaymentProcessor {
       amount: amount,
       currency: 'USD',
       destination: _destinationAddress,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       facilitator: _facilitatorUrl,
       protocol: 'x402',
       timestamp: DateTime.now().toIso8601String(),
@@ -56,13 +59,13 @@ class X402PaymentProcessor {
   }
 
   /// Extract X-PAYMENT header and verify through facilitator
-  /// 
+  ///
   /// Extracts the X-PAYMENT header from incoming requests and verifies the payment
   /// payload through the configured facilitator service.
-  /// 
-  /// Returns false for any verification failure (missing payment, invalid payload, 
+  ///
+  /// Returns false for any verification failure (missing payment, invalid payload,
   /// facilitator unavailable, etc.). For detailed error information, use verifyPaymentWithDetails.
-  /// 
+  ///
   /// Requirements 2.1, 2.2: Extract X-PAYMENT header and verify through facilitator
   static Future<bool> verifyPayment(Map<String, String> headers) async {
     try {
@@ -80,21 +83,24 @@ class X402PaymentProcessor {
   }
 
   /// Extract X-PAYMENT header and verify through facilitator with detailed error information
-  /// 
+  ///
   /// Same as verifyPayment but throws detailed exceptions for different failure scenarios.
   /// Use this method when you need to distinguish between different types of failures.
-  /// 
+  ///
   /// Requirements 2.1, 2.2: Extract X-PAYMENT header and verify through facilitator
-  static Future<bool> verifyPaymentWithDetails(Map<String, String> headers) async => _verifyPaymentInternal(headers);
+  static Future<bool> verifyPaymentWithDetails(
+    Map<String, String> headers,
+  ) async => _verifyPaymentInternal(headers);
 
   /// Internal payment verification logic with proper error handling
-  static Future<bool> _verifyPaymentInternal(Map<String, String> headers) async {
+  static Future<bool> _verifyPaymentInternal(
+    Map<String, String> headers,
+  ) async {
     try {
       // Extract X-PAYMENT header (case-insensitive)
-      final xPaymentHeader = headers['X-PAYMENT'] ?? 
-                            headers['x-payment'] ??
-                            headers['X-Payment'];
-      
+      final xPaymentHeader =
+          headers['X-PAYMENT'] ?? headers['x-payment'] ?? headers['X-Payment'];
+
       // Missing or empty X-PAYMENT header means no payment provided (not an error)
       if (xPaymentHeader == null || xPaymentHeader.isEmpty) {
         return false;
@@ -132,7 +138,8 @@ class X402PaymentProcessor {
       // Check if facilitator confirms payment
       if (response.statusCode == 200) {
         try {
-          final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+          final responseData =
+              jsonDecode(response.body) as Map<String, dynamic>;
           final verified = responseData['verified'] as bool? ?? false;
           return verified;
         } on FormatException catch (e) {
@@ -143,7 +150,9 @@ class X402PaymentProcessor {
             paymentRail: 'x402_http',
             details: {
               'facilitatorUrl': _facilitatorUrl,
-              'responseBody': response.body.length > 200 ? '${response.body.substring(0, 200)}...' : response.body,
+              'responseBody': response.body.length > 200
+                  ? '${response.body.substring(0, 200)}...'
+                  : response.body,
               'parseError': e.toString(),
             },
           );
@@ -155,12 +164,15 @@ class X402PaymentProcessor {
         // Server errors are retryable
         throw AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.x402FacilitatorUnavailable,
-          message: 'Facilitator service unavailable (HTTP ${response.statusCode})',
+          message:
+              'Facilitator service unavailable (HTTP ${response.statusCode})',
           paymentRail: 'x402_http',
           details: {
             'facilitatorUrl': _facilitatorUrl,
             'statusCode': response.statusCode.toString(),
-            'responseBody': response.body.length > 200 ? '${response.body.substring(0, 200)}...' : response.body,
+            'responseBody': response.body.length > 200
+                ? '${response.body.substring(0, 200)}...'
+                : response.body,
           },
         );
       } else {
@@ -172,11 +184,12 @@ class X402PaymentProcessor {
           details: {
             'facilitatorUrl': _facilitatorUrl,
             'statusCode': response.statusCode.toString(),
-            'responseBody': response.body.length > 200 ? '${response.body.substring(0, 200)}...' : response.body,
+            'responseBody': response.body.length > 200
+                ? '${response.body.substring(0, 200)}...'
+                : response.body,
           },
         );
       }
-      
     } on AnonAccredException {
       // Re-throw AnonAccred exceptions as-is
       rethrow;
@@ -198,47 +211,46 @@ class X402PaymentProcessor {
       // Wrap any other unexpected errors
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.x402VerificationFailed,
-        message: 'Unexpected error during payment verification: ${e.toString()}',
+        message:
+            'Unexpected error during payment verification: ${e.toString()}',
         paymentRail: 'x402_http',
-        details: {
-          'facilitatorUrl': _facilitatorUrl,
-          'error': e.toString(),
-        },
+        details: {'facilitatorUrl': _facilitatorUrl, 'error': e.toString()},
       );
     }
   }
 }
 
 /// X402 Payment Response data structure
-/// 
+///
 /// Contains all necessary information for programmatic payment completion
 /// following the x402 protocol specification.
 class X402PaymentResponse {
-
   const X402PaymentResponse({
     required this.amount,
     required this.currency,
     required this.destination,
-    required this.orderId,
+    required this.internalTransactionId,
     required this.facilitator,
     required this.protocol,
     required this.timestamp,
   });
 
   /// Create from JSON map
-  factory X402PaymentResponse.fromJson(Map<String, dynamic> json) => X402PaymentResponse(
-    amount: (json['amount'] as num).toDouble(),
-    currency: json['currency'] as String,
-    destination: json['destination'] as String,
-    orderId: json['orderId'] as String,
-    facilitator: json['facilitator'] as String,
-    protocol: json['protocol'] as String,
-    timestamp: json['timestamp'] as String,
-  );
+  factory X402PaymentResponse.fromJson(Map<String, dynamic> json) =>
+      X402PaymentResponse(
+        amount: (json['amount'] as num).toDouble(),
+        currency: json['currency'] as String,
+        destination: json['destination'] as String,
+        internalTransactionId:
+            (json['internalTransactionId'] ?? json['orderId']) as String,
+        facilitator: json['facilitator'] as String,
+        protocol: json['protocol'] as String,
+        timestamp: json['timestamp'] as String,
+      );
   final double amount;
   final String currency;
   final String destination;
-  final String orderId;
+  final String internalTransactionId;
   final String facilitator;
   final String protocol;
   final String timestamp;
@@ -248,7 +260,7 @@ class X402PaymentResponse {
     'amount': amount,
     'currency': currency,
     'destination': destination,
-    'orderId': orderId,
+    'internalTransactionId': internalTransactionId,
     'facilitator': facilitator,
     'protocol': protocol,
     'timestamp': timestamp,

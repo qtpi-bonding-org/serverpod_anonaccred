@@ -19,7 +19,7 @@ abstract class PaymentException
     required this.code,
     required this.message,
     this.details,
-    this.orderId,
+    this.internalTransactionId,
     this.paymentRail,
   });
 
@@ -27,7 +27,7 @@ abstract class PaymentException
     required String code,
     required String message,
     Map<String, String>? details,
-    String? orderId,
+    String? internalTransactionId,
     String? paymentRail,
   }) = _PaymentExceptionImpl;
 
@@ -40,7 +40,8 @@ abstract class PaymentException
           : _i2.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
-      orderId: jsonSerialization['orderId'] as String?,
+      internalTransactionId:
+          jsonSerialization['internalTransactionId'] as String?,
       paymentRail: jsonSerialization['paymentRail'] as String?,
     );
   }
@@ -51,7 +52,7 @@ abstract class PaymentException
 
   Map<String, String>? details;
 
-  String? orderId;
+  String? internalTransactionId;
 
   String? paymentRail;
 
@@ -62,7 +63,7 @@ abstract class PaymentException
     String? code,
     String? message,
     Map<String, String>? details,
-    String? orderId,
+    String? internalTransactionId,
     String? paymentRail,
   });
   @override
@@ -72,14 +73,15 @@ abstract class PaymentException
       'code': code,
       'message': message,
       if (details != null) 'details': details?.toJson(),
-      if (orderId != null) 'orderId': orderId,
+      if (internalTransactionId != null)
+        'internalTransactionId': internalTransactionId,
       if (paymentRail != null) 'paymentRail': paymentRail,
     };
   }
 
   @override
   String toString() {
-    return 'PaymentException(code: $code, message: $message, details: $details, orderId: $orderId, paymentRail: $paymentRail)';
+    return 'PaymentException(code: $code, message: $message, details: $details, internalTransactionId: $internalTransactionId, paymentRail: $paymentRail)';
   }
 }
 
@@ -90,13 +92,13 @@ class _PaymentExceptionImpl extends PaymentException {
     required String code,
     required String message,
     Map<String, String>? details,
-    String? orderId,
+    String? internalTransactionId,
     String? paymentRail,
   }) : super._(
          code: code,
          message: message,
          details: details,
-         orderId: orderId,
+         internalTransactionId: internalTransactionId,
          paymentRail: paymentRail,
        );
 
@@ -108,7 +110,7 @@ class _PaymentExceptionImpl extends PaymentException {
     String? code,
     String? message,
     Object? details = _Undefined,
-    Object? orderId = _Undefined,
+    Object? internalTransactionId = _Undefined,
     Object? paymentRail = _Undefined,
   }) {
     return PaymentException(
@@ -125,7 +127,9 @@ class _PaymentExceptionImpl extends PaymentException {
                 value0,
               ),
             ),
-      orderId: orderId is String? ? orderId : this.orderId,
+      internalTransactionId: internalTransactionId is String?
+          ? internalTransactionId
+          : this.internalTransactionId,
       paymentRail: paymentRail is String? ? paymentRail : this.paymentRail,
     );
   }

@@ -1,9 +1,9 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../crypto_auth.dart';
+import '../entitlement_manager.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
-import '../inventory_manager.dart';
 import '../payments/x402_interceptor.dart';
 import '../payments/x402_payment_processor.dart';
 
@@ -67,37 +67,26 @@ class X402Endpoint extends Endpoint {
 
       if (!hasPayment) {
         // No payment provided - return HTTP 402 with payment requirements
-        return await _generatePaymentRequired(
-          session,
-          resourceId,
-          accountId,
-        );
+        return await _generatePaymentRequired(session, resourceId, accountId);
       }
 
       // Payment provided - verify it
-      final paymentVerified = await X402PaymentProcessor.verifyPayment(requestHeaders);
-      
+      final paymentVerified = await X402PaymentProcessor.verifyPayment(
+        requestHeaders,
+      );
+
       if (!paymentVerified) {
         // Payment verification failed - return HTTP 402 with payment requirements
         session.log(
           'X402 payment verification failed for resource: $resourceId',
           level: LogLevel.warning,
         );
-        
-        return await _generatePaymentRequired(
-          session,
-          resourceId,
-          accountId,
-        );
+
+        return await _generatePaymentRequired(session, resourceId, accountId);
       }
 
       // Payment verified - deliver the requested resource
-      return await _deliverResource(
-        session,
-        resourceId,
-        accountId,
-      );
-
+      return await _deliverResource(session, resourceId, accountId);
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
@@ -135,7 +124,7 @@ class X402Endpoint extends Endpoint {
     Session session,
     String publicKey,
     String signature,
-    String consumableType,
+    String tag,
     double quantity,
     int accountId, {
     Map<String, String>? headers,
@@ -150,13 +139,13 @@ class X402Endpoint extends Endpoint {
       );
 
       // Validate parameters
-      if (consumableType.isEmpty) {
+      if (tag.isEmpty) {
         throw AnonAccredExceptionFactory.createInventoryException(
           code: AnonAccredErrorCodes.inventoryInvalidConsumable,
-          message: 'Consumable type cannot be empty',
+          message: 'Consumable tag cannot be empty',
           accountId: accountId,
-          consumableType: consumableType,
-          details: {'consumableType': 'empty'},
+          tag: tag,
+          details: {'tag': 'empty'},
         );
       }
 
@@ -165,16 +154,16 @@ class X402Endpoint extends Endpoint {
           code: AnonAccredErrorCodes.inventoryInvalidQuantity,
           message: 'Quantity must be positive',
           accountId: accountId,
-          consumableType: consumableType,
+          tag: tag,
           details: {'quantity': quantity.toString()},
         );
       }
 
       // Check current inventory balance
-      final currentBalance = await InventoryManager.getBalance(
+      final currentBalance = await EntitlementManager.getEntitlementBalance(
         session,
         accountId: accountId,
-        consumableType: consumableType,
+        tag: tag,
       );
 
       // Check if X-PAYMENT header is provided
@@ -185,7 +174,7 @@ class X402Endpoint extends Endpoint {
       if (currentBalance < quantity && !hasPayment) {
         return await _generateConsumablePaymentRequired(
           session,
-          consumableType,
+          tag,
           quantity,
           accountId,
         );
@@ -193,17 +182,19 @@ class X402Endpoint extends Endpoint {
 
       // If payment provided, verify it
       if (hasPayment) {
-        final paymentVerified = await X402PaymentProcessor.verifyPayment(requestHeaders);
-        
+        final paymentVerified = await X402PaymentProcessor.verifyPayment(
+          requestHeaders,
+        );
+
         if (!paymentVerified) {
           session.log(
-            'X402 payment verification failed for consumable: $consumableType',
+            'X402 payment verification failed for consumable: $tag',
             level: LogLevel.warning,
           );
-          
+
           return await _generateConsumablePaymentRequired(
             session,
-            consumableType,
+            tag,
             quantity,
             accountId,
           );
@@ -212,7 +203,7 @@ class X402Endpoint extends Endpoint {
         // Payment verified - this would typically add to inventory
         // For this demo, we'll simulate successful payment processing
         session.log(
-          'X402 payment verified for consumable access: $consumableType',
+          'X402 payment verified for consumable access: $tag',
           level: LogLevel.info,
         );
       }
@@ -220,12 +211,11 @@ class X402Endpoint extends Endpoint {
       // Deliver consumable access (simulate consumption)
       return {
         'success': true,
-        'consumableType': consumableType,
+        'tag': tag,
         'quantityConsumed': quantity,
         'remainingBalance': currentBalance - quantity,
         'timestamp': DateTime.now().toIso8601String(),
       };
-
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
@@ -235,10 +225,11 @@ class X402Endpoint extends Endpoint {
     } catch (e) {
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
-        message: 'Unexpected error processing consumable access: ${e.toString()}',
+        message:
+            'Unexpected error processing consumable access: ${e.toString()}',
         details: {
           'error': e.toString(),
-          'consumableType': consumableType,
+          'tag': tag,
           'quantity': quantity.toString(),
           'accountId': accountId.toString(),
         },
@@ -257,20 +248,21 @@ class X402Endpoint extends Endpoint {
     String resourceId,
     int accountId,
   ) async {
-    // Generate unique order ID for this payment request
-    final orderId = 'x402_resource_${resourceId}_${DateTime.now().millisecondsSinceEpoch}';
-    
+    // Generate unique internal transaction ID for this payment request
+    final internalTransactionId =
+        'x402_resource_${resourceId}_${DateTime.now().millisecondsSinceEpoch}';
+
     // Set resource price (in a real system, this would come from price registry)
     const resourcePrice = 1.99; // $1.99 per resource access
 
     // Generate X402 payment response
     final paymentResponse = X402PaymentProcessor.generatePaymentRequired(
       amount: resourcePrice,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
     );
 
     session.log(
-      'Generated X402 payment requirement for resource: $resourceId, order: $orderId',
+      'Generated X402 payment requirement for resource: $resourceId, transaction: $internalTransactionId',
       level: LogLevel.info,
     );
 
@@ -290,13 +282,14 @@ class X402Endpoint extends Endpoint {
   /// Requirements 5.5: Pay-per-use model charging per API call
   Future<Map<String, dynamic>> _generateConsumablePaymentRequired(
     Session session,
-    String consumableType,
+    String tag,
     double quantity,
     int accountId,
   ) async {
-    // Generate unique order ID for this payment request
-    final orderId = 'x402_consumable_${consumableType}_${DateTime.now().millisecondsSinceEpoch}';
-    
+    // Generate unique internal transaction ID for this payment request
+    final internalTransactionId =
+        'x402_consumable_${tag}_${DateTime.now().millisecondsSinceEpoch}';
+
     // Calculate price based on quantity (in a real system, this would use price registry)
     const unitPrice = 0.10; // $0.10 per unit
     final totalPrice = quantity * unitPrice;
@@ -304,11 +297,11 @@ class X402Endpoint extends Endpoint {
     // Generate X402 payment response
     final paymentResponse = X402PaymentProcessor.generatePaymentRequired(
       amount: totalPrice,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
     );
 
     session.log(
-      'Generated X402 payment requirement for consumable: $consumableType, quantity: $quantity, order: $orderId',
+      'Generated X402 payment requirement for consumable: $tag, quantity: $quantity, transaction: $internalTransactionId',
       level: LogLevel.info,
     );
 
@@ -317,7 +310,7 @@ class X402Endpoint extends Endpoint {
       'httpStatus': 402,
       'message': 'Payment Required',
       'paymentRequired': paymentResponse.toJson(),
-      'consumableType': consumableType,
+      'tag': tag,
       'quantity': quantity,
     };
   }

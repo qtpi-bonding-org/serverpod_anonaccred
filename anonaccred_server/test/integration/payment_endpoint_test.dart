@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 /// Integration tests for PaymentEndpoint
-/// 
+///
 /// Tests the payment endpoints functionality including payment initiation,
 /// status checking, and webhook processing.
 void main() {
@@ -14,8 +14,10 @@ void main() {
     endpoints,
   ) {
     // Test constants - valid ECDSA P-256 key format (128 hex chars)
-    const validPublicKey = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-    const validSignature = 'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
+    const validPublicKey =
+        '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const validSignature =
+        'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
 
     group('Payment Endpoint Tests', () {
       setUp(() async {
@@ -36,55 +38,15 @@ void main() {
         );
       });
 
-      test('initiatePayment - transaction not found', () async {
-        // Test initiating payment for non-existent transaction
+      test('checkPaymentStatus - invalid authentication', () async {
         expect(
-          () => endpoints.payment.initiatePayment(
+          () => endpoints.payment.checkPaymentStatus(
             sessionBuilder,
-            validPublicKey,
+            '', // Empty public key
             validSignature,
-            'non-existent-order',
-            PaymentRail.monero,
+            'test-order',
           ),
-          throwsA(isA<PaymentException>()),
-        );
-      });
-
-      test('initiatePayment - unsupported payment rail', () async {
-        final session = sessionBuilder.build();
-        
-        // Create a test account first (required for foreign key)
-        final testAccount = AnonAccount(
-          ultimateSigningPublicKeyHex: 'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
-          encryptedDataKey: 'encrypted_data_key_test',
-          ultimatePublicKey: 'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
-        );
-        final insertedAccount = await AnonAccount.db.insertRow(session, testAccount);
-
-        // Create a test transaction
-        final transaction = TransactionPayment(
-          externalId: 'test-order-123',
-          accountId: insertedAccount.id!,
-          priceCurrency: Currency.USD,
-          price: 10.0,
-          paymentRail: PaymentRail.monero,
-          paymentCurrency: Currency.USD,
-          paymentAmount: 10.0,
-          status: OrderStatus.pending,
-        );
-
-        await TransactionPayment.db.insertRow(session, transaction);
-
-        // Test initiating payment with unsupported rail (no rails registered)
-        expect(
-          () => endpoints.payment.initiatePayment(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            'test-order-123',
-            PaymentRail.monero,
-          ),
-          throwsA(isA<PaymentException>()),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 

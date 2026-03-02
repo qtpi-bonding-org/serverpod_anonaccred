@@ -14,39 +14,46 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import 'package:serverpod/protocol.dart' as _i2;
 import 'account.dart' as _i3;
 import 'account_device.dart' as _i4;
-import 'anonaccred_exception.dart' as _i5;
-import 'apple_consumable_delivery.dart' as _i6;
+import 'account_entitlement.dart' as _i5;
+import 'anonaccred_exception.dart' as _i6;
 import 'authentication_exception.dart' as _i7;
 import 'authentication_result.dart' as _i8;
-import 'consumable_delivery.dart' as _i9;
-import 'consume_result.dart' as _i10;
-import 'device_pairing_event.dart' as _i11;
-import 'device_pairing_info.dart' as _i12;
-import 'enums.dart' as _i13;
-import 'inventory.dart' as _i14;
-import 'inventory_exception.dart' as _i15;
-import 'module_class.dart' as _i16;
-import 'order_status.dart' as _i17;
-import 'payment_exception.dart' as _i18;
-import 'payment_rail.dart' as _i19;
-import 'payment_request.dart' as _i20;
-import 'payment_result.dart' as _i21;
-import 'transaction.dart' as _i22;
-import 'transaction_consumable.dart' as _i23;
-import 'package:anonaccred_server/src/generated/inventory.dart' as _i24;
-import 'package:anonaccred_server/src/generated/account_device.dart' as _i25;
+import 'consume_result.dart' as _i9;
+import 'consumption_log.dart' as _i10;
+import 'currency.dart' as _i11;
+import 'device_pairing_event.dart' as _i12;
+import 'device_pairing_info.dart' as _i13;
+import 'entitlement.dart' as _i14;
+import 'entitlement_type.dart' as _i15;
+import 'ephemeral_accreditation.dart' as _i16;
+import 'inventory_exception.dart' as _i17;
+import 'module_class.dart' as _i18;
+import 'order_status.dart' as _i19;
+import 'payment_exception.dart' as _i20;
+import 'payment_rail.dart' as _i21;
+import 'payment_request.dart' as _i22;
+import 'payment_result.dart' as _i23;
+import 'rail_product.dart' as _i24;
+import 'rail_product_grant.dart' as _i25;
+import 'receipt_hash.dart' as _i26;
+import 'transaction_payment.dart' as _i27;
+import 'package:anonaccred_server/src/generated/account_entitlement.dart'
+    as _i28;
+import 'package:anonaccred_server/src/generated/account_device.dart' as _i29;
 export 'account.dart';
 export 'account_device.dart';
+export 'account_entitlement.dart';
 export 'anonaccred_exception.dart';
-export 'apple_consumable_delivery.dart';
 export 'authentication_exception.dart';
 export 'authentication_result.dart';
-export 'consumable_delivery.dart';
 export 'consume_result.dart';
+export 'consumption_log.dart';
+export 'currency.dart';
 export 'device_pairing_event.dart';
 export 'device_pairing_info.dart';
-export 'enums.dart';
-export 'inventory.dart';
+export 'entitlement.dart';
+export 'entitlement_type.dart';
+export 'ephemeral_accreditation.dart';
 export 'inventory_exception.dart';
 export 'module_class.dart';
 export 'order_status.dart';
@@ -54,8 +61,10 @@ export 'payment_exception.dart';
 export 'payment_rail.dart';
 export 'payment_request.dart';
 export 'payment_result.dart';
-export 'transaction.dart';
-export 'transaction_consumable.dart';
+export 'rail_product.dart';
+export 'rail_product_grant.dart';
+export 'receipt_hash.dart';
+export 'transaction_payment.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -164,8 +173,8 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
-      name: 'account_inventory',
-      dartName: 'AccountInventory',
+      name: 'account_entitlement',
+      dartName: 'AccountEntitlement',
       schema: 'public',
       module: 'anonaccred',
       columns: [
@@ -174,7 +183,7 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int?',
-          columnDefault: 'nextval(\'account_inventory_id_seq\'::regclass)',
+          columnDefault: 'nextval(\'account_entitlement_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
           name: 'accountId',
@@ -183,30 +192,33 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'int',
         ),
         _i2.ColumnDefinition(
-          name: 'consumableType',
-          columnType: _i2.ColumnType.text,
+          name: 'entitlementId',
+          columnType: _i2.ColumnType.bigint,
           isNullable: false,
-          dartType: 'String',
+          dartType: 'int',
         ),
         _i2.ColumnDefinition(
-          name: 'quantity',
+          name: 'balance',
           columnType: _i2.ColumnType.doublePrecision,
           isNullable: false,
           dartType: 'double',
         ),
-        _i2.ColumnDefinition(
-          name: 'lastUpdated',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
-        ),
       ],
       foreignKeys: [
         _i2.ForeignKeyDefinition(
-          constraintName: 'account_inventory_fk_0',
+          constraintName: 'account_entitlement_fk_0',
           columns: ['accountId'],
           referenceTable: 'anon_account',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _i2.ForeignKeyDefinition(
+          constraintName: 'account_entitlement_fk_1',
+          columns: ['entitlementId'],
+          referenceTable: 'entitlement',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
           onUpdate: _i2.ForeignKeyAction.noAction,
@@ -216,7 +228,7 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       indexes: [
         _i2.IndexDefinition(
-          indexName: 'account_inventory_pkey',
+          indexName: 'account_entitlement_pkey',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
@@ -229,7 +241,7 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: true,
         ),
         _i2.IndexDefinition(
-          indexName: 'inventory_idx',
+          indexName: 'account_entitlement_idx',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
@@ -238,7 +250,7 @@ class Protocol extends _i1.SerializationManagerServer {
             ),
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'consumableType',
+              definition: 'entitlementId',
             ),
           ],
           type: 'btree',
@@ -319,8 +331,181 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
-      name: 'apple_consumable_delivery',
-      dartName: 'AppleConsumableDelivery',
+      name: 'consumption_log',
+      dartName: 'ConsumptionLog',
+      schema: 'public',
+      module: 'anonaccred',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'consumption_log_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'accountId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'entitlementId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'amount',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'reason',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'timestamp',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+      ],
+      foreignKeys: [
+        _i2.ForeignKeyDefinition(
+          constraintName: 'consumption_log_fk_0',
+          columns: ['accountId'],
+          referenceTable: 'anon_account',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _i2.ForeignKeyDefinition(
+          constraintName: 'consumption_log_fk_1',
+          columns: ['entitlementId'],
+          referenceTable: 'entitlement',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'consumption_log_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'account_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'accountId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'entitlement_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'entitlementId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'entitlement',
+      dartName: 'Entitlement',
+      schema: 'public',
+      module: 'anonaccred',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'entitlement_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'tag',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'name',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'type',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EntitlementType',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'entitlement_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'tag_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'tag',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'ephemeral_accreditation',
+      dartName: 'EphemeralAccreditation',
       schema: 'public',
       module: 'anonaccred',
       columns: [
@@ -330,25 +515,7 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: false,
           dartType: 'int?',
           columnDefault:
-              'nextval(\'apple_consumable_delivery_id_seq\'::regclass)',
-        ),
-        _i2.ColumnDefinition(
-          name: 'transactionId',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'originalTransactionId',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'productId',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
+              'nextval(\'ephemeral_accreditation_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
           name: 'accountId',
@@ -357,34 +524,27 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'int',
         ),
         _i2.ColumnDefinition(
-          name: 'consumableType',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'quantity',
-          columnType: _i2.ColumnType.doublePrecision,
-          isNullable: false,
-          dartType: 'double',
-        ),
-        _i2.ColumnDefinition(
-          name: 'orderId',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'deliveredAt',
+          name: 'transactionTimestamp',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
         ),
       ],
-      foreignKeys: [],
+      foreignKeys: [
+        _i2.ForeignKeyDefinition(
+          constraintName: 'ephemeral_accreditation_fk_0',
+          columns: ['accountId'],
+          referenceTable: 'anon_account',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
       indexes: [
         _i2.IndexDefinition(
-          indexName: 'apple_consumable_delivery_pkey',
+          indexName: 'ephemeral_accreditation_pkey',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
@@ -397,38 +557,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: true,
         ),
         _i2.IndexDefinition(
-          indexName: 'apple_consumable_delivery_transaction_id_idx',
+          indexName: 'lookup_idx',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'transactionId',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: false,
-        ),
-        _i2.IndexDefinition(
-          indexName: 'apple_consumable_delivery_account_idx',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
-            ),
-          ],
-          type: 'btree',
-          isUnique: false,
-          isPrimary: false,
-        ),
-        _i2.IndexDefinition(
-          indexName: 'apple_consumable_delivery_original_transaction_idx',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'originalTransactionId',
+              definition: 'transactionTimestamp',
             ),
           ],
           type: 'btree',
@@ -439,8 +573,8 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
-      name: 'consumable_delivery',
-      dartName: 'ConsumableDelivery',
+      name: 'rail_product',
+      dartName: 'RailProduct',
       schema: 'public',
       module: 'anonaccred',
       columns: [
@@ -449,55 +583,31 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int?',
-          columnDefault: 'nextval(\'consumable_delivery_id_seq\'::regclass)',
+          columnDefault: 'nextval(\'rail_product_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
-          name: 'purchaseToken',
+          name: 'rail',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:PaymentRail',
+        ),
+        _i2.ColumnDefinition(
+          name: 'storeProductId',
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
         _i2.ColumnDefinition(
-          name: 'productId',
-          columnType: _i2.ColumnType.text,
+          name: 'isActive',
+          columnType: _i2.ColumnType.boolean,
           isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int',
-        ),
-        _i2.ColumnDefinition(
-          name: 'consumableType',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'quantity',
-          columnType: _i2.ColumnType.doublePrecision,
-          isNullable: false,
-          dartType: 'double',
-        ),
-        _i2.ColumnDefinition(
-          name: 'orderId',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'deliveredAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          dartType: 'bool',
         ),
       ],
       foreignKeys: [],
       indexes: [
         _i2.IndexDefinition(
-          indexName: 'consumable_delivery_pkey',
+          indexName: 'rail_product_pkey',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
@@ -510,25 +620,16 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: true,
         ),
         _i2.IndexDefinition(
-          indexName: 'consumable_delivery_purchase_token_idx',
+          indexName: 'store_product_idx',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'purchaseToken',
+              definition: 'rail',
             ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: false,
-        ),
-        _i2.IndexDefinition(
-          indexName: 'consumable_delivery_account_idx',
-          tableSpace: null,
-          elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
+              definition: 'storeProductId',
             ),
           ],
           type: 'btree',
@@ -539,8 +640,8 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
-      name: 'transaction_consumable',
-      dartName: 'TransactionConsumable',
+      name: 'rail_product_grant',
+      dartName: 'RailProductGrant',
       schema: 'public',
       module: 'anonaccred',
       columns: [
@@ -549,19 +650,19 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int?',
-          columnDefault: 'nextval(\'transaction_consumable_id_seq\'::regclass)',
+          columnDefault: 'nextval(\'rail_product_grant_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
-          name: 'transactionId',
+          name: 'railProductId',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
         ),
         _i2.ColumnDefinition(
-          name: 'consumableType',
-          columnType: _i2.ColumnType.text,
+          name: 'entitlementId',
+          columnType: _i2.ColumnType.bigint,
           isNullable: false,
-          dartType: 'String',
+          dartType: 'int',
         ),
         _i2.ColumnDefinition(
           name: 'quantity',
@@ -572,9 +673,19 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       foreignKeys: [
         _i2.ForeignKeyDefinition(
-          constraintName: 'transaction_consumable_fk_0',
-          columns: ['transactionId'],
-          referenceTable: 'transaction_payment',
+          constraintName: 'rail_product_grant_fk_0',
+          columns: ['railProductId'],
+          referenceTable: 'rail_product',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _i2.ForeignKeyDefinition(
+          constraintName: 'rail_product_grant_fk_1',
+          columns: ['entitlementId'],
+          referenceTable: 'entitlement',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
           onUpdate: _i2.ForeignKeyAction.noAction,
@@ -584,7 +695,7 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       indexes: [
         _i2.IndexDefinition(
-          indexName: 'transaction_consumable_pkey',
+          indexName: 'rail_product_grant_pkey',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
@@ -595,6 +706,70 @@ class Protocol extends _i1.SerializationManagerServer {
           type: 'btree',
           isUnique: true,
           isPrimary: true,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'receipt_hash',
+      dartName: 'ReceiptHash',
+      schema: 'public',
+      module: 'anonaccred',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'receipt_hash_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'hash',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'paymentRail',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:PaymentRail',
+        ),
+        _i2.ColumnDefinition(
+          name: 'processedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'receipt_hash_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'hash_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'hash',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
         ),
       ],
       managed: true,
@@ -613,16 +788,16 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'nextval(\'transaction_payment_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
-          name: 'externalId',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'accountId',
+          name: 'railProductId',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'internalTransactionId',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'priceCurrency',
@@ -663,29 +838,33 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'transactionTimestamp',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _i2.ColumnDefinition(
+          name: 'clientReference',
+          columnType: _i2.ColumnType.text,
           isNullable: true,
-          dartType: 'DateTime?',
+          dartType: 'String?',
         ),
         _i2.ColumnDefinition(
           name: 'status',
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'protocol:OrderStatus',
-          columnDefault: '\'pending\'::text',
         ),
         _i2.ColumnDefinition(
-          name: 'timestamp',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          name: 'railDataJson',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
         ),
       ],
       foreignKeys: [
         _i2.ForeignKeyDefinition(
           constraintName: 'transaction_payment_fk_0',
-          columns: ['accountId'],
-          referenceTable: 'anon_account',
+          columns: ['railProductId'],
+          referenceTable: 'rail_product',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
           onUpdate: _i2.ForeignKeyAction.noAction,
@@ -706,6 +885,32 @@ class Protocol extends _i1.SerializationManagerServer {
           type: 'btree',
           isUnique: true,
           isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'internal_tx_id_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'internalTransactionId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'timestamp_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'transactionTimestamp',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
         ),
       ],
       managed: true,
@@ -747,11 +952,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i4.AccountDevice) {
       return _i4.AccountDevice.fromJson(data) as T;
     }
-    if (t == _i5.AnonAccredException) {
-      return _i5.AnonAccredException.fromJson(data) as T;
+    if (t == _i5.AccountEntitlement) {
+      return _i5.AccountEntitlement.fromJson(data) as T;
     }
-    if (t == _i6.AppleConsumableDelivery) {
-      return _i6.AppleConsumableDelivery.fromJson(data) as T;
+    if (t == _i6.AnonAccredException) {
+      return _i6.AnonAccredException.fromJson(data) as T;
     }
     if (t == _i7.AuthenticationException) {
       return _i7.AuthenticationException.fromJson(data) as T;
@@ -759,50 +964,62 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i8.AuthenticationResult) {
       return _i8.AuthenticationResult.fromJson(data) as T;
     }
-    if (t == _i9.ConsumableDelivery) {
-      return _i9.ConsumableDelivery.fromJson(data) as T;
+    if (t == _i9.ConsumeResult) {
+      return _i9.ConsumeResult.fromJson(data) as T;
     }
-    if (t == _i10.ConsumeResult) {
-      return _i10.ConsumeResult.fromJson(data) as T;
+    if (t == _i10.ConsumptionLog) {
+      return _i10.ConsumptionLog.fromJson(data) as T;
     }
-    if (t == _i11.DevicePairingEvent) {
-      return _i11.DevicePairingEvent.fromJson(data) as T;
+    if (t == _i11.Currency) {
+      return _i11.Currency.fromJson(data) as T;
     }
-    if (t == _i12.DevicePairingInfo) {
-      return _i12.DevicePairingInfo.fromJson(data) as T;
+    if (t == _i12.DevicePairingEvent) {
+      return _i12.DevicePairingEvent.fromJson(data) as T;
     }
-    if (t == _i13.Currency) {
-      return _i13.Currency.fromJson(data) as T;
+    if (t == _i13.DevicePairingInfo) {
+      return _i13.DevicePairingInfo.fromJson(data) as T;
     }
-    if (t == _i14.AccountInventory) {
-      return _i14.AccountInventory.fromJson(data) as T;
+    if (t == _i14.Entitlement) {
+      return _i14.Entitlement.fromJson(data) as T;
     }
-    if (t == _i15.InventoryException) {
-      return _i15.InventoryException.fromJson(data) as T;
+    if (t == _i15.EntitlementType) {
+      return _i15.EntitlementType.fromJson(data) as T;
     }
-    if (t == _i16.ModuleClass) {
-      return _i16.ModuleClass.fromJson(data) as T;
+    if (t == _i16.EphemeralAccreditation) {
+      return _i16.EphemeralAccreditation.fromJson(data) as T;
     }
-    if (t == _i17.OrderStatus) {
-      return _i17.OrderStatus.fromJson(data) as T;
+    if (t == _i17.InventoryException) {
+      return _i17.InventoryException.fromJson(data) as T;
     }
-    if (t == _i18.PaymentException) {
-      return _i18.PaymentException.fromJson(data) as T;
+    if (t == _i18.ModuleClass) {
+      return _i18.ModuleClass.fromJson(data) as T;
     }
-    if (t == _i19.PaymentRail) {
-      return _i19.PaymentRail.fromJson(data) as T;
+    if (t == _i19.OrderStatus) {
+      return _i19.OrderStatus.fromJson(data) as T;
     }
-    if (t == _i20.PaymentRequest) {
-      return _i20.PaymentRequest.fromJson(data) as T;
+    if (t == _i20.PaymentException) {
+      return _i20.PaymentException.fromJson(data) as T;
     }
-    if (t == _i21.PaymentResult) {
-      return _i21.PaymentResult.fromJson(data) as T;
+    if (t == _i21.PaymentRail) {
+      return _i21.PaymentRail.fromJson(data) as T;
     }
-    if (t == _i22.TransactionPayment) {
-      return _i22.TransactionPayment.fromJson(data) as T;
+    if (t == _i22.PaymentRequest) {
+      return _i22.PaymentRequest.fromJson(data) as T;
     }
-    if (t == _i23.TransactionConsumable) {
-      return _i23.TransactionConsumable.fromJson(data) as T;
+    if (t == _i23.PaymentResult) {
+      return _i23.PaymentResult.fromJson(data) as T;
+    }
+    if (t == _i24.RailProduct) {
+      return _i24.RailProduct.fromJson(data) as T;
+    }
+    if (t == _i25.RailProductGrant) {
+      return _i25.RailProductGrant.fromJson(data) as T;
+    }
+    if (t == _i26.ReceiptHash) {
+      return _i26.ReceiptHash.fromJson(data) as T;
+    }
+    if (t == _i27.TransactionPayment) {
+      return _i27.TransactionPayment.fromJson(data) as T;
     }
     if (t == _i1.getType<_i3.AnonAccount?>()) {
       return (data != null ? _i3.AnonAccount.fromJson(data) : null) as T;
@@ -810,12 +1027,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i4.AccountDevice?>()) {
       return (data != null ? _i4.AccountDevice.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i5.AnonAccredException?>()) {
-      return (data != null ? _i5.AnonAccredException.fromJson(data) : null)
-          as T;
+    if (t == _i1.getType<_i5.AccountEntitlement?>()) {
+      return (data != null ? _i5.AccountEntitlement.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i6.AppleConsumableDelivery?>()) {
-      return (data != null ? _i6.AppleConsumableDelivery.fromJson(data) : null)
+    if (t == _i1.getType<_i6.AnonAccredException?>()) {
+      return (data != null ? _i6.AnonAccredException.fromJson(data) : null)
           as T;
     }
     if (t == _i1.getType<_i7.AuthenticationException?>()) {
@@ -826,53 +1042,65 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null ? _i8.AuthenticationResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i9.ConsumableDelivery?>()) {
-      return (data != null ? _i9.ConsumableDelivery.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i9.ConsumeResult?>()) {
+      return (data != null ? _i9.ConsumeResult.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i10.ConsumeResult?>()) {
-      return (data != null ? _i10.ConsumeResult.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i10.ConsumptionLog?>()) {
+      return (data != null ? _i10.ConsumptionLog.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i11.DevicePairingEvent?>()) {
-      return (data != null ? _i11.DevicePairingEvent.fromJson(data) : null)
+    if (t == _i1.getType<_i11.Currency?>()) {
+      return (data != null ? _i11.Currency.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i12.DevicePairingEvent?>()) {
+      return (data != null ? _i12.DevicePairingEvent.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i12.DevicePairingInfo?>()) {
-      return (data != null ? _i12.DevicePairingInfo.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.DevicePairingInfo?>()) {
+      return (data != null ? _i13.DevicePairingInfo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.Currency?>()) {
-      return (data != null ? _i13.Currency.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i14.Entitlement?>()) {
+      return (data != null ? _i14.Entitlement.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.AccountInventory?>()) {
-      return (data != null ? _i14.AccountInventory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i15.EntitlementType?>()) {
+      return (data != null ? _i15.EntitlementType.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i15.InventoryException?>()) {
-      return (data != null ? _i15.InventoryException.fromJson(data) : null)
+    if (t == _i1.getType<_i16.EphemeralAccreditation?>()) {
+      return (data != null ? _i16.EphemeralAccreditation.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i16.ModuleClass?>()) {
-      return (data != null ? _i16.ModuleClass.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i17.OrderStatus?>()) {
-      return (data != null ? _i17.OrderStatus.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i18.PaymentException?>()) {
-      return (data != null ? _i18.PaymentException.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i19.PaymentRail?>()) {
-      return (data != null ? _i19.PaymentRail.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i20.PaymentRequest?>()) {
-      return (data != null ? _i20.PaymentRequest.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i21.PaymentResult?>()) {
-      return (data != null ? _i21.PaymentResult.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i22.TransactionPayment?>()) {
-      return (data != null ? _i22.TransactionPayment.fromJson(data) : null)
+    if (t == _i1.getType<_i17.InventoryException?>()) {
+      return (data != null ? _i17.InventoryException.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i23.TransactionConsumable?>()) {
-      return (data != null ? _i23.TransactionConsumable.fromJson(data) : null)
+    if (t == _i1.getType<_i18.ModuleClass?>()) {
+      return (data != null ? _i18.ModuleClass.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i19.OrderStatus?>()) {
+      return (data != null ? _i19.OrderStatus.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i20.PaymentException?>()) {
+      return (data != null ? _i20.PaymentException.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i21.PaymentRail?>()) {
+      return (data != null ? _i21.PaymentRail.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i22.PaymentRequest?>()) {
+      return (data != null ? _i22.PaymentRequest.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i23.PaymentResult?>()) {
+      return (data != null ? _i23.PaymentResult.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i24.RailProduct?>()) {
+      return (data != null ? _i24.RailProduct.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i25.RailProductGrant?>()) {
+      return (data != null ? _i25.RailProductGrant.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i26.ReceiptHash?>()) {
+      return (data != null ? _i26.ReceiptHash.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i27.TransactionPayment?>()) {
+      return (data != null ? _i27.TransactionPayment.fromJson(data) : null)
           as T;
     }
     if (t == Map<String, String>) {
@@ -896,9 +1124,9 @@ class Protocol extends _i1.SerializationManagerServer {
           )
           as T;
     }
-    if (t == List<_i24.AccountInventory>) {
+    if (t == List<_i28.AccountEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i24.AccountInventory>(e))
+              .map((e) => deserialize<_i28.AccountEntitlement>(e))
               .toList()
           as T;
     }
@@ -923,9 +1151,9 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i25.AccountDevice>) {
+    if (t == List<_i29.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i25.AccountDevice>(e))
+              .map((e) => deserialize<_i29.AccountDevice>(e))
               .toList()
           as T;
     }
@@ -939,25 +1167,29 @@ class Protocol extends _i1.SerializationManagerServer {
     return switch (type) {
       _i3.AnonAccount => 'AnonAccount',
       _i4.AccountDevice => 'AccountDevice',
-      _i5.AnonAccredException => 'AnonAccredException',
-      _i6.AppleConsumableDelivery => 'AppleConsumableDelivery',
+      _i5.AccountEntitlement => 'AccountEntitlement',
+      _i6.AnonAccredException => 'AnonAccredException',
       _i7.AuthenticationException => 'AuthenticationException',
       _i8.AuthenticationResult => 'AuthenticationResult',
-      _i9.ConsumableDelivery => 'ConsumableDelivery',
-      _i10.ConsumeResult => 'ConsumeResult',
-      _i11.DevicePairingEvent => 'DevicePairingEvent',
-      _i12.DevicePairingInfo => 'DevicePairingInfo',
-      _i13.Currency => 'Currency',
-      _i14.AccountInventory => 'AccountInventory',
-      _i15.InventoryException => 'InventoryException',
-      _i16.ModuleClass => 'ModuleClass',
-      _i17.OrderStatus => 'OrderStatus',
-      _i18.PaymentException => 'PaymentException',
-      _i19.PaymentRail => 'PaymentRail',
-      _i20.PaymentRequest => 'PaymentRequest',
-      _i21.PaymentResult => 'PaymentResult',
-      _i22.TransactionPayment => 'TransactionPayment',
-      _i23.TransactionConsumable => 'TransactionConsumable',
+      _i9.ConsumeResult => 'ConsumeResult',
+      _i10.ConsumptionLog => 'ConsumptionLog',
+      _i11.Currency => 'Currency',
+      _i12.DevicePairingEvent => 'DevicePairingEvent',
+      _i13.DevicePairingInfo => 'DevicePairingInfo',
+      _i14.Entitlement => 'Entitlement',
+      _i15.EntitlementType => 'EntitlementType',
+      _i16.EphemeralAccreditation => 'EphemeralAccreditation',
+      _i17.InventoryException => 'InventoryException',
+      _i18.ModuleClass => 'ModuleClass',
+      _i19.OrderStatus => 'OrderStatus',
+      _i20.PaymentException => 'PaymentException',
+      _i21.PaymentRail => 'PaymentRail',
+      _i22.PaymentRequest => 'PaymentRequest',
+      _i23.PaymentResult => 'PaymentResult',
+      _i24.RailProduct => 'RailProduct',
+      _i25.RailProductGrant => 'RailProductGrant',
+      _i26.ReceiptHash => 'ReceiptHash',
+      _i27.TransactionPayment => 'TransactionPayment',
       _ => null,
     };
   }
@@ -976,44 +1208,52 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'AnonAccount';
       case _i4.AccountDevice():
         return 'AccountDevice';
-      case _i5.AnonAccredException():
+      case _i5.AccountEntitlement():
+        return 'AccountEntitlement';
+      case _i6.AnonAccredException():
         return 'AnonAccredException';
-      case _i6.AppleConsumableDelivery():
-        return 'AppleConsumableDelivery';
       case _i7.AuthenticationException():
         return 'AuthenticationException';
       case _i8.AuthenticationResult():
         return 'AuthenticationResult';
-      case _i9.ConsumableDelivery():
-        return 'ConsumableDelivery';
-      case _i10.ConsumeResult():
+      case _i9.ConsumeResult():
         return 'ConsumeResult';
-      case _i11.DevicePairingEvent():
-        return 'DevicePairingEvent';
-      case _i12.DevicePairingInfo():
-        return 'DevicePairingInfo';
-      case _i13.Currency():
+      case _i10.ConsumptionLog():
+        return 'ConsumptionLog';
+      case _i11.Currency():
         return 'Currency';
-      case _i14.AccountInventory():
-        return 'AccountInventory';
-      case _i15.InventoryException():
+      case _i12.DevicePairingEvent():
+        return 'DevicePairingEvent';
+      case _i13.DevicePairingInfo():
+        return 'DevicePairingInfo';
+      case _i14.Entitlement():
+        return 'Entitlement';
+      case _i15.EntitlementType():
+        return 'EntitlementType';
+      case _i16.EphemeralAccreditation():
+        return 'EphemeralAccreditation';
+      case _i17.InventoryException():
         return 'InventoryException';
-      case _i16.ModuleClass():
+      case _i18.ModuleClass():
         return 'ModuleClass';
-      case _i17.OrderStatus():
+      case _i19.OrderStatus():
         return 'OrderStatus';
-      case _i18.PaymentException():
+      case _i20.PaymentException():
         return 'PaymentException';
-      case _i19.PaymentRail():
+      case _i21.PaymentRail():
         return 'PaymentRail';
-      case _i20.PaymentRequest():
+      case _i22.PaymentRequest():
         return 'PaymentRequest';
-      case _i21.PaymentResult():
+      case _i23.PaymentResult():
         return 'PaymentResult';
-      case _i22.TransactionPayment():
+      case _i24.RailProduct():
+        return 'RailProduct';
+      case _i25.RailProductGrant():
+        return 'RailProductGrant';
+      case _i26.ReceiptHash():
+        return 'ReceiptHash';
+      case _i27.TransactionPayment():
         return 'TransactionPayment';
-      case _i23.TransactionConsumable():
-        return 'TransactionConsumable';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -1034,11 +1274,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'AccountDevice') {
       return deserialize<_i4.AccountDevice>(data['data']);
     }
-    if (dataClassName == 'AnonAccredException') {
-      return deserialize<_i5.AnonAccredException>(data['data']);
+    if (dataClassName == 'AccountEntitlement') {
+      return deserialize<_i5.AccountEntitlement>(data['data']);
     }
-    if (dataClassName == 'AppleConsumableDelivery') {
-      return deserialize<_i6.AppleConsumableDelivery>(data['data']);
+    if (dataClassName == 'AnonAccredException') {
+      return deserialize<_i6.AnonAccredException>(data['data']);
     }
     if (dataClassName == 'AuthenticationException') {
       return deserialize<_i7.AuthenticationException>(data['data']);
@@ -1046,50 +1286,62 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'AuthenticationResult') {
       return deserialize<_i8.AuthenticationResult>(data['data']);
     }
-    if (dataClassName == 'ConsumableDelivery') {
-      return deserialize<_i9.ConsumableDelivery>(data['data']);
-    }
     if (dataClassName == 'ConsumeResult') {
-      return deserialize<_i10.ConsumeResult>(data['data']);
+      return deserialize<_i9.ConsumeResult>(data['data']);
     }
-    if (dataClassName == 'DevicePairingEvent') {
-      return deserialize<_i11.DevicePairingEvent>(data['data']);
-    }
-    if (dataClassName == 'DevicePairingInfo') {
-      return deserialize<_i12.DevicePairingInfo>(data['data']);
+    if (dataClassName == 'ConsumptionLog') {
+      return deserialize<_i10.ConsumptionLog>(data['data']);
     }
     if (dataClassName == 'Currency') {
-      return deserialize<_i13.Currency>(data['data']);
+      return deserialize<_i11.Currency>(data['data']);
     }
-    if (dataClassName == 'AccountInventory') {
-      return deserialize<_i14.AccountInventory>(data['data']);
+    if (dataClassName == 'DevicePairingEvent') {
+      return deserialize<_i12.DevicePairingEvent>(data['data']);
+    }
+    if (dataClassName == 'DevicePairingInfo') {
+      return deserialize<_i13.DevicePairingInfo>(data['data']);
+    }
+    if (dataClassName == 'Entitlement') {
+      return deserialize<_i14.Entitlement>(data['data']);
+    }
+    if (dataClassName == 'EntitlementType') {
+      return deserialize<_i15.EntitlementType>(data['data']);
+    }
+    if (dataClassName == 'EphemeralAccreditation') {
+      return deserialize<_i16.EphemeralAccreditation>(data['data']);
     }
     if (dataClassName == 'InventoryException') {
-      return deserialize<_i15.InventoryException>(data['data']);
+      return deserialize<_i17.InventoryException>(data['data']);
     }
     if (dataClassName == 'ModuleClass') {
-      return deserialize<_i16.ModuleClass>(data['data']);
+      return deserialize<_i18.ModuleClass>(data['data']);
     }
     if (dataClassName == 'OrderStatus') {
-      return deserialize<_i17.OrderStatus>(data['data']);
+      return deserialize<_i19.OrderStatus>(data['data']);
     }
     if (dataClassName == 'PaymentException') {
-      return deserialize<_i18.PaymentException>(data['data']);
+      return deserialize<_i20.PaymentException>(data['data']);
     }
     if (dataClassName == 'PaymentRail') {
-      return deserialize<_i19.PaymentRail>(data['data']);
+      return deserialize<_i21.PaymentRail>(data['data']);
     }
     if (dataClassName == 'PaymentRequest') {
-      return deserialize<_i20.PaymentRequest>(data['data']);
+      return deserialize<_i22.PaymentRequest>(data['data']);
     }
     if (dataClassName == 'PaymentResult') {
-      return deserialize<_i21.PaymentResult>(data['data']);
+      return deserialize<_i23.PaymentResult>(data['data']);
+    }
+    if (dataClassName == 'RailProduct') {
+      return deserialize<_i24.RailProduct>(data['data']);
+    }
+    if (dataClassName == 'RailProductGrant') {
+      return deserialize<_i25.RailProductGrant>(data['data']);
+    }
+    if (dataClassName == 'ReceiptHash') {
+      return deserialize<_i26.ReceiptHash>(data['data']);
     }
     if (dataClassName == 'TransactionPayment') {
-      return deserialize<_i22.TransactionPayment>(data['data']);
-    }
-    if (dataClassName == 'TransactionConsumable') {
-      return deserialize<_i23.TransactionConsumable>(data['data']);
+      return deserialize<_i27.TransactionPayment>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -1111,16 +1363,22 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i3.AnonAccount.t;
       case _i4.AccountDevice:
         return _i4.AccountDevice.t;
-      case _i6.AppleConsumableDelivery:
-        return _i6.AppleConsumableDelivery.t;
-      case _i9.ConsumableDelivery:
-        return _i9.ConsumableDelivery.t;
-      case _i14.AccountInventory:
-        return _i14.AccountInventory.t;
-      case _i22.TransactionPayment:
-        return _i22.TransactionPayment.t;
-      case _i23.TransactionConsumable:
-        return _i23.TransactionConsumable.t;
+      case _i5.AccountEntitlement:
+        return _i5.AccountEntitlement.t;
+      case _i10.ConsumptionLog:
+        return _i10.ConsumptionLog.t;
+      case _i14.Entitlement:
+        return _i14.Entitlement.t;
+      case _i16.EphemeralAccreditation:
+        return _i16.EphemeralAccreditation.t;
+      case _i24.RailProduct:
+        return _i24.RailProduct.t;
+      case _i25.RailProductGrant:
+        return _i25.RailProductGrant.t;
+      case _i26.ReceiptHash:
+        return _i26.ReceiptHash.t;
+      case _i27.TransactionPayment:
+        return _i27.TransactionPayment.t;
     }
     return null;
   }

@@ -84,24 +84,24 @@ void main() {
         
         // Create payment through manager (Requirement 2.2)
         const amountUSD = 100.0;
-        const orderId = 'test_order_123';
+        const internalTransactionId = 'test_order_123';
         
         final paymentRequest = await PaymentManager.createPayment(
           railType: PaymentRail.x402_http,
           amountUSD: amountUSD,
-          orderId: orderId,
+          internalTransactionId: internalTransactionId,
         );
         
         // Verify payment request structure
         expect(paymentRequest.amountUSD, equals(amountUSD));
-        expect(paymentRequest.orderId, equals(orderId));
+        expect(paymentRequest.internalTransactionId, equals(internalTransactionId));
         expect(paymentRequest.paymentRef, isNotEmpty);
         expect(paymentRequest.railData, isNotEmpty);
         
         // Verify mock rail was called
         expect(mockRail.createPaymentCallCount, equals(1));
         expect(mockRail.lastAmountUSD, equals(amountUSD));
-        expect(mockRail.lastOrderId, equals(orderId));
+        expect(mockRail.lastOrderId, equals(internalTransactionId));
       });
 
       test('should handle multiple rails correctly', () async {
@@ -117,14 +117,14 @@ void main() {
           
           railType: PaymentRail.x402_http,
           amountUSD: 50.0,
-          orderId: 'x402_order',
+          internalTransactionId: 'x402_order',
         );
         
         await PaymentManager.createPayment(
           
           railType: PaymentRail.monero,
           amountUSD: 75.0,
-          orderId: 'monero_order',
+          internalTransactionId: 'monero_order',
         );
         
         // Verify correct rails were called
@@ -147,7 +147,7 @@ void main() {
             
             railType: PaymentRail.x402_http,
             amountUSD: 100.0,
-            orderId: 'test_order',
+            internalTransactionId: 'test_order',
           ),
           throwsA(isA<PaymentException>().having(
             (e) => e.code,
@@ -166,7 +166,7 @@ void main() {
             
             railType: PaymentRail.monero,
             amountUSD: 100.0,
-            orderId: 'test_order',
+            internalTransactionId: 'test_order',
           );
           fail('Expected PaymentException to be thrown');
         } catch (e) {
@@ -174,7 +174,7 @@ void main() {
           final paymentException = e as PaymentException;
           
           expect(paymentException.code, equals('PAYMENT_INVALID_RAIL'));
-          expect(paymentException.orderId, equals('test_order'));
+          expect(paymentException.internalTransactionId, equals('test_order'));
           expect(paymentException.paymentRail, equals('monero'));
           expect(paymentException.details?['requestedRail'], equals('monero'));
           expect(paymentException.details?['availableRails'], contains('x402_http'));
@@ -192,7 +192,7 @@ void main() {
             
             railType: PaymentRail.x402_http,
             amountUSD: 100.0,
-            orderId: 'error_test_order',
+            internalTransactionId: 'error_test_order',
           ),
           throwsA(isA<PaymentException>().having(
             (e) => e.code,
@@ -212,7 +212,7 @@ void main() {
             
             railType: PaymentRail.x402_http,
             amountUSD: 100.0,
-            orderId: 'payment_exception_test',
+            internalTransactionId: 'payment_exception_test',
           );
           fail('Expected PaymentException to be thrown');
         } catch (e) {
@@ -262,16 +262,16 @@ class MockPaymentRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     createPaymentCallCount++;
     lastAmountUSD = amountUSD;
-    lastOrderId = orderId;
+    lastOrderId = internalTransactionId;
     
     return PaymentRequestExtension.withRailData(
-      paymentRef: 'mock_payment_ref_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
+      paymentRef: 'mock_payment_ref_${internalTransactionId}_${DateTime.now().millisecondsSinceEpoch}',
       amountUSD: amountUSD,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       railData: {
         'railType': railType.toString(),
         'mockData': 'test_data',
@@ -286,7 +286,7 @@ class MockPaymentRail implements PaymentRailInterface {
     
     return PaymentResult(
       success: true,
-      orderId: callbackData['orderId'] as String?,
+      internalTransactionId: callbackData['internalTransactionId'] as String?,
       transactionTimestamp: DateTime.now(),
     );
   }
@@ -304,7 +304,7 @@ class ErrorThrowingMockRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     throw Exception('Mock rail error for testing');
   }
@@ -327,12 +327,12 @@ class PaymentExceptionThrowingMockRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     throw PaymentException(
       code: 'RAIL_SPECIFIC_ERROR',
       message: 'Rail-specific payment error',
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       paymentRail: railType.toString(),
     );
   }

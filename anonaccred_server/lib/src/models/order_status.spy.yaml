@@ -1,0 +1,8 @@
+enum: OrderStatus
+serialized: byName
+values:
+  - pending
+  - processing
+  - paid
+  - failed
+  - cancelled

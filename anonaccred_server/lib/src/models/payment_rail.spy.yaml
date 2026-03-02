@@ -1,0 +1,9 @@
+enum: PaymentRail
+serialized: byName
+values:
+  - apple_iap
+  - google_iap
+  - monero
+  - manual
+  - stripe
+  - x402_http

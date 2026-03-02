@@ -8,8 +8,8 @@ fields:
   # Payment amount in USD
   amountUSD: double
   
-  # Associated order identifier
-  orderId: String
+  # Associated internal transaction identifier
+  internalTransactionId: String
   
   # Rail-specific payment metadata as JSON string
   railDataJson: String

@@ -54,13 +54,16 @@ void main() {
             session: session,
             railType: PaymentRail.x402_http,
             amountUSD: 25.99,
-            orderId: 'integration_test_order_456',
+            internalTransactionId: 'integration_test_order_456',
           );
           await session.close();
 
           // Verify payment request structure
           expect(paymentRequest.amountUSD, equals(25.99));
-          expect(paymentRequest.orderId, equals('integration_test_order_456'));
+          expect(
+            paymentRequest.internalTransactionId,
+            equals('integration_test_order_456'),
+          );
           expect(
             paymentRequest.paymentRef,
             startsWith('x402_integration_test_order_456_'),
@@ -82,7 +85,7 @@ void main() {
         // Process successful payment callback
         final callbackData = {
           'paymentRef': 'x402_test_payment_ref_123',
-          'orderId': 'test_order_callback_456',
+          'internalTransactionId': 'test_order_callback_456',
           'success': true,
         };
 
@@ -90,7 +93,7 @@ void main() {
 
         // Verify callback processing
         expect(result.success, isTrue);
-        expect(result.orderId, equals('test_order_callback_456'));
+        expect(result.internalTransactionId, equals('test_order_callback_456'));
         expect(result.transactionTimestamp, isNotNull);
       });
 
@@ -109,14 +112,14 @@ void main() {
           session: session,
           railType: PaymentRail.x402_http,
           amountUSD: 2.50,
-          orderId: 'x402_compatibility_test',
+          internalTransactionId: 'x402_compatibility_test',
         );
 
         final moneroPayment = await PaymentManager.createPayment(
           session: session,
           railType: PaymentRail.monero,
           amountUSD: 7.50,
-          orderId: 'monero_compatibility_test',
+          internalTransactionId: 'monero_compatibility_test',
         );
         await session.close();
 
@@ -177,7 +180,10 @@ void main() {
         expect(paymentData['amount'], equals(1.99));
         expect(paymentData['currency'], equals('USD'));
         expect(paymentData['protocol'], equals('x402'));
-        expect(paymentData['orderId'], startsWith('x402_test_resource_123_'));
+        expect(
+          paymentData['internalTransactionId'],
+          startsWith('x402_test_resource_123_'),
+        );
       });
 
       test('should handle payment verification gracefully', () async {
@@ -206,12 +212,13 @@ void main() {
         // Test payment response generation - it doesn't validate parameters, just generates response
         final response = X402PaymentProcessor.generatePaymentRequired(
           amount: -1.0, // Negative amount (processor doesn't validate)
-          orderId: '', // Empty order ID (processor doesn't validate)
+          internalTransactionId:
+              '', // Empty order ID (processor doesn't validate)
         );
 
         // Should still generate a response (validation happens elsewhere)
         expect(response.amount, equals(-1.0));
-        expect(response.orderId, equals(''));
+        expect(response.internalTransactionId, equals(''));
         expect(response.protocol, equals('x402'));
       });
 
@@ -247,7 +254,7 @@ void main() {
 
         // Should throw authentication exception for invalid public key
         expect(
-          () => endpoints.commerce.getBalance(
+          () => endpoints.commerce.getEntitlementBalance(
             sessionBuilder,
             invalidPublicKey,
             signature,
@@ -259,17 +266,15 @@ void main() {
       });
 
       test('should validate commerce endpoint parameters', () async {
-        // Test empty consumable type in balance query
-        expect(
-          () => endpoints.commerce.getBalance(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            testAccountId,
-            '', // Empty consumable type
-          ),
-          throwsA(isA<InventoryException>()),
+        // Test empty consumable type in balance query - returns 0.0 for non-existent
+        final result = await endpoints.commerce.getEntitlementBalance(
+          sessionBuilder,
+          validPublicKey,
+          validSignature,
+          testAccountId,
+          '', // Empty consumable type
         );
+        expect(result, equals(0.0));
       });
     });
 
@@ -285,39 +290,38 @@ void main() {
           products,
         );
 
-        // Create order with X402 payment rail
-        final order = await endpoints.commerce.createOrder(
+        // Initiate payment with X402 payment rail
+        final order = await endpoints.commerce.initiatePayment(
           sessionBuilder,
           validPublicKey,
           validSignature,
           testAccountId,
-          {'api_calls': 100.0}, // 100 API calls
           PaymentRail.x402_http,
+          'api_calls', // Use SKU instead of item map
         );
 
-        // Verify order creation
-        expect(order.accountId, equals(testAccountId));
+        // Verify order creation (identity-free)
         expect(order.paymentRail, equals(PaymentRail.x402_http));
-        expect(order.price, equals(10.0)); // 100 * $0.10
+        expect(order.price, equals(0.10)); // Single API call purchase
         expect(order.status, equals(OrderStatus.pending));
       });
 
       test(
-        'should get inventory and balance through commerce endpoints',
+        'should get entitlements and balance through commerce endpoints',
         () async {
-          // Get inventory for the test account
-          final inventory = await endpoints.commerce.getInventory(
+          // Get entitlements for the test account
+          final entitlements = await endpoints.commerce.getEntitlements(
             sessionBuilder,
             validPublicKey,
             validSignature,
             testAccountId,
           );
 
-          // Should return empty inventory initially
-          expect(inventory, isA<List<AccountInventory>>());
+          // Should return empty entitlements initially
+          expect(entitlements, isA<List<AccountEntitlement>>());
 
           // Get balance for a specific consumable type
-          final balance = await endpoints.commerce.getBalance(
+          final balance = await endpoints.commerce.getEntitlementBalance(
             sessionBuilder,
             validPublicKey,
             validSignature,
@@ -333,7 +337,7 @@ void main() {
       test('should process X402 webhook through payment endpoint', () async {
         // Test webhook processing with simple data
         final webhookData = <String, dynamic>{
-          'orderId': 'test_x402_order_123',
+          'internalTransactionId': 'test_x402_order_123',
           'paymentRef': 'x402_payment_ref_456',
           'success': true,
           'transactionTimestamp': DateTime.now().toIso8601String(),
@@ -383,16 +387,17 @@ void main() {
           }
 
           // All order IDs should be unique (stateless operation)
-          final orderIds = responses
+          final internalTransactionIds = responses
               .map(
                 (r) =>
-                    (r['paymentRequired'] as Map<String, dynamic>)['orderId']
+                    (r['paymentRequired']
+                            as Map<String, dynamic>)['internalTransactionId']
                         as String,
               )
               .toList();
 
-          final uniqueOrderIds = orderIds.toSet();
-          expect(uniqueOrderIds.length, equals(orderIds.length));
+          final uniqueOrderIds = internalTransactionIds.toSet();
+          expect(uniqueOrderIds.length, equals(internalTransactionIds.length));
         },
       );
 
@@ -408,7 +413,7 @@ void main() {
               session: sessions[i],
               railType: PaymentRail.x402_http,
               amountUSD: 5.0 + i,
-              orderId: 'stateless_test_order_$i',
+              internalTransactionId: 'stateless_test_order_$i',
             );
             paymentRequests.add(request);
           }
@@ -427,7 +432,7 @@ void main() {
           for (var i = 0; i < paymentRequests.length; i++) {
             expect(paymentRequests[i].amountUSD, equals(5.0 + i));
             expect(
-              paymentRequests[i].orderId,
+              paymentRequests[i].internalTransactionId,
               equals('stateless_test_order_$i'),
             );
           }
@@ -439,7 +444,6 @@ void main() {
 
 /// Mock payment rail for testing compatibility
 class MockPaymentRail implements PaymentRailInterface {
-
   MockPaymentRail(this._railType);
   final PaymentRail _railType;
 
@@ -449,11 +453,12 @@ class MockPaymentRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async => PaymentRequestExtension.withRailData(
-    paymentRef: 'mock_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
+    paymentRef:
+        'mock_${internalTransactionId}_${DateTime.now().millisecondsSinceEpoch}',
     amountUSD: amountUSD,
-    orderId: orderId,
+    internalTransactionId: internalTransactionId,
     railData: {'railType': railType.name, 'mockData': 'test_data'},
   );
 
@@ -462,7 +467,7 @@ class MockPaymentRail implements PaymentRailInterface {
     Map<String, dynamic> callbackData,
   ) async => PaymentResult(
     success: true,
-    orderId: callbackData['orderId'] as String?,
-    transactionTimestamp: 'mock_tx_${DateTime.now().millisecondsSinceEpoch}',
+    internalTransactionId: callbackData['internalTransactionId'] as String?,
+    transactionTimestamp: DateTime.now(),
   );
 }

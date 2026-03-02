@@ -19,7 +19,7 @@ void main() {
         PaymentManager.registerRail(mockRail);
 
         final webhookData = {
-          'orderId': 'test_order_123',
+          'internalTransactionId': 'test_order_123',
           'success': true,
           'transactionTimestamp': 'ts_456',
         };
@@ -34,7 +34,7 @@ void main() {
         expect(mockRail.processCallbackCallCount, equals(1));
         expect(mockRail.lastCallbackData, equals(webhookData));
         expect(result.success, isTrue);
-        expect(result.orderId, equals('test_order_123'));
+        expect(result.internalTransactionId, equals('test_order_123'));
       });
 
       test('should handle webhook for unregistered rail gracefully', () async {
@@ -59,33 +59,37 @@ void main() {
 
         // Process webhooks for different rails
         final x402Result = await x402Rail.processCallback({
-          'orderId': 'x402_order',
+          'internalTransactionId': 'x402_order',
         });
         final moneroResult = await moneroRail.processCallback({
-          'orderId': 'monero_order',
+          'internalTransactionId': 'monero_order',
         });
 
         // Verify correct rails were called
         expect(x402Rail.processCallbackCallCount, equals(1));
-        expect(x402Rail.lastCallbackData?['orderId'], equals('x402_order'));
-        expect(x402Result.orderId, equals('x402_order'));
+        expect(
+          x402Rail.lastCallbackData?['internalTransactionId'],
+          equals('x402_order'),
+        );
+        expect(x402Result.internalTransactionId, equals('x402_order'));
 
         expect(moneroRail.processCallbackCallCount, equals(1));
-        expect(moneroRail.lastCallbackData?['orderId'], equals('monero_order'));
-        expect(moneroResult.orderId, equals('monero_order'));
+        expect(
+          moneroRail.lastCallbackData?['internalTransactionId'],
+          equals('monero_order'),
+        );
+        expect(moneroResult.internalTransactionId, equals('monero_order'));
       });
     });
 
     group('Transaction Status Updates', () {
       test('should process successful webhook results correctly', () async {
         // Register mock rail that returns successful result
-        final mockRail = MockWebhookRail(
-          PaymentRail.x402_http,
-        );
+        final mockRail = MockWebhookRail(PaymentRail.x402_http);
         PaymentManager.registerRail(mockRail);
 
         final webhookData = {
-          'orderId': 'success_order_123',
+          'internalTransactionId': 'success_order_123',
           'success': true,
           'transactionTimestamp': 'ts_success',
         };
@@ -95,32 +99,35 @@ void main() {
 
         // Verify successful result structure
         expect(result.success, isTrue);
-        expect(result.orderId, equals('success_order_123'));
+        expect(result.internalTransactionId, equals('success_order_123'));
         expect(result.transactionTimestamp, isNotNull);
         expect(result.errorMessage, isNull);
       });
 
-      test('should handle webhook with no orderId gracefully', () async {
-        // Register mock rail that returns result without orderId
-        final mockRail = MockWebhookRail(
-          PaymentRail.x402_http,
-          includeOrderId: false,
-        );
-        PaymentManager.registerRail(mockRail);
+      test(
+        'should handle webhook with no internalTransactionId gracefully',
+        () async {
+          // Register mock rail that returns result without internalTransactionId
+          final mockRail = MockWebhookRail(
+            PaymentRail.x402_http,
+            includeOrderId: false,
+          );
+          PaymentManager.registerRail(mockRail);
 
-        final webhookData = {
-          'success': true,
-          'transactionTimestamp': 'ts_no_order',
-        };
+          final webhookData = {
+            'success': true,
+            'transactionTimestamp': 'ts_no_order',
+          };
 
-        // Process webhook
-        final result = await mockRail.processCallback(webhookData);
+          // Process webhook
+          final result = await mockRail.processCallback(webhookData);
 
-        // Should return result without orderId
-        expect(result.success, isTrue);
-        expect(result.orderId, isNull);
-        expect(result.transactionTimestamp, isNotNull);
-      });
+          // Should return result without internalTransactionId
+          expect(result.success, isTrue);
+          expect(result.internalTransactionId, isNull);
+          expect(result.transactionTimestamp, isNotNull);
+        },
+      );
 
       test('should handle failed payment webhooks correctly', () async {
         // Register mock rail that returns failed result
@@ -131,7 +138,7 @@ void main() {
         PaymentManager.registerRail(mockRail);
 
         final webhookData = {
-          'orderId': 'failed_order_123',
+          'internalTransactionId': 'failed_order_123',
           'success': false,
           'error': 'Payment declined',
         };
@@ -141,7 +148,7 @@ void main() {
 
         // Verify failed result structure
         expect(result.success, isFalse);
-        expect(result.orderId, equals('failed_order_123'));
+        expect(result.internalTransactionId, equals('failed_order_123'));
         expect(result.transactionTimestamp, isNull);
         expect(result.errorMessage, equals('Mock payment failed'));
       });
@@ -153,7 +160,10 @@ void main() {
         final errorRail = ErrorThrowingWebhookRail(PaymentRail.x402_http);
         PaymentManager.registerRail(errorRail);
 
-        final webhookData = {'orderId': 'error_order_123', 'success': true};
+        final webhookData = {
+          'internalTransactionId': 'error_order_123',
+          'success': true,
+        };
 
         // Test that rail throws error (Requirement 4.3)
         expect(
@@ -173,7 +183,7 @@ void main() {
         PaymentManager.registerRail(paymentExceptionRail);
 
         final webhookData = {
-          'orderId': 'payment_exception_order',
+          'internalTransactionId': 'payment_exception_order',
           'success': true,
         };
 
@@ -201,44 +211,43 @@ void main() {
     });
 
     group('Webhook Utility Methods', () {
-      test('should validate webhook data correctly', () {
-        // Valid webhook data
-        expect(WebhookHandler.isValidWebhookData({'key': 'value'}), isTrue);
-
-        // Empty webhook data
-        expect(WebhookHandler.isValidWebhookData({}), isFalse);
-      });
-
-      test('should extract order ID from various webhook formats', () {
+      test('should extract internal ID from various webhook formats', () {
         // Test different field names
         expect(
-          WebhookHandler.extractOrderId({'orderId': 'order123'}),
+          WebhookHandler.extractInternalId({
+            'internalTransactionId': 'order123',
+          }),
           equals('order123'),
         );
         expect(
-          WebhookHandler.extractOrderId({'order_id': 'order456'}),
+          WebhookHandler.extractInternalId({'orderId': 'order456'}),
           equals('order456'),
         );
         expect(
-          WebhookHandler.extractOrderId({'externalId': 'order789'}),
+          WebhookHandler.extractInternalId({
+            'internalTransactionId': 'order789',
+          }),
           equals('order789'),
         );
         expect(
-          WebhookHandler.extractOrderId({'external_id': 'order000'}),
+          WebhookHandler.extractInternalId({'externalId': 'order000'}),
           equals('order000'),
         );
 
-        // Test precedence (orderId should take priority)
+        // Test precedence (internalTransactionId should take priority)
         expect(
-          WebhookHandler.extractOrderId({
-            'orderId': 'priority_order',
-            'order_id': 'secondary_order',
+          WebhookHandler.extractInternalId({
+            'internalTransactionId': 'priority_order',
+            'orderId': 'secondary_order',
           }),
           equals('priority_order'),
         );
 
         // Test no order ID found
-        expect(WebhookHandler.extractOrderId({'other_field': 'value'}), isNull);
+        expect(
+          WebhookHandler.extractInternalId({'other_field': 'value'}),
+          isNull,
+        );
       });
     });
   });
@@ -246,7 +255,6 @@ void main() {
 
 /// Mock implementation of PaymentRailInterface for webhook testing
 class MockWebhookRail implements PaymentRailInterface {
-
   MockWebhookRail(
     this._railType, {
     this.shouldSucceed = true,
@@ -265,16 +273,16 @@ class MockWebhookRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async => PaymentRequestExtension.withRailData(
-      paymentRef: 'mock_payment_ref_$orderId',
-      amountUSD: amountUSD,
-      orderId: orderId,
-      railData: {
-        'railType': railType.toString(),
-        'mockData': 'webhook_test_data',
-      },
-    );
+    paymentRef: 'mock_payment_ref_$internalTransactionId',
+    amountUSD: amountUSD,
+    internalTransactionId: internalTransactionId,
+    railData: {
+      'railType': railType.toString(),
+      'mockData': 'webhook_test_data',
+    },
+  );
 
   @override
   Future<PaymentResult> processCallback(
@@ -285,7 +293,9 @@ class MockWebhookRail implements PaymentRailInterface {
 
     return PaymentResult(
       success: shouldSucceed,
-      orderId: includeOrderId ? callbackData['orderId'] as String? : null,
+      internalTransactionId: includeOrderId
+          ? callbackData['internalTransactionId'] as String?
+          : null,
       transactionTimestamp: shouldSucceed ? DateTime.now() : null,
       errorMessage: shouldSucceed ? null : 'Mock payment failed',
     );
@@ -294,7 +304,6 @@ class MockWebhookRail implements PaymentRailInterface {
 
 /// Mock rail that throws errors for testing error handling
 class ErrorThrowingWebhookRail implements PaymentRailInterface {
-
   ErrorThrowingWebhookRail(this._railType);
   final PaymentRail _railType;
 
@@ -304,7 +313,7 @@ class ErrorThrowingWebhookRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     throw Exception('Mock rail error for testing');
   }
@@ -319,7 +328,6 @@ class ErrorThrowingWebhookRail implements PaymentRailInterface {
 
 /// Mock rail that throws PaymentException for testing exception handling
 class PaymentExceptionThrowingWebhookRail implements PaymentRailInterface {
-
   PaymentExceptionThrowingWebhookRail(this._railType);
   final PaymentRail _railType;
 
@@ -329,7 +337,7 @@ class PaymentExceptionThrowingWebhookRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     throw PaymentException(
       code: 'RAIL_SPECIFIC_ERROR',

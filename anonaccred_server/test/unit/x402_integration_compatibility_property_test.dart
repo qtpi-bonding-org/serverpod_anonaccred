@@ -25,7 +25,7 @@ void main() {
           // Generate random test data
           final amountUSD =
               (random.nextDouble() * 1000) + 0.01; // $0.01 to $1000
-          final orderId = 'order_${random.nextInt(999999)}';
+          final internalTransactionId = 'order_${random.nextInt(999999)}';
 
           // Test X402 rail registration with PaymentManager (Requirement 3.1)
           final x402Rail = X402PaymentRail();
@@ -41,14 +41,17 @@ void main() {
           final paymentRequest = await PaymentManager.createPayment(
             railType: PaymentRail.x402_http,
             amountUSD: amountUSD,
-            orderId: orderId,
+            internalTransactionId: internalTransactionId,
           );
 
           // Verify PaymentRequest follows existing AnonAccred patterns (Requirement 3.2)
           expect(paymentRequest.paymentRef, isNotEmpty);
           expect(paymentRequest.paymentRef, startsWith('x402_'));
           expect(paymentRequest.amountUSD, equals(amountUSD));
-          expect(paymentRequest.orderId, equals(orderId));
+          expect(
+            paymentRequest.internalTransactionId,
+            equals(internalTransactionId),
+          );
           expect(paymentRequest.railDataJson, isNotEmpty);
 
           // Verify X402-specific rail data follows existing patterns (Requirement 3.3)
@@ -58,21 +61,27 @@ void main() {
           expect(railData['destinationAddress'], isA<String>());
           expect(railData['amount'], equals(amountUSD.toString()));
           expect(railData['currency'], equals('USD'));
-          expect(railData['orderId'], equals(orderId));
+          expect(
+            railData['internalTransactionId'],
+            equals(internalTransactionId),
+          );
           expect(railData['protocol'], equals('x402'));
           expect(railData['timestamp'], isA<String>());
 
           // Test X402 callback processing follows existing patterns (Requirement 3.3)
           final callbackData = {
             'paymentRef': paymentRequest.paymentRef,
-            'orderId': orderId,
+            'internalTransactionId': internalTransactionId,
             'success': random.nextBool(),
           };
 
           final paymentResult = await x402Rail.processCallback(callbackData);
 
           // Verify PaymentResult follows existing AnonAccred patterns
-          expect(paymentResult.orderId, equals(orderId));
+          expect(
+            paymentResult.internalTransactionId,
+            equals(internalTransactionId),
+          );
           expect(paymentResult.success, equals(callbackData['success']));
 
           if (paymentResult.success) {
@@ -112,17 +121,21 @@ void main() {
           PaymentRail.apple_iap,
         ]) {
           final amountUSD = (random.nextDouble() * 100) + 1.0;
-          final orderId = 'order_${railType.name}_${random.nextInt(1000)}';
+          final internalTransactionId =
+              'order_${railType.name}_${random.nextInt(1000)}';
 
           final paymentRequest = await PaymentManager.createPayment(
             railType: railType,
             amountUSD: amountUSD,
-            orderId: orderId,
+            internalTransactionId: internalTransactionId,
           );
 
           // Verify correct rail was used and follows patterns
           expect(paymentRequest.amountUSD, equals(amountUSD));
-          expect(paymentRequest.orderId, equals(orderId));
+          expect(
+            paymentRequest.internalTransactionId,
+            equals(internalTransactionId),
+          );
           expect(paymentRequest.railDataJson, isNotEmpty);
 
           // Verify rail-specific payment reference patterns
@@ -144,7 +157,7 @@ void main() {
         // Test callback with missing required fields (should throw PaymentException)
         final invalidCallbackData = {
           'success': true,
-          // Missing paymentRef and orderId
+          // Missing paymentRef and internalTransactionId
         };
 
         expect(
@@ -155,7 +168,7 @@ void main() {
         // Test callback with valid structure but failure
         final failureCallbackData = {
           'paymentRef': 'x402_test_ref',
-          'orderId': 'test_order_123',
+          'internalTransactionId': 'test_order_123',
           'success': false,
         };
 
@@ -163,7 +176,7 @@ void main() {
           failureCallbackData,
         );
         expect(failureResult.success, isFalse);
-        expect(failureResult.orderId, equals('test_order_123'));
+        expect(failureResult.internalTransactionId, equals('test_order_123'));
         expect(failureResult.transactionTimestamp, isNull);
         expect(failureResult.errorMessage, isNotNull);
       },
@@ -177,12 +190,13 @@ void main() {
 
         for (var i = 0; i < 5; i++) {
           final amountUSD = (random.nextDouble() * 100) + 1.0;
-          final orderId = 'serialization_test_${random.nextInt(1000)}';
+          final internalTransactionId =
+              'serialization_test_${random.nextInt(1000)}';
 
           // Create payment request
           final originalRequest = await x402Rail.createPayment(
             amountUSD: amountUSD,
-            orderId: orderId,
+            internalTransactionId: internalTransactionId,
           );
 
           // Test serialization round trip using existing extension
@@ -190,7 +204,7 @@ void main() {
           final recreatedRequest = PaymentRequestExtension.withRailData(
             paymentRef: originalRequest.paymentRef,
             amountUSD: originalRequest.amountUSD,
-            orderId: originalRequest.orderId,
+            internalTransactionId: originalRequest.internalTransactionId,
             railData: railData,
           );
 
@@ -200,7 +214,10 @@ void main() {
             equals(originalRequest.paymentRef),
           );
           expect(recreatedRequest.amountUSD, equals(originalRequest.amountUSD));
-          expect(recreatedRequest.orderId, equals(originalRequest.orderId));
+          expect(
+            recreatedRequest.internalTransactionId,
+            equals(originalRequest.internalTransactionId),
+          );
           expect(recreatedRequest.railData, equals(railData));
 
           // Verify X402-specific data is preserved
@@ -243,7 +260,6 @@ void main() {
 
 /// Mock implementation of PaymentRailInterface for testing compatibility
 class MockPaymentRail implements PaymentRailInterface {
-
   MockPaymentRail(this._railType);
   final PaymentRail _railType;
 
@@ -253,25 +269,25 @@ class MockPaymentRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async => PaymentRequestExtension.withRailData(
-      paymentRef:
-          'mock_payment_ref_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
-      amountUSD: amountUSD,
-      orderId: orderId,
-      railData: {
-        'railType': railType.toString(),
-        'mockData': 'test_data',
-        'timestamp': DateTime.now().toIso8601String(),
-      },
-    );
+    paymentRef:
+        'mock_payment_ref_${internalTransactionId}_${DateTime.now().millisecondsSinceEpoch}',
+    amountUSD: amountUSD,
+    internalTransactionId: internalTransactionId,
+    railData: {
+      'railType': railType.toString(),
+      'mockData': 'test_data',
+      'timestamp': DateTime.now().toIso8601String(),
+    },
+  );
 
   @override
   Future<PaymentResult> processCallback(
     Map<String, dynamic> callbackData,
   ) async => PaymentResult(
-      success: true,
-      orderId: callbackData['orderId'] as String?,
-      transactionTimestamp: DateTime.now(),
-    );
+    success: true,
+    internalTransactionId: callbackData['internalTransactionId'] as String?,
+    transactionTimestamp: DateTime.now(),
+  );
 }

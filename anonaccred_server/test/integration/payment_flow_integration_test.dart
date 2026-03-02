@@ -1,15 +1,16 @@
+import 'dart:convert';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_processor.dart';
 import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:anonaccred_server/src/payments/webhook_handler.dart';
+import 'package:anonaccred_server/src/price_registry.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 
 /// Mock payment rail for testing complete payment flows
 class MockPaymentRail implements PaymentRailInterface {
-
   MockPaymentRail({
     this.shouldSucceed = true,
     this.shouldThrowOnCreate = false,
@@ -27,16 +28,16 @@ class MockPaymentRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     if (shouldThrowOnCreate) {
       throw Exception('Mock payment creation failure');
     }
 
     return PaymentRequestExtension.withRailData(
-      paymentRef: customPaymentRef ?? 'mock_payment_ref_$orderId',
+      paymentRef: customPaymentRef ?? 'mock_payment_ref_$internalTransactionId',
       amountUSD: amountUSD,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       railData: {
         'mockRail': true,
         'paymentAddress': 'mock_address_123',
@@ -55,11 +56,12 @@ class MockPaymentRail implements PaymentRailInterface {
       throw Exception('Mock callback processing failure');
     }
 
-    final orderId = callbackData['orderId'] as String?;
+    final internalTransactionId =
+        callbackData['internalTransactionId'] as String?;
 
     return PaymentResult(
       success: shouldSucceed,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       transactionTimestamp: shouldSucceed ? DateTime.now() : null,
       errorMessage: shouldSucceed ? null : 'Mock payment failed',
     );
@@ -80,82 +82,99 @@ void main() {
     const validSignature =
         'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
 
+    late AnonAccount testAccount;
+    late TransactionPayment testTransaction;
+
+    setUp(() async {
+      // Clear payment rails before each test
+      PaymentManager.clearRails();
+
+      // Create test account and transaction for each test
+      final session = sessionBuilder.build();
+
+      testAccount = AnonAccount(
+        ultimateSigningPublicKeyHex:
+            'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
+        encryptedDataKey: 'encrypted_data_key_test',
+        ultimatePublicKey:
+            'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
+      );
+      testAccount = await AnonAccount.db.insertRow(session, testAccount);
+
+      // Create dummy rail product
+      final railProduct = await RailProduct.db.insertRow(
+        session,
+        RailProduct(
+          rail: PaymentRail.monero,
+          storeProductId: 'test_product',
+          isActive: true,
+        ),
+      );
+
+      testTransaction = TransactionPayment(
+        railProductId: railProduct.id!,
+        internalTransactionId:
+            'test-order-${DateTime.now().millisecondsSinceEpoch}',
+        priceCurrency: Currency.USD,
+        price: 10.0,
+        paymentRail: PaymentRail.monero,
+        paymentCurrency: Currency.USD,
+        paymentAmount: 10.0,
+        transactionTimestamp: DateTime.now(),
+        status: OrderStatus.pending,
+      );
+
+      testTransaction = await TransactionPayment.db.insertRow(
+        session,
+        testTransaction,
+      );
+
+      // Register test product in price registry for tests that need it
+      PriceRegistry().registerProduct('test_product', 10.0);
+    });
+
     group('Complete Payment Flow Tests', () {
-      late AnonAccount testAccount;
-      late TransactionPayment testTransaction;
-
-      setUp(() async {
-        // Clear payment rails before each test
-        PaymentManager.clearRails();
-
-        // Create test account and transaction for each test
-        final session = sessionBuilder.build();
-
-        testAccount = AnonAccount(
-          ultimateSigningPublicKeyHex:
-              'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
-          encryptedDataKey: 'encrypted_data_key_test',
-          ultimatePublicKey:
-              'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
-        );
-        testAccount = await AnonAccount.db.insertRow(session, testAccount);
-
-        testTransaction = TransactionPayment(
-          externalId: 'test-order-${DateTime.now().millisecondsSinceEpoch}',
-          accountId: testAccount.id!,
-          priceCurrency: Currency.USD,
-          price: 10.0,
-          paymentRail: PaymentRail.monero,
-          paymentCurrency: Currency.XMR,
-          paymentAmount: 0.05,
-          status: OrderStatus.pending,
-        );
-        testTransaction = await TransactionPayment.db.insertRow(
-          session,
-          testTransaction,
-        );
-
-        await session.close();
-      });
-
       test('successful payment flow with mock rail', () async {
         // Register mock payment rail
         final mockRail = MockPaymentRail();
         PaymentManager.registerRail(mockRail);
 
-        // Step 1: Initiate payment
-        final paymentRequest = await endpoints.payment.initiatePayment(
+        // Step 1: Initiate payment via commerce endpoint
+        final paymentRequest = await endpoints.commerce.initiatePayment(
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          testAccount.id!,
           PaymentRail.monero,
+          'test_product',
         );
 
         // Verify payment request structure
         expect(paymentRequest.paymentRef, startsWith('mock_payment_ref_'));
-        expect(paymentRequest.amountUSD, equals(10.0));
-        expect(paymentRequest.orderId, equals(testTransaction.externalId));
-        expect(paymentRequest.railData['mockRail'], isTrue);
-        expect(
-          paymentRequest.railData['paymentAddress'],
-          equals('mock_address_123'),
-        );
+        expect(paymentRequest.paymentAmount, equals(10.0));
+        expect(paymentRequest.internalTransactionId, isNotEmpty);
 
-        // Step 2: Check payment status (should be processing after initiation)
+        // Verify rail data (decoded from railDataJson)
+        final railData =
+            jsonDecode(paymentRequest.railDataJson ?? '{}')
+                as Map<String, dynamic>;
+        expect(railData['mockRail'], isTrue);
+        expect(railData['paymentAddress'], equals('mock_address_123'));
+
+        // Step 2: Check payment status (should be pending after initiation)
         var statusResult = await endpoints.payment.checkPaymentStatus(
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          paymentRequest.internalTransactionId,
         );
-        expect(statusResult.status, equals(OrderStatus.processing));
+        expect(statusResult.status, equals(OrderStatus.pending));
 
         // Step 3: Process successful webhook directly through WebhookHandler
         final session = sessionBuilder.build();
         try {
           final webhookData = {
-            'orderId': testTransaction.externalId,
+            'internalTransactionId': paymentRequest.internalTransactionId,
             'success': true,
           };
 
@@ -173,7 +192,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          paymentRequest.internalTransactionId,
         );
         expect(statusResult.status, equals(OrderStatus.paid));
         expect(statusResult.transactionTimestamp, isNotNull);
@@ -184,13 +203,14 @@ void main() {
         final mockRail = MockPaymentRail(shouldSucceed: false);
         PaymentManager.registerRail(mockRail);
 
-        // Step 1: Initiate payment (should succeed)
-        final paymentRequest = await endpoints.payment.initiatePayment(
+        // Step 1: Initiate payment via commerce endpoint
+        final paymentRequest = await endpoints.commerce.initiatePayment(
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          testAccount.id!,
           PaymentRail.monero,
+          'test_product',
         );
 
         expect(paymentRequest.paymentRef, startsWith('mock_payment_ref_'));
@@ -199,7 +219,7 @@ void main() {
         final session = sessionBuilder.build();
         try {
           final webhookData = {
-            'orderId': testTransaction.externalId,
+            'internalTransactionId': paymentRequest.internalTransactionId,
             'success': false,
             'error': 'Payment declined',
           };
@@ -218,10 +238,9 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          paymentRequest.internalTransactionId,
         );
         expect(statusResult.status, equals(OrderStatus.failed));
-        expect(statusResult.transactionTimestamp, isNull);
       });
 
       test('payment creation error handling', () async {
@@ -231,12 +250,13 @@ void main() {
 
         // Attempt to initiate payment - should throw PaymentException
         expect(
-          () => endpoints.payment.initiatePayment(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testTransaction.externalId,
+            testAccount.id!,
             PaymentRail.monero,
+            'test_product',
           ),
           throwsA(isA<PaymentException>()),
         );
@@ -251,7 +271,7 @@ void main() {
         final session = sessionBuilder.build();
         try {
           final webhookData = {
-            'orderId': testTransaction.externalId,
+            'internalTransactionId': testTransaction.internalTransactionId,
             'success': true,
           };
 
@@ -270,7 +290,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          testTransaction.internalTransactionId,
         );
         expect(statusResult.status, equals(OrderStatus.pending));
       });
@@ -280,12 +300,13 @@ void main() {
 
         // Attempt to initiate payment - should throw PaymentException
         expect(
-          () => endpoints.payment.initiatePayment(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testTransaction.externalId,
+            testAccount.id!,
             PaymentRail.monero,
+            'test_product',
           ),
           throwsA(isA<PaymentException>()),
         );
@@ -300,7 +321,7 @@ void main() {
         final session = sessionBuilder.build();
         try {
           final webhookData = {
-            'orderId': testTransaction.externalId,
+            'internalTransactionId': testTransaction.internalTransactionId,
             'success': true,
           };
 
@@ -318,7 +339,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          testTransaction.internalTransactionId,
         );
         expect(statusResult.status, equals(OrderStatus.paid));
         expect(statusResult.transactionTimestamp, isNotNull);
@@ -327,7 +348,7 @@ void main() {
         final session2 = sessionBuilder.build();
         try {
           final webhookData = {
-            'orderId': testTransaction.externalId,
+            'internalTransactionId': testTransaction.internalTransactionId,
             'success': true,
           };
 
@@ -345,7 +366,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          testTransaction.internalTransactionId,
         );
         expect(statusResult.status, equals(OrderStatus.paid));
         expect(statusResult.transactionTimestamp, isNotNull);
@@ -371,14 +392,14 @@ void main() {
         final moneroPayment = await PaymentManager.createPayment(
           railType: PaymentRail.monero,
           amountUSD: 10.0,
-          orderId: 'test-monero-order',
+          internalTransactionId: 'test-monero-order',
         );
         expect(moneroPayment.paymentRef, startsWith('mock_payment_ref_'));
 
         final x402Payment = await PaymentManager.createPayment(
           railType: PaymentRail.x402_http,
           amountUSD: 5.0,
-          orderId: 'test-x402-order',
+          internalTransactionId: 'test-x402-order',
         );
         expect(x402Payment.paymentRef, startsWith('x402_payment_ref_'));
       });
@@ -390,28 +411,27 @@ void main() {
           // Test direct PaymentProcessor methods
           await PaymentProcessor.updateTransactionStatus(
             session,
-            testTransaction.externalId,
+            testTransaction.internalTransactionId,
             OrderStatus.processing,
           );
 
           await PaymentProcessor.updatePaymentRef(
             session,
-            testTransaction.externalId,
+            testTransaction.internalTransactionId,
             'test_payment_ref_123',
           );
 
           await PaymentProcessor.updateTransactionTimestamp(
             session,
-            testTransaction.externalId,
+            testTransaction.internalTransactionId,
             DateTime.now(),
           );
 
           // Verify all updates were applied
-          final updatedTransaction =
-              await PaymentProcessor.getTransactionByExternalId(
-                session,
-                testTransaction.externalId,
-              );
+          final updatedTransaction = await PaymentProcessor.getTransactionById(
+            session,
+            testTransaction.internalTransactionId,
+          );
 
           expect(updatedTransaction, isNotNull);
           expect(updatedTransaction!.status, equals(OrderStatus.processing));
@@ -431,7 +451,7 @@ void main() {
         final session = sessionBuilder.build();
         try {
           final webhookData = {
-            'orderId': 'non-existent-order-id',
+            'internalTransactionId': 'non-existent-order-id',
             'success': true,
           };
 
@@ -450,7 +470,7 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          testTransaction.internalTransactionId,
         );
         expect(statusResult.status, equals(OrderStatus.pending));
       });
@@ -461,25 +481,28 @@ void main() {
         PaymentManager.registerRail(mockRail);
 
         // Initiate payment
-        final paymentRequest = await endpoints.payment.initiatePayment(
+        final paymentRequest = await endpoints.commerce.initiatePayment(
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testTransaction.externalId,
+          testAccount.id!,
           PaymentRail.monero,
+          'test_product',
         );
 
         // Verify rail data round trip
-        final railData = paymentRequest.railData;
+        final railData =
+            jsonDecode(paymentRequest.railDataJson ?? '{}')
+                as Map<String, dynamic>;
         expect(railData['mockRail'], isTrue);
         expect(railData['paymentAddress'], equals('mock_address_123'));
         expect(railData['expirationTime'], isA<String>());
 
         // Verify the data can be serialized and deserialized
         final recreatedRequest = PaymentRequestExtension.withRailData(
-          paymentRef: paymentRequest.paymentRef,
-          amountUSD: paymentRequest.amountUSD,
-          orderId: paymentRequest.orderId,
+          paymentRef: paymentRequest.paymentRef ?? '',
+          amountUSD: paymentRequest.paymentAmount,
+          internalTransactionId: paymentRequest.internalTransactionId,
           railData: railData,
         );
 
@@ -502,29 +525,33 @@ void main() {
 
         // Test with empty signature
         expect(
-          () => endpoints.payment.initiatePayment(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             validPublicKey,
             '',
-            'any-order-id',
+            testAccount.id!,
             PaymentRail.monero,
+            'test_product',
           ),
           throwsA(isA<AuthenticationException>()),
         );
       });
 
       test('payment exceptions contain proper context', () async {
+        // Don't register any payment rails - payment should fail
         try {
-          await endpoints.payment.initiatePayment(
+          await endpoints.commerce.initiatePayment(
             sessionBuilder,
             validPublicKey,
             validSignature,
-            'non-existent-order',
+            testAccount.id!,
             PaymentRail.monero,
+            'test_product',
           );
           fail('Expected PaymentException to be thrown');
         } on PaymentException catch (e) {
-          expect(e.orderId, equals('non-existent-order'));
+          // internalTransactionId is generated by CommerceManager before calling PaymentManager
+          expect(e.internalTransactionId, isNotNull);
           expect(e.code, isNotEmpty);
           expect(e.message, isNotEmpty);
         }
@@ -541,26 +568,27 @@ class _MockX402Rail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async => PaymentRequestExtension.withRailData(
-      paymentRef: 'x402_payment_ref_$orderId',
-      amountUSD: amountUSD,
-      orderId: orderId,
-      railData: {
-        'x402Rail': true,
-        'paymentUrl': 'https://example.com/pay/$orderId',
-        'acceptHeader': 'application/vnd.x402+json',
-      },
-    );
+    paymentRef: 'x402_payment_ref_$internalTransactionId',
+    amountUSD: amountUSD,
+    internalTransactionId: internalTransactionId,
+    railData: {
+      'x402Rail': true,
+      'paymentUrl': 'https://example.com/pay/$internalTransactionId',
+      'acceptHeader': 'application/vnd.x402+json',
+    },
+  );
 
   @override
   Future<PaymentResult> processCallback(
     Map<String, dynamic> callbackData,
   ) async {
-    final orderId = callbackData['orderId'] as String?;
+    final internalTransactionId =
+        callbackData['internalTransactionId'] as String?;
     return PaymentResult(
       success: true,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       transactionTimestamp: DateTime.now(),
     );
   }

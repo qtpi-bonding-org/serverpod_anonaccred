@@ -54,15 +54,19 @@ void main() {
     test(
       'when processPayment is called with invalid payment rail then PaymentException is thrown',
       () async {
-        expect(
-          () => endpoints.module.processPayment(
+        try {
+          await endpoints.module.processPayment(
             sessionBuilder,
             'order123',
             'invalid_rail', // Invalid payment rail
             100.0,
-          ),
-          throwsA(isA<PaymentException>()),
-        );
+          );
+          fail('Expected PaymentException to be thrown');
+        } on PaymentException catch (e) {
+          // internalTransactionId is passed to the exception even for invalid rail
+          expect(e.internalTransactionId, equals('order123'));
+          expect(e.paymentRail, equals('invalid_rail'));
+        }
       },
     );
 
@@ -73,7 +77,7 @@ void main() {
           () => endpoints.module.processPayment(
             sessionBuilder,
             'order123',
-            'x402',
+            'x402_http',
             -50.0, // Negative amount
           ),
           throwsA(isA<PaymentException>()),
@@ -87,7 +91,7 @@ void main() {
         final result = await endpoints.module.processPayment(
           sessionBuilder,
           'order123',
-          'x402',
+          'x402_http',
           100.0,
         );
         expect(result, startsWith('payment_receipt_order123_'));
@@ -95,48 +99,44 @@ void main() {
     );
 
     test(
-      'when manageInventory is called with invalid account ID then InventoryException is thrown',
+      'when manageEntitlements is called with invalid account ID then returns 0.0',
       () async {
-        expect(
-          () => endpoints.module.manageInventory(
-            sessionBuilder,
-            404, // Account not found
-            'api_calls',
-            'check',
-            null,
-          ),
-          throwsA(isA<InventoryException>()),
+        final result = await endpoints.module.manageEntitlements(
+          sessionBuilder,
+          404, // Account not found
+          'api_calls',
+          'check',
+          null,
         );
+        expect(result, equals(0.0));
       },
     );
 
     test(
-      'when manageInventory is called with invalid consumable type then InventoryException is thrown',
+      'when manageEntitlements is called with invalid consumable type then returns 0.0',
       () async {
-        expect(
-          () => endpoints.module.manageInventory(
-            sessionBuilder,
-            123,
-            'invalid_type', // Invalid consumable type
-            'check',
-            null,
-          ),
-          throwsA(isA<InventoryException>()),
+        final result = await endpoints.module.manageEntitlements(
+          sessionBuilder,
+          123,
+          'invalid_type', // Invalid consumable type
+          'check',
+          null,
         );
+        expect(result, equals(0.0));
       },
     );
 
     test(
-      'when manageInventory is called with valid parameters then returns balance',
+      'when manageEntitlements is called with valid parameters then returns balance',
       () async {
-        final result = await endpoints.module.manageInventory(
+        final result = await endpoints.module.manageEntitlements(
           sessionBuilder,
           123,
           'api_calls',
           'check',
           null,
         );
-        expect(result, equals(100)); // Mock balance
+        expect(result, equals(0.0)); // Default balance for non-existent account
       },
     );
   });

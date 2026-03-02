@@ -52,62 +52,44 @@
 /// registry.registerProduct('api_credits', 0.01);
 /// registry.registerProduct('storage_gb', 5.99);
 ///
-/// // Create order
-/// final transaction = await OrderManager.createOrder(
+/// // Initiate payment
+/// final result = await CommerceEndpoint().initiatePayment(
 ///   session,
+///   publicKey: publicKey,
+///   signature: signature,
 ///   accountId: accountId,
-///   items: {'api_credits': 100.0, 'storage_gb': 1.0},
-///   priceCurrency: Currency.USD,
+///   rail: PaymentRail.monero,
+///   storeProductId: 'api_credits',
 /// );
 ///
-/// // Fulfill order (after payment)
-/// await OrderManager.fulfillOrder(session, transaction);
-///
-/// // Query inventory
-/// final inventory = await InventoryManager.getInventory(session, accountId);
-/// final balance = await InventoryManager.getBalance(
+/// // Query entitlements
+/// final balance = await EntitlementManager.getEntitlementBalance(
 ///   session,
 ///   accountId: accountId,
-///   consumableType: 'api_credits',
+///   tag: 'api_credits',
 /// );
 ///
-/// // Optional: Consume inventory atomically
-/// final result = await InventoryUtils.tryConsume(
+/// // Consume entitlement atomically
+/// final consumeResult = await EntitlementManager.consumeEntitlement(
 ///   session,
 ///   accountId: accountId,
-///   consumableType: 'api_credits',
+///   tag: 'api_credits',
 ///   quantity: 10.0,
 /// );
-/// ```
-///
-/// ### Payment System
-///
-/// ```dart
-/// // Initialize X402 payment rail (simple registration)
-/// PaymentManager.initializeX402Rail(session);
-///
-/// // Create X402 HTTP payment
-/// final paymentRequest = await PaymentManager.createPayment(
-///   session: session,
-///   railType: PaymentRail.x402_http,
-///   amountUSD: 10.00,
-///   orderId: 'order_123',
-/// );
-///
-/// // Process payment callback (X402 verification)
-/// final rail = PaymentManager.getRail(PaymentRail.x402_http);
-/// final result = await rail?.processCallback(callbackData);
 /// ```
 
 library;
 
 // Authentication handler for Serverpod integration
 export 'src/auth_handler.dart';
+// Commerce and Entitlement Management
+export 'src/commerce_manager.dart';
 // Configuration system
 export 'src/config/header_config.dart';
 // Core cryptographic utilities
 export 'src/crypto_auth.dart';
 export 'src/crypto_utils.dart';
+export 'src/entitlement_manager.dart';
 // Exception handling and error classification system
 export 'src/error_classification.dart';
 export 'src/exception_factory.dart';
@@ -116,10 +98,6 @@ export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';
 // Helper utilities for reducing code duplication
 export 'src/helpers.dart';
-// Commerce foundation - Price Registry, Order Management, and Inventory Management
-export 'src/inventory_manager.dart';
-export 'src/inventory_utils.dart';
-export 'src/order_manager.dart';
 // Payment system foundation - Payment Rails, Manager, and Processor
 export 'src/payments/payment_manager.dart';
 export 'src/payments/payment_processor.dart';

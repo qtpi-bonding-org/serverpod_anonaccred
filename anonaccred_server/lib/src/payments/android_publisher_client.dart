@@ -11,9 +11,8 @@ import '../generated/protocol.dart';
 ///
 /// Requirements 2.1, 2.2, 2.3, 2.4, 2.5: AndroidPublisher API integration
 class AndroidPublisherClient {
-
   AndroidPublisherClient(AuthClient authClient)
-      : _api = AndroidPublisherApi(authClient);
+    : _api = AndroidPublisherApi(authClient);
   final AndroidPublisherApi _api;
 
   /// Validate purchase by retrieving purchase details
@@ -43,15 +42,11 @@ class AndroidPublisherClient {
         purchaseToken,
       );
     } catch (e) {
-      throw _handleApiError(
-        e,
-        'Failed to get purchase details',
-        {
-          'packageName': packageName,
-          'productId': productId,
-          'purchaseToken': purchaseToken,
-        },
-      );
+      throw _handleApiError(e, 'Failed to get purchase details', {
+        'packageName': packageName,
+        'productId': productId,
+        'purchaseToken': purchaseToken,
+      });
     }
   }
 
@@ -82,15 +77,11 @@ class AndroidPublisherClient {
         purchaseToken,
       );
     } catch (e) {
-      throw _handleApiError(
-        e,
-        'Failed to acknowledge purchase',
-        {
-          'packageName': packageName,
-          'productId': productId,
-          'purchaseToken': purchaseToken,
-        },
-      );
+      throw _handleApiError(e, 'Failed to acknowledge purchase', {
+        'packageName': packageName,
+        'productId': productId,
+        'purchaseToken': purchaseToken,
+      });
     }
   }
 
@@ -119,15 +110,11 @@ class AndroidPublisherClient {
         purchaseToken,
       );
     } catch (e) {
-      throw _handleApiError(
-        e,
-        'Failed to consume purchase',
-        {
-          'packageName': packageName,
-          'productId': productId,
-          'purchaseToken': purchaseToken,
-        },
-      );
+      throw _handleApiError(e, 'Failed to consume purchase', {
+        'packageName': packageName,
+        'productId': productId,
+        'purchaseToken': purchaseToken,
+      });
     }
   }
 
@@ -138,7 +125,7 @@ class AndroidPublisherClient {
   ///
   /// Requirements 2.5: Handle API errors using googleapis error types
   PaymentException _handleApiError(
-    error,
+    Object error,
     String message,
     Map<String, dynamic> details,
   ) {

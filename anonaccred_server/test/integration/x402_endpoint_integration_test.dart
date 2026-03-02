@@ -3,13 +3,12 @@ import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
 import 'package:test/test.dart';
 
 /// Integration tests for X402 endpoint integration
-/// 
+///
 /// Tests the X402 interceptor and payment processor functionality
 /// that enables endpoint integration.
-/// 
+///
 /// Requirements 5.1, 5.2, 5.3: X402 endpoint integration
 void main() {
-
   group('X402 Interceptor Tests', () {
     test('should detect payment headers correctly', () {
       // Test case-insensitive header detection
@@ -22,9 +21,18 @@ void main() {
 
     test('should extract payment headers correctly', () {
       // Test case-insensitive header extraction
-      expect(X402Interceptor.getPaymentHeader({'X-PAYMENT': 'payload1'}), equals('payload1'));
-      expect(X402Interceptor.getPaymentHeader({'x-payment': 'payload2'}), equals('payload2'));
-      expect(X402Interceptor.getPaymentHeader({'X-Payment': 'payload3'}), equals('payload3'));
+      expect(
+        X402Interceptor.getPaymentHeader({'X-PAYMENT': 'payload1'}),
+        equals('payload1'),
+      );
+      expect(
+        X402Interceptor.getPaymentHeader({'x-payment': 'payload2'}),
+        equals('payload2'),
+      );
+      expect(
+        X402Interceptor.getPaymentHeader({'X-Payment': 'payload3'}),
+        equals('payload3'),
+      );
       expect(X402Interceptor.getPaymentHeader({'OTHER': 'test'}), isNull);
       expect(X402Interceptor.getPaymentHeader({}), isNull);
     });
@@ -41,18 +49,18 @@ void main() {
       // Test payment response generation
       final response = X402PaymentProcessor.generatePaymentRequired(
         amount: 1.99,
-        orderId: 'test_order_123',
+        internalTransactionId: 'test_order_123',
       );
 
       // Verify X402 protocol compliance
       expect(response.amount, equals(1.99));
       expect(response.currency, equals('USD'));
-      expect(response.orderId, equals('test_order_123'));
+      expect(response.internalTransactionId, equals('test_order_123'));
       expect(response.protocol, equals('x402'));
       expect(response.destination, isNotEmpty);
       expect(response.facilitator, isNotEmpty);
       expect(response.timestamp, isNotEmpty);
-      
+
       // Verify timestamp format (ISO 8601)
       final timestamp = DateTime.tryParse(response.timestamp);
       expect(timestamp, isNotNull);
@@ -65,7 +73,7 @@ void main() {
 
       // Test payment verification with invalid payload
       final result2 = await X402PaymentProcessor.verifyPayment({
-        'X-PAYMENT': 'invalid_payload'
+        'X-PAYMENT': 'invalid_payload',
       });
       expect(result2, isFalse); // Invalid payment (facilitator will reject)
     });
@@ -73,22 +81,24 @@ void main() {
     test('should serialize payment responses correctly', () {
       final response = X402PaymentProcessor.generatePaymentRequired(
         amount: 5.50,
-        orderId: 'serialization_test',
+        internalTransactionId: 'serialization_test',
       );
 
       final json = response.toJson();
       expect(json['amount'], equals(5.50));
       expect(json['currency'], equals('USD'));
-      expect(json['orderId'], equals('serialization_test'));
+      expect(json['internalTransactionId'], equals('serialization_test'));
       expect(json['protocol'], equals('x402'));
 
       // Test round-trip serialization
       final restored = X402PaymentResponse.fromJson(json);
       expect(restored.amount, equals(response.amount));
       expect(restored.currency, equals(response.currency));
-      expect(restored.orderId, equals(response.orderId));
+      expect(
+        restored.internalTransactionId,
+        equals(response.internalTransactionId),
+      );
       expect(restored.protocol, equals(response.protocol));
     });
   });
 }
-

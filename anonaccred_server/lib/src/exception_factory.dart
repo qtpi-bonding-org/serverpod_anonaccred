@@ -26,13 +26,13 @@ class AnonAccredExceptionFactory {
   static PaymentException createPaymentException({
     required String code,
     required String message,
-    String? orderId,
+    String? internalTransactionId,
     String? paymentRail,
     Map<String, String>? details,
   }) => PaymentException(
     code: code,
     message: message,
-    orderId: orderId,
+    internalTransactionId: internalTransactionId,
     paymentRail: paymentRail,
     details: details,
   );
@@ -42,13 +42,13 @@ class AnonAccredExceptionFactory {
     required String code,
     required String message,
     int? accountId,
-    String? consumableType,
+    String? tag,
     Map<String, String>? details,
   }) => InventoryException(
     code: code,
     message: message,
     accountId: accountId,
-    consumableType: consumableType,
+    tag: tag,
     details: details,
   );
 
@@ -89,13 +89,15 @@ class AnonAccredErrorCodes {
   static const String paymentInsufficientFunds = 'PAYMENT_INSUFFICIENT_FUNDS';
   static const String paymentInvalidRail = 'PAYMENT_INVALID_RAIL';
   static const String paymentValidationFailed = 'PAYMENT_VALIDATION_FAILED';
+  static const String paymentNotFound = 'PAYMENT_NOT_FOUND';
+  static const String paymentVerificationFailed = 'PAYMENT_VERIFICATION_FAILED';
   static const String configurationMissing = 'CONFIGURATION_MISSING';
-  
 
-  
   // X402-specific error codes
-  static const String x402FacilitatorUnavailable = 'X402_FACILITATOR_UNAVAILABLE';
-  static const String x402InvalidPaymentPayload = 'X402_INVALID_PAYMENT_PAYLOAD';
+  static const String x402FacilitatorUnavailable =
+      'X402_FACILITATOR_UNAVAILABLE';
+  static const String x402InvalidPaymentPayload =
+      'X402_INVALID_PAYMENT_PAYLOAD';
   static const String x402ConfigurationMissing = 'X402_CONFIGURATION_MISSING';
   static const String x402VerificationFailed = 'X402_VERIFICATION_FAILED';
 

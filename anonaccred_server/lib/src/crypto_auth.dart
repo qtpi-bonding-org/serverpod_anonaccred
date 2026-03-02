@@ -123,28 +123,8 @@ class CryptoAuth {
         );
       }
 
-      // Validate challenge expiration (skip if Redis handles freshness)
-      if (!skipTimestampValidation) {
-        try {
-          if (!CryptoUtils.isChallengeValid(challenge)) {
-            return AuthenticationResultFactory.failure(
-              errorCode: AnonAccredErrorCodes.authChallengeExpired,
-              errorMessage: 'Authentication challenge has expired',
-              details: {
-                'challenge': challenge,
-                'validityDuration': '5 minutes',
-              },
-            );
-          }
-        } on AuthenticationException catch (e) {
-          // Challenge format validation failed
-          return AuthenticationResultFactory.failure(
-            errorCode: e.code,
-            errorMessage: e.message,
-            details: e.details,
-          );
-        }
-      }
+      // Note: Challenge expiration is handled by Redis TTL in DeviceChallengeStorage
+      // The skipTimestampValidation parameter is now ignored (always skipped)
 
       // Perform signature verification (auto-detects algorithm)
       final isValid = await CryptoUtils.verifySignature(

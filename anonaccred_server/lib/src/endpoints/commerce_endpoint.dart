@@ -1,11 +1,11 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../commerce_manager.dart';
 import '../crypto_auth.dart';
+import '../entitlement_manager.dart';
+import '../entitlement_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
-import '../inventory_manager.dart';
-import '../inventory_utils.dart';
-import '../order_manager.dart';
 import '../payments/x402_interceptor.dart';
 import '../price_registry.dart';
 
@@ -83,14 +83,52 @@ class CommerceEndpoint extends Endpoint {
         }
       }
 
-      // Register products in the price registry
+      // Register products in the price registry and DATABASE
       final registry = PriceRegistry();
-      try {
-        for (final entry in products.entries) {
-          registry.registerProduct(entry.key, entry.value);
+      for (final entry in products.entries) {
+        final sku = entry.key;
+        final price = entry.value;
+
+        // 1. In-memory registry for fast lookup
+        registry.registerProduct(sku, price);
+
+        // 2. Ensure Entitlement exists for this SKU (assuming 1:1 mapping for default)
+        var entitlement = await Entitlement.db.findFirstRow(
+          session,
+          where: (t) => t.tag.equals(sku),
+        );
+        entitlement ??= await Entitlement.db.insertRow(
+            session,
+            Entitlement(
+              name: 'Product: $sku',
+              tag: sku,
+              type: EntitlementType.consumable,
+            ),
+          );
+
+        // 3. Ensure RailProduct exists for common rails (Monero, X402)
+        for (final rail in [PaymentRail.monero, PaymentRail.x402_http]) {
+          var railProduct = await RailProduct.db.findFirstRow(
+            session,
+            where: (t) => t.rail.equals(rail) & t.storeProductId.equals(sku),
+          );
+          if (railProduct == null) {
+            railProduct = await RailProduct.db.insertRow(
+              session,
+              RailProduct(rail: rail, storeProductId: sku, isActive: true),
+            );
+
+            // 4. Link Entitlement to RailProduct (Grant 1.0 units per purchase)
+            await RailProductGrant.db.insertRow(
+              session,
+              RailProductGrant(
+                railProductId: railProduct.id!,
+                entitlementId: entitlement.id!,
+                quantity: 1.0,
+              ),
+            );
+          }
         }
-      } on PaymentException {
-        rethrow;
       }
 
       // Log successful registration
@@ -106,6 +144,50 @@ class CommerceEndpoint extends Endpoint {
         message:
             'Unexpected error during product registration: ${e.toString()}',
         details: {'error': e.toString()},
+      );
+    }
+  }
+
+  /// Initiate a transaction payment
+  ///
+  /// Wraps CommerceManager.initiateTransactionPayment to provide endpoint access.
+  Future<TransactionPayment> initiatePayment(
+    Session session,
+    String publicKey,
+    String signature,
+    int accountId,
+    PaymentRail rail,
+    String storeProductId, {
+    String? clientReference,
+    double? customPrice,
+  }) async {
+    try {
+      // Validate authentication
+      await _validateAuthentication(
+        session,
+        publicKey,
+        signature,
+        'initiatePayment',
+      );
+
+      // Initiate payment via manager
+      return await CommerceManager.initiateTransactionPayment(
+        session,
+        accountId: accountId,
+        rail: rail,
+        storeProductId: storeProductId,
+        clientReference: clientReference,
+        customPrice: customPrice,
+      );
+    } on AuthenticationException {
+      rethrow;
+    } on PaymentException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createPaymentException(
+        code: AnonAccredErrorCodes.paymentFailed,
+        message: 'Failed to initiate payment: ${e.toString()}',
+        paymentRail: rail.toString(),
       );
     }
   }
@@ -138,31 +220,12 @@ class CommerceEndpoint extends Endpoint {
     }
   }
 
-  /// Create a new order for consumable items
-  ///
-  /// Creates a pending transaction record with the specified items and pricing.
-  /// Requires authentication and validates all items against the price registry.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: The account ID creating the order
-  /// - [items]: Map of consumable types to quantities
-  /// - [paymentRail]: Payment method to be used
-  ///
-  /// Returns: The created TransactionPayment record
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [PaymentException] for invalid order data
-  /// - [AnonAccredException] for system errors
-  Future<TransactionPayment> createOrder(
+  /// Get entitlements for an account
+  Future<List<AccountEntitlement>> getEntitlements(
     Session session,
     String publicKey,
     String signature,
     int accountId,
-    Map<String, double> items,
-    PaymentRail paymentRail,
   ) async {
     try {
       // Validate authentication
@@ -170,84 +233,16 @@ class CommerceEndpoint extends Endpoint {
         session,
         publicKey,
         signature,
-        'createOrder',
+        'getEntitlements',
       );
 
-      // Validate items
-      if (items.isEmpty) {
-        final exception = AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.orderInvalidProduct,
-          message: 'At least one item must be provided for order',
-          details: {'itemCount': '0'},
-        );
-
-        throw exception;
-      }
-
-      // Create the order using OrderManager
-      final transaction = await OrderManager.createOrder(
+      // Get entitlements using EntitlementManager
+      final entitlements = await EntitlementManager.getAccountEntitlements(
         session,
         accountId: accountId,
-        items: items,
-        priceCurrency: Currency.USD,
-        paymentRail: paymentRail,
-        paymentCurrency: Currency.USD, // Default to USD for now
       );
 
-      // Log successful order creation
-
-      return transaction;
-    } on AuthenticationException {
-      rethrow;
-    } on PaymentException {
-      // Log payment/price registry errors
-      rethrow;
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
-        message: 'Unexpected error during order creation: ${e.toString()}',
-        details: {'error': e.toString()},
-      );
-    }
-  }
-
-  /// Get inventory for an account
-  ///
-  /// Returns all consumable types and their current balances for the specified account.
-  /// Requires authentication to ensure only authorized access to inventory data.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: The account ID to query inventory for
-  ///
-  /// Returns: List of AccountInventory records
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [InventoryException] for inventory access errors
-  /// - [AnonAccredException] for system errors
-  Future<List<AccountInventory>> getInventory(
-    Session session,
-    String publicKey,
-    String signature,
-    int accountId,
-  ) async {
-    try {
-      // Validate authentication
-      await _validateAuthentication(
-        session,
-        publicKey,
-        signature,
-        'getInventory',
-      );
-
-      // Get inventory using InventoryManager
-      final inventory = await InventoryManager.getInventory(session, accountId);
-
-      // Log successful inventory query
-
-      return inventory;
+      return entitlements;
     } on AuthenticationException {
       rethrow;
     } on InventoryException {
@@ -255,35 +250,18 @@ class CommerceEndpoint extends Endpoint {
     } catch (e) {
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
-        message: 'Unexpected error getting inventory: ${e.toString()}',
-        details: {'error': e.toString()},
+        message: 'Unexpected error getting entitlements: ${e.toString()}',
       );
     }
   }
 
-  /// Get balance for a specific consumable type
-  ///
-  /// Returns the current balance for the specified consumable type and account.
-  /// Requires authentication to ensure only authorized access to balance data.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: The account ID to check balance for
-  /// - [consumableType]: The consumable type to check
-  ///
-  /// Returns: Current balance as double
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [InventoryException] for inventory access errors
-  /// - [AnonAccredException] for system errors
-  Future<double> getBalance(
+  /// Get balance for a specific entitlement tag
+  Future<double> getEntitlementBalance(
     Session session,
     String publicKey,
     String signature,
     int accountId,
-    String consumableType,
+    String tag,
   ) async {
     try {
       // Validate authentication
@@ -291,30 +269,15 @@ class CommerceEndpoint extends Endpoint {
         session,
         publicKey,
         signature,
-        'getBalance',
+        'getEntitlementBalance',
       );
 
-      // Validate consumable type
-      if (consumableType.isEmpty) {
-        final exception = AnonAccredExceptionFactory.createInventoryException(
-          code: AnonAccredErrorCodes.inventoryInvalidConsumable,
-          message: 'Consumable type cannot be empty',
-          accountId: accountId,
-          consumableType: consumableType,
-          details: {'consumableType': 'empty'},
-        );
-
-        throw exception;
-      }
-
-      // Get balance using InventoryManager
-      final balance = await InventoryManager.getBalance(
+      // Get balance using EntitlementManager
+      final balance = await EntitlementManager.getEntitlementBalance(
         session,
         accountId: accountId,
-        consumableType: consumableType,
+        tag: tag,
       );
-
-      // Log successful balance query
 
       return balance;
     } on AuthenticationException {
@@ -325,36 +288,17 @@ class CommerceEndpoint extends Endpoint {
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
         message: 'Unexpected error getting balance: ${e.toString()}',
-        details: {'error': e.toString()},
       );
     }
   }
 
-  /// Consume inventory using atomic utilities
-  ///
-  /// Attempts to consume a specified quantity from account inventory using
-  /// the optional InventoryUtils. This endpoint provides atomic consumption
-  /// operations for parent applications that choose to use them.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: The account ID to consume inventory from
-  /// - [consumableType]: The consumable type to consume
-  /// - [quantity]: Amount to consume (must be positive)
-  ///
-  /// Returns: ConsumeResult with operation outcome and balance information
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
-  /// - [InventoryException] for invalid consumption parameters
-  /// - [AnonAccredException] for system errors
-  Future<ConsumeResult> consumeInventory(
+  /// Consume entitlement using atomic utilities
+  Future<ConsumeResult> consumeEntitlement(
     Session session,
     String publicKey,
     String signature,
     int accountId,
-    String consumableType,
+    String tag,
     double quantity,
   ) async {
     try {
@@ -363,44 +307,16 @@ class CommerceEndpoint extends Endpoint {
         session,
         publicKey,
         signature,
-        'consumeInventory',
+        'consumeEntitlement',
       );
 
-      // Validate consumable type
-      if (consumableType.isEmpty) {
-        final exception = AnonAccredExceptionFactory.createInventoryException(
-          code: AnonAccredErrorCodes.inventoryInvalidConsumable,
-          message: 'Consumable type cannot be empty',
-          accountId: accountId,
-          consumableType: consumableType,
-          details: {'consumableType': 'empty'},
-        );
-
-        throw exception;
-      }
-
-      // Validate quantity
-      if (quantity <= 0) {
-        final exception = AnonAccredExceptionFactory.createInventoryException(
-          code: AnonAccredErrorCodes.inventoryInvalidQuantity,
-          message: 'Quantity must be positive',
-          accountId: accountId,
-          consumableType: consumableType,
-          details: {'quantity': quantity.toString(), 'minimumQuantity': '0'},
-        );
-
-        throw exception;
-      }
-
-      // Attempt consumption using InventoryUtils
-      final result = await InventoryUtils.tryConsume(
+      // Attempt consumption using EntitlementUtils
+      final result = await EntitlementUtils.tryConsume(
         session,
         accountId: accountId,
-        consumableType: consumableType,
+        tag: tag,
         quantity: quantity,
       );
-
-      // Log consumption attempt
 
       return result;
     } on AuthenticationException {
@@ -411,8 +327,7 @@ class CommerceEndpoint extends Endpoint {
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
         message:
-            'Unexpected error during inventory consumption: ${e.toString()}',
-        details: {'error': e.toString()},
+            'Unexpected error during entitlement consumption: ${e.toString()}',
       );
     }
   }
@@ -453,11 +368,11 @@ class CommerceEndpoint extends Endpoint {
         resourceId: 'product_catalog',
         amount: 0.25, // $0.25 for catalog access
         onPaymentRequired: () async => X402Interceptor.generatePaymentRequired(
-            session: session,
-            resourceId: 'product_catalog',
-            amount: 0.25,
-            description: 'Access to complete product catalog',
-          ),
+          session: session,
+          resourceId: 'product_catalog',
+          amount: 0.25,
+          description: 'Access to complete product catalog',
+        ),
         onPaymentVerified: () async {
           // Payment verified - provide product catalog
           final registry = PriceRegistry();
@@ -472,7 +387,6 @@ class CommerceEndpoint extends Endpoint {
           };
         },
       );
-
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
@@ -481,34 +395,18 @@ class CommerceEndpoint extends Endpoint {
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
         message: 'Unexpected error in X402 catalog request: ${e.toString()}',
-        details: {
-          'error': e.toString(),
-        },
+        details: {'error': e.toString()},
       );
     }
   }
 
-  /// Get inventory balance with X402 pay-per-query integration
-  ///
-  /// Demonstrates X402 integration for inventory queries with micropayments.
-  /// Supports autonomous systems that need to check balances programmatically.
-  ///
-  /// Parameters:
-  /// - [publicKey]: Ed25519 public key for authentication
-  /// - [signature]: Signature of the request data
-  /// - [accountId]: Account ID to check balance for
-  /// - [consumableType]: Consumable type to check
-  /// - [headers]: HTTP headers (may contain X-PAYMENT)
-  ///
-  /// Returns: Either HTTP 402 payment requirement or balance information
-  ///
-  /// Requirements 5.4, 5.5: Support AI agents with pay-per-use model
-  Future<Map<String, dynamic>> getBalanceWithX402(
+  /// Get entitlement balance with X402 pay-per-query integration
+  Future<Map<String, dynamic>> getEntitlementBalanceWithX402(
     Session session,
     String publicKey,
     String signature,
     int accountId,
-    String consumableType, {
+    String tag, {
     Map<String, String>? headers,
   }) async {
     try {
@@ -517,51 +415,38 @@ class CommerceEndpoint extends Endpoint {
         session,
         publicKey,
         signature,
-        'getBalanceWithX402',
+        'getEntitlementBalanceWithX402',
       );
-
-      // Validate consumable type
-      if (consumableType.isEmpty) {
-        throw AnonAccredExceptionFactory.createInventoryException(
-          code: AnonAccredErrorCodes.inventoryInvalidConsumable,
-          message: 'Consumable type cannot be empty',
-          accountId: accountId,
-          consumableType: consumableType,
-          details: {'consumableType': 'empty'},
-        );
-      }
 
       // Use X402 interceptor to handle payment flow
       return await X402Interceptor.interceptRequest(
         session: session,
         headers: headers ?? <String, String>{},
-        resourceId: 'balance_${accountId}_$consumableType',
-        amount: 0.05, // $0.05 for balance query
+        resourceId: 'balance_${accountId}_$tag',
+        amount: 0.05,
         onPaymentRequired: () async => X402Interceptor.generatePaymentRequired(
-            session: session,
-            resourceId: 'balance_${accountId}_$consumableType',
-            amount: 0.05,
-            description: 'Balance query for $consumableType',
-          ),
+          session: session,
+          resourceId: 'balance_${accountId}_$tag',
+          amount: 0.05,
+          description: 'Balance query for $tag',
+        ),
         onPaymentVerified: () async {
-          // Payment verified - provide balance information
-          final balance = await InventoryManager.getBalance(
+          final balance = await EntitlementManager.getEntitlementBalance(
             session,
             accountId: accountId,
-            consumableType: consumableType,
+            tag: tag,
           );
 
           return {
             'success': true,
             'accountId': accountId,
-            'consumableType': consumableType,
+            'tag': tag,
             'balance': balance,
             'accessTime': DateTime.now().toIso8601String(),
             'paymentMethod': 'x402_http',
           };
         },
       );
-
     } on AuthenticationException {
       rethrow;
     } on InventoryException {
@@ -572,11 +457,6 @@ class CommerceEndpoint extends Endpoint {
       throw AnonAccredExceptionFactory.createException(
         code: AnonAccredErrorCodes.internalError,
         message: 'Unexpected error in X402 balance request: ${e.toString()}',
-        details: {
-          'error': e.toString(),
-          'accountId': accountId.toString(),
-          'consumableType': consumableType,
-        },
       );
     }
   }

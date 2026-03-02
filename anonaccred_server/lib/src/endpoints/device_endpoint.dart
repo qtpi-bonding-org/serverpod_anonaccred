@@ -1,10 +1,11 @@
 import 'package:serverpod/serverpod.dart';
 import '../auth_handler.dart';
+import '../challenge_storage.dart';
 import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import '../nonce_storage.dart';
+
 
 /// Device management endpoints for ECDSA P-256 device registration and authentication
 ///
@@ -214,7 +215,7 @@ class DeviceEndpoint extends Endpoint {
         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         label: label,
-        lastActive: DateTime.now(),
+        lastActive: _roundToMinute(DateTime.now()),
         isRevoked: false,
       );
 
@@ -311,22 +312,22 @@ class DeviceEndpoint extends Endpoint {
         'authenticateDevice',
       );
 
-      // Verify nonce exists in Redis and remove it (single use)
-      final nonceStorage = DeviceNonceStorage(session);
-      final nonceValid = await nonceStorage.verifyAndRemoveNonce(
+      // Verify challenge exists in Redis and consume it (single use, 5-min TTL)
+      final challengeStorage = DeviceChallengeStorage(session);
+      final challengeValid = await challengeStorage.verifyAndConsume(
         publicKey,
         challenge,
       );
 
-      if (!nonceValid) {
+      if (!challengeValid) {
         return AuthenticationResultFactory.failure(
           errorCode: AnonAccredErrorCodes.authChallengeExpired,
-          errorMessage: 'Invalid or expired challenge nonce',
+          errorMessage: 'Invalid or expired challenge',
           details: {'challenge': challenge},
         );
       }
 
-      // Verify challenge-response signature (skip timestamp validation - Redis handles freshness)
+      // Verify signature (timestamp validation skipped - Redis handles freshness)
       final verificationResult = await CryptoAuth.verifyChallengeResponse(
         publicKey,
         challenge,
@@ -335,10 +336,10 @@ class DeviceEndpoint extends Endpoint {
       );
 
       if (verificationResult.success) {
-        // Update last active timestamp
+        // Update last active timestamp with 1-minute precision (privacy hardening)
         final updatedDevice = await AccountDevice.db.updateRow(
           session,
-          activeDevice.copyWith(lastActive: DateTime.now()),
+          activeDevice.copyWith(lastActive: _roundToMinute(DateTime.now())),
         );
 
         return AuthenticationResultFactory.success(
@@ -405,8 +406,9 @@ class DeviceEndpoint extends Endpoint {
       );
     }
 
-    // Generate challenge using crypto utils (embedded timestamp for freshness)
-    return CryptoAuth.generateChallenge();
+    // Generate and store challenge in Redis with 5-minute TTL
+    final challengeStorage = DeviceChallengeStorage(session);
+    return await challengeStorage.generateAndStoreChallenge(devicePublicKey);
   }
 
   /// Revoke device access
@@ -663,7 +665,7 @@ class DeviceEndpoint extends Endpoint {
         deviceSigningPublicKeyHex: newDeviceSigningPublicKeyHex,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,
-        lastActive: DateTime.now(),
+        lastActive: _roundToMinute(DateTime.now()),
         isRevoked: false,
       );
 
@@ -741,4 +743,7 @@ class DeviceEndpoint extends Endpoint {
       );
     }
   }
+
+  /// Rounds a DateTime to the nearest minute for privacy hardening.
+  DateTime _roundToMinute(DateTime dt) => DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
 }

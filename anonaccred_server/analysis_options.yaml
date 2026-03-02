@@ -3,6 +3,7 @@ include: package:lints/recommended.yaml
 analyzer:
   exclude:
     - lib/src/generated/**
+    - test/integration/test_tools/**
   language:
     strict-casts: true
     strict-inference: true

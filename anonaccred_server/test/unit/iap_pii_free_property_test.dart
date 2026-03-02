@@ -66,6 +66,7 @@ void main() {
       test('Property: Google transaction extraction only includes safe data fields', () {
         // Test with 5 iterations as per development guidelines
         for (var i = 0; i < 5; i++) {
+          // Use 'orderId' key to match what extractTransactionData expects
           final mockPurchaseData = {
             'orderId': 'order_${i}_001',
             'productId': 'product_$i',
@@ -122,7 +123,7 @@ void main() {
           };
 
           final googleData = {
-            'orderId': 'safe_order_$i',
+            'internalTransactionId': 'safe_order_$i',
             'productId': 'safe_product_$i',
             'purchaseTimeMillis': 1699999990000,
           };

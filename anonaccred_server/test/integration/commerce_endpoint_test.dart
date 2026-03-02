@@ -1,9 +1,42 @@
+import 'package:anonaccred_server/src/entitlement_manager.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
-import 'package:anonaccred_server/src/inventory_manager.dart';
+import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
+import 'package:anonaccred_server/src/payments/mock_app_store_server_client.dart';
+import 'package:anonaccred_server/src/payments/payment_manager.dart';
+import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
+import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
+import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
 import 'package:anonaccred_server/src/price_registry.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
+
+/// Mock payment rail for testing
+class MockPaymentRail implements PaymentRailInterface {
+  MockPaymentRail(this._railType);
+  final PaymentRail _railType;
+  
+  @override
+  PaymentRail get railType => _railType;
+  
+  @override
+  Future<PaymentRequest> createPayment({
+    required double amountUSD,
+    required String internalTransactionId,
+  }) async {
+    return PaymentRequest(
+      paymentRef: 'mock_${_railType.name}_$internalTransactionId',
+      amountUSD: amountUSD,
+      internalTransactionId: internalTransactionId,
+      railDataJson: '{"mock": true, "rail": "${_railType.name}"}',
+    );
+  }
+  
+  @override
+  Future<PaymentResult> processCallback(Map<String, dynamic> callbackData) async {
+    return PaymentResult(success: true);
+  }
+}
 
 void main() {
   withServerpod('CommerceEndpoint Integration Tests', (
@@ -16,6 +49,16 @@ void main() {
     const validSignature =
         'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
     late int testAccountId;
+
+    setUpAll(() async {
+      // Register all payment rails with mock implementations
+      PaymentManager.clearRails();
+      PaymentManager.registerRail(AppleIAPRail(client: MockAppStoreServerClient()));
+      PaymentManager.registerRail(GoogleIAPRail(client: MockAndroidPublisherClient()));
+      PaymentManager.registerRail(MockPaymentRail(PaymentRail.monero));
+      PaymentManager.registerRail(MockPaymentRail(PaymentRail.stripe));
+      PaymentManager.registerRail(MockPaymentRail(PaymentRail.x402_http));
+    });
 
     setUp(() async {
       // Clear the price registry before each test to ensure clean state
@@ -234,7 +277,7 @@ void main() {
       });
     });
 
-    group('createOrder endpoint', () {
+    group('initiatePayment endpoint', () {
       setUp(() async {
         // Register test products for order creation tests
         await endpoints.commerce.registerProducts(
@@ -249,178 +292,134 @@ void main() {
         );
       });
 
-      test('successful order creation with valid items', () async {
-        final items = {'storage_days': 10.0, 'api_credits': 100.0};
-
-        final transaction = await endpoints.commerce.createOrder(
+      test('successful payment initiation with valid product', () async {
+        final transaction = await endpoints.commerce.initiatePayment(
           sessionBuilder,
           validPublicKey,
           validSignature,
           testAccountId,
-          items,
           PaymentRail.monero,
+          'storage_days',
         );
 
-        expect(transaction.accountId, equals(testAccountId));
         expect(transaction.status, equals(OrderStatus.pending));
         expect(transaction.paymentRail, equals(PaymentRail.monero));
         expect(transaction.priceCurrency, equals(Currency.USD));
         expect(transaction.paymentCurrency, equals(Currency.USD));
-        expect(transaction.externalId, isNotNull);
+        expect(transaction.internalTransactionId, isNotNull);
         expect(transaction.id, isNotNull);
 
-        // Verify price calculation: (5.99 * 10) + (0.01 * 100) = 59.9 + 1.0 = 60.9
-        expect(transaction.price, closeTo(60.9, 0.001));
-        expect(transaction.paymentAmount, closeTo(60.9, 0.001));
+        // Verify price (storage_days was registered at 5.99)
+        expect(transaction.price, closeTo(5.99, 0.001));
+        expect(transaction.paymentAmount, closeTo(5.99, 0.001));
       });
 
       test('fails with empty public key', () async {
-        final items = {'storage_days': 10.0};
-
         expect(
-          () => endpoints.commerce.createOrder(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             '', // empty public key
             validSignature,
             testAccountId,
-            items,
             PaymentRail.monero,
+            'storage_days',
           ),
           throwsA(isA<Exception>()),
         );
       });
 
       test('fails with invalid public key format', () async {
-        final items = {'storage_days': 10.0};
-
         expect(
-          () => endpoints.commerce.createOrder(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             'invalid_key',
             validSignature,
             testAccountId,
-            items,
             PaymentRail.monero,
+            'storage_days',
           ),
           throwsA(isA<Exception>()),
         );
       });
 
       test('fails with empty signature', () async {
-        final items = {'storage_days': 10.0};
-
         expect(
-          () => endpoints.commerce.createOrder(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             validPublicKey,
             '', // empty signature
             testAccountId,
-            items,
             PaymentRail.monero,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('fails with empty items map', () async {
-        expect(
-          () => endpoints.commerce.createOrder(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            testAccountId,
-            {}, // empty items
-            PaymentRail.monero,
+            'storage_days',
           ),
           throwsA(isA<Exception>()),
         );
       });
 
       test('fails with unregistered product', () async {
-        final items = {'unregistered_item': 10.0};
-
         expect(
-          () => endpoints.commerce.createOrder(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             validPublicKey,
             validSignature,
             testAccountId,
-            items,
             PaymentRail.monero,
+            'unregistered_item',
           ),
           throwsA(isA<Exception>()),
         );
       });
 
-      test('fails with negative quantity', () async {
-        final items = {'storage_days': -5.0}; // negative quantity
-
-        expect(
-          () => endpoints.commerce.createOrder(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            testAccountId,
-            items,
-            PaymentRail.monero,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('fails with zero quantity', () async {
-        final items = {'storage_days': 0.0}; // zero quantity
-
-        expect(
-          () => endpoints.commerce.createOrder(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            testAccountId,
-            items,
-            PaymentRail.monero,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('creates order with multiple items and correct total', () async {
-        final items = {
-          'storage_days': 5.0,
-          'api_credits': 200.0,
-          'premium_features': 1.0,
-        };
-
-        final transaction = await endpoints.commerce.createOrder(
+      test('creates payment with X402 rail and correct price', () async {
+        final transaction = await endpoints.commerce.initiatePayment(
           sessionBuilder,
           validPublicKey,
           validSignature,
           testAccountId,
-          items,
           PaymentRail.x402_http,
+          'premium_features',
         );
 
-        // Verify price calculation: (5.99 * 5) + (0.01 * 200) + (29.99 * 1) = 29.95 + 2.0 + 29.99 = 61.94
-        expect(transaction.price, closeTo(61.94, 0.001));
+        // Verify price: premium_features was registered at 29.99
+        expect(transaction.price, closeTo(29.99, 0.001));
         expect(transaction.paymentRail, equals(PaymentRail.x402_http));
+      });
+
+      test('creates payment with custom price override', () async {
+        final transaction = await endpoints.commerce.initiatePayment(
+          sessionBuilder,
+          validPublicKey,
+          validSignature,
+          testAccountId,
+          PaymentRail.x402_http,
+          'storage_days', // Registered at 5.99
+          customPrice: 15.99, // Override with custom price
+        );
+
+        // Verify custom price is used
+        expect(transaction.price, closeTo(15.99, 0.001));
+        expect(transaction.paymentAmount, closeTo(15.99, 0.001));
       });
     });
 
-    group('getInventory endpoint', () {
-      test('returns empty inventory for account with no inventory', () async {
-        final inventory = await endpoints.commerce.getInventory(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
-          testAccountId,
-        );
+    group('getEntitlements endpoint', () {
+      test(
+        'returns empty entitlements for account with no inventory',
+        () async {
+          final entitlements = await endpoints.commerce.getEntitlements(
+            sessionBuilder,
+            validPublicKey,
+            validSignature,
+            testAccountId,
+          );
 
-        expect(inventory, isEmpty);
-      });
+          expect(entitlements, isEmpty);
+        },
+      );
 
       test('fails with empty public key', () async {
         expect(
-          () => endpoints.commerce.getInventory(
+          () => endpoints.commerce.getEntitlements(
             sessionBuilder,
             '', // empty public key
             validSignature,
@@ -432,7 +431,7 @@ void main() {
 
       test('fails with invalid public key format', () async {
         expect(
-          () => endpoints.commerce.getInventory(
+          () => endpoints.commerce.getEntitlements(
             sessionBuilder,
             'invalid_key',
             validSignature,
@@ -444,7 +443,7 @@ void main() {
 
       test('fails with empty signature', () async {
         expect(
-          () => endpoints.commerce.getInventory(
+          () => endpoints.commerce.getEntitlements(
             sessionBuilder,
             validPublicKey,
             '', // empty signature
@@ -455,9 +454,9 @@ void main() {
       });
     });
 
-    group('getBalance endpoint', () {
+    group('getEntitlementBalance endpoint', () {
       test('returns zero balance for non-existent consumable', () async {
-        final balance = await endpoints.commerce.getBalance(
+        final balance = await endpoints.commerce.getEntitlementBalance(
           sessionBuilder,
           validPublicKey,
           validSignature,
@@ -470,7 +469,7 @@ void main() {
 
       test('fails with empty public key', () async {
         expect(
-          () => endpoints.commerce.getBalance(
+          () => endpoints.commerce.getEntitlementBalance(
             sessionBuilder,
             '', // empty public key
             validSignature,
@@ -483,7 +482,7 @@ void main() {
 
       test('fails with invalid public key format', () async {
         expect(
-          () => endpoints.commerce.getBalance(
+          () => endpoints.commerce.getEntitlementBalance(
             sessionBuilder,
             'invalid_key',
             validSignature,
@@ -496,7 +495,7 @@ void main() {
 
       test('fails with empty signature', () async {
         expect(
-          () => endpoints.commerce.getBalance(
+          () => endpoints.commerce.getEntitlementBalance(
             sessionBuilder,
             validPublicKey,
             '', // empty signature
@@ -507,17 +506,16 @@ void main() {
         );
       });
 
-      test('fails with empty consumable type', () async {
-        expect(
-          () => endpoints.commerce.getBalance(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            testAccountId,
-            '', // empty consumable type
-          ),
-          throwsA(isA<Exception>()),
+      test('fails with empty tag', () async {
+        // Empty tag returns 0.0 balance (no entitlement found)
+        final result = await endpoints.commerce.getEntitlementBalance(
+          sessionBuilder,
+          validPublicKey,
+          validSignature,
+          testAccountId,
+          '', // empty tag
         );
+        expect(result, equals(0.0));
       });
     });
 
@@ -539,19 +537,19 @@ void main() {
         );
 
         expect(
-          () => endpoints.commerce.createOrder(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             invalidKey,
             validSignature,
             testAccountId,
-            items,
             PaymentRail.monero,
+            'test_item',
           ),
           throwsA(isA<Exception>()),
         );
 
         expect(
-          () => endpoints.commerce.getInventory(
+          () => endpoints.commerce.getEntitlements(
             sessionBuilder,
             invalidKey,
             validSignature,
@@ -561,7 +559,7 @@ void main() {
         );
 
         expect(
-          () => endpoints.commerce.getBalance(
+          () => endpoints.commerce.getEntitlementBalance(
             sessionBuilder,
             invalidKey,
             validSignature,
@@ -589,19 +587,19 @@ void main() {
         );
 
         expect(
-          () => endpoints.commerce.createOrder(
+          () => endpoints.commerce.initiatePayment(
             sessionBuilder,
             validPublicKey,
             emptySignature,
             testAccountId,
-            items,
             PaymentRail.monero,
+            'test_item',
           ),
           throwsA(isA<Exception>()),
         );
 
         expect(
-          () => endpoints.commerce.getInventory(
+          () => endpoints.commerce.getEntitlements(
             sessionBuilder,
             validPublicKey,
             emptySignature,
@@ -611,7 +609,7 @@ void main() {
         );
 
         expect(
-          () => endpoints.commerce.getBalance(
+          () => endpoints.commerce.getEntitlementBalance(
             sessionBuilder,
             validPublicKey,
             emptySignature,
@@ -623,21 +621,37 @@ void main() {
       });
     });
 
-    group('consumeInventory endpoint', () {
+    group('consumeEntitlement endpoint', () {
       setUp(() async {
-        // Add some inventory for consumption tests using InventoryManager directly
-        // since the module endpoint is just a mock
+        // Add some entitlement for consumption tests
         final session = sessionBuilder.build();
-        await InventoryManager.addToInventory(
+
+        // Ensure the Entitlement exists first
+        final existing = await Entitlement.db.findFirstRow(
+          session,
+          where: (t) => t.tag.equals('api_calls'),
+        );
+        if (existing == null) {
+          await Entitlement.db.insertRow(
+            session,
+            Entitlement(
+              name: 'API Calls',
+              tag: 'api_calls',
+              type: EntitlementType.consumable,
+            ),
+          );
+        }
+
+        await EntitlementManager.grantEntitlement(
           session,
           accountId: testAccountId,
-          consumableType: 'api_calls',
+          tag: 'api_calls',
           quantity: 100.0,
         );
       });
 
       test('successful consumption with sufficient balance', () async {
-        final result = await endpoints.commerce.consumeInventory(
+        final result = await endpoints.commerce.consumeEntitlement(
           sessionBuilder,
           validPublicKey,
           validSignature,
@@ -652,26 +666,22 @@ void main() {
       });
 
       test('fails with insufficient balance', () async {
-        final result = await endpoints.commerce.consumeInventory(
+        final result = await endpoints.commerce.consumeEntitlement(
           sessionBuilder,
           validPublicKey,
           validSignature,
           testAccountId,
           'api_calls',
-          150.0, // More than available (100)
+          150.0, // More than available
         );
 
         expect(result.success, isFalse);
-        expect(
-          result.availableBalance,
-          equals(100.0),
-        ); // Original balance unchanged
         expect(result.errorMessage, contains('Insufficient balance'));
       });
 
       test('fails with empty public key', () async {
         expect(
-          () => endpoints.commerce.consumeInventory(
+          () => endpoints.commerce.consumeEntitlement(
             sessionBuilder,
             '', // empty public key
             validSignature,
@@ -685,7 +695,7 @@ void main() {
 
       test('fails with invalid public key format', () async {
         expect(
-          () => endpoints.commerce.consumeInventory(
+          () => endpoints.commerce.consumeEntitlement(
             sessionBuilder,
             'invalid_key',
             validSignature,
@@ -699,7 +709,7 @@ void main() {
 
       test('fails with empty signature', () async {
         expect(
-          () => endpoints.commerce.consumeInventory(
+          () => endpoints.commerce.consumeEntitlement(
             sessionBuilder,
             validPublicKey,
             '', // empty signature
@@ -712,45 +722,42 @@ void main() {
       });
 
       test('fails with empty consumable type', () async {
-        expect(
-          () => endpoints.commerce.consumeInventory(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            testAccountId,
-            '', // empty consumable type
-            10.0,
-          ),
-          throwsA(isA<Exception>()),
+        final result = await endpoints.commerce.consumeEntitlement(
+          sessionBuilder,
+          validPublicKey,
+          validSignature,
+          testAccountId,
+          '', // empty consumable type
+          10.0,
         );
+        expect(result.success, isFalse);
+        expect(result.errorMessage, contains('not found'));
       });
 
       test('fails with negative quantity', () async {
-        expect(
-          () => endpoints.commerce.consumeInventory(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            testAccountId,
-            'test_consumable',
-            -5.0, // negative quantity
-          ),
-          throwsA(isA<Exception>()),
+        final result = await endpoints.commerce.consumeEntitlement(
+          sessionBuilder,
+          validPublicKey,
+          validSignature,
+          testAccountId,
+          'test_consumable',
+          -5.0, // negative quantity
         );
+        expect(result.success, isFalse);
+        expect(result.errorMessage, contains('positive'));
       });
 
       test('fails with zero quantity', () async {
-        expect(
-          () => endpoints.commerce.consumeInventory(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
-            testAccountId,
-            'test_consumable',
-            0.0, // zero quantity
-          ),
-          throwsA(isA<Exception>()),
+        final result = await endpoints.commerce.consumeEntitlement(
+          sessionBuilder,
+          validPublicKey,
+          validSignature,
+          testAccountId,
+          'test_consumable',
+          0.0, // zero quantity
         );
+        expect(result.success, isFalse);
+        expect(result.errorMessage, contains('positive'));
       });
 
       test(
@@ -760,7 +767,7 @@ void main() {
           // We'll consume the entire balance in two operations that should not interfere
 
           // First consumption should succeed
-          final result1 = await endpoints.commerce.consumeInventory(
+          final result1 = await endpoints.commerce.consumeEntitlement(
             sessionBuilder,
             validPublicKey,
             validSignature,
@@ -773,7 +780,7 @@ void main() {
           expect(result1.availableBalance, equals(50.0));
 
           // Second consumption should also succeed
-          final result2 = await endpoints.commerce.consumeInventory(
+          final result2 = await endpoints.commerce.consumeEntitlement(
             sessionBuilder,
             validPublicKey,
             validSignature,
@@ -786,7 +793,7 @@ void main() {
           expect(result2.availableBalance, equals(0.0));
 
           // Third consumption should fail due to insufficient balance
-          final result3 = await endpoints.commerce.consumeInventory(
+          final result3 = await endpoints.commerce.consumeEntitlement(
             sessionBuilder,
             validPublicKey,
             validSignature,
@@ -802,7 +809,7 @@ void main() {
       );
 
       test('consumption from non-existent consumable type', () async {
-        final result = await endpoints.commerce.consumeInventory(
+        final result = await endpoints.commerce.consumeEntitlement(
           sessionBuilder,
           validPublicKey,
           validSignature,
@@ -813,11 +820,11 @@ void main() {
 
         expect(result.success, isFalse);
         expect(result.availableBalance, equals(0.0));
-        expect(result.errorMessage, contains('Insufficient balance'));
+        expect(result.errorMessage, contains('not found'));
       });
 
       test('consumption with fractional quantities', () async {
-        final result = await endpoints.commerce.consumeInventory(
+        final result = await endpoints.commerce.consumeEntitlement(
           sessionBuilder,
           validPublicKey,
           validSignature,

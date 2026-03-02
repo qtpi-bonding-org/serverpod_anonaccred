@@ -5,13 +5,13 @@ account:
   - getAccountForRecovery:
 commerce:
   - registerProducts:
+  - initiatePayment:
   - getProductCatalog:
-  - createOrder:
-  - getInventory:
-  - getBalance:
-  - consumeInventory:
+  - getEntitlements:
+  - getEntitlementBalance:
+  - consumeEntitlement:
   - getProductCatalogWithX402:
-  - getBalanceWithX402:
+  - getEntitlementBalanceWithX402:
 device:
   - registerDevice:
   - authenticateDevice:
@@ -33,15 +33,11 @@ module:
   - hello:
   - authenticateUser:
   - processPayment:
-  - manageInventory:
+  - manageEntitlements:
 payment:
-  - initiatePayment:
   - checkPaymentStatus:
   - processMoneroWebhook:
   - processX402Webhook:
-  - processAppleIAPWebhook:
-  - processGoogleIAPWebhook:
-  - requestPaymentStatusWithX402:
 x402:
   - requestPaidResource:
   - requestConsumableAccess:

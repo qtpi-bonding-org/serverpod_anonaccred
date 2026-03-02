@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:crypto/crypto.dart' as crypto_lib;
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';
 
@@ -19,7 +20,9 @@ void main() {
       final messageBytes = utf8.encode(message);
 
       // Sign the message with the private key
-      final signatureBytes = await keyPair.privateKey.signBytes(Uint8List.fromList(messageBytes), Hash.sha256);
+      // Pre-hash to match CryptoUtils behavior
+      final hashedMessage = crypto_lib.sha256.convert(messageBytes).bytes;
+      final signatureBytes = await keyPair.privateKey.signBytes(Uint8List.fromList(hashedMessage), Hash.sha256);
       final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Test CryptoUtils.verifySignature with real signature
@@ -38,7 +41,9 @@ void main() {
       // Generate a proper challenge and sign it
       final challenge = CryptoUtils.generateChallenge();
       final challengeBytes = utf8.encode(challenge);
-      final challengeSignatureBytes = await keyPair.privateKey.signBytes(Uint8List.fromList(challengeBytes), Hash.sha256);
+      // Pre-hash to match CryptoUtils behavior
+      final hashedChallenge = crypto_lib.sha256.convert(challengeBytes).bytes;
+      final challengeSignatureBytes = await keyPair.privateKey.signBytes(Uint8List.fromList(hashedChallenge), Hash.sha256);
       final challengeSignatureHex = challengeSignatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       final result = await CryptoAuth.verifyChallengeResponse(

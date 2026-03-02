@@ -30,10 +30,7 @@ void main() {
       );
 
       // Crypto utilities should be available
-      expect(
-        () => CryptoUtils.isValidPublicKey('invalid'),
-        returnsNormally,
-      );
+      expect(() => CryptoUtils.isValidPublicKey('invalid'), returnsNormally);
 
       // Privacy logger removed - using Serverpod built-in logging
     });
@@ -70,7 +67,7 @@ void main() {
           AnonAccredExceptionFactory.createPaymentException(
             code: AnonAccredErrorCodes.paymentInsufficientFunds,
             message: 'Payment test',
-            orderId: 'order123',
+            internalTransactionId: 'order123',
             paymentRail: 'monero',
           );
 
@@ -78,7 +75,7 @@ void main() {
         paymentException.code,
         equals(AnonAccredErrorCodes.paymentInsufficientFunds),
       );
-      expect(paymentException.orderId, equals('order123'));
+      expect(paymentException.internalTransactionId, equals('order123'));
       expect(paymentException.paymentRail, equals('monero'));
 
       // Test inventory exception
@@ -87,7 +84,7 @@ void main() {
             code: AnonAccredErrorCodes.inventoryInsufficientBalance,
             message: 'Inventory test',
             accountId: 123,
-            consumableType: 'test_consumable',
+            tag: 'test_consumable',
           );
 
       expect(
@@ -95,7 +92,7 @@ void main() {
         equals(AnonAccredErrorCodes.inventoryInsufficientBalance),
       );
       expect(inventoryException.accountId, equals(123));
-      expect(inventoryException.consumableType, equals('test_consumable'));
+      expect(inventoryException.tag, equals('test_consumable'));
     });
 
     test('error classification provides comprehensive analysis', () {
@@ -136,13 +133,15 @@ void main() {
       expect(CryptoUtils.isValidPublicKey('short'), isFalse);
 
       // Test with valid format (128 hex characters)
-      const validKey = 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
-                       'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      const validKey =
+          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       expect(CryptoUtils.isValidPublicKey(validKey), isTrue);
 
       // Test with invalid hex characters
-      const invalidHex = 'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
-                         'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      const invalidHex =
+          'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+          'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       expect(CryptoUtils.isValidPublicKey(invalidHex), isFalse);
     });
 

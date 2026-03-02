@@ -57,18 +57,18 @@ void main() {
       expect(
         () => X402PaymentProcessor.generatePaymentRequired(
           amount: 10.0,
-          orderId: 'test_order_123',
+          internalTransactionId: 'test_order_123',
         ),
         returnsNormally, // Should work with default config
       );
       
       final response = X402PaymentProcessor.generatePaymentRequired(
         amount: 10.0,
-        orderId: 'test_order_123',
+        internalTransactionId: 'test_order_123',
       );
       
       expect(response.amount, equals(10.0));
-      expect(response.orderId, equals('test_order_123'));
+      expect(response.internalTransactionId, equals('test_order_123'));
       expect(response.currency, equals('USD'));
       expect(response.protocol, equals('x402'));
     });

@@ -1,0 +1,6 @@
+enum: EntitlementType
+serialized: byName
+values:
+  - consumable
+  - subscription
+  - onetime

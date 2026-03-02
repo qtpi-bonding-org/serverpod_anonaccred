@@ -125,13 +125,13 @@ class MockPaymentRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     // Mock implementation for testing
     return PaymentRequestExtension.withRailData(
-      paymentRef: 'mock_payment_ref_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
+      paymentRef: 'mock_payment_ref_${internalTransactionId}_${DateTime.now().millisecondsSinceEpoch}',
       amountUSD: amountUSD,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       railData: {
         'railType': railType.toString(),
         'mockData': 'test_data',
@@ -145,7 +145,7 @@ class MockPaymentRail implements PaymentRailInterface {
     // Mock implementation for testing
     return PaymentResult(
       success: true,
-      orderId: callbackData['orderId'] as String?,
+      internalTransactionId: callbackData['internalTransactionId'] as String?,
       transactionTimestamp: DateTime.now(),
     );
   }

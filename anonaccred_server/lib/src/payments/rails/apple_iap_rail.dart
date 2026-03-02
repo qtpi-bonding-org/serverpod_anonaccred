@@ -2,16 +2,16 @@ import 'dart:convert';
 
 import 'package:serverpod/serverpod.dart';
 
+import '../../crypto_utils.dart'; // REQUIRED for hashing
+import '../../entitlement_manager.dart';
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
 import '../../product_mapping_config.dart';
 import '../app_store_server_client.dart';
-import '../apple_consumable_delivery_manager.dart';
 import '../apple_jwt_auth_client.dart';
-import '../decoded_transaction.dart';
 import '../notification_signature_validator.dart';
 import '../payment_rail_interface.dart';
-import '../../inventory_manager.dart';
+import 'package:uuid/uuid.dart';
 
 /// Apple In-App Purchase payment rail implementation using app_store_server_sdk.
 ///
@@ -27,16 +27,9 @@ class AppleIAPRail implements PaymentRailInterface {
   /// Creates a new AppleIAPRail instance.
   ///
   /// [client] - Optional AppStoreServerClient for dependency injection (defaults to production client)
-  /// [deliveryManager] - Optional AppleConsumableDeliveryManager for dependency injection
-  AppleIAPRail({
-    AppStoreServerClient? client,
-    AppleConsumableDeliveryManager? deliveryManager,
-  }) : _client = client,
-       _deliveryManager =
-           deliveryManager ?? const AppleConsumableDeliveryManager();
+  AppleIAPRail({AppStoreServerClient? client}) : _client = client;
 
   final AppStoreServerClient? _client;
-  final AppleConsumableDeliveryManager _deliveryManager;
 
   /// Factory to create and initialize AppleIAPRail asynchronously
   static Future<AppleIAPRail> create() async {
@@ -54,7 +47,7 @@ class AppleIAPRail implements PaymentRailInterface {
             'Apple IAP rail not initialized. Use AppleIAPRail.create() or provide a client.',
       );
     }
-    return _client!;
+    return _client;
   }
 
   @override
@@ -63,17 +56,17 @@ class AppleIAPRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     // For IAP, the payment request provides information for the mobile app
     // The actual payment happens in the mobile app, then transaction is validated
     return PaymentRequest(
-      paymentRef: orderId,
+      paymentRef: internalTransactionId,
       amountUSD: amountUSD,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       railDataJson: jsonEncode({
         'payment_rail': 'apple_iap',
-        'order_id': orderId,
+        'internal_transaction_id': internalTransactionId,
         'amount_usd': amountUSD,
         'validation_endpoint': '/api/iap/apple/validate',
         'instructions':
@@ -186,25 +179,35 @@ class AppleIAPRail implements PaymentRailInterface {
     required String transactionId,
     required String productId,
     required int accountId,
+    String?
+    internalTransactionId, // Optional internal reference if provided by client
   }) async {
-    // 1. Check for existing delivery (idempotency)
-    final existingDelivery = await _deliveryManager.findByIdempotencyKey(
+    // 1. Hash the transaction ID for blind idempotency
+    final transactionHash = CryptoUtils.sha256Hash(transactionId);
+
+    // 2. Check for existing delivery via hash (idempotency)
+    final existingHash = await ReceiptHash.db.findFirstRow(
       session,
-      transactionId,
+      where: (t) => t.hash.equals(transactionHash),
     );
 
-    if (existingDelivery != null) {
-      return AppleTransactionValidationResult.fromExistingDelivery(
-        existingDelivery,
+    if (existingHash != null) {
+      // If we've seen this hash, it means coins were already delivered.
+      // We return success with fromCache=true to let the app know it's handled.
+      return AppleTransactionValidationResult(
+        isValid: true,
+        transactionId: transactionId,
+        productId: productId,
+        fromCache: true,
       );
     }
 
-    // 2. Validate with Apple API
+    // 3. Validate with Apple API
     final historyResponse = await _appStoreClient.getTransactionInfo(
       transactionId,
     );
 
-    // 3. Decode and verify the signed transaction
+    // 4. Decode and verify the signed transaction
     if (historyResponse.signedTransactions.isEmpty) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
@@ -216,7 +219,7 @@ class AppleIAPRail implements PaymentRailInterface {
     final signedTransaction = historyResponse.signedTransactions.first;
     final decodedTransaction = _decodeSignedTransaction(signedTransaction);
 
-    // 4. Verify product ID matches
+    // 5. Verify product ID matches
     if (decodedTransaction.productId != productId) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
@@ -229,7 +232,7 @@ class AppleIAPRail implements PaymentRailInterface {
       );
     }
 
-    // 5. Get product mapping
+    // 6. Get product mapping
     final mapping = ProductMappingConfig.getAppleMapping(productId);
     if (mapping == null) {
       throw AnonAccredExceptionFactory.createException(
@@ -239,28 +242,78 @@ class AppleIAPRail implements PaymentRailInterface {
       );
     }
 
-    // 6. Record delivery and add to inventory (atomic)
-    await session.db.transaction((transaction) async {
-      await _deliveryManager.recordDelivery(
+    // 7. Atomic Transaction: Record permanent hash, ephemeral audit, delivery, and credit inventory
+    await session.db.transaction((dbTransaction) async {
+      // a. Record the transaction hash permanently (blind idempotency)
+      await ReceiptHash.db.insertRow(
         session,
-        productId: productId,
-        accountId: accountId,
-        consumableType: mapping.consumableType,
-        quantity: mapping.quantity,
-        orderId: decodedTransaction.webOrderLineItemId ?? 'unknown',
-        platformSpecificData: {
-          'transactionId': transactionId,
-          'originalTransactionId': decodedTransaction.originalTransactionId,
-        },
+        ReceiptHash(hash: transactionHash, paymentRail: PaymentRail.apple_iap),
+        transaction: dbTransaction,
       );
 
-      await InventoryManager.updateInventoryBalance(
-        session,
-        accountId: accountId,
-        consumableType: mapping.consumableType,
-        quantityDelta: mapping.quantity,
-        transaction: transaction,
+      // b. Record the EPHEMERAL accreditation (Bridge account to time for 7-day refund support)
+      final purchaseDate = DateTime.fromMillisecondsSinceEpoch(
+        decodedTransaction.purchaseDate,
       );
+
+      await EphemeralAccreditation.db.insertRow(
+        session,
+        EphemeralAccreditation(
+          accountId: accountId,
+          transactionTimestamp: purchaseDate,
+        ),
+        transaction: dbTransaction,
+      );
+
+      // c. Create the PERMANENT financial record on-the-fly
+      final internalTxId = internalTransactionId ?? const Uuid().v4();
+
+      // Find the RailProduct for this SKU
+      final railProduct = await RailProduct.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.rail.equals(PaymentRail.apple_iap) &
+            t.storeProductId.equals(productId),
+        transaction: dbTransaction,
+      );
+
+      final txPayment = await TransactionPayment.db.insertRow(
+        session,
+        TransactionPayment(
+          railProductId:
+              railProduct?.id ??
+              0, // Should handle null in real prod, but mapping exists
+          internalTransactionId: internalTxId,
+          priceCurrency: Currency.USD,
+          price: 0.0, // Placeholder
+          paymentRail: PaymentRail.apple_iap,
+          paymentCurrency: Currency.USD,
+          paymentAmount: 0.0,
+          paymentRef: transactionId,
+          transactionTimestamp: purchaseDate,
+          clientReference: internalTxId,
+          status: OrderStatus.paid,
+        ),
+        transaction: dbTransaction,
+      );
+
+      // d. Credit user inventory based on grants
+      if (railProduct != null) {
+        final grants = await RailProductGrant.db.find(
+          session,
+          where: (t) => t.railProductId.equals(railProduct.id),
+          transaction: dbTransaction,
+        );
+
+        for (final grant in grants) {
+          await EntitlementManager.grantEntitlementById(
+            session,
+            accountId: accountId,
+            entitlementId: grant.entitlementId,
+            quantity: grant.quantity,
+          );
+        }
+      }
     });
 
     return AppleTransactionValidationResult.fromTransaction(
@@ -325,22 +378,18 @@ class AppleIAPRail implements PaymentRailInterface {
     final transaction = _decodeSignedTransaction(signedTransactionInfo);
     final transactionId = transaction.transactionId;
 
-    // Find what was delivered
-    final delivery = await _deliveryManager.findByIdempotencyKey(
+    // Find what was delivered via hash (Purely for logging in the new system)
+    final transactionHash = CryptoUtils.sha256Hash(transactionId);
+    final hashRecord = await ReceiptHash.db.findFirstRow(
       session,
-      transactionId,
+      where: (t) => t.hash.equals(transactionHash),
     );
 
-    if (delivery != null) {
+    if (hashRecord != null) {
       session.log(
-        'Refund processed for transaction: $transactionId, '
-        'product: ${delivery.productId}, '
-        'delivered: ${delivery.quantity} ${delivery.consumableType}',
+        'Refund processed for transaction: $transactionId (Hash: $transactionHash)',
         level: LogLevel.warning,
       );
-
-      // Note: We don't automatically remove from inventory
-      // This is a business decision - log for manual review
     } else {
       session.log(
         'Refund notification for unknown transaction: $transactionId',
@@ -383,6 +432,87 @@ class AppleIAPRail implements PaymentRailInterface {
   /// Requirements 2.5, 7.2
   DecodedTransaction _decodeSignedTransaction(String signedTransaction) =>
       DecodedTransaction.fromJWT(signedTransaction);
+
+  /// Extract transaction information from validated Apple purchase
+  ///
+  /// Parses Apple purchase data to extract essential transaction details
+  /// without storing any PII. Only extracts transaction IDs and product information.
+  static Map<String, dynamic> extractTransactionData(
+    Map<String, dynamic> purchaseData,
+  ) {
+    if (purchaseData.containsKey('receipt')) {
+      final receipt = purchaseData['receipt'] as Map<String, dynamic>;
+      final inApp = receipt['in_app'] as List<dynamic>?;
+      final firstInApp = inApp != null && inApp.isNotEmpty
+          ? inApp.first as Map<String, dynamic>
+          : <String, dynamic>{};
+
+      return {
+        'transaction_id': firstInApp['transaction_id'] as String?,
+        'original_transaction_id':
+            firstInApp['original_transaction_id'] as String?,
+        'product_id': firstInApp['product_id'] as String?,
+        'purchase_date': firstInApp['purchase_date'] as String?,
+        'purchase_date_ms': firstInApp['purchase_date_ms'] as String?,
+        'quantity': firstInApp['quantity'] as String?,
+        'is_trial_period': firstInApp['is_trial_period'] as String?,
+        'bundle_id': receipt['bundle_id'] as String?,
+        'application_version': receipt['application_version'] as String?,
+      };
+    }
+    return purchaseData;
+  }
+}
+
+/// Decoded Apple transaction data.
+///
+/// Contains details extracted from the signed transaction JWT.
+class DecodedTransaction {
+  DecodedTransaction({
+    required this.transactionId,
+    required this.originalTransactionId,
+    required this.productId,
+    required this.purchaseDate,
+    required this.quantity,
+    required this.type,
+    required this.inAppOwnershipType,
+    this.revocationDate,
+    this.revocationReason,
+  });
+
+  /// Create from signed JWT (unverified decode)
+  factory DecodedTransaction.fromJWT(String signedTransaction) {
+    final parts = signedTransaction.split('.');
+    if (parts.length != 3) {
+      throw const FormatException('Invalid JWT format');
+    }
+
+    final payloadPart = parts[1];
+    final normalized = base64Url.normalize(payloadPart);
+    final decoded = utf8.decode(base64Url.decode(normalized));
+    final json = jsonDecode(decoded) as Map<String, dynamic>;
+
+    return DecodedTransaction(
+      transactionId: json['transactionId'] as String,
+      originalTransactionId: json['originalTransactionId'] as String,
+      productId: json['productId'] as String,
+      purchaseDate: (json['purchaseDate'] as num).toInt(),
+      quantity: (json['quantity'] as num).toInt(),
+      type: json['type'] as String,
+      inAppOwnershipType: json['inAppOwnershipType'] as String,
+      revocationDate: (json['revocationDate'] as num?)?.toInt(),
+      revocationReason: (json['revocationReason'] as num?)?.toInt(),
+    );
+  }
+  final String transactionId;
+  final String originalTransactionId;
+  final String productId;
+  final int purchaseDate;
+  final int quantity;
+  final String type;
+  final String inAppOwnershipType;
+  final int? revocationDate;
+  final int? revocationReason;
 }
 
 /// Apple transaction validation result.
@@ -395,7 +525,7 @@ class AppleTransactionValidationResult {
     this.originalTransactionId,
     this.productId,
     this.purchaseDate,
-    this.consumableType,
+    this.tag,
     this.quantity,
     this.fromCache = false,
     this.deliveredAt,
@@ -411,29 +541,15 @@ class AppleTransactionValidationResult {
     originalTransactionId: transaction.originalTransactionId,
     productId: transaction.productId,
     purchaseDate: DateTime.fromMillisecondsSinceEpoch(transaction.purchaseDate),
-    consumableType: mapping.consumableType,
+    tag: mapping.consumableType,
     quantity: mapping.quantity,
-  );
-
-  /// Create result from an existing delivery record (idempotent case).
-  factory AppleTransactionValidationResult.fromExistingDelivery(
-    AppleConsumableDelivery delivery,
-  ) => AppleTransactionValidationResult(
-    isValid: true,
-    transactionId: delivery.transactionId,
-    originalTransactionId: delivery.originalTransactionId,
-    productId: delivery.productId,
-    consumableType: delivery.consumableType,
-    quantity: delivery.quantity,
-    fromCache: true,
-    deliveredAt: delivery.deliveredAt,
   );
   final bool isValid;
   final String? transactionId;
   final String? originalTransactionId;
   final String? productId;
   final DateTime? purchaseDate;
-  final String? consumableType;
+  final String? tag;
   final double? quantity;
   final bool fromCache;
   final DateTime? deliveredAt;

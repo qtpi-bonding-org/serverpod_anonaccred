@@ -3,12 +3,12 @@
 // the documentation on how to add endpoints to your server.
 
 import 'package:serverpod/serverpod.dart';
+import '../entitlement_manager.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 
 class ModuleEndpoint extends Endpoint {
-  Future<String> hello(Session session, String name) async =>
-      'Hello $name';
+  Future<String> hello(Session session, String name) async => 'Hello $name';
 
   /// Authenticates a user using Ed25519 signature verification
   /// Throws AuthenticationException on failure
@@ -99,19 +99,19 @@ class ModuleEndpoint extends Endpoint {
   /// Throws PaymentException on failure
   Future<String> processPayment(
     Session session,
-    String orderId,
+    String internalTransactionId,
     String paymentRail,
     double amount,
   ) async {
     try {
       // Validate input parameters
-      if (orderId.isEmpty) {
+      if (internalTransactionId.isEmpty) {
         final exception = AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentFailed,
-          message: 'Order ID is required for payment processing',
-          orderId: orderId,
+          message: 'Internal transaction ID is required for payment processing',
+          internalTransactionId: internalTransactionId,
           paymentRail: paymentRail,
-          details: {'orderId': 'empty'},
+          details: {'internalTransactionId': 'empty'},
         );
 
         throw exception;
@@ -121,7 +121,7 @@ class ModuleEndpoint extends Endpoint {
         final exception = AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentInsufficientFunds,
           message: 'Payment amount must be greater than zero',
-          orderId: orderId,
+          internalTransactionId: internalTransactionId,
           paymentRail: paymentRail,
           details: {'amount': amount.toString()},
         );
@@ -130,12 +130,12 @@ class ModuleEndpoint extends Endpoint {
       }
 
       // Validate payment rail
-      const validRails = ['x402', 'monero', 'iap'];
+      const validRails = ['x402_http', 'monero', 'apple_iap', 'google_iap'];
       if (!validRails.contains(paymentRail.toLowerCase())) {
         final exception = AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentInvalidRail,
           message: 'Invalid payment rail specified',
-          orderId: orderId,
+          internalTransactionId: internalTransactionId,
           paymentRail: paymentRail,
           details: {
             'providedRail': paymentRail,
@@ -147,11 +147,11 @@ class ModuleEndpoint extends Endpoint {
       }
 
       // Simulate payment processing failures
-      if (orderId.startsWith('fail_')) {
+      if (internalTransactionId.startsWith('fail_')) {
         final exception = AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentFailed,
           message: 'Payment processing failed',
-          orderId: orderId,
+          internalTransactionId: internalTransactionId,
           paymentRail: paymentRail,
           details: {'reason': 'simulated_failure'},
         );
@@ -163,7 +163,7 @@ class ModuleEndpoint extends Endpoint {
         final exception = AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentInsufficientFunds,
           message: 'Payment amount exceeds limit',
-          orderId: orderId,
+          internalTransactionId: internalTransactionId,
           paymentRail: paymentRail,
           details: {'amount': amount.toString(), 'limit': '1000'},
         );
@@ -173,7 +173,7 @@ class ModuleEndpoint extends Endpoint {
 
       // Successful payment processing
       final receipt =
-          'payment_receipt_${orderId}_${DateTime.now().millisecondsSinceEpoch}';
+          'payment_receipt_${internalTransactionId}_${DateTime.now().millisecondsSinceEpoch}';
 
       return receipt;
     } on PaymentException {
@@ -185,128 +185,99 @@ class ModuleEndpoint extends Endpoint {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.internalError,
         message: 'Unexpected error during payment processing: ${e.toString()}',
-        orderId: orderId,
+        internalTransactionId: internalTransactionId,
         paymentRail: paymentRail,
         details: {'error': e.toString()},
       );
     }
   }
 
-  /// Manages inventory operations (check balance, add consumables)
+  /// Manages entitlement operations (check balance, grant)
   /// Throws InventoryException on failure
-  Future<int> manageInventory(
+  Future<double> manageEntitlements(
     Session session,
     int accountId,
-    String consumableType,
-    String operation, // 'check' or 'add'
-    int? quantity,
+    String tag,
+    String operation, // 'check' or 'grant'
+    double? quantity,
   ) async {
     try {
       // Validate input parameters
       if (accountId <= 0) {
-        final exception = AnonAccredExceptionFactory.createInventoryException(
+        throw AnonAccredExceptionFactory.createInventoryException(
           code: AnonAccredErrorCodes.inventoryAccountNotFound,
           message: 'Invalid account ID provided',
           accountId: accountId,
-          consumableType: consumableType,
+          tag: tag,
           details: {'accountId': accountId.toString()},
         );
-
-        throw exception;
       }
 
-      if (consumableType.isEmpty) {
-        final exception = AnonAccredExceptionFactory.createInventoryException(
+      if (tag.isEmpty) {
+        throw AnonAccredExceptionFactory.createInventoryException(
           code: AnonAccredErrorCodes.inventoryInvalidConsumable,
-          message: 'Consumable type is required',
+          message: 'Entitlement tag is required',
           accountId: accountId,
-          consumableType: consumableType,
-          details: {'consumableType': 'empty'},
+          tag: tag,
+          details: {'tag': 'empty'},
         );
-
-        throw exception;
       }
 
-      // Validate consumable type
-      const validTypes = ['api_calls', 'storage_gb', 'compute_hours'];
-      if (!validTypes.contains(consumableType)) {
-        final exception = AnonAccredExceptionFactory.createInventoryException(
-          code: AnonAccredErrorCodes.inventoryInvalidConsumable,
-          message: 'Invalid consumable type specified',
-          accountId: accountId,
-          consumableType: consumableType,
-          details: {
-            'providedType': consumableType,
-            'validTypes': validTypes.join(', '),
-          },
-        );
-
-        throw exception;
-      }
-
-      // Simulate account not found
-      if (accountId == 404) {
-        final exception = AnonAccredExceptionFactory.createInventoryException(
-          code: AnonAccredErrorCodes.inventoryAccountNotFound,
-          message: 'Account not found',
-          accountId: accountId,
-          consumableType: consumableType,
-          details: {'accountId': accountId.toString()},
-        );
-
-        throw exception;
-      }
-
-      // Handle different operations
+      // Handle different operations using EntitlementManager
       switch (operation.toLowerCase()) {
         case 'check':
-          // Simulate checking balance
-          const balance = 100; // Mock balance
-
-          return balance;
-
-        case 'add':
-          if (quantity == null || quantity <= 0) {
-            final exception =
-                AnonAccredExceptionFactory.createInventoryException(
-                  code: AnonAccredErrorCodes.inventoryInvalidConsumable,
-                  message:
-                      'Quantity must be greater than zero for add operation',
-                  accountId: accountId,
-                  consumableType: consumableType,
-                  details: {'quantity': quantity?.toString() ?? 'null'},
-                );
-
-            throw exception;
-          }
-
-          // Simulate adding to inventory
-          final newBalance = 100 + quantity; // Mock new balance
-
-          return newBalance;
-
-        default:
-          final exception = AnonAccredExceptionFactory.createInventoryException(
-            code: AnonAccredErrorCodes.inventoryInvalidConsumable,
-            message: 'Invalid operation specified',
+          return await EntitlementManager.getEntitlementBalance(
+            session,
             accountId: accountId,
-            consumableType: consumableType,
-            details: {'operation': operation, 'validOperations': 'check, add'},
+            tag: tag,
           );
 
-          throw exception;
+        case 'grant':
+          if (quantity == null || quantity <= 0) {
+            throw AnonAccredExceptionFactory.createInventoryException(
+              code: AnonAccredErrorCodes.inventoryInvalidConsumable,
+              message: 'Quantity must be greater than zero for grant operation',
+              accountId: accountId,
+              tag: tag,
+              details: {'quantity': quantity?.toString() ?? 'null'},
+            );
+          }
+
+          await EntitlementManager.grantEntitlement(
+            session,
+            accountId: accountId,
+            tag: tag,
+            quantity: quantity,
+          );
+
+          // Return new balance
+          return await EntitlementManager.getEntitlementBalance(
+            session,
+            accountId: accountId,
+            tag: tag,
+          );
+
+        default:
+          throw AnonAccredExceptionFactory.createInventoryException(
+            code: AnonAccredErrorCodes.inventoryInvalidConsumable,
+            message: 'Invalid operation specified: $operation',
+            accountId: accountId,
+            tag: tag,
+            details: {
+              'operation': operation,
+              'validOperations': 'check, grant',
+            },
+          );
       }
     } on InventoryException {
       rethrow;
     } catch (e) {
-      // Log unexpected error
-
-      // Wrap unexpected errors in InventoryException
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccredErrorCodes.internalError,
-        message: 'Unexpected error during inventory operation: ${e.toString()}',
+        message:
+            'Unexpected error during entitlement operation: ${e.toString()}',
         accountId: accountId,
-        consumableType: consumableType,
+        tag: tag,
         details: {'error': e.toString()},
       );
     }

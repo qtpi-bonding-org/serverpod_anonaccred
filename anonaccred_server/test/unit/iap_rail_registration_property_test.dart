@@ -89,9 +89,9 @@ void main() {
                reason: 'Google rail should have valid PaymentRail type');
         
         // Test that createPayment method exists and returns Future<PaymentRequest>
-        expect(() => appleRail.createPayment(amountUSD: 1.0, orderId: 'test'),
+        expect(() => appleRail.createPayment(amountUSD: 1.0, internalTransactionId: 'test'),
                returnsNormally, reason: 'Apple rail should have createPayment method');
-        expect(() => googleRail.createPayment(amountUSD: 1.0, orderId: 'test'),
+        expect(() => googleRail.createPayment(amountUSD: 1.0, internalTransactionId: 'test'),
                returnsNormally, reason: 'Google rail should have createPayment method');
         
         // Test that processCallback method exists and returns Future<PaymentResult>
@@ -143,13 +143,13 @@ void main() {
         expect(() => PaymentManager.createPayment(
           railType: PaymentRail.apple_iap,
           amountUSD: 9.99,
-          orderId: 'apple_test_$i',
+          internalTransactionId: 'apple_test_$i',
         ), returnsNormally, reason: 'Payment creation should work for Apple IAP');
         
         expect(() => PaymentManager.createPayment(
           railType: PaymentRail.google_iap,
           amountUSD: 4.99,
-          orderId: 'google_test_$i',
+          internalTransactionId: 'google_test_$i',
         ), returnsNormally, reason: 'Payment creation should work for Google IAP');
         
         PaymentManager.clearRails();

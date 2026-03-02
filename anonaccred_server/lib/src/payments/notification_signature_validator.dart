@@ -6,18 +6,11 @@ import 'package:pointycastle/export.dart';
 import 'package:serverpod/serverpod.dart';
 
 import '../exception_factory.dart';
-import '../generated/protocol.dart';
 
 const String _appleJwksUrl = 'https://api.appstoreconnect.apple.com/v1/certs';
 const Duration _jwksCacheExpiry = Duration(hours: 24);
 
 class _ApplePublicKey {
-  final String kid;
-  final String kty;
-  final String use;
-  final String alg;
-  final String n;
-  final String e;
 
   _ApplePublicKey({
     required this.kid,
@@ -28,8 +21,7 @@ class _ApplePublicKey {
     required this.e,
   });
 
-  factory _ApplePublicKey.fromJson(Map<String, dynamic> json) {
-    return _ApplePublicKey(
+  factory _ApplePublicKey.fromJson(Map<String, dynamic> json) => _ApplePublicKey(
       kid: json['kid'] as String,
       kty: json['kty'] as String,
       use: json['use'] as String,
@@ -37,7 +29,12 @@ class _ApplePublicKey {
       n: json['n'] as String,
       e: json['e'] as String,
     );
-  }
+  final String kid;
+  final String kty;
+  final String use;
+  final String alg;
+  final String n;
+  final String e;
 }
 
 class _JWKSCache {
@@ -202,9 +199,7 @@ class NotificationSignatureValidator {
     return BigInt.parse(_bytesToHex(bytes), radix: 16);
   }
 
-  static String _bytesToHex(List<int> bytes) {
-    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
-  }
+  static String _bytesToHex(List<int> bytes) => bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
   static List<int> _base64UrlDecode(String input) {
     final normalized = input.replaceAll('-', '+').replaceAll('_', '/');

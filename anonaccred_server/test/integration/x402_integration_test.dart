@@ -21,11 +21,11 @@ void main() {
           session: session,
           railType: PaymentRail.x402_http,
           amountUSD: 25.99,
-          orderId: 'integration_test_order_456',
+          internalTransactionId: 'integration_test_order_456',
         );
 
         expect(paymentRequest.amountUSD, equals(25.99));
-        expect(paymentRequest.orderId, equals('integration_test_order_456'));
+        expect(paymentRequest.internalTransactionId, equals('integration_test_order_456'));
         expect(
           paymentRequest.paymentRef,
           startsWith('x402_integration_test_order_456_'),
@@ -60,7 +60,7 @@ void main() {
         session: session,
         railType: PaymentRail.x402_http,
         amountUSD: 5.00,
-        orderId: 'e2e_test_order_789',
+        internalTransactionId: 'e2e_test_order_789',
       );
 
       expect(paymentRequest.paymentRef, isNotNull);
@@ -71,14 +71,14 @@ void main() {
 
       final callbackData = {
         'paymentRef': paymentRequest.paymentRef,
-        'orderId': paymentRequest.orderId,
+        'internalTransactionId': paymentRequest.internalTransactionId,
         'success': true,
       };
 
       final result = await rail!.processCallback(callbackData);
 
       expect(result.success, isTrue);
-      expect(result.orderId, equals('e2e_test_order_789'));
+      expect(result.internalTransactionId, equals('e2e_test_order_789'));
       expect(result.transactionTimestamp, isNotNull);
     });
 
@@ -102,14 +102,14 @@ void main() {
           session: session,
           railType: PaymentRail.x402_http,
           amountUSD: 10.00,
-          orderId: 'x402_order',
+          internalTransactionId: 'x402_order',
         );
 
         final moneroPayment = await PaymentManager.createPayment(
           session: session,
           railType: PaymentRail.monero,
           amountUSD: 15.00,
-          orderId: 'monero_order',
+          internalTransactionId: 'monero_order',
         );
 
         expect(x402Payment.railData['protocol'], equals('x402'));
@@ -147,11 +147,11 @@ class MockPaymentRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async => PaymentRequestExtension.withRailData(
-    paymentRef: 'mock_${orderId}_${DateTime.now().millisecondsSinceEpoch}',
+    paymentRef: 'mock_${internalTransactionId}_${DateTime.now().millisecondsSinceEpoch}',
     amountUSD: amountUSD,
-    orderId: orderId,
+    internalTransactionId: internalTransactionId,
     railData: {'railType': railType.name, 'mockData': 'test_data'},
   );
 
@@ -160,7 +160,7 @@ class MockPaymentRail implements PaymentRailInterface {
     Map<String, dynamic> callbackData,
   ) async => PaymentResult(
     success: true,
-    orderId: callbackData['orderId'] as String?,
+    internalTransactionId: callbackData['internalTransactionId'] as String?,
     transactionTimestamp: DateTime.now(),
   );
 }

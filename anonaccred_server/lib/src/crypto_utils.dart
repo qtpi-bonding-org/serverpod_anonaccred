@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
 import 'package:pointycastle/export.dart';
 import 'exception_factory.dart';
 
@@ -239,70 +240,25 @@ class CryptoUtils {
   static String bytesToHex(Uint8List bytes) =>
       bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
+  /// Generates a deterministic SHA-256 hash of a string.
+  /// Used for blind idempotency and privacy hardening.
+  static String sha256Hash(String input) {
+    if (input.isEmpty) return '';
+    return sha256.convert(utf8.encode(input)).toString();
+  }
+
   /// Generates a cryptographically secure challenge string for authentication.
   ///
   /// Creates a random challenge that can be signed by the client
-  /// to prove ownership of a private key. The challenge includes a timestamp
-  /// for expiration validation.
+  /// to prove ownership of a private key. Challenge expiration is handled
+  /// by Redis TTL in DeviceChallengeStorage.
   ///
-  /// Returns a hex-encoded challenge string with embedded timestamp.
+  /// Returns a hex-encoded 32-byte random challenge.
   static String generateChallenge() {
     final random = Random.secure();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-    // Create challenge with timestamp prefix (8 bytes) + random data (24 bytes)
-    final timestampBytes = Uint8List(8);
-    ByteData.view(timestampBytes.buffer).setUint64(0, timestamp);
-
-    final randomBytes = Uint8List.fromList(
-      List.generate(24, (_) => random.nextInt(256)),
+    final bytes = Uint8List.fromList(
+      List.generate(32, (_) => random.nextInt(256)),
     );
-
-    // Combine timestamp and random data
-    final challengeBytes = Uint8List.fromList([
-      ...timestampBytes,
-      ...randomBytes,
-    ]);
-
-    return bytesToHex(challengeBytes);
-  }
-
-  /// Validates that a challenge has not expired.
-  ///
-  /// Challenges are valid for 5 minutes (300 seconds) from creation.
-  ///
-  /// Returns true if the challenge is still valid, false if expired.
-  static bool isChallengeValid(String challenge) {
-    if (challenge.length != 64) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoFormatError,
-        message: 'Invalid challenge format',
-        operation: 'isChallengeValid',
-        details: {
-          'challengeLength': challenge.length.toString(),
-          'expectedLength': '64',
-        },
-      );
-    }
-
-    try {
-      // Extract timestamp from first 8 bytes (16 hex chars)
-      final timestampHex = challenge.substring(0, 16);
-      final timestampBytes = hexToBytes(timestampHex);
-      final timestampView = ByteData.view(timestampBytes.buffer);
-      final challengeTimestamp = timestampView.getUint64(0);
-
-      final now = DateTime.now().millisecondsSinceEpoch;
-      const challengeValidityDuration = 5 * 60 * 1000; // 5 minutes
-
-      return (now - challengeTimestamp) <= challengeValidityDuration;
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoFormatError,
-        message: 'Failed to parse challenge timestamp',
-        operation: 'isChallengeValid',
-        details: {'error': e.toString()},
-      );
-    }
+    return bytesToHex(bytes);
   }
 }

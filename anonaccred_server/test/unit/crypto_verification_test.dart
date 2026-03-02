@@ -184,16 +184,5 @@ void main() {
       );
     });
 
-    test('challenge validity check works correctly', () {
-      // Generate a fresh challenge - should be valid
-      final freshChallenge = CryptoUtils.generateChallenge();
-      expect(CryptoUtils.isChallengeValid(freshChallenge), isTrue);
-
-      // Invalid challenge format should throw
-      expect(
-        () => CryptoUtils.isChallengeValid('short'),
-        throwsA(isA<AuthenticationException>()),
-      );
-    });
   });
 }

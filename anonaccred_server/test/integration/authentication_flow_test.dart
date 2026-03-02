@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:crypto/crypto.dart' as crypto_lib;
 import 'package:serverpod/serverpod.dart';
-import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';
 
@@ -76,8 +76,9 @@ void main() {
         final challenge = CryptoUtils.generateChallenge();
         final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
         
-        // Sign challenge with device private key
-        final signatureBytes = await deviceKeyPair.privateKey.signBytes(challengeBytes, Hash.sha256);
+        // Pre-hash to match CryptoUtils behavior
+        final hashedChallenge = crypto_lib.sha256.convert(challengeBytes).bytes;
+        final signatureBytes = await deviceKeyPair.privateKey.signBytes(Uint8List.fromList(hashedChallenge), Hash.sha256);
         final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
         // Step 3: Verify authentication (cryptographic verification only)
@@ -197,7 +198,9 @@ void main() {
         final challenge = CryptoUtils.generateChallenge();
         final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
         
-        final signatureBytes = await deviceKeyPair.privateKey.signBytes(challengeBytes, Hash.sha256);
+        // Pre-hash to match CryptoUtils behavior
+        final hashedChallenge = crypto_lib.sha256.convert(challengeBytes).bytes;
+        final signatureBytes = await deviceKeyPair.privateKey.signBytes(Uint8List.fromList(hashedChallenge), Hash.sha256);
         final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
         // Cryptographic verification should still succeed (signature is valid)
@@ -317,7 +320,9 @@ void main() {
           final challenge = CryptoUtils.generateChallenge();
           final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
           
-          final signatureBytes = await keyPairInfo.privateKey.signBytes(challengeBytes, Hash.sha256);
+          // Pre-hash to match CryptoUtils behavior
+          final hashedChallenge = crypto_lib.sha256.convert(challengeBytes).bytes;
+          final signatureBytes = await keyPairInfo.privateKey.signBytes(Uint8List.fromList(hashedChallenge), Hash.sha256);
           final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
           final result = await CryptoAuth.verifyChallengeResponse(

@@ -39,23 +39,23 @@ class PaymentManager {
   /// [session] - Serverpod session for logging operations (optional for testing)
   /// [railType] - The payment rail to use for processing
   /// [amountUSD] - Payment amount in USD
-  /// [orderId] - Unique order identifier
+  /// [internalTransactionId] - Unique internal transaction identifier
   ///
   /// Returns a PaymentRequest with payment details and rail-specific metadata
   ///
   /// Throws PaymentException if the rail type is not supported
   ///
   /// Requirements 2.2, 2.3: Route requests to appropriate rails with error handling
-  /// Requirement 9.1: Log payment creation with order ID, rail type, and amount details
+  /// Requirement 9.1: Log payment creation with transaction ID, rail type, and amount details
   static Future<PaymentRequest> createPayment({
     required PaymentRail railType,
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
     Session? session,
   }) async {
     // Log payment creation initiation (Requirement 9.1)
     session?.log(
-      'Payment creation initiated - OrderId: $orderId, Rail: $railType, Amount: \$${amountUSD.toStringAsFixed(2)}',
+      'Payment creation initiated - TxId: $internalTransactionId, Rail: $railType, Amount: \$${amountUSD.toStringAsFixed(2)}',
       level: LogLevel.info,
     );
 
@@ -63,14 +63,14 @@ class PaymentManager {
     if (rail == null) {
       // Log error with operation context (Requirement 9.3)
       session?.log(
-        'Payment creation failed - Unsupported rail type: $railType for OrderId: $orderId',
+        'Payment creation failed - Unsupported rail type: $railType for TxId: $internalTransactionId',
         level: LogLevel.error,
       );
 
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentInvalidRail,
         message: 'Payment rail not supported: $railType',
-        orderId: orderId,
+        internalTransactionId: internalTransactionId,
         paymentRail: railType.toString(),
         details: {
           'requestedRail': railType.toString(),
@@ -82,12 +82,12 @@ class PaymentManager {
     try {
       final paymentRequest = await rail.createPayment(
         amountUSD: amountUSD,
-        orderId: orderId,
+        internalTransactionId: internalTransactionId,
       );
 
       // Log successful payment creation (Requirement 9.1)
       session?.log(
-        'Payment created successfully - OrderId: $orderId, PaymentRef: ${paymentRequest.paymentRef}, Rail: $railType',
+        'Payment created successfully - TxId: $internalTransactionId, PaymentRef: ${paymentRequest.paymentRef}, Rail: $railType',
         level: LogLevel.info,
       );
 
@@ -95,7 +95,7 @@ class PaymentManager {
     } catch (e) {
       // Log error with complete error details and operation context (Requirement 9.3)
       session?.log(
-        'Payment creation failed - OrderId: $orderId, Rail: $railType, Error: ${e.toString()}',
+        'Payment creation failed - TxId: $internalTransactionId, Rail: $railType, Error: ${e.toString()}',
         level: LogLevel.error,
       );
 
@@ -103,7 +103,7 @@ class PaymentManager {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentFailed,
         message: 'Payment creation failed: ${e.toString()}',
-        orderId: orderId,
+        internalTransactionId: internalTransactionId,
         paymentRail: railType.toString(),
         details: {'error': e.toString(), 'railType': railType.toString()},
       );

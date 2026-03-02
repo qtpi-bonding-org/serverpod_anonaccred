@@ -12,7 +12,6 @@ import '../exception_factory.dart';
 ///
 /// Requirements 1.1, 1.2, 1.3, 1.4, 1.5: OAuth 2.0 service account authentication
 class GoogleAuthClient {
-
   GoogleAuthClient({required this.credentials});
   final ServiceAccountCredentials credentials;
   AccessToken? _cachedToken;
@@ -42,10 +41,7 @@ class GoogleAuthClient {
         throw AnonAccredExceptionFactory.createException(
           code: AnonAccredErrorCodes.configurationMissing,
           message: 'Failed to read Google service account file: $filePath',
-          details: {
-            'filePath': filePath,
-            'error': e.toString(),
-          },
+          details: {'filePath': filePath, 'error': e.toString()},
         );
       }
     }
@@ -64,7 +60,8 @@ class GoogleAuthClient {
     }
 
     try {
-      final credentialsMap = jsonDecode(credentialsJson) as Map<String, dynamic>;
+      final credentialsMap =
+          jsonDecode(credentialsJson) as Map<String, dynamic>;
       final credentials = ServiceAccountCredentials.fromJson(credentialsMap);
       return GoogleAuthClient(credentials: credentials);
     } catch (e) {
@@ -93,6 +90,28 @@ class GoogleAuthClient {
     return _refreshToken();
   }
 
+  /// Create an authenticated HTTP client for Google APIs
+  ///
+  /// Uses clientViaServiceAccount to create a client that automatically
+  /// manages JWT token exchange and refresh.
+  Future<AuthClient> createAuthenticatedClient() async {
+    try {
+      return await clientViaServiceAccount(credentials, [
+        'https://www.googleapis.com/auth/androidpublisher',
+      ]);
+    } catch (e) {
+      throw AnonAccredExceptionFactory.createException(
+        code: AnonAccredErrorCodes.configurationMissing,
+        message:
+            'Failed to create Google authenticated client: ${e.toString()}',
+        details: {
+          'error': e.toString(),
+          'hint': 'Verify service account credentials are valid',
+        },
+      );
+    }
+  }
+
   /// Refresh access token using JWT flow with googleapis_auth
   ///
   /// Creates a JWT signed with the service account private key and exchanges it
@@ -106,10 +125,7 @@ class GoogleAuthClient {
     try {
       // Use clientViaServiceAccount to obtain an authenticated HTTP client
       // This handles JWT creation, signing, and token exchange internally
-      final authClient = await clientViaServiceAccount(
-        credentials,
-        ['https://www.googleapis.com/auth/androidpublisher'],
-      );
+      final authClient = await createAuthenticatedClient();
 
       // Extract the access token from the authenticated client
       final accessToken = authClient.credentials.accessToken;
@@ -125,7 +141,8 @@ class GoogleAuthClient {
         message: 'Failed to refresh Google access token: ${e.toString()}',
         details: {
           'error': e.toString(),
-          'hint': 'Verify service account credentials are valid and have access to Google Play Developer API',
+          'hint':
+              'Verify service account credentials are valid and have access to Google Play Developer API',
         },
       );
     }
