@@ -193,32 +193,6 @@ class IAPEndpoint extends Endpoint {
     }
   }
 
-  /// Placeholder for Apple server-to-server notifications.
-  Future<Map<String, dynamic>> handleAppleWebhook(
-    Session session,
-    Map<String, dynamic> webhookData,
-  ) async {
-    // Webhook logic for status updates (e.g. refunds)
-    return {
-      'success': true,
-      'message': 'Apple webhook processed',
-      'timestamp': DateTime.now().toIso8601String(),
-    };
-  }
-
-  /// Placeholder for Google purchase notifications.
-  Future<Map<String, dynamic>> handleGoogleWebhook(
-    Session session,
-    Map<String, dynamic> webhookData,
-  ) async {
-    // Webhook logic for status updates
-    return {
-      'success': true,
-      'message': 'Google webhook processed',
-      'timestamp': DateTime.now().toIso8601String(),
-    };
-  }
-
   /// Validates authentication using ECDSA P-256 signature verification.
   Future<void> _validateAuthentication(
     Session session,

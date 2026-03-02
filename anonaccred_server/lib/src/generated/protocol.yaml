@@ -24,8 +24,6 @@ device:
 iAP:
   - validateAppleTransaction:
   - validateGooglePurchase:
-  - handleAppleWebhook:
-  - handleGoogleWebhook:
 iAPWebhook:
   - handleAppleWebhook:
   - handleGoogleWebhook:

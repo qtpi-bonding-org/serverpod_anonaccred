@@ -751,44 +751,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     internalTransactionId: params['internalTransactionId'],
                   ),
         ),
-        'handleAppleWebhook': _i1.MethodConnector(
-          name: 'handleAppleWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['iAP'] as _i5.IAPEndpoint).handleAppleWebhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
-        'handleGoogleWebhook': _i1.MethodConnector(
-          name: 'handleGoogleWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['iAP'] as _i5.IAPEndpoint).handleGoogleWebhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
       },
     );
     connectors['iAPWebhook'] = _i1.EndpointConnector(

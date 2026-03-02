@@ -587,24 +587,6 @@ class EndpointIAP extends _i1.EndpointRef {
       'internalTransactionId': internalTransactionId,
     },
   );
-
-  /// Placeholder for Apple server-to-server notifications.
-  _i2.Future<Map<String, dynamic>> handleAppleWebhook(
-    Map<String, dynamic> webhookData,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.iAP',
-    'handleAppleWebhook',
-    {'webhookData': webhookData},
-  );
-
-  /// Placeholder for Google purchase notifications.
-  _i2.Future<Map<String, dynamic>> handleGoogleWebhook(
-    Map<String, dynamic> webhookData,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'anonaccred.iAP',
-    'handleGoogleWebhook',
-    {'webhookData': webhookData},
-  );
 }
 
 /// IAP webhook endpoint for Apple and Google notifications.

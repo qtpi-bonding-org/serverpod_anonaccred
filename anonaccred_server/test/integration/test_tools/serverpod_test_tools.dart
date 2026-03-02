@@ -1036,68 +1036,6 @@ class _IAPEndpoint {
       }
     });
   }
-
-  _i3.Future<Map<String, dynamic>> handleAppleWebhook(
-    _i1.TestSessionBuilder sessionBuilder,
-    Map<String, dynamic> webhookData,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'iAP',
-            method: 'handleAppleWebhook',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'iAP',
-          methodName: 'handleAppleWebhook',
-          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<Map<String, dynamic>>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<Map<String, dynamic>> handleGoogleWebhook(
-    _i1.TestSessionBuilder sessionBuilder,
-    Map<String, dynamic> webhookData,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'iAP',
-            method: 'handleGoogleWebhook',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'iAP',
-          methodName: 'handleGoogleWebhook',
-          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<Map<String, dynamic>>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
 }
 
 class _IAPWebhookEndpoint {
