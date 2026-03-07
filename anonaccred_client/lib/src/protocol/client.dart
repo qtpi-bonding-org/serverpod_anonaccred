@@ -190,6 +190,23 @@ class EndpointCommerce extends _i1.EndpointRef {
     },
   );
 
+  /// Get active store product IDs for a given payment rail.
+  ///
+  /// Returns the list of storeProductId strings from the rail_product table
+  /// where isActive is true and the rail matches. No authentication required
+  /// since product IDs are public information (same as what the stores expose).
+  ///
+  /// Parameters:
+  /// - [railName]: Payment rail name (e.g. 'apple_iap', 'google_iap')
+  ///
+  /// Returns: List of active store product ID strings for the given rail.
+  _i2.Future<List<String>> getActiveStoreProductIds(String railName) =>
+      caller.callServerEndpoint<List<String>>(
+        'anonaccred.commerce',
+        'getActiveStoreProductIds',
+        {'railName': railName},
+      );
+
   /// Get the complete product catalog
   ///
   /// Returns all registered products with their current prices.

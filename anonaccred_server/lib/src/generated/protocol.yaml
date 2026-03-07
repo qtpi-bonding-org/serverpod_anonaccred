@@ -6,6 +6,7 @@ account:
 commerce:
   - registerProducts:
   - initiatePayment:
+  - getActiveStoreProductIds:
   - getProductCatalog:
   - getEntitlements:
   - getEntitlementBalance:

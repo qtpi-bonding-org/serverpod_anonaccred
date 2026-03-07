@@ -258,6 +258,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     customPrice: params['customPrice'],
                   ),
         ),
+        'getActiveStoreProductIds': _i1.MethodConnector(
+          name: 'getActiveStoreProductIds',
+          params: {
+            'railName': _i1.ParameterDescription(
+              name: 'railName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+                  .getActiveStoreProductIds(
+                    session,
+                    params['railName'],
+                  ),
+        ),
         'getProductCatalog': _i1.MethodConnector(
           name: 'getProductCatalog',
           params: {},

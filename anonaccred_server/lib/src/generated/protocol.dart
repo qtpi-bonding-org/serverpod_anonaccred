@@ -1124,6 +1124,9 @@ class Protocol extends _i1.SerializationManagerServer {
           )
           as T;
     }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
     if (t == List<_i28.AccountEntitlement>) {
       return (data as List)
               .map((e) => deserialize<_i28.AccountEntitlement>(e))

@@ -192,6 +192,42 @@ class CommerceEndpoint extends Endpoint {
     }
   }
 
+  /// Get active store product IDs for a given payment rail.
+  ///
+  /// Returns the list of storeProductId strings from the rail_product table
+  /// where isActive is true and the rail matches. No authentication required
+  /// since product IDs are public information (same as what the stores expose).
+  ///
+  /// Parameters:
+  /// - [railName]: Payment rail name (e.g. 'apple_iap', 'google_iap')
+  ///
+  /// Returns: List of active store product ID strings for the given rail.
+  Future<List<String>> getActiveStoreProductIds(
+    Session session,
+    String railName,
+  ) async {
+    try {
+      final rail = PaymentRail.values.byName(railName);
+      final products = await RailProduct.db.find(
+        session,
+        where: (t) => t.rail.equals(rail) & t.isActive.equals(true),
+      );
+      return products.map((p) => p.storeProductId).toList();
+    } on ArgumentError {
+      throw AnonAccredExceptionFactory.createPaymentException(
+        code: AnonAccredErrorCodes.orderInvalidProduct,
+        message: 'Unknown payment rail: $railName',
+        details: {'railName': railName},
+      );
+    } catch (e) {
+      if (e is PaymentException) rethrow;
+      throw AnonAccredExceptionFactory.createException(
+        code: AnonAccredErrorCodes.internalError,
+        message: 'Failed to get active product IDs: ${e.toString()}',
+      );
+    }
+  }
+
   /// Get the complete product catalog
   ///
   /// Returns all registered products with their current prices.
