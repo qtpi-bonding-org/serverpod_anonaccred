@@ -2,7 +2,14 @@ import 'package:serverpod/serverpod.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
 import 'payments/payment_manager.dart';
+import 'post_fulfillment_context.dart';
 import 'price_registry.dart';
+
+/// Called after fulfillTransactionPayment() has granted all entitlements.
+typedef PostFulfillmentHook = Future<void> Function(
+  Session session,
+  PostFulfillmentContext context,
+);
 
 /// Service for managing commerce operations (payments, fulfillment, and accreditation)
 ///
@@ -11,6 +18,18 @@ import 'price_registry.dart';
 /// 2. EphemeralAccreditation links the account to a timestamp for 7 days.
 /// 3. After 7 days, the bridge record is deleted, leaving the financials anonymous.
 class CommerceManager {
+  static PostFulfillmentHook? _postFulfillmentHook;
+
+  /// Register a hook called after every successful fulfillment.
+  static void onPostFulfillment(PostFulfillmentHook hook) {
+    _postFulfillmentHook = hook;
+  }
+
+  /// Reset hook (for testing).
+  static void resetPostFulfillmentHook() {
+    _postFulfillmentHook = null;
+  }
+
   /// Initiates a transaction payment using the 7-day identity bridge.
   ///
   /// Parameters:
@@ -185,6 +204,24 @@ class CommerceManager {
         // Optional: Add record to consumption log or a generic "GrantLog" if needed
         // The schema has consumption_log which tracks usage, but maybe we want a "GrantLog" as well?
         // For now, only the balance is updated.
+      }
+
+      // 5. Call post-fulfillment hook if registered
+      if (_postFulfillmentHook != null) {
+        final railProduct = await RailProduct.db.findById(
+          session,
+          payment.railProductId,
+          transaction: transaction,
+        );
+        await _postFulfillmentHook!(
+          session,
+          PostFulfillmentContext(
+            accountId: bridge.accountId,
+            grantsApplied: grants,
+            payment: payment,
+            storeProductId: railProduct?.storeProductId ?? '',
+          ),
+        );
       }
     });
   }

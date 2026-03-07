@@ -84,6 +84,7 @@ library;
 export 'src/auth_handler.dart';
 // Commerce and Entitlement Management
 export 'src/commerce_manager.dart';
+export 'src/post_fulfillment_context.dart';
 // Configuration system
 export 'src/config/header_config.dart';
 // Core cryptographic utilities
