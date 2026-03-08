@@ -1,7 +1,7 @@
 class: ConsumptionLog
 table: consumption_log
 fields:
-  accountId: int, relation(parent=anon_account)
+  accountId: int, relation(parent=anon_account, onDelete=Cascade)
   entitlementId: int, relation(parent=entitlement)
   amount: double # Always Positive: The quantity consumed
   reason: String # e.g. 'AI_IMAGE_GEN', 'PRO_DAY_DECAY'

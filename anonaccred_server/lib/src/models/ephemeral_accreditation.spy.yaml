@@ -1,7 +1,7 @@
 class: EphemeralAccreditation
 table: ephemeral_accreditation
 fields:
-  accountId: int, relation(parent=anon_account)
+  accountId: int, relation(parent=anon_account, onDelete=Cascade)
   transactionTimestamp: DateTime # MATCH KEY (Exact Store Time)
 indexes:
   lookup_idx:
