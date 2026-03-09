@@ -77,25 +77,25 @@ void main() {
       // Test that new X402 error codes are properly classified
       
       expect(
-        AnonAccredExceptionUtils.isRetryable(AnonAccredErrorCodes.x402FacilitatorUnavailable),
+        AnonAccountExceptionUtils.isRetryable(AnonAccredErrorCodes.x402FacilitatorUnavailable),
         isTrue,
         reason: 'Facilitator unavailable should be retryable',
       );
       
       expect(
-        AnonAccredExceptionUtils.isRetryable(AnonAccredErrorCodes.x402InvalidPaymentPayload),
+        AnonAccountExceptionUtils.isRetryable(AnonAccredErrorCodes.x402InvalidPaymentPayload),
         isFalse,
         reason: 'Invalid payment payload should not be retryable',
       );
       
       expect(
-        AnonAccredExceptionUtils.isRetryable(AnonAccredErrorCodes.x402ConfigurationMissing),
+        AnonAccountExceptionUtils.isRetryable(AnonAccredErrorCodes.x402ConfigurationMissing),
         isFalse,
         reason: 'Configuration missing should not be retryable',
       );
       
       expect(
-        AnonAccredExceptionUtils.isRetryable(AnonAccredErrorCodes.x402VerificationFailed),
+        AnonAccountExceptionUtils.isRetryable(AnonAccredErrorCodes.x402VerificationFailed),
         isFalse,
         reason: 'Verification failed should not be retryable',
       );
@@ -110,7 +110,7 @@ void main() {
         paymentRail: 'x402_http',
       );
       
-      final analysis = AnonAccredExceptionUtils.analyzeException(exception);
+      final analysis = AnonAccountExceptionUtils.analyzeException(exception);
       
       expect(analysis['code'], equals(AnonAccredErrorCodes.x402FacilitatorUnavailable));
       expect(analysis['message'], equals('Test facilitator unavailable'));

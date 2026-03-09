@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'exception_factory.dart';
 
 /// Represents a mapping from a Google product ID to a consumable type and quantity.
@@ -47,7 +48,7 @@ class ProductMappingConfig {
           _googleMappings[productId] = ProductMapping.fromJson(mapping as Map<String, dynamic>);
         });
       } catch (e) {
-        throw AnonAccredExceptionFactory.createException(
+        throw AnonAccountExceptionFactory.createException(
           code: AnonAccredErrorCodes.configurationMissing,
           message: 'Failed to parse GOOGLE_PRODUCT_MAPPINGS: $e',
         );
@@ -63,7 +64,7 @@ class ProductMappingConfig {
           _appleMappings[productId] = ProductMapping.fromJson(mapping as Map<String, dynamic>);
         });
       } catch (e) {
-        throw AnonAccredExceptionFactory.createException(
+        throw AnonAccountExceptionFactory.createException(
           code: AnonAccredErrorCodes.configurationMissing,
           message: 'Failed to parse APPLE_PRODUCT_MAPPINGS: $e',
         );
@@ -95,7 +96,7 @@ class ProductMappingConfig {
       loadMappings();
     }
     if (!_googleMappings.containsKey(productId)) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'No product mapping found for Google product ID: $productId',
         details: {'productId': productId},
@@ -109,7 +110,7 @@ class ProductMappingConfig {
       loadMappings();
     }
     if (!_appleMappings.containsKey(productId)) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'No product mapping found for Apple product ID: $productId',
         details: {'productId': productId},

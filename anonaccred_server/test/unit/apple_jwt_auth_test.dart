@@ -1,3 +1,4 @@
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/apple_jwt_auth_client.dart';
@@ -45,7 +46,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
       // Test error handling when environment variables are missing
       expect(
         AppleJWTAuthClient.fromEnvironment,
-        throwsA(isA<AnonAccredException>()),
+        throwsA(isA<AnonAccountException>()),
       );
     });
 
@@ -54,7 +55,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
       try {
         AppleJWTAuthClient.fromEnvironment();
         fail('Expected exception to be thrown');
-      } on AnonAccredException catch (e) {
+      } on AnonAccountException catch (e) {
         expect(e.code, equals(AnonAccredErrorCodes.configurationMissing));
       }
     });
@@ -64,7 +65,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
       try {
         AppleJWTAuthClient.fromEnvironment();
         fail('Expected exception to be thrown');
-      } on AnonAccredException catch (e) {
+      } on AnonAccountException catch (e) {
         expect(e.message, contains('APPLE_PRIVATE_KEY'));
         expect(e.message, contains('APPLE_KEY_ID'));
         expect(e.message, contains('APPLE_ISSUER_ID'));
@@ -77,7 +78,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
       try {
         AppleJWTAuthClient.fromEnvironment();
         fail('Expected exception to be thrown');
-      } on AnonAccredException catch (e) {
+      } on AnonAccountException catch (e) {
         expect(e.details, isNotNull);
         expect(e.details!.containsKey('APPLE_PRIVATE_KEY'), isTrue);
         expect(e.details!.containsKey('APPLE_KEY_ID'), isTrue);
@@ -139,7 +140,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
       // but we can verify the validation logic works
       expect(
         AppleJWTAuthClient.fromEnvironment,
-        throwsA(isA<AnonAccredException>()),
+        throwsA(isA<AnonAccountException>()),
       );
     });
 
@@ -147,7 +148,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
       // Test error handling for empty private key
       expect(
         AppleJWTAuthClient.fromEnvironment,
-        throwsA(isA<AnonAccredException>()),
+        throwsA(isA<AnonAccountException>()),
       );
     });
 
@@ -155,7 +156,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg5_test_key_for_unit_tests
       // Test error handling for missing key ID
       expect(
         AppleJWTAuthClient.fromEnvironment,
-        throwsA(isA<AnonAccredException>()),
+        throwsA(isA<AnonAccountException>()),
       );
     });
   });

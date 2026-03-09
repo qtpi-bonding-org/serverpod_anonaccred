@@ -1,0 +1,6 @@
+exception: AuthenticationException
+fields:
+  code: String
+  message: String
+  operation: String?
+  details: Map<String, String>?

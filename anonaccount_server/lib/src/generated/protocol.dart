@@ -1,0 +1,427 @@
+/* AUTOMATICALLY GENERATED CODE DO NOT MODIFY */
+/*   To generate run: "serverpod generate"    */
+
+// ignore_for_file: implementation_imports
+// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: public_member_api_docs
+// ignore_for_file: type_literal_in_constant_pattern
+// ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/protocol.dart' as _i2;
+import 'account.dart' as _i3;
+import 'account_device.dart' as _i4;
+import 'anonaccount_exception.dart' as _i5;
+import 'authentication_exception.dart' as _i6;
+import 'authentication_result.dart' as _i7;
+import 'device_pairing_event.dart' as _i8;
+import 'device_pairing_info.dart' as _i9;
+import 'package:anonaccount_server/src/generated/account_device.dart' as _i10;
+export 'account.dart';
+export 'account_device.dart';
+export 'anonaccount_exception.dart';
+export 'authentication_exception.dart';
+export 'authentication_result.dart';
+export 'device_pairing_event.dart';
+export 'device_pairing_info.dart';
+
+class Protocol extends _i1.SerializationManagerServer {
+  Protocol._();
+
+  factory Protocol() => _instance;
+
+  static final Protocol _instance = Protocol._();
+
+  static final List<_i2.TableDefinition> targetTableDefinitions = [
+    _i2.TableDefinition(
+      name: 'account_device',
+      dartName: 'AccountDevice',
+      schema: 'public',
+      module: 'anonaccount',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'account_device_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'accountId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'deviceSigningPublicKeyHex',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'encryptedDataKey',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'label',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'lastActive',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+        _i2.ColumnDefinition(
+          name: 'isRevoked',
+          columnType: _i2.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+          columnDefault: 'false',
+        ),
+      ],
+      foreignKeys: [
+        _i2.ForeignKeyDefinition(
+          constraintName: 'account_device_fk_0',
+          columns: ['accountId'],
+          referenceTable: 'anon_account',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'account_device_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'auth_lookup_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'deviceSigningPublicKeyHex',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'isRevoked',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'anon_account',
+      dartName: 'AnonAccount',
+      schema: 'public',
+      module: 'anonaccount',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'anon_account_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'ultimateSigningPublicKeyHex',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'encryptedDataKey',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'ultimatePublicKey',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'anon_account_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'ultimate_key_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'ultimatePublicKey',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+  ];
+
+  static String? getClassNameFromObjectJson(dynamic data) {
+    if (data is! Map) return null;
+    final className = data['__className__'] as String?;
+    if (className == null) return null;
+    if (!className.startsWith('anonaccount.')) return className;
+    return className.substring(12);
+  }
+
+  @override
+  T deserialize<T>(
+    dynamic data, [
+    Type? t,
+  ]) {
+    t ??= T;
+
+    final dataClassName = getClassNameFromObjectJson(data);
+    if (dataClassName != null && dataClassName != getClassNameForType(t)) {
+      try {
+        return deserializeByClassName({
+          'className': dataClassName,
+          'data': data,
+        });
+      } on FormatException catch (_) {
+        // If the className is not recognized (e.g., older client receiving
+        // data with a new subtype), fall back to deserializing without the
+        // className, using the expected type T.
+      }
+    }
+
+    if (t == _i3.AnonAccount) {
+      return _i3.AnonAccount.fromJson(data) as T;
+    }
+    if (t == _i4.AccountDevice) {
+      return _i4.AccountDevice.fromJson(data) as T;
+    }
+    if (t == _i5.AnonAccountException) {
+      return _i5.AnonAccountException.fromJson(data) as T;
+    }
+    if (t == _i6.AuthenticationException) {
+      return _i6.AuthenticationException.fromJson(data) as T;
+    }
+    if (t == _i7.AuthenticationResult) {
+      return _i7.AuthenticationResult.fromJson(data) as T;
+    }
+    if (t == _i8.DevicePairingEvent) {
+      return _i8.DevicePairingEvent.fromJson(data) as T;
+    }
+    if (t == _i9.DevicePairingInfo) {
+      return _i9.DevicePairingInfo.fromJson(data) as T;
+    }
+    if (t == _i1.getType<_i3.AnonAccount?>()) {
+      return (data != null ? _i3.AnonAccount.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i4.AccountDevice?>()) {
+      return (data != null ? _i4.AccountDevice.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i5.AnonAccountException?>()) {
+      return (data != null ? _i5.AnonAccountException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i6.AuthenticationException?>()) {
+      return (data != null ? _i6.AuthenticationException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i7.AuthenticationResult?>()) {
+      return (data != null ? _i7.AuthenticationResult.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i8.DevicePairingEvent?>()) {
+      return (data != null ? _i8.DevicePairingEvent.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i9.DevicePairingInfo?>()) {
+      return (data != null ? _i9.DevicePairingInfo.fromJson(data) : null) as T;
+    }
+    if (t == Map<String, String>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
+          )
+          as T;
+    }
+    if (t == _i1.getType<Map<String, String>?>()) {
+      return (data != null
+              ? (data as Map).map(
+                  (k, v) =>
+                      MapEntry(deserialize<String>(k), deserialize<String>(v)),
+                )
+              : null)
+          as T;
+    }
+    if (t == List<_i10.AccountDevice>) {
+      return (data as List)
+              .map((e) => deserialize<_i10.AccountDevice>(e))
+              .toList()
+          as T;
+    }
+    try {
+      return _i2.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    return super.deserialize<T>(data, t);
+  }
+
+  static String? getClassNameForType(Type type) {
+    return switch (type) {
+      _i3.AnonAccount => 'AnonAccount',
+      _i4.AccountDevice => 'AccountDevice',
+      _i5.AnonAccountException => 'AnonAccountException',
+      _i6.AuthenticationException => 'AuthenticationException',
+      _i7.AuthenticationResult => 'AuthenticationResult',
+      _i8.DevicePairingEvent => 'DevicePairingEvent',
+      _i9.DevicePairingInfo => 'DevicePairingInfo',
+      _ => null,
+    };
+  }
+
+  @override
+  String? getClassNameForObject(Object? data) {
+    String? className = super.getClassNameForObject(data);
+    if (className != null) return className;
+
+    if (data is Map<String, dynamic> && data['__className__'] is String) {
+      return (data['__className__'] as String).replaceFirst('anonaccount.', '');
+    }
+
+    switch (data) {
+      case _i3.AnonAccount():
+        return 'AnonAccount';
+      case _i4.AccountDevice():
+        return 'AccountDevice';
+      case _i5.AnonAccountException():
+        return 'AnonAccountException';
+      case _i6.AuthenticationException():
+        return 'AuthenticationException';
+      case _i7.AuthenticationResult():
+        return 'AuthenticationResult';
+      case _i8.DevicePairingEvent():
+        return 'DevicePairingEvent';
+      case _i9.DevicePairingInfo():
+        return 'DevicePairingInfo';
+    }
+    className = _i2.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return 'serverpod.$className';
+    }
+    return null;
+  }
+
+  @override
+  dynamic deserializeByClassName(Map<String, dynamic> data) {
+    var dataClassName = data['className'];
+    if (dataClassName is! String) {
+      return super.deserializeByClassName(data);
+    }
+    if (dataClassName == 'AnonAccount') {
+      return deserialize<_i3.AnonAccount>(data['data']);
+    }
+    if (dataClassName == 'AccountDevice') {
+      return deserialize<_i4.AccountDevice>(data['data']);
+    }
+    if (dataClassName == 'AnonAccountException') {
+      return deserialize<_i5.AnonAccountException>(data['data']);
+    }
+    if (dataClassName == 'AuthenticationException') {
+      return deserialize<_i6.AuthenticationException>(data['data']);
+    }
+    if (dataClassName == 'AuthenticationResult') {
+      return deserialize<_i7.AuthenticationResult>(data['data']);
+    }
+    if (dataClassName == 'DevicePairingEvent') {
+      return deserialize<_i8.DevicePairingEvent>(data['data']);
+    }
+    if (dataClassName == 'DevicePairingInfo') {
+      return deserialize<_i9.DevicePairingInfo>(data['data']);
+    }
+    if (dataClassName.startsWith('serverpod.')) {
+      data['className'] = dataClassName.substring(10);
+      return _i2.Protocol().deserializeByClassName(data);
+    }
+    return super.deserializeByClassName(data);
+  }
+
+  @override
+  _i1.Table? getTableForType(Type t) {
+    {
+      var table = _i2.Protocol().getTableForType(t);
+      if (table != null) {
+        return table;
+      }
+    }
+    switch (t) {
+      case _i3.AnonAccount:
+        return _i3.AnonAccount.t;
+      case _i4.AccountDevice:
+        return _i4.AccountDevice.t;
+    }
+    return null;
+  }
+
+  @override
+  List<_i2.TableDefinition> getTargetTableDefinitions() =>
+      targetTableDefinitions;
+
+  @override
+  String getModuleName() => 'anonaccount';
+
+  /// Maps any `Record`s known to this [Protocol] to their JSON representation
+  ///
+  /// Throws in case the record type is not known.
+  ///
+  /// This method will return `null` (only) for `null` inputs.
+  Map<String, dynamic>? mapRecordToJson(Record? record) {
+    if (record == null) {
+      return null;
+    }
+    try {
+      return _i2.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    throw Exception('Unsupported record type ${record.runtimeType}');
+  }
+}

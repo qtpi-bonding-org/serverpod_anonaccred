@@ -267,6 +267,8 @@ class RailProductGrantRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<RailProductGrantTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<RailProductGrant>(
       where: where?.call(RailProductGrant.t),
@@ -276,6 +278,8 @@ class RailProductGrantRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -304,6 +308,8 @@ class RailProductGrantRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<RailProductGrantTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<RailProductGrant>(
       where: where?.call(RailProductGrant.t),
@@ -312,6 +318,8 @@ class RailProductGrantRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -320,10 +328,14 @@ class RailProductGrantRepository {
     _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<RailProductGrant>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -333,14 +345,20 @@ class RailProductGrantRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<RailProductGrant>> insert(
     _i1.Session session,
     List<RailProductGrant> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<RailProductGrant>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -483,6 +501,22 @@ class RailProductGrantRepository {
     return session.db.count<RailProductGrant>(
       where: where?.call(RailProductGrant.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [RailProductGrant] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<RailProductGrantTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<RailProductGrant>(
+      where: where(RailProductGrant.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

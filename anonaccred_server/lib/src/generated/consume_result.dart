@@ -28,7 +28,7 @@ abstract class ConsumeResult
 
   factory ConsumeResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return ConsumeResult(
-      success: jsonSerialization['success'] as bool,
+      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
       availableBalance: (jsonSerialization['availableBalance'] as num)
           .toDouble(),
       errorMessage: jsonSerialization['errorMessage'] as String?,

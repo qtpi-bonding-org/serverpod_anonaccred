@@ -318,6 +318,8 @@ class ConsumptionLogRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<ConsumptionLogTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<ConsumptionLog>(
       where: where?.call(ConsumptionLog.t),
@@ -327,6 +329,8 @@ class ConsumptionLogRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -355,6 +359,8 @@ class ConsumptionLogRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<ConsumptionLogTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<ConsumptionLog>(
       where: where?.call(ConsumptionLog.t),
@@ -363,6 +369,8 @@ class ConsumptionLogRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -371,10 +379,14 @@ class ConsumptionLogRepository {
     _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<ConsumptionLog>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -384,14 +396,20 @@ class ConsumptionLogRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<ConsumptionLog>> insert(
     _i1.Session session,
     List<ConsumptionLog> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<ConsumptionLog>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -532,6 +550,22 @@ class ConsumptionLogRepository {
     return session.db.count<ConsumptionLog>(
       where: where?.call(ConsumptionLog.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [ConsumptionLog] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<ConsumptionLogTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<ConsumptionLog>(
+      where: where(ConsumptionLog.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

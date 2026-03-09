@@ -1,7 +1,8 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../crypto_auth.dart';
 import '../entitlement_manager.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../payments/x402_interceptor.dart';
@@ -92,8 +93,8 @@ class X402Endpoint extends Endpoint {
     } on PaymentException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Unexpected error processing X402 request: ${e.toString()}',
         details: {
           'error': e.toString(),
@@ -223,8 +224,8 @@ class X402Endpoint extends Endpoint {
     } on InventoryException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message:
             'Unexpected error processing consumable access: ${e.toString()}',
         details: {
@@ -368,8 +369,8 @@ class X402Endpoint extends Endpoint {
   ) async {
     // Validate public key format
     if (publicKey.isEmpty) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.authMissingKey,
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.authMissingKey,
         message: 'Public key is required for authentication',
         operation: operation,
         details: {'publicKey': 'empty'},
@@ -377,8 +378,8 @@ class X402Endpoint extends Endpoint {
     }
 
     if (!CryptoAuth.isValidPublicKey(publicKey)) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
         message: 'Invalid ECDSA P-256 public key format',
         operation: operation,
         details: {
@@ -390,8 +391,8 @@ class X402Endpoint extends Endpoint {
 
     // Validate signature format
     if (signature.isEmpty) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.authInvalidSignature,
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.authInvalidSignature,
         message: 'Signature is required for authentication',
         operation: operation,
         details: {'signature': 'empty'},

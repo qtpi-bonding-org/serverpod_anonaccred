@@ -30,7 +30,7 @@ abstract class PaymentResult
 
   factory PaymentResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return PaymentResult(
-      success: jsonSerialization['success'] as bool,
+      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
       internalTransactionId:
           jsonSerialization['internalTransactionId'] as String?,
       transactionTimestamp: jsonSerialization['transactionTimestamp'] == null

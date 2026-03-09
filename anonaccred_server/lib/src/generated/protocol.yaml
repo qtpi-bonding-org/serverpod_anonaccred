@@ -1,8 +1,3 @@
-account:
-  - createAccount:
-  - getAccountById:
-  - getAccountByPublicKey:
-  - getAccountForRecovery:
 commerce:
   - registerProducts:
   - initiatePayment:
@@ -13,15 +8,6 @@ commerce:
   - consumeEntitlement:
   - getProductCatalogWithX402:
   - getEntitlementBalanceWithX402:
-device:
-  - registerDevice:
-  - authenticateDevice:
-  - generateAuthChallenge:
-  - revokeDevice:
-  - listDevices:
-  - monitorRegistration:
-  - registerDeviceForAccount:
-  - getDeviceBySigningKey:
 iAP:
   - validateAppleTransaction:
   - validateGooglePurchase:

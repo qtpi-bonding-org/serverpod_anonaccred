@@ -1,0 +1,14 @@
+account:
+  - createAccount:
+  - getAccountById:
+  - getAccountByPublicKey:
+  - getAccountForRecovery:
+device:
+  - registerDevice:
+  - authenticateDevice:
+  - generateAuthChallenge:
+  - revokeDevice:
+  - listDevices:
+  - monitorRegistration:
+  - registerDeviceForAccount:
+  - getDeviceBySigningKey:

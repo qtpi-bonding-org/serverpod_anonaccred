@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
 
@@ -55,7 +56,7 @@ class EntitlementManager {
     } catch (e) {
       if (e is InventoryException) rethrow;
       throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to grant entitlement by ID: ${e.toString()}',
         accountId: accountId,
         details: {
@@ -176,7 +177,7 @@ class EntitlementManager {
     } catch (e) {
       if (e is InventoryException) rethrow;
       throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to consume entitlement: ${e.toString()}',
         accountId: accountId,
         tag: tag,
@@ -234,7 +235,7 @@ class EntitlementManager {
     } catch (e) {
       if (e is InventoryException) rethrow;
       throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to revoke entitlement: ${e.toString()}',
         accountId: accountId,
         details: {
@@ -269,7 +270,7 @@ class EntitlementManager {
       return record?.balance ?? 0.0;
     } catch (e) {
       throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to get entitlement balance: ${e.toString()}',
         accountId: accountId,
         tag: tag,
@@ -289,7 +290,7 @@ class EntitlementManager {
       );
     } catch (e) {
       throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to get account entitlements: ${e.toString()}',
         accountId: accountId,
       );

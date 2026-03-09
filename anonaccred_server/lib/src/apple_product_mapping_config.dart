@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'exception_factory.dart';
 
 /// Represents a mapping from an Apple product ID to a consumable type and quantity.
@@ -41,7 +42,7 @@ class AppleProductMappingConfig {
               AppleProductMapping.fromJson(mapping as Map<String, dynamic>);
         });
       } catch (e) {
-        throw AnonAccredExceptionFactory.createException(
+        throw AnonAccountExceptionFactory.createException(
           code: AnonAccredErrorCodes.configurationMissing,
           message: 'Failed to parse APPLE_PRODUCT_MAPPINGS: $e',
         );
@@ -73,7 +74,7 @@ class AppleProductMappingConfig {
       loadMappings();
     }
     if (!_mappings.containsKey(productId)) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'No product mapping found for product ID: $productId',
         details: {'productId': productId},

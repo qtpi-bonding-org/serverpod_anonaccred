@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:anonaccred_server/src/endpoints/iap_endpoint.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
@@ -33,23 +34,24 @@ void main() {
       PaymentManager.registerRail(GoogleIAPRail(client: MockAndroidPublisherClient()));
 
       // Create test account and device for authenticated tests
-      testAccount = await endpoints.account.createAccount(
-        sessionBuilder,
-        'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+      testAccount = await AnonAccount.db.insertRow(sessionBuilder.build(), AnonAccount(
+        ultimateSigningPublicKeyHex:
+            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 128-char hex for ECDSA P-256
-        'encrypted_data_key_test',
-        'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+        encryptedDataKey: 'encrypted_data_key_test',
+        ultimatePublicKey:
+            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // ultimatePublicKey - using same key for testing
-      );
+      ));
 
-      testDevice = await endpoints.device.registerDevice(
-        sessionBuilder,
-        testAccount.id!,
-        'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
+      testDevice = await AccountDevice.db.insertRow(sessionBuilder.build(), AccountDevice(
+        accountId: testAccount.id!,
+        deviceSigningPublicKeyHex:
+            'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
             'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
-        'encrypted_device_key_test',
-        'Test Device',
-      );
+        encryptedDataKey: 'encrypted_device_key_test',
+        label: 'Test Device',
+      ));
 
       // Create authenticated session builder with device scope
       authenticatedSessionBuilder = sessionBuilder.copyWith(

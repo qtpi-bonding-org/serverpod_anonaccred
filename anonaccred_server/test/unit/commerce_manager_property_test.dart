@@ -65,12 +65,11 @@ void main() {
           final session = sessionBuilder.build();
 
           // 1. Setup random account
-          final account = await endpoints.account.createAccount(
-            sessionBuilder,
-            _generateRandomPublicKey(),
-            'encrypted_data_key_test_$i',
-            _generateRandomPublicKey(),
-          );
+          final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
+            encryptedDataKey: 'encrypted_data_key_test_$i',
+            ultimatePublicKey: _generateRandomPublicKey(),
+          ));
           final accountId = account.id!;
 
           // 2. Setup random RailProduct
@@ -202,12 +201,11 @@ void main() {
           final session = sessionBuilder.build();
 
           // 1. Account
-          final account = await endpoints.account.createAccount(
-            sessionBuilder,
-            _generateRandomPublicKey(),
-            'encrypted_data_key_full_$i',
-            _generateRandomPublicKey(),
-          );
+          final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
+            encryptedDataKey: 'encrypted_data_key_full_$i',
+            ultimatePublicKey: _generateRandomPublicKey(),
+          ));
           final accountId = account.id!;
 
           // 2. Entitlements and RailProduct

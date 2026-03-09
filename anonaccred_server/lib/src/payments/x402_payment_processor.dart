@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 
@@ -70,7 +71,7 @@ class X402PaymentProcessor {
   static Future<bool> verifyPayment(Map<String, String> headers) async {
     try {
       return await _verifyPaymentInternal(headers);
-    } on AnonAccredException {
+    } on AnonAccountException {
       // Log the error but return false for backward compatibility
       return false;
     } on PaymentException {
@@ -190,7 +191,7 @@ class X402PaymentProcessor {
           },
         );
       }
-    } on AnonAccredException {
+    } on AnonAccountException {
       // Re-throw AnonAccred exceptions as-is
       rethrow;
     } on PaymentException {

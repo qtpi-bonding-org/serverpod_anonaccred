@@ -11,163 +11,56 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import '../endpoints/account_endpoint.dart' as _i2;
-import '../endpoints/commerce_endpoint.dart' as _i3;
-import '../endpoints/device_endpoint.dart' as _i4;
-import '../endpoints/iap_endpoint.dart' as _i5;
-import '../endpoints/iap_webhook_endpoint.dart' as _i6;
-import '../endpoints/module_endpoint.dart' as _i7;
-import '../endpoints/payment_endpoint.dart' as _i8;
-import '../endpoints/x402_endpoint.dart' as _i9;
-import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i10;
+import '../endpoints/commerce_endpoint.dart' as _i2;
+import '../endpoints/iap_endpoint.dart' as _i3;
+import '../endpoints/iap_webhook_endpoint.dart' as _i4;
+import '../endpoints/module_endpoint.dart' as _i5;
+import '../endpoints/payment_endpoint.dart' as _i6;
+import '../endpoints/x402_endpoint.dart' as _i7;
+import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i8;
+import 'package:anonaccount_server/anonaccount_server.dart' as _i9;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
   void initializeEndpoints(_i1.Server server) {
     var endpoints = <String, _i1.Endpoint>{
-      'account': _i2.AccountEndpoint()
-        ..initialize(
-          server,
-          'account',
-          'anonaccred',
-        ),
-      'commerce': _i3.CommerceEndpoint()
+      'commerce': _i2.CommerceEndpoint()
         ..initialize(
           server,
           'commerce',
           'anonaccred',
         ),
-      'device': _i4.DeviceEndpoint()
-        ..initialize(
-          server,
-          'device',
-          'anonaccred',
-        ),
-      'iAP': _i5.IAPEndpoint()
+      'iAP': _i3.IAPEndpoint()
         ..initialize(
           server,
           'iAP',
           'anonaccred',
         ),
-      'iAPWebhook': _i6.IAPWebhookEndpoint()
+      'iAPWebhook': _i4.IAPWebhookEndpoint()
         ..initialize(
           server,
           'iAPWebhook',
           'anonaccred',
         ),
-      'module': _i7.ModuleEndpoint()
+      'module': _i5.ModuleEndpoint()
         ..initialize(
           server,
           'module',
           'anonaccred',
         ),
-      'payment': _i8.PaymentEndpoint()
+      'payment': _i6.PaymentEndpoint()
         ..initialize(
           server,
           'payment',
           'anonaccred',
         ),
-      'x402': _i9.X402Endpoint()
+      'x402': _i7.X402Endpoint()
         ..initialize(
           server,
           'x402',
           'anonaccred',
         ),
     };
-    connectors['account'] = _i1.EndpointConnector(
-      name: 'account',
-      endpoint: endpoints['account']!,
-      methodConnectors: {
-        'createAccount': _i1.MethodConnector(
-          name: 'createAccount',
-          params: {
-            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'ultimateSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'encryptedDataKey': _i1.ParameterDescription(
-              name: 'encryptedDataKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'ultimatePublicKey': _i1.ParameterDescription(
-              name: 'ultimatePublicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['account'] as _i2.AccountEndpoint).createAccount(
-                    session,
-                    params['ultimateSigningPublicKeyHex'],
-                    params['encryptedDataKey'],
-                    params['ultimatePublicKey'],
-                  ),
-        ),
-        'getAccountById': _i1.MethodConnector(
-          name: 'getAccountById',
-          params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['account'] as _i2.AccountEndpoint).getAccountById(
-                    session,
-                    params['accountId'],
-                  ),
-        ),
-        'getAccountByPublicKey': _i1.MethodConnector(
-          name: 'getAccountByPublicKey',
-          params: {
-            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'ultimateSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['account'] as _i2.AccountEndpoint)
-                  .getAccountByPublicKey(
-                    session,
-                    params['ultimateSigningPublicKeyHex'],
-                  ),
-        ),
-        'getAccountForRecovery': _i1.MethodConnector(
-          name: 'getAccountForRecovery',
-          params: {
-            'ultimatePublicKey': _i1.ParameterDescription(
-              name: 'ultimatePublicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['account'] as _i2.AccountEndpoint)
-                  .getAccountForRecovery(
-                    session,
-                    params['ultimatePublicKey'],
-                  ),
-        ),
-      },
-    );
     connectors['commerce'] = _i1.EndpointConnector(
       name: 'commerce',
       endpoint: endpoints['commerce']!,
@@ -195,7 +88,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .registerProducts(
                     session,
                     params['publicKey'],
@@ -223,7 +116,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'rail': _i1.ParameterDescription(
               name: 'rail',
-              type: _i1.getType<_i10.PaymentRail>(),
+              type: _i1.getType<_i8.PaymentRail>(),
               nullable: false,
             ),
             'storeProductId': _i1.ParameterDescription(
@@ -246,7 +139,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .initiatePayment(
                     session,
                     params['publicKey'],
@@ -271,7 +164,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .getActiveStoreProductIds(
                     session,
                     params['railName'],
@@ -284,7 +177,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .getProductCatalog(session),
         ),
         'getEntitlements': _i1.MethodConnector(
@@ -310,7 +203,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .getEntitlements(
                     session,
                     params['publicKey'],
@@ -346,7 +239,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .getEntitlementBalance(
                     session,
                     params['publicKey'],
@@ -388,7 +281,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .consumeEntitlement(
                     session,
                     params['publicKey'],
@@ -421,7 +314,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .getProductCatalogWithX402(
                     session,
                     params['publicKey'],
@@ -462,7 +355,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
                   .getEntitlementBalanceWithX402(
                     session,
                     params['publicKey'],
@@ -470,194 +363,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['accountId'],
                     params['tag'],
                     headers: params['headers'],
-                  ),
-        ),
-      },
-    );
-    connectors['device'] = _i1.EndpointConnector(
-      name: 'device',
-      endpoint: endpoints['device']!,
-      methodConnectors: {
-        'registerDevice': _i1.MethodConnector(
-          name: 'registerDevice',
-          params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'deviceSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'deviceSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'encryptedDataKey': _i1.ParameterDescription(
-              name: 'encryptedDataKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'label': _i1.ParameterDescription(
-              name: 'label',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['device'] as _i4.DeviceEndpoint).registerDevice(
-                    session,
-                    params['accountId'],
-                    params['deviceSigningPublicKeyHex'],
-                    params['encryptedDataKey'],
-                    params['label'],
-                  ),
-        ),
-        'authenticateDevice': _i1.MethodConnector(
-          name: 'authenticateDevice',
-          params: {
-            'challenge': _i1.ParameterDescription(
-              name: 'challenge',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .authenticateDevice(
-                    session,
-                    params['challenge'],
-                    params['signature'],
-                  ),
-        ),
-        'generateAuthChallenge': _i1.MethodConnector(
-          name: 'generateAuthChallenge',
-          params: {
-            'devicePublicKey': _i1.ParameterDescription(
-              name: 'devicePublicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .generateAuthChallenge(
-                    session,
-                    params['devicePublicKey'],
-                  ),
-        ),
-        'revokeDevice': _i1.MethodConnector(
-          name: 'revokeDevice',
-          params: {
-            'deviceId': _i1.ParameterDescription(
-              name: 'deviceId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['device'] as _i4.DeviceEndpoint).revokeDevice(
-                    session,
-                    params['deviceId'],
-                  ),
-        ),
-        'listDevices': _i1.MethodConnector(
-          name: 'listDevices',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .listDevices(session),
-        ),
-        'registerDeviceForAccount': _i1.MethodConnector(
-          name: 'registerDeviceForAccount',
-          params: {
-            'newDeviceSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'newDeviceSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'newDeviceEncryptedDataKey': _i1.ParameterDescription(
-              name: 'newDeviceEncryptedDataKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'label': _i1.ParameterDescription(
-              name: 'label',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .registerDeviceForAccount(
-                    session,
-                    params['newDeviceSigningPublicKeyHex'],
-                    params['newDeviceEncryptedDataKey'],
-                    params['label'],
-                  ),
-        ),
-        'getDeviceBySigningKey': _i1.MethodConnector(
-          name: 'getDeviceBySigningKey',
-          params: {
-            'signingPublicKeyHex': _i1.ParameterDescription(
-              name: 'signingPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .getDeviceBySigningKey(
-                    session,
-                    params['signingPublicKeyHex'],
-                  ),
-        ),
-        'monitorRegistration': _i1.MethodStreamConnector(
-          name: 'monitorRegistration',
-          params: {
-            'signingKeyHex': _i1.ParameterDescription(
-              name: 'signingKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          streamParams: {},
-          returnType: _i1.MethodStreamReturnType.streamType,
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-                Map<String, Stream> streamParams,
-              ) => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .monitorRegistration(
-                    session,
-                    params['signingKeyHex'],
                   ),
         ),
       },
@@ -704,7 +409,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['iAP'] as _i5.IAPEndpoint)
+              ) async => (endpoints['iAP'] as _i3.IAPEndpoint)
                   .validateAppleTransaction(
                     session,
                     params['publicKey'],
@@ -759,7 +464,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['iAP'] as _i5.IAPEndpoint).validateGooglePurchase(
+                  (endpoints['iAP'] as _i3.IAPEndpoint).validateGooglePurchase(
                     session,
                     params['publicKey'],
                     params['signature'],
@@ -789,7 +494,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['iAPWebhook'] as _i6.IAPWebhookEndpoint)
+              ) async => (endpoints['iAPWebhook'] as _i4.IAPWebhookEndpoint)
                   .handleAppleWebhook(
                     session,
                     params['webhookData'],
@@ -808,7 +513,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['iAPWebhook'] as _i6.IAPWebhookEndpoint)
+              ) async => (endpoints['iAPWebhook'] as _i4.IAPWebhookEndpoint)
                   .handleGoogleWebhook(
                     session,
                     params['webhookData'],
@@ -833,7 +538,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['module'] as _i7.ModuleEndpoint).hello(
+              ) async => (endpoints['module'] as _i5.ModuleEndpoint).hello(
                 session,
                 params['name'],
               ),
@@ -862,7 +567,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['module'] as _i7.ModuleEndpoint).authenticateUser(
+                  (endpoints['module'] as _i5.ModuleEndpoint).authenticateUser(
                     session,
                     params['publicKey'],
                     params['signature'],
@@ -893,7 +598,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['module'] as _i7.ModuleEndpoint).processPayment(
+                  (endpoints['module'] as _i5.ModuleEndpoint).processPayment(
                     session,
                     params['internalTransactionId'],
                     params['paymentRail'],
@@ -928,7 +633,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['module'] as _i7.ModuleEndpoint)
+              ) async => (endpoints['module'] as _i5.ModuleEndpoint)
                   .manageEntitlements(
                     session,
                     params['accountId'],
@@ -966,7 +671,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
                   .checkPaymentStatus(
                     session,
                     params['publicKey'],
@@ -987,7 +692,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
                   .processMoneroWebhook(
                     session,
                     params['webhookData'],
@@ -1006,7 +711,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
                   .processX402Webhook(
                     session,
                     params['webhookData'],
@@ -1052,7 +757,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['x402'] as _i9.X402Endpoint).requestPaidResource(
+                  (endpoints['x402'] as _i7.X402Endpoint).requestPaidResource(
                     session,
                     params['publicKey'],
                     params['signature'],
@@ -1099,7 +804,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['x402'] as _i9.X402Endpoint)
+              ) async => (endpoints['x402'] as _i7.X402Endpoint)
                   .requestConsumableAccess(
                     session,
                     params['publicKey'],
@@ -1112,5 +817,6 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    modules['anonaccount'] = _i9.Endpoints()..initializeEndpoints(server);
   }
 }

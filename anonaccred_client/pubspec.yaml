@@ -27,7 +27,9 @@ environment:
   sdk: '^3.8.0'
 
 dependencies:
-  serverpod_client: 3.3.0
+  anonaccount_client:
+    path: ../anonaccount_client
+  serverpod_client: 3.4.1
   crypto: ^3.0.3
 
 dev_dependencies:

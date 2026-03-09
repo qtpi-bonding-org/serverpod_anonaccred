@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
 
 /// Handles JWT authentication using Apple private keys with ES256 algorithm.
@@ -41,7 +42,7 @@ class AppleJWTAuthClient {
         issuerId.isEmpty ||
         bundleId == null ||
         bundleId.isEmpty) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message:
             'Missing Apple authentication credentials. Required: APPLE_PRIVATE_KEY, APPLE_KEY_ID, APPLE_ISSUER_ID, APPLE_BUNDLE_ID',

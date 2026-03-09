@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../crypto_auth.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../payments/rails/apple_iap_rail.dart';
@@ -91,8 +92,8 @@ class IAPEndpoint extends Endpoint {
     } on PaymentException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message:
             'Unexpected error validating Apple transaction: ${e.toString()}',
         details: {
@@ -181,8 +182,8 @@ class IAPEndpoint extends Endpoint {
     } on PaymentException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Unexpected error validating Google purchase: ${e.toString()}',
         details: {
           'error': e.toString(),
@@ -201,24 +202,24 @@ class IAPEndpoint extends Endpoint {
     String operation,
   ) async {
     if (publicKey.isEmpty) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.authMissingKey,
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.authMissingKey,
         message: 'Public key required',
         operation: operation,
       );
     }
 
     if (!CryptoAuth.isValidPublicKey(publicKey)) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
         message: 'Invalid public key',
         operation: operation,
       );
     }
 
     if (signature.isEmpty) {
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.authInvalidSignature,
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.authInvalidSignature,
         message: 'Signature required',
         operation: operation,
       );

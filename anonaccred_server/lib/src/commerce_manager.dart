@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
 import 'payments/payment_manager.dart';
@@ -242,7 +243,7 @@ class CommerceManager {
       );
     } catch (e) {
       throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to create accreditation bridge: ${e.toString()}',
       );
     }

@@ -19,7 +19,7 @@ void main() {
           final details = _generateRandomDetails();
 
           // Test base AnonAccred exception
-          final baseException = AnonAccredExceptionFactory.createException(
+          final baseException = AnonAccountExceptionFactory.createException(
             code: code,
             message: message,
             details: details,
@@ -30,7 +30,7 @@ void main() {
           // Test authentication exception
           final operation = _generateRandomOperation();
           final authException =
-              AnonAccredExceptionFactory.createAuthenticationException(
+              AnonAccountExceptionFactory.createAuthenticationException(
                 code: code,
                 message: message,
                 operation: operation,
@@ -98,7 +98,7 @@ void main() {
         final details = _generateRandomDetails();
 
         // Test that all exceptions can be serialized and deserialized
-        final baseException = AnonAccredExceptionFactory.createException(
+        final baseException = AnonAccountExceptionFactory.createException(
           code: code,
           message: message,
           details: details,
@@ -121,7 +121,7 @@ void main() {
 }
 
 void _verifyExceptionStructure(
-  AnonAccredException exception,
+  AnonAccountException exception,
   String expectedCode,
   String expectedMessage,
   Map<String, String>? expectedDetails,
@@ -188,14 +188,14 @@ void _verifyInventoryExceptionStructure(
 // Test data generators
 String _generateRandomErrorCode() {
   final codes = [
-    AnonAccredErrorCodes.authInvalidSignature,
-    AnonAccredErrorCodes.authExpiredChallenge,
+    AnonAccountErrorCodes.authInvalidSignature,
+    AnonAccountErrorCodes.authExpiredChallenge,
     AnonAccredErrorCodes.paymentFailed,
     AnonAccredErrorCodes.paymentInsufficientFunds,
     AnonAccredErrorCodes.inventoryInsufficientBalance,
     AnonAccredErrorCodes.inventoryAccountNotFound,
-    AnonAccredErrorCodes.networkTimeout,
-    AnonAccredErrorCodes.databaseError,
+    AnonAccountErrorCodes.networkTimeout,
+    AnonAccountErrorCodes.databaseError,
   ];
   return codes[Random().nextInt(codes.length)];
 }

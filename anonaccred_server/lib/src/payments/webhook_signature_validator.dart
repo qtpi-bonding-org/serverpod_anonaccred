@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:serverpod/serverpod.dart';
 
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 
@@ -20,13 +22,13 @@ class WebhookSignatureValidator {
   ///
   /// Returns: The webhook signing key as a string
   ///
-  /// Throws: [AnonAccredException] if the key is not configured
+  /// Throws: [AnonAccountException] if the key is not configured
   ///
   /// Requirements 8.4: Load Google's webhook signing key from environment variables
   static String _getWebhookSigningKey() {
     final key = Platform.environment['GOOGLE_WEBHOOK_SIGNING_KEY'];
     if (key == null || key.isEmpty) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'GOOGLE_WEBHOOK_SIGNING_KEY environment variable is not configured',
         details: {'required_env_var': 'GOOGLE_WEBHOOK_SIGNING_KEY'},
@@ -66,7 +68,7 @@ class WebhookSignatureValidator {
   ///
   /// Returns: true if signature is valid, false if invalid
   ///
-  /// Throws: [AnonAccredException] if webhook signing key is not configured
+  /// Throws: [AnonAccountException] if webhook signing key is not configured
   ///
   /// Requirements 8.2: Use Google's public key to verify HMAC-SHA256 signature
   static bool validateSignature({
@@ -122,7 +124,7 @@ class WebhookSignatureValidator {
   /// - [payload]: The raw webhook payload (JSON string)
   /// - [signature]: The signature from the request headers
   ///
-  /// Throws: [AnonAccredException] with HTTP 401 if signature is invalid
+  /// Throws: [AnonAccountException] with HTTP 401 if signature is invalid
   ///
   /// Requirements 8.3, 8.5: Throw HTTP 401 for invalid signatures and log failures
   static void validateSignatureOrThrow({
@@ -143,8 +145,8 @@ class WebhookSignatureValidator {
         level: LogLevel.warning,
       );
 
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.authInvalidSignature,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.authInvalidSignature,
         message: 'Invalid webhook signature',
         details: {
           'error': 'Webhook signature validation failed',

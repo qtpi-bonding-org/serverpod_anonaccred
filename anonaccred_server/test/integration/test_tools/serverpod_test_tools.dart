@@ -14,20 +14,12 @@
 import 'package:serverpod_test/serverpod_test.dart' as _i1;
 import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
-import 'package:anonaccred_server/src/generated/account.dart' as _i4;
 import 'package:anonaccred_server/src/generated/transaction_payment.dart'
-    as _i5;
-import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i6;
+    as _i4;
+import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i5;
 import 'package:anonaccred_server/src/generated/account_entitlement.dart'
-    as _i7;
-import 'package:anonaccred_server/src/generated/consume_result.dart' as _i8;
-import 'package:anonaccred_server/src/generated/account_device.dart' as _i9;
-import 'package:anonaccred_server/src/generated/authentication_result.dart'
-    as _i10;
-import 'package:anonaccred_server/src/generated/device_pairing_event.dart'
-    as _i11;
-import 'package:anonaccred_server/src/generated/device_pairing_info.dart'
-    as _i12;
+    as _i6;
+import 'package:anonaccred_server/src/generated/consume_result.dart' as _i7;
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -135,11 +127,7 @@ void withServerpod(
 }
 
 class TestEndpoints {
-  late final _AccountEndpoint account;
-
   late final _CommerceEndpoint commerce;
-
-  late final _DeviceEndpoint device;
 
   late final _IAPEndpoint iAP;
 
@@ -159,15 +147,7 @@ class _InternalTestEndpoints extends TestEndpoints
     _i2.SerializationManager serializationManager,
     _i2.EndpointDispatch endpoints,
   ) {
-    account = _AccountEndpoint(
-      endpoints,
-      serializationManager,
-    );
     commerce = _CommerceEndpoint(
-      endpoints,
-      serializationManager,
-    );
-    device = _DeviceEndpoint(
       endpoints,
       serializationManager,
     );
@@ -191,151 +171,6 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
-  }
-}
-
-class _AccountEndpoint {
-  _AccountEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
-
-  final _i2.EndpointDispatch _endpointDispatch;
-
-  final _i2.SerializationManager _serializationManager;
-
-  _i3.Future<_i4.AnonAccount> createAccount(
-    _i1.TestSessionBuilder sessionBuilder,
-    String ultimateSigningPublicKeyHex,
-    String encryptedDataKey,
-    String ultimatePublicKey,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'account',
-            method: 'createAccount',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'account',
-          methodName: 'createAccount',
-          parameters: _i1.testObjectToJson({
-            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
-            'encryptedDataKey': encryptedDataKey,
-            'ultimatePublicKey': ultimatePublicKey,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i4.AnonAccount>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<_i4.AnonAccount> getAccountById(
-    _i1.TestSessionBuilder sessionBuilder,
-    int accountId,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'account',
-            method: 'getAccountById',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'account',
-          methodName: 'getAccountById',
-          parameters: _i1.testObjectToJson({'accountId': accountId}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i4.AnonAccount>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<_i4.AnonAccount?> getAccountByPublicKey(
-    _i1.TestSessionBuilder sessionBuilder,
-    String ultimateSigningPublicKeyHex,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'account',
-            method: 'getAccountByPublicKey',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'account',
-          methodName: 'getAccountByPublicKey',
-          parameters: _i1.testObjectToJson({
-            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i4.AnonAccount?>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<_i4.AnonAccount?> getAccountForRecovery(
-    _i1.TestSessionBuilder sessionBuilder,
-    String ultimatePublicKey,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'account',
-            method: 'getAccountForRecovery',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'account',
-          methodName: 'getAccountForRecovery',
-          parameters: _i1.testObjectToJson({
-            'ultimatePublicKey': ultimatePublicKey,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i4.AnonAccount?>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
   }
 }
 
@@ -386,12 +221,12 @@ class _CommerceEndpoint {
     });
   }
 
-  _i3.Future<_i5.TransactionPayment> initiatePayment(
+  _i3.Future<_i4.TransactionPayment> initiatePayment(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
     int accountId,
-    _i6.PaymentRail rail,
+    _i5.PaymentRail rail,
     String storeProductId, {
     String? clientReference,
     double? customPrice,
@@ -423,7 +258,7 @@ class _CommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.TransactionPayment>);
+                as _i3.Future<_i4.TransactionPayment>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -492,7 +327,7 @@ class _CommerceEndpoint {
     });
   }
 
-  _i3.Future<List<_i7.AccountEntitlement>> getEntitlements(
+  _i3.Future<List<_i6.AccountEntitlement>> getEntitlements(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -521,7 +356,7 @@ class _CommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i7.AccountEntitlement>>);
+                as _i3.Future<List<_i6.AccountEntitlement>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -568,7 +403,7 @@ class _CommerceEndpoint {
     });
   }
 
-  _i3.Future<_i8.ConsumeResult> consumeEntitlement(
+  _i3.Future<_i7.ConsumeResult> consumeEntitlement(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -601,7 +436,7 @@ class _CommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.ConsumeResult>);
+                as _i3.Future<_i7.ConsumeResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -680,288 +515,6 @@ class _CommerceEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<Map<String, dynamic>>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-}
-
-class _DeviceEndpoint {
-  _DeviceEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
-
-  final _i2.EndpointDispatch _endpointDispatch;
-
-  final _i2.SerializationManager _serializationManager;
-
-  _i3.Future<_i9.AccountDevice> registerDevice(
-    _i1.TestSessionBuilder sessionBuilder,
-    int accountId,
-    String deviceSigningPublicKeyHex,
-    String encryptedDataKey,
-    String label,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'registerDevice',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'registerDevice',
-          parameters: _i1.testObjectToJson({
-            'accountId': accountId,
-            'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
-            'encryptedDataKey': encryptedDataKey,
-            'label': label,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i9.AccountDevice>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<_i10.AuthenticationResult> authenticateDevice(
-    _i1.TestSessionBuilder sessionBuilder,
-    String challenge,
-    String signature,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'authenticateDevice',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'authenticateDevice',
-          parameters: _i1.testObjectToJson({
-            'challenge': challenge,
-            'signature': signature,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i10.AuthenticationResult>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<String> generateAuthChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
-    String devicePublicKey,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'generateAuthChallenge',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'generateAuthChallenge',
-          parameters: _i1.testObjectToJson({
-            'devicePublicKey': devicePublicKey,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<String>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<bool> revokeDevice(
-    _i1.TestSessionBuilder sessionBuilder,
-    int deviceId,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'revokeDevice',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'revokeDevice',
-          parameters: _i1.testObjectToJson({'deviceId': deviceId}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<bool>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<List<_i9.AccountDevice>> listDevices(
-    _i1.TestSessionBuilder sessionBuilder,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'listDevices',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'listDevices',
-          parameters: _i1.testObjectToJson({}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<List<_i9.AccountDevice>>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Stream<_i11.DevicePairingEvent> monitorRegistration(
-    _i1.TestSessionBuilder sessionBuilder,
-    String signingKeyHex,
-  ) {
-    var _localTestStreamManager =
-        _i1.TestStreamManager<_i11.DevicePairingEvent>();
-    _i1.callStreamFunctionAndHandleExceptions(
-      () async {
-        var _localUniqueSession =
-            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-              endpoint: 'device',
-              method: 'monitorRegistration',
-            );
-        var _localCallContext = await _endpointDispatch
-            .getMethodStreamCallContext(
-              createSessionCallback: (_) => _localUniqueSession,
-              endpointPath: 'device',
-              methodName: 'monitorRegistration',
-              arguments: {'signingKeyHex': signingKeyHex},
-              requestedInputStreams: [],
-              serializationManager: _serializationManager,
-            );
-        await _localTestStreamManager.callStreamMethod(
-          _localCallContext,
-          _localUniqueSession,
-          {},
-        );
-      },
-      _localTestStreamManager.outputStreamController,
-    );
-    return _localTestStreamManager.outputStreamController.stream;
-  }
-
-  _i3.Future<_i9.AccountDevice> registerDeviceForAccount(
-    _i1.TestSessionBuilder sessionBuilder,
-    String newDeviceSigningPublicKeyHex,
-    String newDeviceEncryptedDataKey,
-    String label,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'registerDeviceForAccount',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'registerDeviceForAccount',
-          parameters: _i1.testObjectToJson({
-            'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex,
-            'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
-            'label': label,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i9.AccountDevice>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<_i12.DevicePairingInfo?> getDeviceBySigningKey(
-    _i1.TestSessionBuilder sessionBuilder,
-    String signingPublicKeyHex,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'getDeviceBySigningKey',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'getDeviceBySigningKey',
-          parameters: _i1.testObjectToJson({
-            'signingPublicKeyHex': signingPublicKeyHex,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i12.DevicePairingInfo?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1307,7 +860,7 @@ class _PaymentEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i5.TransactionPayment> checkPaymentStatus(
+  _i3.Future<_i4.TransactionPayment> checkPaymentStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -1336,7 +889,7 @@ class _PaymentEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.TransactionPayment>);
+                as _i3.Future<_i4.TransactionPayment>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

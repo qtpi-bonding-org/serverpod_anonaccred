@@ -1,48 +1,18 @@
 /// AnonAccred Server Module
 ///
-/// Provides anonymous credential system with privacy-by-design architecture
+/// Provides anonymous credential commerce system with privacy-by-design architecture
 /// for Serverpod applications. Features include:
 ///
-/// - ECDSA P-256-based cryptographic authentication with account and device management
-/// - Challenge-response authentication system for secure device access
-/// - Multi-device support with individual subkeys and revocation capability
-/// - Zero-PII architecture with encrypted data storage (never decrypted server-side)
 /// - Commerce foundation with price registry, order management, and inventory operations
+/// - Multi-rail payment processing (Apple IAP, Google IAP, X402, Monero)
+/// - Entitlement management with consumables, subscriptions, and one-time perks
+/// - Ephemeral bridge pattern for privacy-preserving transaction linking
 /// - Comprehensive error handling with structured exceptions
-/// - Privacy-safe logging integration
+///
+/// Identity and authentication are provided by the `anonaccount` module,
+/// which is re-exported here for convenience.
 ///
 /// ## Usage
-///
-/// ### Authentication
-///
-/// ```dart
-/// import 'package:anonaccred_server/anonaccred_server.dart';
-///
-/// // Create anonymous account
-/// final account = await AccountEndpoint().createAccount(
-///   session,
-///   ultimateSigningPublicKeyHex: 'ecdsa_p256_public_key_hex',
-///   encryptedDataKey: 'client_encrypted_sdk',
-/// );
-///
-/// // Register device
-/// final device = await DeviceEndpoint().registerDevice(
-///   session,
-///   accountId: account.id!,
-///   deviceSigningPublicKeyHex: 'device_ecdsa_p256_public_key_hex',
-///   encryptedDataKey: 'device_encrypted_sdk',
-///   label: 'My Device',
-/// );
-///
-/// // Authenticate device
-/// final challenge = await DeviceEndpoint().generateAuthChallenge(session);
-/// final authResult = await DeviceEndpoint().authenticateDevice(
-///   session,
-///   deviceSigningPublicKeyHex: 'device_ecdsa_p256_public_key_hex',
-///   challenge: challenge,
-///   signature: 'client_generated_signature',
-/// );
-/// ```
 ///
 /// ### Commerce Operations
 ///
@@ -80,16 +50,12 @@
 
 library;
 
-// Authentication handler for Serverpod integration
-export 'src/auth_handler.dart';
+// Re-export anonaccount identity types (hide generated classes that conflict)
+export 'package:anonaccount_server/anonaccount_server.dart'
+    hide Protocol, Endpoints;
 // Commerce and Entitlement Management
 export 'src/commerce_manager.dart';
 export 'src/post_fulfillment_context.dart';
-// Configuration system
-export 'src/config/header_config.dart';
-// Core cryptographic utilities
-export 'src/crypto_auth.dart';
-export 'src/crypto_utils.dart';
 export 'src/entitlement_manager.dart';
 // Exception handling and error classification system
 export 'src/error_classification.dart';
@@ -97,8 +63,6 @@ export 'src/exception_factory.dart';
 // Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';
-// Helper utilities for reducing code duplication
-export 'src/helpers.dart';
 // Payment system foundation - Payment Rails, Manager, and Processor
 export 'src/payments/payment_manager.dart';
 export 'src/payments/payment_processor.dart';
@@ -109,5 +73,3 @@ export 'src/price_registry.dart';
 // Refund system
 export 'src/refund_event.dart';
 export 'src/refund_manager.dart';
-
-// Transaction utilities removed - use Serverpod built-in patterns

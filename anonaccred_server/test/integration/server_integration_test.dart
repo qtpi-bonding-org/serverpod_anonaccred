@@ -7,17 +7,17 @@ void main() {
     test('authentication handler can be registered with Serverpod', () {
       // Test that the authentication handler has the correct signature
       // and can be passed to Serverpod constructor
-      expect(AnonAccredAuthHandler.handleAuthentication, isA<Function>());
+      expect(AnonAccountAuthHandler.handleAuthentication, isA<Function>());
       
       // Verify the function signature matches Serverpod's expected type
-      const handler = AnonAccredAuthHandler.handleAuthentication;
+      const handler = AnonAccountAuthHandler.handleAuthentication;
       expect(handler, isA<Future<AuthenticationInfo?> Function(Session, String)>());
     });
 
     test('authentication handler handles missing token gracefully', () async {
       final mockSession = _MockSession();
       
-      final result = await AnonAccredAuthHandler.handleAuthentication(
+      final result = await AnonAccountAuthHandler.handleAuthentication(
         mockSession, 
         '',
       );
@@ -28,7 +28,7 @@ void main() {
     test('authentication handler handles invalid token format gracefully', () async {
       final mockSession = _MockSession();
       
-      final result = await AnonAccredAuthHandler.handleAuthentication(
+      final result = await AnonAccountAuthHandler.handleAuthentication(
         mockSession, 
         'invalid-key',
       );
@@ -46,14 +46,14 @@ void main() {
         authId: deviceKey,
       );
       
-      final result = AnonAccredAuthHandler.getDevicePublicKey(mockSession);
+      final result = AnonAccountAuthHandler.getDevicePublicKey(mockSession);
       expect(result, equals(deviceKey));
     });
     
     test('getDevicePublicKey returns empty string for unauthenticated session', () {
       final mockSession = _MockSession();
       
-      final result = AnonAccredAuthHandler.getDevicePublicKey(mockSession);
+      final result = AnonAccountAuthHandler.getDevicePublicKey(mockSession);
       expect(result, equals(''));
     });
   });

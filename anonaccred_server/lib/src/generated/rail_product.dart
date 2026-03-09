@@ -34,7 +34,7 @@ abstract class RailProduct
       id: jsonSerialization['id'] as int?,
       rail: _i2.PaymentRail.fromJson((jsonSerialization['rail'] as String)),
       storeProductId: jsonSerialization['storeProductId'] as String,
-      isActive: jsonSerialization['isActive'] as bool,
+      isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
     );
   }
 
@@ -270,6 +270,8 @@ class RailProductRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<RailProductTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<RailProduct>(
       where: where?.call(RailProduct.t),
@@ -279,6 +281,8 @@ class RailProductRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -307,6 +311,8 @@ class RailProductRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<RailProductTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<RailProduct>(
       where: where?.call(RailProduct.t),
@@ -315,6 +321,8 @@ class RailProductRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -323,10 +331,14 @@ class RailProductRepository {
     _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<RailProduct>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -336,14 +348,20 @@ class RailProductRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<RailProduct>> insert(
     _i1.Session session,
     List<RailProduct> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<RailProduct>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -484,6 +502,22 @@ class RailProductRepository {
     return session.db.count<RailProduct>(
       where: where?.call(RailProduct.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [RailProduct] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<RailProductTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<RailProduct>(
+      where: where(RailProduct.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

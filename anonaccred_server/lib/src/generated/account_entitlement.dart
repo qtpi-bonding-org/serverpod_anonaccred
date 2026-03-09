@@ -267,6 +267,8 @@ class AccountEntitlementRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<AccountEntitlementTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<AccountEntitlement>(
       where: where?.call(AccountEntitlement.t),
@@ -276,6 +278,8 @@ class AccountEntitlementRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -304,6 +308,8 @@ class AccountEntitlementRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<AccountEntitlementTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<AccountEntitlement>(
       where: where?.call(AccountEntitlement.t),
@@ -312,6 +318,8 @@ class AccountEntitlementRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -320,10 +328,14 @@ class AccountEntitlementRepository {
     _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<AccountEntitlement>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -333,14 +345,20 @@ class AccountEntitlementRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<AccountEntitlement>> insert(
     _i1.Session session,
     List<AccountEntitlement> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<AccountEntitlement>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -483,6 +501,22 @@ class AccountEntitlementRepository {
     return session.db.count<AccountEntitlement>(
       where: where?.call(AccountEntitlement.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [AccountEntitlement] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<AccountEntitlementTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<AccountEntitlement>(
+      where: where(AccountEntitlement.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

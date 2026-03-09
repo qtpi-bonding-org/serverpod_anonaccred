@@ -1,3 +1,4 @@
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccred_server/src/apple_product_mapping_config.dart';
 import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
@@ -80,7 +81,7 @@ void main() {
 
       expect(
         () => AppleProductMappingConfig.validateProductId('com.unknown.product'),
-        throwsA(isA<AnonAccredException>()),
+        throwsA(isA<AnonAccountException>()),
       );
     });
 
@@ -89,7 +90,7 @@ void main() {
       try {
         AppleProductMappingConfig.validateProductId('com.unknown.product');
         fail('Expected exception to be thrown');
-      } on AnonAccredException catch (e) {
+      } on AnonAccountException catch (e) {
         expect(e.code, equals(AnonAccredErrorCodes.configurationMissing));
       }
     });
@@ -99,7 +100,7 @@ void main() {
       try {
         AppleProductMappingConfig.validateProductId('com.unknown.product');
         fail('Expected exception to be thrown');
-      } on AnonAccredException catch (e) {
+      } on AnonAccountException catch (e) {
         expect(e.details, contains('productId'));
         expect(e.details!['productId'], equals('com.unknown.product'));
       }

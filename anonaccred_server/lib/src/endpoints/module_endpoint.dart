@@ -4,6 +4,8 @@
 
 import 'package:serverpod/serverpod.dart';
 import '../entitlement_manager.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 
@@ -22,8 +24,8 @@ class ModuleEndpoint extends Endpoint {
       // Validate input parameters
       if (publicKey.isEmpty) {
         final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authMissingKey,
+            AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authMissingKey,
               message: 'Public key is required for authentication',
               operation: 'authenticateUser',
               details: {'publicKey': 'empty'},
@@ -34,8 +36,8 @@ class ModuleEndpoint extends Endpoint {
 
       if (signature.isEmpty || challenge.isEmpty) {
         final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authInvalidSignature,
+            AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authInvalidSignature,
               message:
                   'Signature and challenge are required for authentication',
               operation: 'authenticateUser',
@@ -52,8 +54,8 @@ class ModuleEndpoint extends Endpoint {
       // For now, we'll simulate some failure conditions
       if (signature.length < 64) {
         final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authInvalidSignature,
+            AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authInvalidSignature,
               message: 'Invalid signature format',
               operation: 'authenticateUser',
               details: {
@@ -68,8 +70,8 @@ class ModuleEndpoint extends Endpoint {
       // Simulate expired challenge check
       if (challenge.startsWith('expired_')) {
         final exception =
-            AnonAccredExceptionFactory.createAuthenticationException(
-              code: AnonAccredErrorCodes.authExpiredChallenge,
+            AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authExpiredChallenge,
               message: 'Authentication challenge has expired',
               operation: 'authenticateUser',
               details: {'challenge': challenge, 'status': 'expired'},
@@ -86,8 +88,8 @@ class ModuleEndpoint extends Endpoint {
       // Log unexpected error
 
       // Wrap unexpected errors in AuthenticationException
-      throw AnonAccredExceptionFactory.createAuthenticationException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Unexpected error during authentication: ${e.toString()}',
         operation: 'authenticateUser',
         details: {'error': e.toString()},
@@ -183,7 +185,7 @@ class ModuleEndpoint extends Endpoint {
 
       // Wrap unexpected errors in PaymentException
       throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.internalError,
+        code: AnonAccountErrorCodes.internalError,
         message: 'Unexpected error during payment processing: ${e.toString()}',
         internalTransactionId: internalTransactionId,
         paymentRail: paymentRail,
@@ -273,7 +275,7 @@ class ModuleEndpoint extends Endpoint {
       rethrow;
     } catch (e) {
       throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccredErrorCodes.internalError,
+        code: AnonAccountErrorCodes.internalError,
         message:
             'Unexpected error during entitlement operation: ${e.toString()}',
         accountId: accountId,

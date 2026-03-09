@@ -1,3 +1,4 @@
+import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:anonaccred_server/src/entitlement_manager.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
@@ -69,12 +70,11 @@ void main() {
       PriceRegistry().clearRegistry();
 
       // Create a test account for tests that need it
-      final account = await endpoints.account.createAccount(
-        sessionBuilder,
-        validPublicKey,
-        'encrypted_data_key_for_commerce_test',
-        validPublicKey, // Use the same valid key for ultimatePublicKey
-      );
+      final account = await AnonAccount.db.insertRow(sessionBuilder.build(), AnonAccount(
+        ultimateSigningPublicKeyHex: validPublicKey,
+        encryptedDataKey: 'encrypted_data_key_for_commerce_test',
+        ultimatePublicKey: validPublicKey, // Use the same valid key for ultimatePublicKey
+      ));
       testAccountId = account.id!;
     });
 

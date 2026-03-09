@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
@@ -38,7 +39,7 @@ class PaymentProcessor {
       if (e is PaymentException) rethrow;
 
       throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to update transaction status: ${e.toString()}',
         internalTransactionId: internalTransactionId,
         details: {'error': e.toString()},
@@ -69,7 +70,7 @@ class PaymentProcessor {
     } catch (e) {
       if (e is PaymentException) rethrow;
       throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to update payment reference: ${e.toString()}',
         internalTransactionId: internalTransactionId,
       );
@@ -99,7 +100,7 @@ class PaymentProcessor {
     } catch (e) {
       if (e is PaymentException) rethrow;
       throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to update transaction timestamp: ${e.toString()}',
         internalTransactionId: internalTransactionId,
       );
@@ -130,7 +131,7 @@ class PaymentProcessor {
     } catch (e) {
       if (e is PaymentException) rethrow;
       throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to update transaction status and ref: ${e.toString()}',
         internalTransactionId: internalTransactionId,
       );
@@ -149,7 +150,7 @@ class PaymentProcessor {
       );
     } catch (e) {
       throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.databaseError,
+        code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to retrieve transaction: ${e.toString()}',
         internalTransactionId: internalTransactionId,
       );

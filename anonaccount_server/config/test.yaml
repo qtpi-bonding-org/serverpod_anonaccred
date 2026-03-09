@@ -1,0 +1,36 @@
+# This is the configuration file for your test environment.
+# All ports are set to zero in this file which makes the server find the next available port.
+
+# Configuration for the main API test server.
+apiServer:
+  port: 0
+  publicHost: localhost
+  publicPort: 0
+  publicScheme: http
+
+# Configuration for the Insights test server.
+insightsServer:
+  port: 0
+  publicHost: localhost
+  publicPort: 0
+  publicScheme: http
+
+# Configuration for the web test server.
+webServer:
+  port: 0
+  publicHost: localhost
+  publicPort: 0
+  publicScheme: http
+
+# This is the database setup for your test server.
+database:
+  host: localhost
+  port: 9090
+  name: anonaccount_test
+  user: postgres
+
+# This is the setup for your Redis test instance.
+redis:
+  enabled: true
+  host: localhost
+  port: 9091

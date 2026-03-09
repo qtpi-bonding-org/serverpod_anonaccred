@@ -1,9 +1,10 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../commerce_manager.dart';
-import '../crypto_auth.dart';
 import '../entitlement_manager.dart';
 import '../entitlement_utils.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../payments/x402_interceptor.dart';
@@ -30,7 +31,7 @@ class CommerceEndpoint extends Endpoint {
   /// Throws:
   /// - [AuthenticationException] for invalid authentication
   /// - [PaymentException] for invalid product data
-  /// - [AnonAccredException] for system errors
+  /// - [AnonAccountException] for system errors
   Future<Map<String, double>> registerProducts(
     Session session,
     String publicKey,
@@ -139,8 +140,8 @@ class CommerceEndpoint extends Endpoint {
     } on PaymentException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message:
             'Unexpected error during product registration: ${e.toString()}',
         details: {'error': e.toString()},
@@ -221,8 +222,8 @@ class CommerceEndpoint extends Endpoint {
       );
     } catch (e) {
       if (e is PaymentException) rethrow;
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Failed to get active product IDs: ${e.toString()}',
       );
     }
@@ -238,7 +239,7 @@ class CommerceEndpoint extends Endpoint {
   ///
   /// Throws:
   /// - [PaymentException] for price registry errors
-  /// - [AnonAccredException] for system errors
+  /// - [AnonAccountException] for system errors
   Future<Map<String, double>> getProductCatalog(Session session) async {
     try {
       final registry = PriceRegistry();
@@ -284,8 +285,8 @@ class CommerceEndpoint extends Endpoint {
     } on InventoryException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Unexpected error getting entitlements: ${e.toString()}',
       );
     }
@@ -321,8 +322,8 @@ class CommerceEndpoint extends Endpoint {
     } on InventoryException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Unexpected error getting balance: ${e.toString()}',
       );
     }
@@ -360,8 +361,8 @@ class CommerceEndpoint extends Endpoint {
     } on InventoryException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message:
             'Unexpected error during entitlement consumption: ${e.toString()}',
       );
@@ -428,8 +429,8 @@ class CommerceEndpoint extends Endpoint {
     } on PaymentException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Unexpected error in X402 catalog request: ${e.toString()}',
         details: {'error': e.toString()},
       );
@@ -490,8 +491,8 @@ class CommerceEndpoint extends Endpoint {
     } on PaymentException {
       rethrow;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Unexpected error in X402 balance request: ${e.toString()}',
       );
     }
@@ -520,8 +521,8 @@ class CommerceEndpoint extends Endpoint {
     // Validate public key format
     if (publicKey.isEmpty) {
       final exception =
-          AnonAccredExceptionFactory.createAuthenticationException(
-            code: AnonAccredErrorCodes.authMissingKey,
+          AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authMissingKey,
             message: 'Public key is required for authentication',
             operation: operation,
             details: {'publicKey': 'empty'},
@@ -532,8 +533,8 @@ class CommerceEndpoint extends Endpoint {
 
     if (!CryptoAuth.isValidPublicKey(publicKey)) {
       final exception =
-          AnonAccredExceptionFactory.createAuthenticationException(
-            code: AnonAccredErrorCodes.cryptoInvalidPublicKey,
+          AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
             message: 'Invalid ECDSA P-256 public key format',
             operation: operation,
             details: {
@@ -548,8 +549,8 @@ class CommerceEndpoint extends Endpoint {
     // Validate signature format
     if (signature.isEmpty) {
       final exception =
-          AnonAccredExceptionFactory.createAuthenticationException(
-            code: AnonAccredErrorCodes.authInvalidSignature,
+          AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authInvalidSignature,
             message: 'Signature is required for authentication',
             operation: operation,
             details: {'signature': 'empty'},

@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:googleapis/androidpublisher/v3.dart' hide RefundEvent;
 import 'package:serverpod/serverpod.dart';
 
-import '../../crypto_utils.dart'; // REQUIRED for hashing
 import '../../entitlement_manager.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
 import '../../product_mapping_config.dart';
@@ -39,7 +40,7 @@ class GoogleIAPRail implements PaymentRailInterface {
   /// Internal helper to get the client, throws if not initialized
   AndroidPublisherClient get _publisherClient {
     if (_client == null) {
-      throw AnonAccredException(
+      throw AnonAccountException(
         code: AnonAccredErrorCodes.configurationMissing,
         message:
             'Google IAP rail not initialized. Use GoogleIAPRail.create() or provide a client.',
@@ -51,7 +52,7 @@ class GoogleIAPRail implements PaymentRailInterface {
   /// Factory to create and initialize GoogleIAPRail asynchronously
   ///
   /// Loads credentials and initializes the AndroidPublisherClient.
-  /// Throws [AnonAccredException] if initialization fails.
+  /// Throws [AnonAccountException] if initialization fails.
   static Future<GoogleIAPRail> create() async {
     final authClient = await GoogleAuthClient.fromEnvironment();
     final authenticatedClient = await authClient.createAuthenticatedClient();
@@ -111,9 +112,9 @@ class GoogleIAPRail implements PaymentRailInterface {
             payload: payload,
             signature: signature,
           );
-        } on AnonAccredException catch (e) {
+        } on AnonAccountException catch (e) {
           // Invalid signature - return HTTP 401
-          if (e.code == AnonAccredErrorCodes.authInvalidSignature) {
+          if (e.code == AnonAccountErrorCodes.authInvalidSignature) {
             return PaymentResult(
               success: false,
               errorMessage: 'Invalid webhook signature',
@@ -173,7 +174,7 @@ class GoogleIAPRail implements PaymentRailInterface {
             : null,
         errorMessage: isValid ? null : 'Purchase validation failed',
       );
-    } on AnonAccredException {
+    } on AnonAccountException {
       rethrow;
     } catch (e) {
       return PaymentResult(
@@ -270,7 +271,7 @@ class GoogleIAPRail implements PaymentRailInterface {
       // 4. Get product mapping
       final mapping = ProductMappingConfig.getMapping(productId);
       if (mapping == null) {
-        throw AnonAccredExceptionFactory.createException(
+        throw AnonAccountExceptionFactory.createException(
           code: AnonAccredErrorCodes.configurationMissing,
           message: 'No product mapping found for product ID: $productId',
           details: {'productId': productId},
@@ -362,7 +363,7 @@ class GoogleIAPRail implements PaymentRailInterface {
       return GooglePurchaseValidationResult.fromPurchase(purchase, mapping);
     } on PaymentException {
       rethrow;
-    } on AnonAccredException {
+    } on AnonAccountException {
       rethrow;
     } catch (e) {
       throw AnonAccredExceptionFactory.createPaymentException(

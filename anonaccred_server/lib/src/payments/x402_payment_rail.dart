@@ -1,3 +1,4 @@
+import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../refund_event.dart';
@@ -108,7 +109,7 @@ class X402PaymentRail implements PaymentRailInterface {
         transactionTimestamp: success ? DateTime.now() : null,
         errorMessage: success ? null : 'X402 payment verification failed',
       );
-    } on AnonAccredException {
+    } on AnonAccountException {
       // Re-throw AnonAccred exceptions as-is
       rethrow;
     } on PaymentException {

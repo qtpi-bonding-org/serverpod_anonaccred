@@ -33,7 +33,7 @@ abstract class RailProduct implements _i1.SerializableModel {
       id: jsonSerialization['id'] as int?,
       rail: _i2.PaymentRail.fromJson((jsonSerialization['rail'] as String)),
       storeProductId: jsonSerialization['storeProductId'] as String,
-      isActive: jsonSerialization['isActive'] as bool,
+      isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
     );
   }
 

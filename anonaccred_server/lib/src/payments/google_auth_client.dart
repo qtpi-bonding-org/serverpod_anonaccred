@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 
 import '../exception_factory.dart';
 
@@ -22,7 +23,7 @@ class GoogleAuthClient {
   /// 1. GOOGLE_SERVICE_ACCOUNT_JSON: Full service account JSON as environment variable
   /// 2. GOOGLE_SERVICE_ACCOUNT_PATH: Path to service account JSON file
   ///
-  /// Throws AnonAccredException with configurationMissing code if neither is configured.
+  /// Throws AnonAccountException with configurationMissing code if neither is configured.
   ///
   /// Requirements 1.1: Load credentials from environment or file
   static Future<GoogleAuthClient> fromEnvironment() async {
@@ -38,7 +39,7 @@ class GoogleAuthClient {
         final file = File(filePath);
         credentialsJson = await file.readAsString();
       } catch (e) {
-        throw AnonAccredExceptionFactory.createException(
+        throw AnonAccountExceptionFactory.createException(
           code: AnonAccredErrorCodes.configurationMissing,
           message: 'Failed to read Google service account file: $filePath',
           details: {'filePath': filePath, 'error': e.toString()},
@@ -47,7 +48,7 @@ class GoogleAuthClient {
     }
 
     if (credentialsJson == null || credentialsJson.isEmpty) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'Google service account credentials not configured',
         details: {
@@ -65,7 +66,7 @@ class GoogleAuthClient {
       final credentials = ServiceAccountCredentials.fromJson(credentialsMap);
       return GoogleAuthClient(credentials: credentials);
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'Invalid Google service account credentials format',
         details: {
@@ -100,7 +101,7 @@ class GoogleAuthClient {
         'https://www.googleapis.com/auth/androidpublisher',
       ]);
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message:
             'Failed to create Google authenticated client: ${e.toString()}',
@@ -136,7 +137,7 @@ class GoogleAuthClient {
 
       return accessToken.data;
     } catch (e) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'Failed to refresh Google access token: ${e.toString()}',
         details: {

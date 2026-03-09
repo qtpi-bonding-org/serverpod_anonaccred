@@ -1,3 +1,4 @@
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:test/test.dart';

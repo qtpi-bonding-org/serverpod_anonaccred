@@ -2,8 +2,9 @@ import 'dart:convert';
 
 import 'package:serverpod/serverpod.dart';
 
-import '../../crypto_utils.dart'; // REQUIRED for hashing
 import '../../entitlement_manager.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
 import '../../product_mapping_config.dart';
@@ -43,7 +44,7 @@ class AppleIAPRail implements PaymentRailInterface {
   /// Internal helper to get the client, throws if not initialized
   AppStoreServerClient get _appStoreClient {
     if (_client == null) {
-      throw AnonAccredException(
+      throw AnonAccountException(
         code: AnonAccredErrorCodes.configurationMissing,
         message:
             'Apple IAP rail not initialized. Use AppleIAPRail.create() or provide a client.',
@@ -115,9 +116,9 @@ class AppleIAPRail implements PaymentRailInterface {
           session: session,
           signedPayload: signedPayload,
         );
-      } on AnonAccredException catch (e) {
+      } on AnonAccountException catch (e) {
         // Invalid signature - return HTTP 401
-        if (e.code == AnonAccredErrorCodes.authInvalidSignature) {
+        if (e.code == AnonAccountErrorCodes.authInvalidSignature) {
           return PaymentResult(
             success: false,
             errorMessage: 'Invalid notification signature',
@@ -240,7 +241,7 @@ class AppleIAPRail implements PaymentRailInterface {
     // 6. Get product mapping
     final mapping = ProductMappingConfig.getAppleMapping(productId);
     if (mapping == null) {
-      throw AnonAccredExceptionFactory.createException(
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'No product mapping for Apple product ID: $productId',
         details: {'productId': productId},

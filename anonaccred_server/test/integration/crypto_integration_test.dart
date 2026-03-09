@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:anonaccred_server/src/crypto_utils.dart';
+import 'package:anonaccount_server/src/crypto_utils.dart';
 import 'package:crypto/crypto.dart' as crypto_lib;
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';

@@ -29,16 +29,13 @@ void main() {
           final publicKey = _generateRandomPublicKey();
           final encryptedDataKey = 'test_encrypted_data_key_$i';
 
-          final account = await endpoints.account.createAccount(
-            sessionBuilder,
-            publicKey,
-            encryptedDataKey,
-            publicKey, // ultimatePublicKey - using same key for testing
-          );
-          final accountId = account.id!;
-
-          // Build session for this test iteration
           final session = sessionBuilder.build();
+          final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            ultimateSigningPublicKeyHex: publicKey,
+            encryptedDataKey: encryptedDataKey,
+            ultimatePublicKey: publicKey, // ultimatePublicKey - using same key for testing
+          ));
+          final accountId = account.id!;
 
           // REQUIREMENT: Must create the Entitlement record first for EntitlementManager to work
           final createdEntitlement = await Entitlement.db.insertRow(
@@ -193,14 +190,13 @@ void main() {
       final publicKey = _generateRandomPublicKey();
       const encryptedDataKey = 'test_encrypted_data_key_invalid';
 
-      final account = await endpoints.account.createAccount(
-        sessionBuilder,
-        publicKey,
-        encryptedDataKey,
-        publicKey,
-      );
-      final accountId = account.id!;
       final session = sessionBuilder.build();
+      final account = await AnonAccount.db.insertRow(session, AnonAccount(
+        ultimateSigningPublicKeyHex: publicKey,
+        encryptedDataKey: encryptedDataKey,
+        ultimatePublicKey: publicKey,
+      ));
+      final accountId = account.id!;
 
       await Entitlement.db.insertRow(
         session,
@@ -249,14 +245,13 @@ void main() {
           final publicKey = _generateRandomPublicKey();
           final encryptedDataKey = 'test_encrypted_data_key_query_$i';
 
-          final account = await endpoints.account.createAccount(
-            sessionBuilder,
-            publicKey,
-            encryptedDataKey,
-            publicKey,
-          );
-          final accountId = account.id!;
           final session = sessionBuilder.build();
+          final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            ultimateSigningPublicKeyHex: publicKey,
+            encryptedDataKey: encryptedDataKey,
+            ultimatePublicKey: publicKey,
+          ));
+          final accountId = account.id!;
 
           // Empty state
           final empty = await EntitlementManager.getAccountEntitlements(
@@ -364,14 +359,13 @@ void main() {
       () async {
         for (var i = 0; i < 5; i++) {
           final publicKey = _generateRandomPublicKey();
-          final account = await endpoints.account.createAccount(
-            sessionBuilder,
-            publicKey,
-            'test_empty_$i',
-            publicKey,
-          );
-          final accountId = account.id!;
           final session = sessionBuilder.build();
+          final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            ultimateSigningPublicKeyHex: publicKey,
+            encryptedDataKey: 'test_empty_$i',
+            ultimatePublicKey: publicKey,
+          ));
+          final accountId = account.id!;
 
           final ents = await EntitlementManager.getAccountEntitlements(
             session,

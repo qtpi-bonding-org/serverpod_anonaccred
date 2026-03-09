@@ -30,12 +30,11 @@ void main() {
       await session.close();
 
       // Create a test account for tests that need it
-      final account = await endpoints.account.createAccount(
-        sessionBuilder,
-        validPublicKey,
-        'encrypted_data_key_for_x402_test',
-        validPublicKey, // Use the same valid key for ultimatePublicKey
-      );
+      final account = await AnonAccount.db.insertRow(sessionBuilder.build(), AnonAccount(
+        ultimateSigningPublicKeyHex: validPublicKey,
+        encryptedDataKey: 'encrypted_data_key_for_x402_test',
+        ultimatePublicKey: validPublicKey, // Use the same valid key for ultimatePublicKey
+      ));
       testAccountId = account.id!;
     });
 

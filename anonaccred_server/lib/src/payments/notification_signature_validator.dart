@@ -5,6 +5,8 @@ import 'package:crypto/crypto.dart';
 import 'package:pointycastle/export.dart';
 import 'package:serverpod/serverpod.dart';
 
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../exception_factory.dart';
 
 const String _appleJwksUrl = 'https://api.appstoreconnect.apple.com/v1/certs';
@@ -253,8 +255,8 @@ class NotificationSignatureValidator {
         level: LogLevel.warning,
       );
 
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.authInvalidSignature,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.authInvalidSignature,
         message: 'Invalid Apple notification signature',
         details: {
           'error': 'Apple notification signature validation failed',

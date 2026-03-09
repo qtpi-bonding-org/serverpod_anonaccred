@@ -1,7 +1,8 @@
 import 'package:app_store_server_sdk/app_store_server_sdk.dart';
-import '../../anonaccred_server.dart' show PaymentException, AnonAccredException;
+import 'package:anonaccount_server/anonaccount_server.dart';
+import '../../anonaccred_server.dart' show PaymentException, AnonAccountException;
 import '../exception_factory.dart';
-import '../generated/protocol.dart' show PaymentException, AnonAccredException;
+import '../generated/protocol.dart' show PaymentException, AnonAccountException;
 import 'apple_jwt_auth_client.dart';
 
 /// Wrapper around app_store_server_sdk for type-safe access to App Store Server API.
@@ -71,7 +72,7 @@ class AppStoreServerClient {
   /// Throws:
   /// - [PaymentException] with code PAYMENT_VALIDATION_FAILED if transaction is invalid
   /// - [PaymentException] with code CONFIGURATION_MISSING if API configuration is invalid
-  /// - [AnonAccredException] for other API errors
+  /// - [AnonAccountException] for other API errors
   Future<HistoryResponse> getTransactionInfo(
     String transactionId,
   ) async {
@@ -83,8 +84,8 @@ class AppStoreServerClient {
       _handleApiException(e, 'getTransactionInfo', {'transactionId': transactionId});
       rethrow;
     } on Exception catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Failed to get transaction info: ${e.toString()}',
         details: {'transactionId': transactionId, 'operation': 'getTransactionInfo'},
       );
@@ -101,7 +102,7 @@ class AppStoreServerClient {
   ///
   /// Throws:
   /// - [PaymentException] with code PAYMENT_VALIDATION_FAILED if request fails
-  /// - [AnonAccredException] for other API errors
+  /// - [AnonAccountException] for other API errors
   Future<HistoryResponse> getTransactionHistory({
     required String originalTransactionId,
     String? revision,
@@ -119,8 +120,8 @@ class AppStoreServerClient {
       );
       rethrow;
     } on Exception catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Failed to get transaction history: ${e.toString()}',
         details: {
           'originalTransactionId': originalTransactionId,
@@ -138,7 +139,7 @@ class AppStoreServerClient {
   ///
   /// Throws:
   /// - [PaymentException] with code PAYMENT_VALIDATION_FAILED if order not found
-  /// - [AnonAccredException] for other API errors
+  /// - [AnonAccountException] for other API errors
   Future<OrderLookupResponse> lookUpOrderId(String orderId) async {
     try {
       return await _api.lookUpOrderId(orderId);
@@ -146,8 +147,8 @@ class AppStoreServerClient {
       _handleApiException(e, 'lookUpOrderId', {'orderId': orderId});
       rethrow;
     } on Exception catch (e) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Failed to look up order ID: ${e.toString()}',
         details: {'orderId': orderId, 'operation': 'lookUpOrderId'},
       );
@@ -190,7 +191,7 @@ class AppStoreServerClient {
       case 403:
         return AnonAccredErrorCodes.configurationMissing;
       case 429:
-        return AnonAccredErrorCodes.networkTimeout;
+        return AnonAccountErrorCodes.networkTimeout;
       default:
         return AnonAccredErrorCodes.paymentValidationFailed;
     }

@@ -183,7 +183,7 @@ void main() {
             expect(result, isFalse);
           } on AuthenticationException catch (e) {
             // Expected behavior: fake keys cause verification failure
-            expect(e.code, equals(AnonAccredErrorCodes.cryptoVerificationFailed));
+            expect(e.code, equals(AnonAccountErrorCodes.cryptoVerificationFailed));
             expect(e.message, contains('ECDSA verification failed'));
           }
 
@@ -199,7 +199,7 @@ void main() {
             expect(result2, isFalse);
           } on AuthenticationException catch (e2) {
             // Should get the same type of error consistently
-            expect(e2.code, equals(AnonAccredErrorCodes.cryptoVerificationFailed));
+            expect(e2.code, equals(AnonAccountErrorCodes.cryptoVerificationFailed));
           }
 
           // Test format validation
@@ -261,7 +261,7 @@ void main() {
               // Verify error provides information without exposing key material
               expect(
                 authException.code,
-                equals(AnonAccredErrorCodes.cryptoInvalidPublicKey),
+                equals(AnonAccountErrorCodes.cryptoInvalidPublicKey),
               );
               expect(
                 authException.message,
@@ -311,7 +311,7 @@ void main() {
               // Verify error provides information without exposing signature material
               expect(
                 authException.code,
-                equals(AnonAccredErrorCodes.cryptoInvalidSignature),
+                equals(AnonAccountErrorCodes.cryptoInvalidSignature),
               );
               expect(
                 authException.message,
@@ -353,7 +353,7 @@ void main() {
 
             expect(
               authException.code,
-              equals(AnonAccredErrorCodes.cryptoInvalidMessage),
+              equals(AnonAccountErrorCodes.cryptoInvalidMessage),
             );
             expect(authException.message, contains('Message cannot be empty'));
             expect(authException.operation, equals('verifySignature'));
@@ -370,7 +370,7 @@ void main() {
 
             expect(
               authException.code,
-              equals(AnonAccredErrorCodes.cryptoFormatError),
+              equals(AnonAccountErrorCodes.cryptoFormatError),
             );
             expect(
               authException.message,

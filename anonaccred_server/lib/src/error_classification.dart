@@ -1,30 +1,32 @@
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
 
 /// Lightweight utility class for basic error analysis
-class AnonAccredExceptionUtils {
+class AnonAccountExceptionUtils {
   /// Determines if an error is retryable based on its code
   static bool isRetryable(String errorCode) {
     switch (errorCode) {
       // Retryable errors
-      case AnonAccredErrorCodes.networkTimeout:
-      case AnonAccredErrorCodes.databaseError:
+      case AnonAccountErrorCodes.networkTimeout:
+      case AnonAccountErrorCodes.databaseError:
         return true;
 
       // Non-retryable errors (cryptographic)
-      case AnonAccredErrorCodes.cryptoInvalidPublicKey:
-      case AnonAccredErrorCodes.cryptoInvalidSignature:
-      case AnonAccredErrorCodes.cryptoInvalidMessage:
-      case AnonAccredErrorCodes.cryptoFormatError:
+      case AnonAccountErrorCodes.cryptoInvalidPublicKey:
+      case AnonAccountErrorCodes.cryptoInvalidSignature:
+      case AnonAccountErrorCodes.cryptoInvalidMessage:
+      case AnonAccountErrorCodes.cryptoFormatError:
 
       // Non-retryable errors (authentication)
-      case AnonAccredErrorCodes.authInvalidSignature:
-      case AnonAccredErrorCodes.authExpiredChallenge:
-      case AnonAccredErrorCodes.authDeviceNotFound:
-      case AnonAccredErrorCodes.authDeviceRevoked:
-      case AnonAccredErrorCodes.authAccountNotFound:
-      case AnonAccredErrorCodes.authDuplicateDevice:
-      case AnonAccredErrorCodes.authChallengeExpired:
+      case AnonAccountErrorCodes.authInvalidSignature:
+      case AnonAccountErrorCodes.authExpiredChallenge:
+      case AnonAccountErrorCodes.authDeviceNotFound:
+      case AnonAccountErrorCodes.authDeviceRevoked:
+      case AnonAccountErrorCodes.authAccountNotFound:
+      case AnonAccountErrorCodes.authDuplicateDevice:
+      case AnonAccountErrorCodes.authChallengeExpired:
 
       // Non-retryable errors (payment/inventory)
       case AnonAccredErrorCodes.paymentInsufficientFunds:
@@ -38,7 +40,7 @@ class AnonAccredExceptionUtils {
         return false;
 
       // Potentially retryable cryptographic errors
-      case AnonAccredErrorCodes.cryptoVerificationFailed:
+      case AnonAccountErrorCodes.cryptoVerificationFailed:
 
       // Potentially retryable price registry errors
       case AnonAccredErrorCodes.priceRegistryOperationFailed:
@@ -65,7 +67,7 @@ class AnonAccredExceptionUtils {
     String code;
     String message;
 
-    if (exception is AnonAccredException) {
+    if (exception is AnonAccountException) {
       code = exception.code;
       message = exception.message;
     } else if (exception is AuthenticationException) {
@@ -78,7 +80,7 @@ class AnonAccredExceptionUtils {
       code = exception.code;
       message = exception.message;
     } else {
-      code = AnonAccredErrorCodes.internalError;
+      code = AnonAccountErrorCodes.internalError;
       message = exception.toString();
     }
 
@@ -96,13 +98,13 @@ class AnonAccredExceptionUtils {
   static String _getSeverity(String errorCode) {
     switch (errorCode) {
       // High severity - system errors
-      case AnonAccredErrorCodes.databaseError:
-      case AnonAccredErrorCodes.internalError:
+      case AnonAccountErrorCodes.databaseError:
+      case AnonAccountErrorCodes.internalError:
         return 'high';
       
       // Medium severity - operational errors
-      case AnonAccredErrorCodes.networkTimeout:
-      case AnonAccredErrorCodes.cryptoVerificationFailed:
+      case AnonAccountErrorCodes.networkTimeout:
+      case AnonAccountErrorCodes.cryptoVerificationFailed:
       case AnonAccredErrorCodes.priceRegistryOperationFailed:
       case AnonAccredErrorCodes.x402FacilitatorUnavailable:
         return 'medium';
@@ -121,9 +123,9 @@ class AnonAccredExceptionUtils {
       return 'payment';
     } else if (errorCode.startsWith('INVENTORY_')) {
       return 'inventory';
-    } else if (errorCode == AnonAccredErrorCodes.networkTimeout) {
+    } else if (errorCode == AnonAccountErrorCodes.networkTimeout) {
       return 'network';
-    } else if (errorCode == AnonAccredErrorCodes.databaseError) {
+    } else if (errorCode == AnonAccountErrorCodes.databaseError) {
       return 'database';
     } else {
       return 'system';
@@ -134,15 +136,15 @@ class AnonAccredExceptionUtils {
   static String _getRecoveryGuidance(String errorCode) {
     switch (errorCode) {
       // Authentication errors
-      case AnonAccredErrorCodes.authInvalidSignature:
-      case AnonAccredErrorCodes.cryptoInvalidSignature:
+      case AnonAccountErrorCodes.authInvalidSignature:
+      case AnonAccountErrorCodes.cryptoInvalidSignature:
         return 'Verify signature format and regenerate if necessary';
-      case AnonAccredErrorCodes.authExpiredChallenge:
-      case AnonAccredErrorCodes.authChallengeExpired:
+      case AnonAccountErrorCodes.authExpiredChallenge:
+      case AnonAccountErrorCodes.authChallengeExpired:
         return 'Request a new authentication challenge';
-      case AnonAccredErrorCodes.authDeviceRevoked:
+      case AnonAccountErrorCodes.authDeviceRevoked:
         return 'Device has been revoked, register a new device';
-      case AnonAccredErrorCodes.authDeviceNotFound:
+      case AnonAccountErrorCodes.authDeviceNotFound:
         return 'Register device with account first';
       
       // Payment errors
@@ -158,9 +160,9 @@ class AnonAccredExceptionUtils {
         return 'Use a valid consumable type';
       
       // System errors
-      case AnonAccredErrorCodes.networkTimeout:
+      case AnonAccountErrorCodes.networkTimeout:
         return 'Retry the operation after a brief delay';
-      case AnonAccredErrorCodes.databaseError:
+      case AnonAccountErrorCodes.databaseError:
         return 'Contact support if problem persists';
       
       // X402-specific errors

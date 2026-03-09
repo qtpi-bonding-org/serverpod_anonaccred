@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:anonaccred_server/src/crypto_utils.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:anonaccount_server/src/crypto_utils.dart';
 import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
@@ -357,7 +358,7 @@ void main() {
             purchaseToken: token,
             accountId: 1,
           ),
-          throwsA(isA<AnonAccredException>()),
+          throwsA(isA<AnonAccountException>()),
         );
       });
     });

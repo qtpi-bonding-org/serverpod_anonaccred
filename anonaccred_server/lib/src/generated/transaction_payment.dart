@@ -515,6 +515,8 @@ class TransactionPaymentRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<TransactionPaymentTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<TransactionPayment>(
       where: where?.call(TransactionPayment.t),
@@ -524,6 +526,8 @@ class TransactionPaymentRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -552,6 +556,8 @@ class TransactionPaymentRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<TransactionPaymentTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<TransactionPayment>(
       where: where?.call(TransactionPayment.t),
@@ -560,6 +566,8 @@ class TransactionPaymentRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -568,10 +576,14 @@ class TransactionPaymentRepository {
     _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<TransactionPayment>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -581,14 +593,20 @@ class TransactionPaymentRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<TransactionPayment>> insert(
     _i1.Session session,
     List<TransactionPayment> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<TransactionPayment>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -731,6 +749,22 @@ class TransactionPaymentRepository {
     return session.db.count<TransactionPayment>(
       where: where?.call(TransactionPayment.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [TransactionPayment] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<TransactionPaymentTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<TransactionPayment>(
+      where: where(TransactionPayment.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }
