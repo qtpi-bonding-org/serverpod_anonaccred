@@ -172,16 +172,15 @@ class CryptoUtils {
       // Create signature object
       final ecSignature = ECSignature(r, s);
 
-      // Hash the message with SHA-256
-      final digest = SHA256Digest();
-      final hashedMessage = digest.process(messageBytes);
-
       // Create and initialize ECDSA signer for verification
+      // ECDSASigner(SHA256Digest()) hashes the message internally,
+      // matching webcrypto's signBytes(data, Hash.sha256) which also
+      // single-hashes before signing.
       final signer = ECDSASigner(SHA256Digest());
       signer.init(false, PublicKeyParameter<ECPublicKey>(ecPublicKey));
 
-      // Verify signature
-      return signer.verifySignature(hashedMessage, ecSignature);
+      // Verify signature — pass raw message bytes, signer hashes internally
+      return signer.verifySignature(messageBytes, ecSignature);
 
     } catch (e) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
