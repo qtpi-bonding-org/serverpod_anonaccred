@@ -287,6 +287,9 @@ class EntitlementManager {
       return await AccountEntitlement.db.find(
         session,
         where: (t) => t.accountId.equals(accountId),
+        include: AccountEntitlement.include(
+          entitlement: Entitlement.include(),
+        ),
       );
     } catch (e) {
       throw AnonAccredExceptionFactory.createInventoryException(
