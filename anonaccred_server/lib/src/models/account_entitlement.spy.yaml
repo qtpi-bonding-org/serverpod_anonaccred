@@ -2,7 +2,7 @@ class: AccountEntitlement
 table: account_entitlement
 fields:
   accountId: int, relation(parent=anon_account, onDelete=Cascade)
-  entitlementId: int, relation(parent=entitlement)
+  entitlement: Entitlement?, relation
   balance: double # Current running total
 indexes:
   account_entitlement_idx:

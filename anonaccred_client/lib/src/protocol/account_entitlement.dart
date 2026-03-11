@@ -11,12 +11,15 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'entitlement.dart' as _i2;
+import 'package:anonaccred_client/src/protocol/protocol.dart' as _i3;
 
 abstract class AccountEntitlement implements _i1.SerializableModel {
   AccountEntitlement._({
     this.id,
     required this.accountId,
     required this.entitlementId,
+    this.entitlement,
     required this.balance,
   });
 
@@ -24,6 +27,7 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
     int? id,
     required int accountId,
     required int entitlementId,
+    _i2.Entitlement? entitlement,
     required double balance,
   }) = _AccountEntitlementImpl;
 
@@ -32,6 +36,11 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
       id: jsonSerialization['id'] as int?,
       accountId: jsonSerialization['accountId'] as int,
       entitlementId: jsonSerialization['entitlementId'] as int,
+      entitlement: jsonSerialization['entitlement'] == null
+          ? null
+          : _i3.Protocol().deserialize<_i2.Entitlement>(
+              jsonSerialization['entitlement'],
+            ),
       balance: (jsonSerialization['balance'] as num).toDouble(),
     );
   }
@@ -45,6 +54,8 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
 
   int entitlementId;
 
+  _i2.Entitlement? entitlement;
+
   double balance;
 
   /// Returns a shallow copy of this [AccountEntitlement]
@@ -54,6 +65,7 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
     int? id,
     int? accountId,
     int? entitlementId,
+    _i2.Entitlement? entitlement,
     double? balance,
   });
   @override
@@ -63,6 +75,7 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
       if (id != null) 'id': id,
       'accountId': accountId,
       'entitlementId': entitlementId,
+      if (entitlement != null) 'entitlement': entitlement?.toJson(),
       'balance': balance,
     };
   }
@@ -80,11 +93,13 @@ class _AccountEntitlementImpl extends AccountEntitlement {
     int? id,
     required int accountId,
     required int entitlementId,
+    _i2.Entitlement? entitlement,
     required double balance,
   }) : super._(
          id: id,
          accountId: accountId,
          entitlementId: entitlementId,
+         entitlement: entitlement,
          balance: balance,
        );
 
@@ -96,12 +111,16 @@ class _AccountEntitlementImpl extends AccountEntitlement {
     Object? id = _Undefined,
     int? accountId,
     int? entitlementId,
+    Object? entitlement = _Undefined,
     double? balance,
   }) {
     return AccountEntitlement(
       id: id is int? ? id : this.id,
       accountId: accountId ?? this.accountId,
       entitlementId: entitlementId ?? this.entitlementId,
+      entitlement: entitlement is _i2.Entitlement?
+          ? entitlement
+          : this.entitlement?.copyWith(),
       balance: balance ?? this.balance,
     );
   }

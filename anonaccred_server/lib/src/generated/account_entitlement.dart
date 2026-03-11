@@ -8,9 +8,12 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
+// ignore_for_file: unnecessary_null_comparison
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
+import 'entitlement.dart' as _i2;
+import 'package:anonaccred_server/src/generated/protocol.dart' as _i3;
 
 abstract class AccountEntitlement
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -18,6 +21,7 @@ abstract class AccountEntitlement
     this.id,
     required this.accountId,
     required this.entitlementId,
+    this.entitlement,
     required this.balance,
   });
 
@@ -25,6 +29,7 @@ abstract class AccountEntitlement
     int? id,
     required int accountId,
     required int entitlementId,
+    _i2.Entitlement? entitlement,
     required double balance,
   }) = _AccountEntitlementImpl;
 
@@ -33,6 +38,11 @@ abstract class AccountEntitlement
       id: jsonSerialization['id'] as int?,
       accountId: jsonSerialization['accountId'] as int,
       entitlementId: jsonSerialization['entitlementId'] as int,
+      entitlement: jsonSerialization['entitlement'] == null
+          ? null
+          : _i3.Protocol().deserialize<_i2.Entitlement>(
+              jsonSerialization['entitlement'],
+            ),
       balance: (jsonSerialization['balance'] as num).toDouble(),
     );
   }
@@ -48,6 +58,8 @@ abstract class AccountEntitlement
 
   int entitlementId;
 
+  _i2.Entitlement? entitlement;
+
   double balance;
 
   @override
@@ -60,6 +72,7 @@ abstract class AccountEntitlement
     int? id,
     int? accountId,
     int? entitlementId,
+    _i2.Entitlement? entitlement,
     double? balance,
   });
   @override
@@ -69,6 +82,7 @@ abstract class AccountEntitlement
       if (id != null) 'id': id,
       'accountId': accountId,
       'entitlementId': entitlementId,
+      if (entitlement != null) 'entitlement': entitlement?.toJson(),
       'balance': balance,
     };
   }
@@ -80,12 +94,15 @@ abstract class AccountEntitlement
       if (id != null) 'id': id,
       'accountId': accountId,
       'entitlementId': entitlementId,
+      if (entitlement != null) 'entitlement': entitlement?.toJsonForProtocol(),
       'balance': balance,
     };
   }
 
-  static AccountEntitlementInclude include() {
-    return AccountEntitlementInclude._();
+  static AccountEntitlementInclude include({
+    _i2.EntitlementInclude? entitlement,
+  }) {
+    return AccountEntitlementInclude._(entitlement: entitlement);
   }
 
   static AccountEntitlementIncludeList includeList({
@@ -121,11 +138,13 @@ class _AccountEntitlementImpl extends AccountEntitlement {
     int? id,
     required int accountId,
     required int entitlementId,
+    _i2.Entitlement? entitlement,
     required double balance,
   }) : super._(
          id: id,
          accountId: accountId,
          entitlementId: entitlementId,
+         entitlement: entitlement,
          balance: balance,
        );
 
@@ -137,12 +156,16 @@ class _AccountEntitlementImpl extends AccountEntitlement {
     Object? id = _Undefined,
     int? accountId,
     int? entitlementId,
+    Object? entitlement = _Undefined,
     double? balance,
   }) {
     return AccountEntitlement(
       id: id is int? ? id : this.id,
       accountId: accountId ?? this.accountId,
       entitlementId: entitlementId ?? this.entitlementId,
+      entitlement: entitlement is _i2.Entitlement?
+          ? entitlement
+          : this.entitlement?.copyWith(),
       balance: balance ?? this.balance,
     );
   }
@@ -192,7 +215,22 @@ class AccountEntitlementTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt entitlementId;
 
+  _i2.EntitlementTable? _entitlement;
+
   late final _i1.ColumnDouble balance;
+
+  _i2.EntitlementTable get entitlement {
+    if (_entitlement != null) return _entitlement!;
+    _entitlement = _i1.createRelationTable(
+      relationFieldName: 'entitlement',
+      field: AccountEntitlement.t.entitlementId,
+      foreignField: _i2.Entitlement.t.id,
+      tableRelation: tableRelation,
+      createTable: (foreignTableRelation) =>
+          _i2.EntitlementTable(tableRelation: foreignTableRelation),
+    );
+    return _entitlement!;
+  }
 
   @override
   List<_i1.Column> get columns => [
@@ -201,13 +239,25 @@ class AccountEntitlementTable extends _i1.Table<int?> {
     entitlementId,
     balance,
   ];
+
+  @override
+  _i1.Table? getRelationTable(String relationField) {
+    if (relationField == 'entitlement') {
+      return entitlement;
+    }
+    return null;
+  }
 }
 
 class AccountEntitlementInclude extends _i1.IncludeObject {
-  AccountEntitlementInclude._();
+  AccountEntitlementInclude._({_i2.EntitlementInclude? entitlement}) {
+    _entitlement = entitlement;
+  }
+
+  _i2.EntitlementInclude? _entitlement;
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _i1.Include?> get includes => {'entitlement': _entitlement};
 
   @override
   _i1.Table<int?> get table => AccountEntitlement.t;
@@ -235,6 +285,8 @@ class AccountEntitlementIncludeList extends _i1.IncludeList {
 
 class AccountEntitlementRepository {
   const AccountEntitlementRepository._();
+
+  final attachRow = const AccountEntitlementAttachRowRepository._();
 
   /// Returns a list of [AccountEntitlement]s matching the given query parameters.
   ///
@@ -267,6 +319,7 @@ class AccountEntitlementRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<AccountEntitlementTable>? orderByList,
     _i1.Transaction? transaction,
+    AccountEntitlementInclude? include,
     _i1.LockMode? lockMode,
     _i1.LockBehavior? lockBehavior,
   }) async {
@@ -278,6 +331,7 @@ class AccountEntitlementRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      include: include,
       lockMode: lockMode,
       lockBehavior: lockBehavior,
     );
@@ -308,6 +362,7 @@ class AccountEntitlementRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<AccountEntitlementTable>? orderByList,
     _i1.Transaction? transaction,
+    AccountEntitlementInclude? include,
     _i1.LockMode? lockMode,
     _i1.LockBehavior? lockBehavior,
   }) async {
@@ -318,6 +373,7 @@ class AccountEntitlementRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      include: include,
       lockMode: lockMode,
       lockBehavior: lockBehavior,
     );
@@ -328,12 +384,14 @@ class AccountEntitlementRepository {
     _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
+    AccountEntitlementInclude? include,
     _i1.LockMode? lockMode,
     _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<AccountEntitlement>(
       id,
       transaction: transaction,
+      include: include,
       lockMode: lockMode,
       lockBehavior: lockBehavior,
     );
@@ -517,6 +575,35 @@ class AccountEntitlementRepository {
       where: where(AccountEntitlement.t),
       lockMode: lockMode,
       lockBehavior: lockBehavior,
+      transaction: transaction,
+    );
+  }
+}
+
+class AccountEntitlementAttachRowRepository {
+  const AccountEntitlementAttachRowRepository._();
+
+  /// Creates a relation between the given [AccountEntitlement] and [Entitlement]
+  /// by setting the [AccountEntitlement]'s foreign key `entitlementId` to refer to the [Entitlement].
+  Future<void> entitlement(
+    _i1.Session session,
+    AccountEntitlement accountEntitlement,
+    _i2.Entitlement entitlement, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (accountEntitlement.id == null) {
+      throw ArgumentError.notNull('accountEntitlement.id');
+    }
+    if (entitlement.id == null) {
+      throw ArgumentError.notNull('entitlement.id');
+    }
+
+    var $accountEntitlement = accountEntitlement.copyWith(
+      entitlementId: entitlement.id,
+    );
+    await session.db.updateRow<AccountEntitlement>(
+      $accountEntitlement,
+      columns: [AccountEntitlement.t.entitlementId],
       transaction: transaction,
     );
   }
