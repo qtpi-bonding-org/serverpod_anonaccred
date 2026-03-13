@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:serverpod/serverpod.dart';
 
@@ -34,10 +35,17 @@ class AppleIAPRail implements PaymentRailInterface {
 
   final AppStoreServerClient? _client;
 
-  /// Factory to create and initialize AppleIAPRail asynchronously
+  /// Factory to create and initialize AppleIAPRail asynchronously.
+  ///
+  /// Reads `APPLE_ENVIRONMENT` env var to select sandbox or production API.
+  /// Defaults to production. Set `APPLE_ENVIRONMENT=sandbox` for TestFlight/dev testing.
   static Future<AppleIAPRail> create() async {
     final authClient = AppleJWTAuthClient.fromEnvironment();
-    final client = AppStoreServerClient(authClient);
+    final envStr = Platform.environment['APPLE_ENVIRONMENT'] ?? 'production';
+    final environment = envStr.toLowerCase() == 'sandbox'
+        ? AppStoreClientEnvironment.sandbox
+        : AppStoreClientEnvironment.production;
+    final client = AppStoreServerClient(authClient, environment: environment);
     return AppleIAPRail(client: client);
   }
 
