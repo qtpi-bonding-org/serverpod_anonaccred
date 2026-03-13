@@ -2,22 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:serverpod/serverpod.dart';
 
-/// Placeholder for challenge existence check (Redis stores true/false)
-class ChallengeExists implements SerializableModel {
-  ChallengeExists({required this.exists});
-
-  factory ChallengeExists.fromJson(Map<String, dynamic> json) =>
-      ChallengeExists(exists: json['exists'] as bool);
-
-  factory ChallengeExists.empty() => ChallengeExists(exists: false);
-
-  final bool exists;
-
-  @override
-  Map<String, dynamic> toJson() => {'exists': exists};
-
-  Map<String, dynamic> toJsonForProtocol() => toJson();
-}
+import 'generated/challenge_exists.dart';
 
 /// Storage for authentication challenges with Redis-backed TTL expiration.
 class DeviceChallengeStorage {

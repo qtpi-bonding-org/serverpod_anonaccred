@@ -1,0 +1,4 @@
+class: ChallengeExists
+serverOnly: true
+fields:
+  exists: bool

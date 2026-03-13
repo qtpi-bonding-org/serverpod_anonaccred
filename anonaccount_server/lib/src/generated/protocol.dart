@@ -17,14 +17,16 @@ import 'account_device.dart' as _i4;
 import 'anonaccount_exception.dart' as _i5;
 import 'authentication_exception.dart' as _i6;
 import 'authentication_result.dart' as _i7;
-import 'device_pairing_event.dart' as _i8;
-import 'device_pairing_info.dart' as _i9;
-import 'package:anonaccount_server/src/generated/account_device.dart' as _i10;
+import 'challenge_exists.dart' as _i8;
+import 'device_pairing_event.dart' as _i9;
+import 'device_pairing_info.dart' as _i10;
+import 'package:anonaccount_server/src/generated/account_device.dart' as _i11;
 export 'account.dart';
 export 'account_device.dart';
 export 'anonaccount_exception.dart';
 export 'authentication_exception.dart';
 export 'authentication_result.dart';
+export 'challenge_exists.dart';
 export 'device_pairing_event.dart';
 export 'device_pairing_info.dart';
 
@@ -250,11 +252,14 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i7.AuthenticationResult) {
       return _i7.AuthenticationResult.fromJson(data) as T;
     }
-    if (t == _i8.DevicePairingEvent) {
-      return _i8.DevicePairingEvent.fromJson(data) as T;
+    if (t == _i8.ChallengeExists) {
+      return _i8.ChallengeExists.fromJson(data) as T;
     }
-    if (t == _i9.DevicePairingInfo) {
-      return _i9.DevicePairingInfo.fromJson(data) as T;
+    if (t == _i9.DevicePairingEvent) {
+      return _i9.DevicePairingEvent.fromJson(data) as T;
+    }
+    if (t == _i10.DevicePairingInfo) {
+      return _i10.DevicePairingInfo.fromJson(data) as T;
     }
     if (t == _i1.getType<_i3.AnonAccount?>()) {
       return (data != null ? _i3.AnonAccount.fromJson(data) : null) as T;
@@ -274,11 +279,14 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null ? _i7.AuthenticationResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i8.DevicePairingEvent?>()) {
-      return (data != null ? _i8.DevicePairingEvent.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i8.ChallengeExists?>()) {
+      return (data != null ? _i8.ChallengeExists.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i9.DevicePairingInfo?>()) {
-      return (data != null ? _i9.DevicePairingInfo.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i9.DevicePairingEvent?>()) {
+      return (data != null ? _i9.DevicePairingEvent.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i10.DevicePairingInfo?>()) {
+      return (data != null ? _i10.DevicePairingInfo.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -295,9 +303,9 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i10.AccountDevice>) {
+    if (t == List<_i11.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i10.AccountDevice>(e))
+              .map((e) => deserialize<_i11.AccountDevice>(e))
               .toList()
           as T;
     }
@@ -314,8 +322,9 @@ class Protocol extends _i1.SerializationManagerServer {
       _i5.AnonAccountException => 'AnonAccountException',
       _i6.AuthenticationException => 'AuthenticationException',
       _i7.AuthenticationResult => 'AuthenticationResult',
-      _i8.DevicePairingEvent => 'DevicePairingEvent',
-      _i9.DevicePairingInfo => 'DevicePairingInfo',
+      _i8.ChallengeExists => 'ChallengeExists',
+      _i9.DevicePairingEvent => 'DevicePairingEvent',
+      _i10.DevicePairingInfo => 'DevicePairingInfo',
       _ => null,
     };
   }
@@ -340,9 +349,11 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'AuthenticationException';
       case _i7.AuthenticationResult():
         return 'AuthenticationResult';
-      case _i8.DevicePairingEvent():
+      case _i8.ChallengeExists():
+        return 'ChallengeExists';
+      case _i9.DevicePairingEvent():
         return 'DevicePairingEvent';
-      case _i9.DevicePairingInfo():
+      case _i10.DevicePairingInfo():
         return 'DevicePairingInfo';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -373,11 +384,14 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'AuthenticationResult') {
       return deserialize<_i7.AuthenticationResult>(data['data']);
     }
+    if (dataClassName == 'ChallengeExists') {
+      return deserialize<_i8.ChallengeExists>(data['data']);
+    }
     if (dataClassName == 'DevicePairingEvent') {
-      return deserialize<_i8.DevicePairingEvent>(data['data']);
+      return deserialize<_i9.DevicePairingEvent>(data['data']);
     }
     if (dataClassName == 'DevicePairingInfo') {
-      return deserialize<_i9.DevicePairingInfo>(data['data']);
+      return deserialize<_i10.DevicePairingInfo>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
