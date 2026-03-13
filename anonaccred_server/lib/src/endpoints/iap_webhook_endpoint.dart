@@ -14,10 +14,13 @@ class IAPWebhookEndpoint extends Endpoint {
   /// Handle Apple App Store Server Notifications
   Future<String> handleAppleWebhook(
     Session session,
-    Map<String, dynamic> webhookData,
+    String webhookDataJson,
   ) async {
     try {
       session.log('Apple webhook received', level: LogLevel.info);
+
+      final webhookData =
+          jsonDecode(webhookDataJson) as Map<String, dynamic>;
 
       final rail = PaymentManager.getRail(PaymentRail.apple_iap);
       if (rail == null) {
@@ -80,10 +83,13 @@ class IAPWebhookEndpoint extends Endpoint {
   /// Handle Google Play Real-time Developer Notifications
   Future<String> handleGoogleWebhook(
     Session session,
-    Map<String, dynamic> webhookData,
+    String webhookDataJson,
   ) async {
     try {
       session.log('Google webhook received', level: LogLevel.info);
+
+      final webhookData =
+          jsonDecode(webhookDataJson) as Map<String, dynamic>;
 
       final rail = PaymentManager.getRail(PaymentRail.google_iap);
       if (rail == null) {

@@ -1,0 +1,9 @@
+# Response from IAP (Apple/Google) transaction validation
+class: IapValidationResponse
+fields:
+  success: bool
+  productId: String?
+  tag: String?
+  amount: double?
+  fromCache: bool
+  error: String?

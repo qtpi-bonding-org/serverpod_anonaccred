@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:serverpod/serverpod.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
@@ -34,13 +36,13 @@ class X402Interceptor {
   /// Requirements 5.1: Standard client-server communication flow
   /// Requirements 5.2: HTTP 402 response when payment required
   /// Requirements 5.3: Verify payment and provide resource
-  static Future<Map<String, dynamic>> interceptRequest({
+  static Future<ApiResponse> interceptRequest({
     required Session session,
     required Map<String, String> headers,
     required String resourceId,
     required double amount,
-    required Future<Map<String, dynamic>> Function() onPaymentRequired,
-    required Future<Map<String, dynamic>> Function() onPaymentVerified,
+    required Future<ApiResponse> Function() onPaymentRequired,
+    required Future<ApiResponse> Function() onPaymentVerified,
   }) async {
     try {
       // Check if X-PAYMENT header is provided
@@ -106,7 +108,7 @@ class X402Interceptor {
   /// Returns: HTTP 402 response with payment requirements
   ///
   /// Requirements 1.2, 1.4: HTTP 402 response with payment requirements
-  static Future<Map<String, dynamic>> generatePaymentRequired({
+  static Future<ApiResponse> generatePaymentRequired({
     required Session session,
     required String resourceId,
     required double amount,
@@ -129,13 +131,16 @@ class X402Interceptor {
       );
 
       // Return standardized HTTP 402 response
-      return {
-        'httpStatus': 402,
-        'message': 'Payment Required',
-        'resource': resourceId,
-        'description': description ?? 'Access to $resourceId',
-        'paymentRequired': paymentResponse.toJson(),
-      };
+      return ApiResponse(
+        success: false,
+        httpStatus: 402,
+        jsonData: jsonEncode({
+          'message': 'Payment Required',
+          'resource': resourceId,
+          'description': description ?? 'Access to $resourceId',
+          'paymentRequired': paymentResponse.toJson(),
+        }),
+      );
     } catch (e) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.x402VerificationFailed,

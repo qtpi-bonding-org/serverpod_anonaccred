@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:serverpod/serverpod.dart';
 
 import '../commerce_manager.dart';
@@ -383,7 +385,7 @@ class CommerceEndpoint extends Endpoint {
   /// Returns: Either HTTP 402 payment requirement or product catalog
   ///
   /// Requirements 5.4, 5.5: Support AI agents with pay-per-use model
-  Future<Map<String, dynamic>> getProductCatalogWithX402(
+  Future<ApiResponse> getProductCatalogWithX402(
     Session session,
     String publicKey,
     String signature, {
@@ -415,13 +417,15 @@ class CommerceEndpoint extends Endpoint {
           final registry = PriceRegistry();
           final catalog = registry.getProductCatalog();
 
-          return {
-            'success': true,
-            'catalog': catalog,
-            'accessTime': DateTime.now().toIso8601String(),
-            'paymentMethod': 'x402_http',
-            'catalogSize': catalog.length,
-          };
+          return ApiResponse(
+            success: true,
+            jsonData: jsonEncode({
+              'catalog': catalog,
+              'accessTime': DateTime.now().toIso8601String(),
+              'paymentMethod': 'x402_http',
+              'catalogSize': catalog.length,
+            }),
+          );
         },
       );
     } on AuthenticationException {
@@ -438,7 +442,7 @@ class CommerceEndpoint extends Endpoint {
   }
 
   /// Get entitlement balance with X402 pay-per-query integration
-  Future<Map<String, dynamic>> getEntitlementBalanceWithX402(
+  Future<ApiResponse> getEntitlementBalanceWithX402(
     Session session,
     String publicKey,
     String signature,
@@ -474,14 +478,16 @@ class CommerceEndpoint extends Endpoint {
             tag: tag,
           );
 
-          return {
-            'success': true,
-            'accountId': accountId,
-            'tag': tag,
-            'balance': balance,
-            'accessTime': DateTime.now().toIso8601String(),
-            'paymentMethod': 'x402_http',
-          };
+          return ApiResponse(
+            success: true,
+            jsonData: jsonEncode({
+              'accountId': accountId,
+              'tag': tag,
+              'balance': balance,
+              'accessTime': DateTime.now().toIso8601String(),
+              'paymentMethod': 'x402_http',
+            }),
+          );
         },
       );
     } on AuthenticationException {

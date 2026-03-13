@@ -16,6 +16,9 @@ import 'package:anonaccred_client/src/protocol/transaction_payment.dart' as _i3;
 import 'package:anonaccred_client/src/protocol/payment_rail.dart' as _i4;
 import 'package:anonaccred_client/src/protocol/account_entitlement.dart' as _i5;
 import 'package:anonaccred_client/src/protocol/consume_result.dart' as _i6;
+import 'package:anonaccred_client/src/protocol/api_response.dart' as _i7;
+import 'package:anonaccred_client/src/protocol/iap_validation_response.dart'
+    as _i8;
 
 /// Commerce endpoints for AnonAccred Phase 3 commerce foundation
 ///
@@ -184,11 +187,11 @@ class EndpointCommerce extends _i1.EndpointRef {
   /// Returns: Either HTTP 402 payment requirement or product catalog
   ///
   /// Requirements 5.4, 5.5: Support AI agents with pay-per-use model
-  _i2.Future<Map<String, dynamic>> getProductCatalogWithX402(
+  _i2.Future<_i7.ApiResponse> getProductCatalogWithX402(
     String publicKey,
     String signature, {
     Map<String, String>? headers,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i7.ApiResponse>(
     'anonaccred.commerce',
     'getProductCatalogWithX402',
     {
@@ -199,13 +202,13 @@ class EndpointCommerce extends _i1.EndpointRef {
   );
 
   /// Get entitlement balance with X402 pay-per-query integration
-  _i2.Future<Map<String, dynamic>> getEntitlementBalanceWithX402(
+  _i2.Future<_i7.ApiResponse> getEntitlementBalanceWithX402(
     String publicKey,
     String signature,
     int accountId,
     String tag, {
     Map<String, String>? headers,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i7.ApiResponse>(
     'anonaccred.commerce',
     'getEntitlementBalanceWithX402',
     {
@@ -243,14 +246,14 @@ class EndpointIAP extends _i1.EndpointRef {
   /// - [productId]: Apple product ID (SKU)
   /// - [accountId]: Account ID for inventory management
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
-  _i2.Future<Map<String, dynamic>> validateAppleTransaction(
+  _i2.Future<_i8.IapValidationResponse> validateAppleTransaction(
     String publicKey,
     String signature,
     String transactionId,
     String productId,
     int accountId, {
     String? internalTransactionId,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i8.IapValidationResponse>(
     'anonaccred.iAP',
     'validateAppleTransaction',
     {
@@ -276,7 +279,7 @@ class EndpointIAP extends _i1.EndpointRef {
   /// - [purchaseToken]: Google purchase token
   /// - [accountId]: Account ID for inventory management
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
-  _i2.Future<Map<String, dynamic>> validateGooglePurchase(
+  _i2.Future<_i8.IapValidationResponse> validateGooglePurchase(
     String publicKey,
     String signature,
     String packageName,
@@ -284,7 +287,7 @@ class EndpointIAP extends _i1.EndpointRef {
     String purchaseToken,
     int accountId, {
     String? internalTransactionId,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i8.IapValidationResponse>(
     'anonaccred.iAP',
     'validateGooglePurchase',
     {
@@ -311,19 +314,19 @@ class EndpointIAPWebhook extends _i1.EndpointRef {
   String get name => 'anonaccred.iAPWebhook';
 
   /// Handle Apple App Store Server Notifications
-  _i2.Future<String> handleAppleWebhook(Map<String, dynamic> webhookData) =>
+  _i2.Future<String> handleAppleWebhook(String webhookDataJson) =>
       caller.callServerEndpoint<String>(
         'anonaccred.iAPWebhook',
         'handleAppleWebhook',
-        {'webhookData': webhookData},
+        {'webhookDataJson': webhookDataJson},
       );
 
   /// Handle Google Play Real-time Developer Notifications
-  _i2.Future<String> handleGoogleWebhook(Map<String, dynamic> webhookData) =>
+  _i2.Future<String> handleGoogleWebhook(String webhookDataJson) =>
       caller.callServerEndpoint<String>(
         'anonaccred.iAPWebhook',
         'handleGoogleWebhook',
-        {'webhookData': webhookData},
+        {'webhookDataJson': webhookDataJson},
       );
 }
 
@@ -420,19 +423,19 @@ class EndpointPayment extends _i1.EndpointRef {
   );
 
   /// Process Monero webhook.
-  _i2.Future<String> processMoneroWebhook(Map<String, dynamic> webhookData) =>
+  _i2.Future<String> processMoneroWebhook(String webhookDataJson) =>
       caller.callServerEndpoint<String>(
         'anonaccred.payment',
         'processMoneroWebhook',
-        {'webhookData': webhookData},
+        {'webhookDataJson': webhookDataJson},
       );
 
   /// Process X402 webhook.
-  _i2.Future<String> processX402Webhook(Map<String, dynamic> webhookData) =>
+  _i2.Future<String> processX402Webhook(String webhookDataJson) =>
       caller.callServerEndpoint<String>(
         'anonaccred.payment',
         'processX402Webhook',
-        {'webhookData': webhookData},
+        {'webhookDataJson': webhookDataJson},
       );
 }
 
@@ -465,18 +468,18 @@ class EndpointX402 extends _i1.EndpointRef {
   /// - [resourceId]: The resource being requested
   /// - [accountId]: Account ID for inventory management
   ///
-  /// Returns: Either X402PaymentResponse (HTTP 402) or the requested resource data
+  /// Returns: Either ApiResponse with HTTP 402 or the requested resource data
   ///
   /// Requirements 5.1: Standard client-server communication flow
   /// Requirements 5.2: HTTP 402 response when payment required
   /// Requirements 5.3: Verify payment and provide resource
-  _i2.Future<Map<String, dynamic>> requestPaidResource(
+  _i2.Future<_i7.ApiResponse> requestPaidResource(
     String publicKey,
     String signature,
     String resourceId,
     int accountId, {
     Map<String, String>? headers,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i7.ApiResponse>(
     'anonaccred.x402',
     'requestPaidResource',
     {
@@ -496,22 +499,22 @@ class EndpointX402 extends _i1.EndpointRef {
   /// Parameters:
   /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
-  /// - [consumableType]: Type of consumable to access
+  /// - [tag]: Type of consumable to access
   /// - [quantity]: Amount to consume
   /// - [accountId]: Account ID for inventory management
   ///
-  /// Returns: Either X402PaymentResponse (HTTP 402) or consumption result
+  /// Returns: Either ApiResponse with HTTP 402 or consumption result
   ///
   /// Requirements 5.4: Support AI agents and autonomous systems
   /// Requirements 5.5: Pay-per-use model charging per API call
-  _i2.Future<Map<String, dynamic>> requestConsumableAccess(
+  _i2.Future<_i7.ApiResponse> requestConsumableAccess(
     String publicKey,
     String signature,
     String tag,
     double quantity,
     int accountId, {
     Map<String, String>? headers,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i7.ApiResponse>(
     'anonaccred.x402',
     'requestConsumableAccess',
     {

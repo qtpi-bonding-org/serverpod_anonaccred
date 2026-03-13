@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
 import 'package:anonaccred_server/src/refund_event.dart';
@@ -170,13 +172,19 @@ void main() {
         await session.close();
 
         // Verify X402 protocol compliance
-        expect(response['httpStatus'], equals(402));
-        expect(response['message'], equals('Payment Required'));
-        expect(response['resource'], equals('test_resource_123'));
-        expect(response['description'], equals('Test resource access'));
-        expect(response['paymentRequired'], isNotNull);
+        expect(response.success, isFalse);
+        expect(response.httpStatus, equals(402));
+        expect(response.jsonData, isNotNull);
 
-        final paymentData = response['paymentRequired'] as Map<String, dynamic>;
+        final jsonData =
+            jsonDecode(response.jsonData!) as Map<String, dynamic>;
+        expect(jsonData['message'], equals('Payment Required'));
+        expect(jsonData['resource'], equals('test_resource_123'));
+        expect(jsonData['description'], equals('Test resource access'));
+        expect(jsonData['paymentRequired'], isNotNull);
+
+        final paymentData =
+            jsonData['paymentRequired'] as Map<String, dynamic>;
         expect(paymentData['amount'], equals(1.99));
         expect(paymentData['currency'], equals('USD'));
         expect(paymentData['protocol'], equals('x402'));
@@ -235,11 +243,12 @@ void main() {
             onPaymentRequired: () async {
               throw Exception('Payment required callback error');
             },
-            onPaymentVerified: () async => {'success': true},
+            onPaymentVerified: () async =>
+                ApiResponse(success: true),
           );
 
           // Should handle error gracefully and return payment required as fallback
-          expect(result, isA<Map<String, dynamic>>());
+          expect(result, isA<ApiResponse>());
         } catch (e) {
           // If it throws, that's also acceptable behavior for error handling
           expect(e, isA<Exception>());
@@ -336,17 +345,17 @@ void main() {
 
       test('should process X402 webhook through payment endpoint', () async {
         // Test webhook processing with simple data
-        final webhookData = <String, dynamic>{
+        final webhookDataJson = jsonEncode({
           'internalTransactionId': 'test_x402_order_123',
           'paymentRef': 'x402_payment_ref_456',
           'success': true,
           'transactionTimestamp': DateTime.now().toIso8601String(),
-        };
+        });
 
         try {
           final result = await endpoints.payment.processX402Webhook(
             sessionBuilder,
-            webhookData,
+            webhookDataJson,
           );
 
           // Verify webhook processing
@@ -365,7 +374,7 @@ void main() {
           final session = sessionBuilder.build();
 
           // Generate multiple payment requirements concurrently
-          final futures = <Future<Map<String, dynamic>>>[];
+          final futures = <Future<ApiResponse>>[];
           for (var i = 0; i < 5; i++) {
             futures.add(
               X402Interceptor.generatePaymentRequired(
@@ -382,19 +391,18 @@ void main() {
 
           // All should return HTTP 402
           for (final response in responses) {
-            expect(response['httpStatus'], equals(402));
-            expect(response['paymentRequired'], isNotNull);
+            expect(response.httpStatus, equals(402));
+            expect(response.jsonData, isNotNull);
           }
 
           // All order IDs should be unique (stateless operation)
-          final internalTransactionIds = responses
-              .map(
-                (r) =>
-                    (r['paymentRequired']
-                            as Map<String, dynamic>)['internalTransactionId']
-                        as String,
-              )
-              .toList();
+          final internalTransactionIds = responses.map((r) {
+            final data =
+                jsonDecode(r.jsonData!) as Map<String, dynamic>;
+            final paymentRequired =
+                data['paymentRequired'] as Map<String, dynamic>;
+            return paymentRequired['internalTransactionId'] as String;
+          }).toList();
 
           final uniqueOrderIds = internalTransactionIds.toSet();
           expect(uniqueOrderIds.length, equals(internalTransactionIds.length));

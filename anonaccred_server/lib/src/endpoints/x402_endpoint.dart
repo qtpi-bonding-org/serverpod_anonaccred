@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:serverpod/serverpod.dart';
 
 import '../entitlement_manager.dart';
@@ -31,12 +33,12 @@ class X402Endpoint extends Endpoint {
   /// - [resourceId]: The resource being requested
   /// - [accountId]: Account ID for inventory management
   ///
-  /// Returns: Either X402PaymentResponse (HTTP 402) or the requested resource data
+  /// Returns: Either ApiResponse with HTTP 402 or the requested resource data
   ///
   /// Requirements 5.1: Standard client-server communication flow
   /// Requirements 5.2: HTTP 402 response when payment required
   /// Requirements 5.3: Verify payment and provide resource
-  Future<Map<String, dynamic>> requestPaidResource(
+  Future<ApiResponse> requestPaidResource(
     Session session,
     String publicKey,
     String signature,
@@ -113,15 +115,15 @@ class X402Endpoint extends Endpoint {
   /// Parameters:
   /// - [publicKey]: ECDSA P-256 public key for authentication
   /// - [signature]: Signature of the request data
-  /// - [consumableType]: Type of consumable to access
+  /// - [tag]: Type of consumable to access
   /// - [quantity]: Amount to consume
   /// - [accountId]: Account ID for inventory management
   ///
-  /// Returns: Either X402PaymentResponse (HTTP 402) or consumption result
+  /// Returns: Either ApiResponse with HTTP 402 or consumption result
   ///
   /// Requirements 5.4: Support AI agents and autonomous systems
   /// Requirements 5.5: Pay-per-use model charging per API call
-  Future<Map<String, dynamic>> requestConsumableAccess(
+  Future<ApiResponse> requestConsumableAccess(
     Session session,
     String publicKey,
     String signature,
@@ -210,13 +212,15 @@ class X402Endpoint extends Endpoint {
       }
 
       // Deliver consumable access (simulate consumption)
-      return {
-        'success': true,
-        'tag': tag,
-        'quantityConsumed': quantity,
-        'remainingBalance': currentBalance - quantity,
-        'timestamp': DateTime.now().toIso8601String(),
-      };
+      return ApiResponse(
+        success: true,
+        jsonData: jsonEncode({
+          'tag': tag,
+          'quantityConsumed': quantity,
+          'remainingBalance': currentBalance - quantity,
+          'timestamp': DateTime.now().toIso8601String(),
+        }),
+      );
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
@@ -239,12 +243,7 @@ class X402Endpoint extends Endpoint {
   }
 
   /// Generate HTTP 402 payment required response for resource access
-  ///
-  /// Creates X402 protocol compliant payment requirements for the requested resource.
-  /// The response includes all information necessary for programmatic payment completion.
-  ///
-  /// Requirements 1.2, 1.4: HTTP 402 response with payment requirements
-  Future<Map<String, dynamic>> _generatePaymentRequired(
+  Future<ApiResponse> _generatePaymentRequired(
     Session session,
     String resourceId,
     int accountId,
@@ -267,21 +266,18 @@ class X402Endpoint extends Endpoint {
       level: LogLevel.info,
     );
 
-    // Return HTTP 402 response data
-    return {
-      'httpStatus': 402,
-      'message': 'Payment Required',
-      'paymentRequired': paymentResponse.toJson(),
-    };
+    return ApiResponse(
+      success: false,
+      httpStatus: 402,
+      jsonData: jsonEncode({
+        'message': 'Payment Required',
+        'paymentRequired': paymentResponse.toJson(),
+      }),
+    );
   }
 
   /// Generate HTTP 402 payment required response for consumable access
-  ///
-  /// Creates X402 protocol compliant payment requirements for consumable inventory.
-  /// Supports pay-per-use model for API access charging.
-  ///
-  /// Requirements 5.5: Pay-per-use model charging per API call
-  Future<Map<String, dynamic>> _generateConsumablePaymentRequired(
+  Future<ApiResponse> _generateConsumablePaymentRequired(
     Session session,
     String tag,
     double quantity,
@@ -306,23 +302,20 @@ class X402Endpoint extends Endpoint {
       level: LogLevel.info,
     );
 
-    // Return HTTP 402 response data
-    return {
-      'httpStatus': 402,
-      'message': 'Payment Required',
-      'paymentRequired': paymentResponse.toJson(),
-      'tag': tag,
-      'quantity': quantity,
-    };
+    return ApiResponse(
+      success: false,
+      httpStatus: 402,
+      jsonData: jsonEncode({
+        'message': 'Payment Required',
+        'paymentRequired': paymentResponse.toJson(),
+        'tag': tag,
+        'quantity': quantity,
+      }),
+    );
   }
 
   /// Deliver the requested resource after successful payment verification
-  ///
-  /// Simulates resource delivery after X402 payment verification.
-  /// In a real system, this would deliver actual resource data.
-  ///
-  /// Requirements 2.4: Provide requested resource after successful payment
-  Future<Map<String, dynamic>> _deliverResource(
+  Future<ApiResponse> _deliverResource(
     Session session,
     String resourceId,
     int accountId,
@@ -332,35 +325,23 @@ class X402Endpoint extends Endpoint {
       level: LogLevel.info,
     );
 
-    // Simulate resource delivery
-    return {
-      'success': true,
-      'resourceId': resourceId,
-      'resourceData': {
-        'content': 'This is the paid resource content for $resourceId',
-        'metadata': {
-          'accessTime': DateTime.now().toIso8601String(),
-          'paymentMethod': 'x402_http',
-          'accountId': accountId,
+    return ApiResponse(
+      success: true,
+      jsonData: jsonEncode({
+        'resourceId': resourceId,
+        'resourceData': {
+          'content': 'This is the paid resource content for $resourceId',
+          'metadata': {
+            'accessTime': DateTime.now().toIso8601String(),
+            'paymentMethod': 'x402_http',
+            'accountId': accountId,
+          },
         },
-      },
-    };
+      }),
+    );
   }
 
   /// Validates authentication using ECDSA P-256 signature verification
-  ///
-  /// This is a simplified authentication check that validates the public key format
-  /// and signature. In a production system, this would include more sophisticated
-  /// challenge-response authentication.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session for logging
-  /// - [publicKey]: ECDSA P-256 public key as hex string
-  /// - [signature]: Signature to verify
-  /// - [operation]: Operation name for logging
-  ///
-  /// Throws:
-  /// - [AuthenticationException] for invalid authentication
   Future<void> _validateAuthentication(
     Session session,
     String publicKey,

@@ -26,7 +26,7 @@ class IAPEndpoint extends Endpoint {
   /// - [productId]: Apple product ID (SKU)
   /// - [accountId]: Account ID for inventory management
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
-  Future<Map<String, dynamic>> validateAppleTransaction(
+  Future<IapValidationResponse> validateAppleTransaction(
     Session session,
     String publicKey,
     String signature,
@@ -68,11 +68,11 @@ class IAPEndpoint extends Endpoint {
       );
 
       if (!result.isValid) {
-        return {
-          'success': false,
-          'error': 'Apple transaction validation failed',
-          'from_cache': result.fromCache,
-        };
+        return IapValidationResponse(
+          success: false,
+          fromCache: result.fromCache,
+          error: 'Apple transaction validation failed',
+        );
       }
 
       session.log(
@@ -80,13 +80,13 @@ class IAPEndpoint extends Endpoint {
         level: LogLevel.info,
       );
 
-      return {
-        'success': true,
-        'product_id': result.productId,
-        'tag': result.tag,
-        'amount': result.quantity,
-        'from_cache': result.fromCache,
-      };
+      return IapValidationResponse(
+        success: true,
+        productId: result.productId,
+        tag: result.tag,
+        amount: result.quantity,
+        fromCache: result.fromCache,
+      );
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
@@ -118,7 +118,7 @@ class IAPEndpoint extends Endpoint {
   /// - [purchaseToken]: Google purchase token
   /// - [accountId]: Account ID for inventory management
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
-  Future<Map<String, dynamic>> validateGooglePurchase(
+  Future<IapValidationResponse> validateGooglePurchase(
     Session session,
     String publicKey,
     String signature,
@@ -158,11 +158,11 @@ class IAPEndpoint extends Endpoint {
       );
 
       if (!result.isValid) {
-        return {
-          'success': false,
-          'error': result.errorMessage,
-          'from_cache': result.fromCache,
-        };
+        return IapValidationResponse(
+          success: false,
+          fromCache: result.fromCache,
+          error: result.errorMessage,
+        );
       }
 
       session.log(
@@ -170,13 +170,13 @@ class IAPEndpoint extends Endpoint {
         level: LogLevel.info,
       );
 
-      return {
-        'success': true,
-        'product_id': productId,
-        'tag': result.tag,
-        'amount': result.quantity,
-        'from_cache': result.fromCache,
-      };
+      return IapValidationResponse(
+        success: true,
+        productId: productId,
+        tag: result.tag,
+        amount: result.quantity,
+        fromCache: result.fromCache,
+      );
     } on AuthenticationException {
       rethrow;
     } on PaymentException {

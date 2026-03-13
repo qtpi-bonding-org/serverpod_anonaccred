@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:serverpod/serverpod.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
 
@@ -58,9 +60,11 @@ class PaymentEndpoint extends Endpoint {
   /// Process Monero webhook.
   Future<String> processMoneroWebhook(
     Session session,
-    Map<String, dynamic> webhookData,
+    String webhookDataJson,
   ) async {
     try {
+      final webhookData =
+          jsonDecode(webhookDataJson) as Map<String, dynamic>;
       await WebhookHandler.processWebhook(
         session: session,
         railType: PaymentRail.monero,
@@ -76,9 +80,11 @@ class PaymentEndpoint extends Endpoint {
   /// Process X402 webhook.
   Future<String> processX402Webhook(
     Session session,
-    Map<String, dynamic> webhookData,
+    String webhookDataJson,
   ) async {
     try {
+      final webhookData =
+          jsonDecode(webhookDataJson) as Map<String, dynamic>;
       await WebhookHandler.processWebhook(
         session: session,
         railType: PaymentRail.x402_http,

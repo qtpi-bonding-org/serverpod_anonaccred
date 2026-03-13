@@ -484,9 +484,9 @@ class Endpoints extends _i1.EndpointDispatch {
         'handleAppleWebhook': _i1.MethodConnector(
           name: 'handleAppleWebhook',
           params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
+            'webhookDataJson': _i1.ParameterDescription(
+              name: 'webhookDataJson',
+              type: _i1.getType<String>(),
               nullable: false,
             ),
           },
@@ -497,15 +497,15 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['iAPWebhook'] as _i4.IAPWebhookEndpoint)
                   .handleAppleWebhook(
                     session,
-                    params['webhookData'],
+                    params['webhookDataJson'],
                   ),
         ),
         'handleGoogleWebhook': _i1.MethodConnector(
           name: 'handleGoogleWebhook',
           params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
+            'webhookDataJson': _i1.ParameterDescription(
+              name: 'webhookDataJson',
+              type: _i1.getType<String>(),
               nullable: false,
             ),
           },
@@ -516,7 +516,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['iAPWebhook'] as _i4.IAPWebhookEndpoint)
                   .handleGoogleWebhook(
                     session,
-                    params['webhookData'],
+                    params['webhookDataJson'],
                   ),
         ),
       },
@@ -682,9 +682,9 @@ class Endpoints extends _i1.EndpointDispatch {
         'processMoneroWebhook': _i1.MethodConnector(
           name: 'processMoneroWebhook',
           params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
+            'webhookDataJson': _i1.ParameterDescription(
+              name: 'webhookDataJson',
+              type: _i1.getType<String>(),
               nullable: false,
             ),
           },
@@ -695,15 +695,15 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
                   .processMoneroWebhook(
                     session,
-                    params['webhookData'],
+                    params['webhookDataJson'],
                   ),
         ),
         'processX402Webhook': _i1.MethodConnector(
           name: 'processX402Webhook',
           params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
+            'webhookDataJson': _i1.ParameterDescription(
+              name: 'webhookDataJson',
+              type: _i1.getType<String>(),
               nullable: false,
             ),
           },
@@ -714,7 +714,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['payment'] as _i6.PaymentEndpoint)
                   .processX402Webhook(
                     session,
-                    params['webhookData'],
+                    params['webhookDataJson'],
                   ),
         ),
       },
