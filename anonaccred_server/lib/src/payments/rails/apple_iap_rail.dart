@@ -232,16 +232,15 @@ class AppleIAPRail implements PaymentRailInterface {
     final signedTransaction = historyResponse.signedTransactions.first;
     final decodedTransaction = _decodeSignedTransaction(signedTransaction);
 
-    // 5. Verify product ID matches
-    if (decodedTransaction.productId != productId) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.paymentValidationFailed,
-        message:
-            'Product ID mismatch: expected $productId, got ${decodedTransaction.productId}',
-        details: {
-          'expectedProductId': productId,
-          'actualProductId': decodedTransaction.productId,
-        },
+    // 5. Apple receipt is the source of truth for product ID.
+    // The client may send a mismatched productId when Apple re-delivers
+    // a stale transaction from a previous purchase. Log and use Apple's value.
+    final resolvedProductId = decodedTransaction.productId;
+    if (resolvedProductId != productId) {
+      session.log(
+        'Product ID mismatch: client sent $productId, '
+        'Apple receipt has $resolvedProductId — using receipt value',
+        level: LogLevel.warning,
       );
     }
 
@@ -250,14 +249,15 @@ class AppleIAPRail implements PaymentRailInterface {
       session,
       where: (t) =>
           t.rail.equals(PaymentRail.apple_iap) &
-          t.storeProductId.equals(productId),
+          t.storeProductId.equals(resolvedProductId),
     );
 
     if (railProduct == null) {
       throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
-        message: 'No RailProduct found for Apple product ID: $productId',
-        details: {'productId': productId},
+        message:
+            'No RailProduct found for Apple product ID: $resolvedProductId',
+        details: {'productId': resolvedProductId},
       );
     }
 
