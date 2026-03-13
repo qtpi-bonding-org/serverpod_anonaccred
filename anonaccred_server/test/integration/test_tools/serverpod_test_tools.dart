@@ -20,6 +20,9 @@ import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i5;
 import 'package:anonaccred_server/src/generated/account_entitlement.dart'
     as _i6;
 import 'package:anonaccred_server/src/generated/consume_result.dart' as _i7;
+import 'package:anonaccred_server/src/generated/api_response.dart' as _i8;
+import 'package:anonaccred_server/src/generated/iap_validation_response.dart'
+    as _i9;
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -444,7 +447,7 @@ class _CommerceEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> getProductCatalogWithX402(
+  _i3.Future<_i8.ApiResponse> getProductCatalogWithX402(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature, {
@@ -473,7 +476,7 @@ class _CommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<_i8.ApiResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -481,7 +484,7 @@ class _CommerceEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> getEntitlementBalanceWithX402(
+  _i3.Future<_i8.ApiResponse> getEntitlementBalanceWithX402(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -514,7 +517,7 @@ class _CommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<_i8.ApiResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -533,7 +536,7 @@ class _IAPEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<Map<String, dynamic>> validateAppleTransaction(
+  _i3.Future<_i9.IapValidationResponse> validateAppleTransaction(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -568,7 +571,7 @@ class _IAPEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<_i9.IapValidationResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -576,7 +579,7 @@ class _IAPEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> validateGooglePurchase(
+  _i3.Future<_i9.IapValidationResponse> validateGooglePurchase(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -613,7 +616,7 @@ class _IAPEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<_i9.IapValidationResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -634,7 +637,7 @@ class _IAPWebhookEndpoint {
 
   _i3.Future<String> handleAppleWebhook(
     _i1.TestSessionBuilder sessionBuilder,
-    Map<String, dynamic> webhookData,
+    String webhookDataJson,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -647,7 +650,9 @@ class _IAPWebhookEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'iAPWebhook',
           methodName: 'handleAppleWebhook',
-          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
+          parameters: _i1.testObjectToJson({
+            'webhookDataJson': webhookDataJson,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -665,7 +670,7 @@ class _IAPWebhookEndpoint {
 
   _i3.Future<String> handleGoogleWebhook(
     _i1.TestSessionBuilder sessionBuilder,
-    Map<String, dynamic> webhookData,
+    String webhookDataJson,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -678,7 +683,9 @@ class _IAPWebhookEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'iAPWebhook',
           methodName: 'handleGoogleWebhook',
-          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
+          parameters: _i1.testObjectToJson({
+            'webhookDataJson': webhookDataJson,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -899,7 +906,7 @@ class _PaymentEndpoint {
 
   _i3.Future<String> processMoneroWebhook(
     _i1.TestSessionBuilder sessionBuilder,
-    Map<String, dynamic> webhookData,
+    String webhookDataJson,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -912,7 +919,9 @@ class _PaymentEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'payment',
           methodName: 'processMoneroWebhook',
-          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
+          parameters: _i1.testObjectToJson({
+            'webhookDataJson': webhookDataJson,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -930,7 +939,7 @@ class _PaymentEndpoint {
 
   _i3.Future<String> processX402Webhook(
     _i1.TestSessionBuilder sessionBuilder,
-    Map<String, dynamic> webhookData,
+    String webhookDataJson,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -943,7 +952,9 @@ class _PaymentEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'payment',
           methodName: 'processX402Webhook',
-          parameters: _i1.testObjectToJson({'webhookData': webhookData}),
+          parameters: _i1.testObjectToJson({
+            'webhookDataJson': webhookDataJson,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -970,7 +981,7 @@ class _X402Endpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<Map<String, dynamic>> requestPaidResource(
+  _i3.Future<_i8.ApiResponse> requestPaidResource(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -1003,7 +1014,7 @@ class _X402Endpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<_i8.ApiResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1011,7 +1022,7 @@ class _X402Endpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> requestConsumableAccess(
+  _i3.Future<_i8.ApiResponse> requestConsumableAccess(
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
@@ -1046,7 +1057,7 @@ class _X402Endpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<_i8.ApiResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
