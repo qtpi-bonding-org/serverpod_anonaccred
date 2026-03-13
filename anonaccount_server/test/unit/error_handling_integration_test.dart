@@ -1,7 +1,9 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 import '../integration/test_tools/auth_test_helper.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/test_account_helper.dart';
 
 /// Test error handling and privacy logging integration for Phase 2 authentication
 void main() {
@@ -9,15 +11,22 @@ void main() {
     sessionBuilder,
     endpoints,
   ) {
+    final accountEndpoint = TestAccountEndpoint();
+
     group('Authentication Error Handling', () {
       test('should return structured error for invalid public key', () async {
         // Test with invalid public key format
         const invalidPublicKey = 'invalid_key';
         const encryptedDataKey = 'test_encrypted_data';
 
+        final session =
+            (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+          endpoint: 'account',
+          method: 'createAccount',
+        );
         try {
-          await endpoints.account.createAccount(
-            sessionBuilder,
+          await accountEndpoint.createAccount(
+            session,
             invalidPublicKey,
             encryptedDataKey,
             invalidPublicKey, // ultimatePublicKey - using same invalid key for testing
@@ -26,6 +35,8 @@ void main() {
         } on AuthenticationException catch (e) {
           expect(e.toString(), contains('CRYPTO_INVALID_PUBLIC_KEY'));
           expect(e.toString(), contains('Invalid ECDSA P-256 public key format'));
+        } finally {
+          await session.close();
         }
       });
 
@@ -108,11 +119,11 @@ void main() {
                                  'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_7';
 
-        final testAccount = await endpoints.account.createAccount(
+        final testAccount = await createTestAccount(
           sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-          accountPublicKey, // ultimatePublicKey - using same key for testing
+          ultimateSigningPublicKeyHex: accountPublicKey,
+          encryptedDataKey: accountEncryptedDataKey,
+          ultimatePublicKey: accountPublicKey,
         );
 
         // Test empty device key

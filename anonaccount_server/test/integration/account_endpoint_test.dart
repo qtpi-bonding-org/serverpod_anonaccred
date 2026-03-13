@@ -1,6 +1,44 @@
+import 'package:anonaccount_server/src/generated/protocol.dart';
+import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
+import '../test_helpers/test_account_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';
+
+final _endpoint = TestAccountEndpoint();
+
+Future<AnonAccount> callCreateAccount(
+  TestSessionBuilder sessionBuilder,
+  String publicKey,
+  String encryptedDataKey,
+  String ultimatePublicKey,
+) async {
+  final session = (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+    endpoint: 'account',
+    method: 'createAccount',
+  );
+  try {
+    return await _endpoint.createAccount(
+        session, publicKey, encryptedDataKey, ultimatePublicKey);
+  } finally {
+    await session.close();
+  }
+}
+
+Future<AnonAccount?> callGetAccountByPublicKey(
+  TestSessionBuilder sessionBuilder,
+  String publicKey,
+) async {
+  final session = (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+    endpoint: 'account',
+    method: 'getAccountByPublicKey',
+  );
+  try {
+    return await _endpoint.getAccountByPublicKey(session, publicKey);
+  } finally {
+    await session.close();
+  }
+}
 
 void main() {
   withServerpod('AccountEndpoint Integration Tests', (
@@ -17,7 +55,7 @@ void main() {
         const ultimatePublicKey =
             'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefb123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-        final account = await endpoints.account.createAccount(
+        final account = await callCreateAccount(
           sessionBuilder,
           validPublicKey,
           encryptedDataKey,
@@ -38,7 +76,7 @@ void main() {
           'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefc123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
       expect(
-        () => endpoints.account.createAccount(
+        () => callCreateAccount(
           sessionBuilder,
           invalidPublicKey,
           encryptedDataKey,
@@ -55,7 +93,7 @@ void main() {
           'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
       expect(
-        () => endpoints.account.createAccount(
+        () => callCreateAccount(
           sessionBuilder,
           emptyPublicKey,
           encryptedDataKey,
@@ -73,7 +111,7 @@ void main() {
           'f123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdeff123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
       expect(
-        () => endpoints.account.createAccount(
+        () => callCreateAccount(
           sessionBuilder,
           validPublicKey,
           emptyEncryptedDataKey,
@@ -93,7 +131,7 @@ void main() {
         const ultimatePublicKey =
             '2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-        final createdAccount = await endpoints.account.createAccount(
+        final createdAccount = await callCreateAccount(
           sessionBuilder,
           validPublicKey,
           encryptedDataKey,
@@ -101,7 +139,7 @@ void main() {
         );
 
         // Now lookup the account
-        final foundAccount = await endpoints.account.getAccountByPublicKey(
+        final foundAccount = await callGetAccountByPublicKey(
           sessionBuilder,
           validPublicKey,
         );
@@ -119,7 +157,7 @@ void main() {
         const nonExistentPublicKey =
             '3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-        final foundAccount = await endpoints.account.getAccountByPublicKey(
+        final foundAccount = await callGetAccountByPublicKey(
           sessionBuilder,
           nonExistentPublicKey,
         );
@@ -134,7 +172,7 @@ void main() {
         const invalidPublicKey = 'invalid_key_format';
 
         expect(
-          () => endpoints.account.getAccountByPublicKey(
+          () => callGetAccountByPublicKey(
             sessionBuilder,
             invalidPublicKey,
           ),
@@ -147,7 +185,7 @@ void main() {
       const emptyPublicKey = '';
 
       expect(
-        () => endpoints.account.getAccountByPublicKey(
+        () => callGetAccountByPublicKey(
           sessionBuilder,
           emptyPublicKey,
         ),
@@ -168,7 +206,7 @@ void main() {
             '6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
         // Create first account
-        await endpoints.account.createAccount(
+        await callCreateAccount(
           sessionBuilder,
           duplicatePublicKey,
           encryptedDataKey1,
@@ -177,7 +215,7 @@ void main() {
 
         // Attempt to create second account with same public key should fail
         expect(
-          () => endpoints.account.createAccount(
+          () => callCreateAccount(
             sessionBuilder,
             duplicatePublicKey,
             encryptedDataKey2,
@@ -198,7 +236,7 @@ void main() {
         const ultimatePublicKey =
             '8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-        final account = await endpoints.account.createAccount(
+        final account = await callCreateAccount(
           sessionBuilder,
           validPublicKey,
           originalEncryptedData,
@@ -209,7 +247,7 @@ void main() {
         expect(account.encryptedDataKey, equals(originalEncryptedData));
 
         // Verify through lookup as well
-        final foundAccount = await endpoints.account.getAccountByPublicKey(
+        final foundAccount = await callGetAccountByPublicKey(
           sessionBuilder,
           validPublicKey,
         );

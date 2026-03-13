@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import '../test_helpers/test_account_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
@@ -15,12 +16,13 @@ void main() {
             '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key';
 
-        final testAccount = await endpoints.account.createAccount(
+        final testAccount = await createTestAccount(
           sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-          '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-          '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // ultimatePublicKey
+          ultimateSigningPublicKeyHex: accountPublicKey,
+          encryptedDataKey: accountEncryptedDataKey,
+          ultimatePublicKey:
+              '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+              '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
         );
 
         const deviceSigningPublicKeyHex =
@@ -59,12 +61,13 @@ void main() {
             '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_2';
 
-        final testAccount = await endpoints.account.createAccount(
+        final testAccount = await createTestAccount(
           sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-          '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-          '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // ultimatePublicKey
+          ultimateSigningPublicKeyHex: accountPublicKey,
+          encryptedDataKey: accountEncryptedDataKey,
+          ultimatePublicKey:
+              '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+              '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
         );
 
         const deviceSigningPublicKeyHex =
@@ -103,12 +106,13 @@ void main() {
           '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
       const accountEncryptedDataKey = 'encrypted_test_data_key_3';
 
-      final testAccount = await endpoints.account.createAccount(
+      final testAccount = await createTestAccount(
         sessionBuilder,
-        accountPublicKey,
-        accountEncryptedDataKey,
-        '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-        '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // ultimatePublicKey
+        ultimateSigningPublicKeyHex: accountPublicKey,
+        encryptedDataKey: accountEncryptedDataKey,
+        ultimatePublicKey:
+            '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       );
 
       const invalidDeviceSigningPublicKeyHex = 'invalid_key_format';
@@ -157,12 +161,13 @@ void main() {
           '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
       const accountEncryptedDataKey = 'encrypted_test_data_key_challenge';
 
-      final testAccount = await endpoints.account.createAccount(
+      final testAccount = await createTestAccount(
         sessionBuilder,
-        accountPublicKey,
-        accountEncryptedDataKey,
-        '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-        '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+        ultimateSigningPublicKeyHex: accountPublicKey,
+        encryptedDataKey: accountEncryptedDataKey,
+        ultimatePublicKey:
+            '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            '9123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       );
 
       const deviceSigningPublicKeyHex =

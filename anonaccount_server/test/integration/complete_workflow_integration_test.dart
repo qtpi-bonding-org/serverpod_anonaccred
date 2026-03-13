@@ -1,10 +1,30 @@
 
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:anonaccount_server/src/generated/protocol.dart';
+import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';
 
+import '../test_helpers/test_account_helper.dart';
 import 'test_tools/auth_test_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';
+
+final _endpoint = TestAccountEndpoint();
+
+Future<AnonAccount?> callGetAccountByPublicKey(
+  TestSessionBuilder sessionBuilder,
+  String publicKey,
+) async {
+  final session = (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+    endpoint: 'account',
+    method: 'getAccountByPublicKey',
+  );
+  try {
+    return await _endpoint.getAccountByPublicKey(session, publicKey);
+  } finally {
+    await session.close();
+  }
+}
 
 void main() {
   withServerpod('Complete Workflow Integration Tests', (
@@ -28,11 +48,11 @@ void main() {
         const ultimatePublicKey =
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-        final account = await endpoints.account.createAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          accountPublicKeyHex,
-          encryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         expect(account.id, isNotNull);
@@ -120,17 +140,17 @@ void main() {
         const ultimatePublicKey =
             'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
             'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-        final account = await endpoints.account.createAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          accountPublicKeyHex,
-          encryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         expect(account.id, isNotNull);
 
         // Step 3: Test account lookup with session
-        final foundAccount = await endpoints.account.getAccountByPublicKey(
+        final foundAccount = await callGetAccountByPublicKey(
           sessionBuilder,
           accountPublicKeyHex,
         );
@@ -142,8 +162,8 @@ void main() {
         const nonExistentPublicKey =
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-        final nonExistentAccount = await endpoints.account
-            .getAccountByPublicKey(sessionBuilder, nonExistentPublicKey);
+        final nonExistentAccount = await callGetAccountByPublicKey(
+            sessionBuilder, nonExistentPublicKey);
         expect(nonExistentAccount, isNull);
       });
 
@@ -184,11 +204,11 @@ void main() {
             'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-        final testAccount = await endpoints.account.createAccount(
+        final testAccount = await createTestAccount(
           sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKey,
+          encryptedDataKey: accountEncryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         // Test successful device registration

@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 
 import '../integration/test_tools/auth_test_helper.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/test_account_helper.dart';
 
 /// **Feature: anonaccred-phase2, Property 6: Revocation enforcement**
 /// **Validates: Requirements 3.5, 4.2**
@@ -21,11 +22,11 @@ void main() {
         final accountPublicKey = _generateRandomEd25519PublicKey();
         const accountEncryptedDataKey = 'encrypted_test_data_key';
 
-        final testAccount = await endpoints.account.createAccount(
+        final testAccount = await createTestAccount(
           sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-          accountPublicKey, // ultimatePublicKey - using same key for testing
+          ultimateSigningPublicKeyHex: accountPublicKey,
+          encryptedDataKey: accountEncryptedDataKey,
+          ultimatePublicKey: accountPublicKey,
         );
 
         // Register a device

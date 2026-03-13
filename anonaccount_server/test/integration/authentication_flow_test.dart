@@ -6,6 +6,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';
 
+import '../test_helpers/test_account_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
@@ -48,11 +49,11 @@ void main() {
         const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
                                   'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
-        final account = await endpoints.account.createAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          accountPublicKeyHex,
-          encryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         // Create device
@@ -110,11 +111,11 @@ void main() {
         const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
                                   'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
-        final account = await endpoints.account.createAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          accountPublicKeyHex,
-          encryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         final deviceKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
@@ -156,11 +157,11 @@ void main() {
         const ultimatePublicKey = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
                                   'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
 
-        final account = await endpoints.account.createAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          accountPublicKeyHex,
-          encryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         final deviceKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
@@ -229,11 +230,11 @@ void main() {
         const ultimatePublicKey = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd'
                                   'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd';
 
-        final account = await endpoints.account.createAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          accountPublicKeyHex,
-          encryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         final deviceKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
@@ -276,11 +277,11 @@ void main() {
         const ultimatePublicKey = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
                                   'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
-        final account = await endpoints.account.createAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          accountPublicKeyHex,
-          encryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         // Create multiple devices
@@ -351,11 +352,11 @@ void main() {
         const ultimatePublicKey = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
                                   'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
-        final account = await endpoints.account.createAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          accountPublicKeyHex,
-          encryptedDataKey,
-          ultimatePublicKey,
+          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimatePublicKey: ultimatePublicKey,
         );
 
         final deviceKeyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);

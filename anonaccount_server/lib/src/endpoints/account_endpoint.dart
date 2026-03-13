@@ -3,8 +3,13 @@ import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
 
-/// Account management endpoints for anonymous identity operations
-class AccountEndpoint extends Endpoint {
+/// Account management endpoints for anonymous identity operations.
+///
+/// Abstract so consuming projects must provide a concrete subclass with
+/// their own spam-prevention strategy (e.g. proof-of-work) on createAccount.
+/// Query methods (getAccountById, getAccountByPublicKey, getAccountForRecovery)
+/// are inherited as-is.
+abstract class AccountEndpoint extends Endpoint {
   /// Create new anonymous account with ECDSA P-256 public key identity
   Future<AnonAccount> createAccount(
     Session session,

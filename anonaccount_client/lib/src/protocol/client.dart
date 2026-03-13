@@ -21,54 +21,33 @@ import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
 import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
     as _i7;
 
-/// Account management endpoints for anonymous identity operations
+/// Account management endpoints for anonymous identity operations.
+///
+/// Abstract so consuming projects must provide a concrete subclass with
+/// their own spam-prevention strategy (e.g. proof-of-work) on createAccount.
+/// Query methods (getAccountById, getAccountByPublicKey, getAccountForRecovery)
+/// are inherited as-is.
 /// {@category Endpoint}
-class EndpointAccount extends _i1.EndpointRef {
+abstract class EndpointAccount extends _i1.EndpointRef {
   EndpointAccount(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'anonaccount.account';
 
   /// Create new anonymous account with ECDSA P-256 public key identity
   _i2.Future<_i3.AnonAccount> createAccount(
     String ultimateSigningPublicKeyHex,
     String encryptedDataKey,
     String ultimatePublicKey,
-  ) => caller.callServerEndpoint<_i3.AnonAccount>(
-    'anonaccount.account',
-    'createAccount',
-    {
-      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
-      'encryptedDataKey': encryptedDataKey,
-      'ultimatePublicKey': ultimatePublicKey,
-    },
   );
 
   /// Get account by ID, requiring it to exist
-  _i2.Future<_i3.AnonAccount> getAccountById(int accountId) =>
-      caller.callServerEndpoint<_i3.AnonAccount>(
-        'anonaccount.account',
-        'getAccountById',
-        {'accountId': accountId},
-      );
+  _i2.Future<_i3.AnonAccount> getAccountById(int accountId);
 
   /// Get account by public master key lookup
   _i2.Future<_i3.AnonAccount?> getAccountByPublicKey(
     String ultimateSigningPublicKeyHex,
-  ) => caller.callServerEndpoint<_i3.AnonAccount?>(
-    'anonaccount.account',
-    'getAccountByPublicKey',
-    {'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex},
   );
 
   /// Get account for recovery by ultimate public key
-  _i2.Future<_i3.AnonAccount?> getAccountForRecovery(
-    String ultimatePublicKey,
-  ) => caller.callServerEndpoint<_i3.AnonAccount?>(
-    'anonaccount.account',
-    'getAccountForRecovery',
-    {'ultimatePublicKey': ultimatePublicKey},
-  );
+  _i2.Future<_i3.AnonAccount?> getAccountForRecovery(String ultimatePublicKey);
 }
 
 /// Device management endpoints for ECDSA P-256 device registration and authentication
@@ -274,17 +253,13 @@ class EndpointDevice extends _i1.EndpointRef {
 
 class Caller extends _i1.ModuleEndpointCaller {
   Caller(_i1.ServerpodClientShared client) : super(client) {
-    account = EndpointAccount(this);
     device = EndpointDevice(this);
   }
-
-  late final EndpointAccount account;
 
   late final EndpointDevice device;
 
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
-    'anonaccount.account': account,
     'anonaccount.device': device,
   };
 }

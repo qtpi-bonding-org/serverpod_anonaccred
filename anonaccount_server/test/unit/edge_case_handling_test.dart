@@ -3,6 +3,7 @@ import 'package:test/test.dart';
 
 import '../integration/test_tools/auth_test_helper.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/test_account_helper.dart';
 
 void main() {
   withServerpod('Edge Case Handling Tests', (sessionBuilder, endpoints) {
@@ -14,11 +15,11 @@ void main() {
             'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key';
 
-        final testAccount = await endpoints.account.createAccount(
+        final testAccount = await createTestAccount(
           sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-          accountPublicKey, // ultimatePublicKey - using same key for testing
+          ultimateSigningPublicKeyHex: accountPublicKey,
+          encryptedDataKey: accountEncryptedDataKey,
+          ultimatePublicKey: accountPublicKey,
         );
 
         expect(
@@ -40,11 +41,11 @@ void main() {
             'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const accountEncryptedDataKey = 'encrypted_test_data_key_2';
 
-        final testAccount = await endpoints.account.createAccount(
+        final testAccount = await createTestAccount(
           sessionBuilder,
-          accountPublicKey,
-          accountEncryptedDataKey,
-          accountPublicKey, // ultimatePublicKey - using same key for testing
+          ultimateSigningPublicKeyHex: accountPublicKey,
+          encryptedDataKey: accountEncryptedDataKey,
+          ultimatePublicKey: accountPublicKey,
         );
 
         expect(
