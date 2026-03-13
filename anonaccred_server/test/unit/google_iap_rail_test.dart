@@ -6,7 +6,6 @@ import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
-import 'package:anonaccred_server/src/product_mapping_config.dart';
 import 'package:anonaccred_server/src/refund_manager.dart';
 import 'package:googleapis/androidpublisher/v3.dart' show ProductPurchase;
 import 'package:test/test.dart';
@@ -225,29 +224,21 @@ void main() {
     });
 
     test(
-      'GooglePurchaseValidationResult.fromPurchase creates result with consumable info',
+      'GooglePurchaseValidationResult constructor with tag and quantity',
       () {
-        // Test creating result from ProductPurchase and ProductMapping
-        final mockProductMapping = ProductMapping(
-          consumableType: 'coins',
-          quantity: 100.0,
+        final result = GooglePurchaseValidationResult(
+          consumptionState: 0,
+          purchaseState: 0,
+          internalTransactionId: 'GPA.test-purchase',
+          purchaseTimeMillis: 1698386400000,
+          tag: 'sync_500mb_days',
+          quantity: 32.0,
         );
 
-        // Create a mock ProductPurchase-like object
-        final mockPurchaseData = {
-          'consumptionState': 0,
-          'purchaseState': 0,
-          'internalTransactionId': 'GPA.test-purchase',
-          'purchaseTimeMillis': 1698386400000,
-        };
-
-        final result = GooglePurchaseValidationResult.fromJson(
-          mockPurchaseData,
-        );
-
-        // Verify base fields are present
         expect(result.purchaseState, equals(0));
         expect(result.internalTransactionId, equals('GPA.test-purchase'));
+        expect(result.tag, equals('sync_500mb_days'));
+        expect(result.quantity, equals(32.0));
         expect(result.isValid, isTrue);
       },
     );
@@ -266,11 +257,6 @@ void main() {
     setUp(() {
       mockClient = MockAndroidPublisherClient();
       googleRail = GoogleIAPRail(client: mockClient);
-      ProductMappingConfig.clearMappings();
-    });
-
-    tearDown(() {
-      ProductMappingConfig.clearMappings();
     });
 
     group('error paths — no DB writes occur', () {
@@ -338,13 +324,13 @@ void main() {
         );
       });
 
-      test('throws when no product mapping is configured for product ID',
+      test('throws when no RailProduct exists in DB for product ID',
           () async {
         final session = sessionBuilder.build();
         const token = 'token_no_mapping';
         const productId = 'com.quanitya.unmapped_product';
 
-        // ProductMappingConfig was cleared in setUp — no mappings exist
+        // No RailProduct seeded in DB for this product ID
         mockClient.addMockPurchase(
           token,
           ProductPurchase(purchaseState: 0, consumptionState: 0),

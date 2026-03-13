@@ -245,19 +245,22 @@ class ModuleEndpoint extends Endpoint {
             );
           }
 
-          await EntitlementManager.grantEntitlement(
-            session,
-            accountId: accountId,
-            tag: tag,
-            quantity: quantity,
-          );
+          return await session.db.transaction((transaction) async {
+            await EntitlementManager.grantEntitlement(
+              session,
+              accountId: accountId,
+              tag: tag,
+              quantity: quantity,
+              transaction: transaction,
+            );
 
-          // Return new balance
-          return await EntitlementManager.getEntitlementBalance(
-            session,
-            accountId: accountId,
-            tag: tag,
-          );
+            // Return new balance
+            return await EntitlementManager.getEntitlementBalance(
+              session,
+              accountId: accountId,
+              tag: tag,
+            );
+          });
 
         default:
           throw AnonAccredExceptionFactory.createInventoryException(

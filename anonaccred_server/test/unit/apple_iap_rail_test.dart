@@ -7,7 +7,6 @@ import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/mock_app_store_server_client.dart';
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
-import 'package:anonaccred_server/src/product_mapping_config.dart';
 import 'package:anonaccred_server/src/refund_manager.dart';
 import 'package:app_store_server_sdk/app_store_server_sdk.dart' show ApiException;
 import 'package:test/test.dart';
@@ -107,20 +106,16 @@ void main() {
     // (processCallback casts session before the signedPayload check).
     // That case is covered in the withServerpod group below.
 
-    test('AppleTransactionValidationResult.fromTransaction maps fields', () {
-      final transaction = DecodedTransaction(
+    test('AppleTransactionValidationResult constructor maps fields', () {
+      final result = AppleTransactionValidationResult(
+        isValid: true,
         transactionId: 'txn_123',
         originalTransactionId: 'orig_txn_123',
         productId: 'com.test.product',
-        purchaseDate: DateTime.now().millisecondsSinceEpoch,
-        quantity: 1,
-        type: 'Consumable',
-        inAppOwnershipType: 'PURCHASED',
+        purchaseDate: DateTime.now(),
+        tag: 'coins',
+        quantity: 100,
       );
-      final mapping = ProductMapping(consumableType: 'coins', quantity: 100);
-
-      final result =
-          AppleTransactionValidationResult.fromTransaction(transaction, mapping);
 
       expect(result.isValid, isTrue);
       expect(result.transactionId, equals('txn_123'));
@@ -157,11 +152,6 @@ void main() {
     setUp(() {
       mockClient = MockAppStoreServerClient();
       appleRail = AppleIAPRail(client: mockClient);
-      ProductMappingConfig.clearMappings();
-    });
-
-    tearDown(() {
-      ProductMappingConfig.clearMappings();
     });
 
     group('error paths — no DB writes occur', () {
@@ -221,13 +211,13 @@ void main() {
         );
       });
 
-      test('throws when no product mapping is configured for product ID',
+      test('throws when no RailProduct exists in DB for product ID',
           () async {
         final session = sessionBuilder.build();
         const txnId = 'txn_no_mapping';
         const productId = 'com.quanitya.unmapped_product';
 
-        // ProductMappingConfig was cleared in setUp — no mappings exist
+        // No RailProduct seeded in DB for this product ID
         mockClient.addMockTransaction(
           txnId,
           HistoryResponse(

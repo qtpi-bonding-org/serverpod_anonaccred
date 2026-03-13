@@ -10,10 +10,9 @@ import '../integration/test_tools/serverpod_test_tools.dart';
 /// **Validates: Requirements 3.1, 3.4**
 
 void main() {
-  withServerpod('Entitlement Manager Property Tests', (
-    sessionBuilder,
-    endpoints,
-  ) {
+  withServerpod(
+    'Entitlement Manager Property Tests',
+    (sessionBuilder, endpoints) {
     final random = Random();
 
     test(
@@ -68,12 +67,15 @@ void main() {
           expect(initialRecord, isNull);
 
           // Add entitlement (Requirement 3.1)
-          await EntitlementManager.grantEntitlement(
-            session,
-            accountId: accountId,
-            tag: tag,
-            quantity: quantity,
-          );
+          await session.db.transaction((txn) async {
+            await EntitlementManager.grantEntitlement(
+              session,
+              accountId: accountId,
+              tag: tag,
+              quantity: quantity,
+              transaction: txn,
+            );
+          });
 
           // Verify balance was incremented correctly
           final newBalance = await EntitlementManager.getEntitlementBalance(
@@ -100,12 +102,15 @@ void main() {
           // Test adding more to existing entitlement
           final additionalQuantity = _generateRandomQuantity();
 
-          await EntitlementManager.grantEntitlement(
-            session,
-            accountId: accountId,
-            tag: tag,
-            quantity: additionalQuantity,
-          );
+          await session.db.transaction((txn) async {
+            await EntitlementManager.grantEntitlement(
+              session,
+              accountId: accountId,
+              tag: tag,
+              quantity: additionalQuantity,
+              transaction: txn,
+            );
+          });
 
           // Verify balance was incremented correctly
           final finalBalance = await EntitlementManager.getEntitlementBalance(
@@ -140,12 +145,15 @@ void main() {
           );
           final secondEntId = secondEnt.id!;
 
-          await EntitlementManager.grantEntitlement(
-            session,
-            accountId: accountId,
-            tag: secondTag,
-            quantity: secondQuantity,
-          );
+          await session.db.transaction((txn) async {
+            await EntitlementManager.grantEntitlement(
+              session,
+              accountId: accountId,
+              tag: secondTag,
+              quantity: secondQuantity,
+              transaction: txn,
+            );
+          });
 
           // Verify both entitlements exist independently
           final b1 = await EntitlementManager.getEntitlementBalance(
@@ -208,24 +216,30 @@ void main() {
       );
 
       // Test zero quantity
-      expect(
-        () => EntitlementManager.grantEntitlement(
-          session,
-          accountId: accountId,
-          tag: tag,
-          quantity: 0.0,
-        ),
+      await expectLater(
+        session.db.transaction((txn) async {
+          await EntitlementManager.grantEntitlement(
+            session,
+            accountId: accountId,
+            tag: tag,
+            quantity: 0.0,
+            transaction: txn,
+          );
+        }),
         throwsA(isA<InventoryException>()),
       );
 
       // Test negative quantity
-      expect(
-        () => EntitlementManager.grantEntitlement(
-          session,
-          accountId: accountId,
-          tag: tag,
-          quantity: -1.0,
-        ),
+      await expectLater(
+        session.db.transaction((txn) async {
+          await EntitlementManager.grantEntitlement(
+            session,
+            accountId: accountId,
+            tag: tag,
+            quantity: -1.0,
+            transaction: txn,
+          );
+        }),
         throwsA(isA<InventoryException>()),
       );
 
@@ -291,12 +305,15 @@ void main() {
             );
             ids.add(createdEnt.id!);
 
-            await EntitlementManager.grantEntitlement(
-              session,
-              accountId: accountId,
-              tag: tag,
-              quantity: quantity,
-            );
+            await session.db.transaction((txn) async {
+              await EntitlementManager.grantEntitlement(
+                session,
+                accountId: accountId,
+                tag: tag,
+                quantity: quantity,
+                transaction: txn,
+              );
+            });
           }
 
           final full = await EntitlementManager.getAccountEntitlements(
@@ -383,7 +400,7 @@ void main() {
         }
       },
     );
-  });
+  }, rollbackDatabase: RollbackDatabase.disabled);
 }
 
 String _generateRandomPublicKey() {

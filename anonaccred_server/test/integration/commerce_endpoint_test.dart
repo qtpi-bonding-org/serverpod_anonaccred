@@ -69,13 +69,24 @@ void main() {
       // Clear the price registry before each test to ensure clean state
       PriceRegistry().clearRegistry();
 
-      // Create a test account for tests that need it
-      final account = await AnonAccount.db.insertRow(sessionBuilder.build(), AnonAccount(
+      // Find or create a test account (handles stale data from previous runs)
+      final session = sessionBuilder.build();
+      var account = await AnonAccount.db.findFirstRow(
+        session,
+        where: (t) => t.ultimatePublicKey.equals(validPublicKey),
+      );
+      account ??= await AnonAccount.db.insertRow(session, AnonAccount(
         ultimateSigningPublicKeyHex: validPublicKey,
         encryptedDataKey: 'encrypted_data_key_for_commerce_test',
-        ultimatePublicKey: validPublicKey, // Use the same valid key for ultimatePublicKey
+        ultimatePublicKey: validPublicKey,
       ));
       testAccountId = account.id!;
+
+      // Clean up any leftover entitlement balances from prior runs
+      await AccountEntitlement.db.deleteWhere(
+        session,
+        where: (t) => t.accountId.equals(testAccountId),
+      );
     });
 
     group('registerProducts endpoint', () {
@@ -646,12 +657,15 @@ void main() {
           );
         }
 
-        await EntitlementManager.grantEntitlement(
-          session,
-          accountId: testAccountId,
-          tag: 'api_calls',
-          quantity: 100.0,
-        );
+        await session.db.transaction((txn) async {
+          await EntitlementManager.grantEntitlement(
+            session,
+            accountId: testAccountId,
+            tag: 'api_calls',
+            quantity: 100.0,
+            transaction: txn,
+          );
+        });
       });
 
       test('successful consumption with sufficient balance', () async {
@@ -860,5 +874,5 @@ void main() {
         }
       });
     });
-  });
+  }, rollbackDatabase: RollbackDatabase.disabled);
 }

@@ -6,11 +6,15 @@ import 'generated/protocol.dart';
 /// High-level service for managing account entitlements (balances and consumption)
 class EntitlementManager {
   /// Grants entitlement to an account by its ID.
+  ///
+  /// Caller must provide a [transaction] — the grant participates in the
+  /// caller's transaction so everything commits or rolls back together.
   static Future<void> grantEntitlementById(
     Session session, {
     required int accountId,
     required int entitlementId,
     required double quantity,
+    required Transaction transaction,
   }) async {
     if (quantity <= 0) {
       throw AnonAccredExceptionFactory.createInventoryException(
@@ -24,60 +28,47 @@ class EntitlementManager {
       );
     }
 
-    try {
-      await session.db.transaction((transaction) async {
-        // 1. Find or create AccountEntitlement
-        final existingRecord = await AccountEntitlement.db.findFirstRow(
-          session,
-          where: (t) =>
-              t.accountId.equals(accountId) &
-              t.entitlementId.equals(entitlementId),
-          transaction: transaction,
-        );
+    final existingRecord = await AccountEntitlement.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.accountId.equals(accountId) &
+          t.entitlementId.equals(entitlementId),
+      transaction: transaction,
+    );
 
-        if (existingRecord != null) {
-          await AccountEntitlement.db.updateRow(
-            session,
-            existingRecord.copyWith(balance: existingRecord.balance + quantity),
-            transaction: transaction,
-          );
-        } else {
-          await AccountEntitlement.db.insertRow(
-            session,
-            AccountEntitlement(
-              accountId: accountId,
-              entitlementId: entitlementId,
-              balance: quantity,
-            ),
-            transaction: transaction,
-          );
-        }
-      });
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to grant entitlement by ID: ${e.toString()}',
-        accountId: accountId,
-        details: {
-          'error': e.toString(),
-          'entitlementId': entitlementId.toString(),
-        },
+    if (existingRecord != null) {
+      await AccountEntitlement.db.updateRow(
+        session,
+        existingRecord.copyWith(balance: existingRecord.balance + quantity),
+        transaction: transaction,
+      );
+    } else {
+      await AccountEntitlement.db.insertRow(
+        session,
+        AccountEntitlement(
+          accountId: accountId,
+          entitlementId: entitlementId,
+          balance: quantity,
+        ),
+        transaction: transaction,
       );
     }
   }
 
   /// Grants entitlement to an account by its tag.
+  ///
+  /// Caller must provide a [transaction].
   static Future<void> grantEntitlement(
     Session session, {
     required int accountId,
     required String tag,
     required double quantity,
+    required Transaction transaction,
   }) async {
-    // 1. Get the entitlement ID from the tag
     final entitlement = await Entitlement.db.findFirstRow(
       session,
       where: (t) => t.tag.equals(tag),
+      transaction: transaction,
     );
 
     if (entitlement == null) {
@@ -94,6 +85,7 @@ class EntitlementManager {
       accountId: accountId,
       entitlementId: entitlement.id!,
       quantity: quantity,
+      transaction: transaction,
     );
   }
 

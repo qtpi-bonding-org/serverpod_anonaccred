@@ -8,7 +8,6 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
-import '../../product_mapping_config.dart';
 import '../../refund_event.dart';
 import '../../refund_manager.dart';
 import '../android_publisher_client.dart';
@@ -268,17 +267,26 @@ class GoogleIAPRail implements PaymentRailInterface {
         );
       }
 
-      // 4. Get product mapping
-      final mapping = ProductMappingConfig.getMapping(productId);
-      if (mapping == null) {
+      // 4. Look up RailProduct from DB (replaces old env-var ProductMappingConfig)
+      final railProduct = await RailProduct.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.rail.equals(PaymentRail.google_iap) &
+            t.storeProductId.equals(productId),
+      );
+
+      if (railProduct == null) {
         throw AnonAccountExceptionFactory.createException(
           code: AnonAccredErrorCodes.configurationMissing,
-          message: 'No product mapping found for product ID: $productId',
+          message: 'No RailProduct found for Google product ID: $productId',
           details: {'productId': productId},
         );
       }
 
       // 5. Atomic Transaction: Record permanent hash, ephemeral audit, financial record, and inventory credit
+      String? deliveredTag;
+      double? deliveredQuantity;
+
       await session.db.transaction((dbTransaction) async {
         // a. Record the purchase hash permanently (blind idempotency)
         await ReceiptHash.db.insertRow(
@@ -303,22 +311,13 @@ class GoogleIAPRail implements PaymentRailInterface {
           transaction: dbTransaction,
         );
 
-        // c. Create the PERMANENT financial record on-the-fly
+        // c. Create the PERMANENT financial record
         final internalTxId = internalTransactionId ?? const Uuid().v4();
 
-        // Find the RailProduct for this SKU
-        final railProduct = await RailProduct.db.findFirstRow(
-          session,
-          where: (t) =>
-              t.rail.equals(PaymentRail.google_iap) &
-              t.storeProductId.equals(productId),
-          transaction: dbTransaction,
-        );
-
-        final txPayment = await TransactionPayment.db.insertRow(
+        await TransactionPayment.db.insertRow(
           session,
           TransactionPayment(
-            railProductId: railProduct?.id ?? 0,
+            railProductId: railProduct.id!,
             internalTransactionId: internalTxId,
             priceCurrency: Currency.USD,
             price: 0.0,
@@ -334,33 +333,52 @@ class GoogleIAPRail implements PaymentRailInterface {
         );
 
         // d. Credit user inventory based on grants
-        if (railProduct != null) {
-          final grants = await RailProductGrant.db.find(
+        final grants = await RailProductGrant.db.find(
+          session,
+          where: (t) => t.railProductId.equals(railProduct.id!),
+          transaction: dbTransaction,
+        );
+
+        for (final grant in grants) {
+          await EntitlementManager.grantEntitlementById(
             session,
-            where: (t) => t.railProductId.equals(railProduct.id),
+            accountId: accountId,
+            entitlementId: grant.entitlementId,
+            quantity: grant.quantity,
             transaction: dbTransaction,
           );
+        }
 
-          for (final grant in grants) {
-            await EntitlementManager.grantEntitlementById(
-              session,
-              accountId: accountId,
-              entitlementId: grant.entitlementId,
-              quantity: grant.quantity,
-            );
-          }
+        // Capture first grant info for the response
+        if (grants.isNotEmpty) {
+          final entitlement = await Entitlement.db.findById(
+            session,
+            grants.first.entitlementId,
+            transaction: dbTransaction,
+          );
+          deliveredTag = entitlement?.tag;
+          deliveredQuantity = grants.first.quantity;
         }
       });
 
       // 6. Acknowledge purchase (async, don't block)
       _acknowledgePurchaseAsync(packageName, productId, purchaseToken);
 
-      // 7. Consume if auto-consume enabled
-      if (mapping.autoConsume) {
-        _consumePurchaseAsync(packageName, productId, purchaseToken);
-      }
+      // 7. Always consume (all IAP products are consumable)
+      _consumePurchaseAsync(packageName, productId, purchaseToken);
 
-      return GooglePurchaseValidationResult.fromPurchase(purchase, mapping);
+      final base = GooglePurchaseValidationResult.fromProductPurchase(purchase);
+      return GooglePurchaseValidationResult(
+        consumptionState: base.consumptionState,
+        purchaseState: base.purchaseState,
+        developerPayload: base.developerPayload,
+        internalTransactionId: base.internalTransactionId,
+        purchaseTimeMillis: base.purchaseTimeMillis,
+        purchaseType: base.purchaseType,
+        acknowledgementState: base.acknowledgementState,
+        tag: deliveredTag,
+        quantity: deliveredQuantity,
+      );
     } on PaymentException {
       rethrow;
     } on AnonAccountException {
@@ -582,26 +600,6 @@ class GooglePurchaseValidationResult {
     );
   }
 
-  /// Create from ProductPurchase and ProductMapping (for new purchases)
-  factory GooglePurchaseValidationResult.fromPurchase(
-    ProductPurchase productPurchase,
-    ProductMapping mapping,
-  ) {
-    final base = GooglePurchaseValidationResult.fromProductPurchase(
-      productPurchase,
-    );
-    return GooglePurchaseValidationResult(
-      consumptionState: base.consumptionState,
-      purchaseState: base.purchaseState,
-      developerPayload: base.developerPayload,
-      internalTransactionId: base.internalTransactionId,
-      purchaseTimeMillis: base.purchaseTimeMillis,
-      purchaseType: base.purchaseType,
-      acknowledgementState: base.acknowledgementState,
-      tag: mapping.consumableType,
-      quantity: mapping.quantity,
-    );
-  }
   final int consumptionState;
   final int purchaseState;
   final String? developerPayload;

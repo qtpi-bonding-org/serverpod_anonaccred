@@ -8,7 +8,6 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
-import '../../product_mapping_config.dart';
 import '../../refund_event.dart';
 import '../../refund_manager.dart';
 import '../app_store_server_client.dart';
@@ -246,17 +245,26 @@ class AppleIAPRail implements PaymentRailInterface {
       );
     }
 
-    // 6. Get product mapping
-    final mapping = ProductMappingConfig.getAppleMapping(productId);
-    if (mapping == null) {
+    // 6. Look up RailProduct from DB (replaces old env-var ProductMappingConfig)
+    final railProduct = await RailProduct.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.rail.equals(PaymentRail.apple_iap) &
+          t.storeProductId.equals(productId),
+    );
+
+    if (railProduct == null) {
       throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
-        message: 'No product mapping for Apple product ID: $productId',
+        message: 'No RailProduct found for Apple product ID: $productId',
         details: {'productId': productId},
       );
     }
 
     // 7. Atomic Transaction: Record permanent hash, ephemeral audit, delivery, and credit inventory
+    String? deliveredTag;
+    double? deliveredQuantity;
+
     await session.db.transaction((dbTransaction) async {
       // a. Record the transaction hash permanently (blind idempotency)
       await ReceiptHash.db.insertRow(
@@ -279,27 +287,16 @@ class AppleIAPRail implements PaymentRailInterface {
         transaction: dbTransaction,
       );
 
-      // c. Create the PERMANENT financial record on-the-fly
+      // c. Create the PERMANENT financial record
       final internalTxId = internalTransactionId ?? const Uuid().v4();
 
-      // Find the RailProduct for this SKU
-      final railProduct = await RailProduct.db.findFirstRow(
-        session,
-        where: (t) =>
-            t.rail.equals(PaymentRail.apple_iap) &
-            t.storeProductId.equals(productId),
-        transaction: dbTransaction,
-      );
-
-      final txPayment = await TransactionPayment.db.insertRow(
+      await TransactionPayment.db.insertRow(
         session,
         TransactionPayment(
-          railProductId:
-              railProduct?.id ??
-              0, // Should handle null in real prod, but mapping exists
+          railProductId: railProduct.id!,
           internalTransactionId: internalTxId,
           priceCurrency: Currency.USD,
-          price: 0.0, // Placeholder
+          price: 0.0,
           paymentRail: PaymentRail.apple_iap,
           paymentCurrency: Currency.USD,
           paymentAmount: 0.0,
@@ -312,27 +309,44 @@ class AppleIAPRail implements PaymentRailInterface {
       );
 
       // d. Credit user inventory based on grants
-      if (railProduct != null) {
-        final grants = await RailProductGrant.db.find(
+      final grants = await RailProductGrant.db.find(
+        session,
+        where: (t) => t.railProductId.equals(railProduct.id!),
+        transaction: dbTransaction,
+      );
+
+      for (final grant in grants) {
+        await EntitlementManager.grantEntitlementById(
           session,
-          where: (t) => t.railProductId.equals(railProduct.id),
+          accountId: accountId,
+          entitlementId: grant.entitlementId,
+          quantity: grant.quantity,
           transaction: dbTransaction,
         );
+      }
 
-        for (final grant in grants) {
-          await EntitlementManager.grantEntitlementById(
-            session,
-            accountId: accountId,
-            entitlementId: grant.entitlementId,
-            quantity: grant.quantity,
-          );
-        }
+      // Capture first grant info for the response
+      if (grants.isNotEmpty) {
+        final entitlement = await Entitlement.db.findById(
+          session,
+          grants.first.entitlementId,
+          transaction: dbTransaction,
+        );
+        deliveredTag = entitlement?.tag;
+        deliveredQuantity = grants.first.quantity;
       }
     });
 
-    return AppleTransactionValidationResult.fromTransaction(
-      decodedTransaction,
-      mapping,
+    return AppleTransactionValidationResult(
+      isValid: true,
+      transactionId: decodedTransaction.transactionId,
+      originalTransactionId: decodedTransaction.originalTransactionId,
+      productId: decodedTransaction.productId,
+      purchaseDate: DateTime.fromMillisecondsSinceEpoch(
+        decodedTransaction.purchaseDate,
+      ),
+      tag: deliveredTag,
+      quantity: deliveredQuantity,
     );
   }
 
@@ -517,19 +531,6 @@ class AppleTransactionValidationResult {
     this.deliveredAt,
   });
 
-  /// Create result from a decoded transaction and product mapping.
-  factory AppleTransactionValidationResult.fromTransaction(
-    DecodedTransaction transaction,
-    ProductMapping mapping,
-  ) => AppleTransactionValidationResult(
-    isValid: true,
-    transactionId: transaction.transactionId,
-    originalTransactionId: transaction.originalTransactionId,
-    productId: transaction.productId,
-    purchaseDate: DateTime.fromMillisecondsSinceEpoch(transaction.purchaseDate),
-    tag: mapping.consumableType,
-    quantity: mapping.quantity,
-  );
   final bool isValid;
   final String? transactionId;
   final String? originalTransactionId;
