@@ -23,12 +23,14 @@ import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
 import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
     as _i8;
 
-/// Account management endpoints for anonymous identity operations.
+/// Abstract account endpoint for creation and recovery.
 ///
 /// Abstract so consuming projects must provide a concrete subclass with
-/// their own spam-prevention strategy (e.g. proof-of-work) on createAccount.
-/// Query methods (getAccountById, getAccountByPublicKey, getAccountForRecovery)
-/// are inherited as-is.
+/// their own spam-prevention strategy (e.g. proof-of-work) wrapping both
+/// [createAccount] and [getAccountForRecovery].
+///
+/// Server-only query methods (getAccountById, getAccountByPublicKey) live
+/// in [AccountQueryService] — not exposed to clients.
 /// {@category Endpoint}
 abstract class EndpointAccount extends _i1.EndpointRef {
   EndpointAccount(_i1.EndpointCaller caller) : super(caller);
@@ -42,15 +44,11 @@ abstract class EndpointAccount extends _i1.EndpointRef {
     String ultimatePublicKey,
   );
 
-  /// Get account by ID, requiring it to exist
-  _i2.Future<_i4.AnonAccount> getAccountById(int accountId);
-
-  /// Get account by public master key lookup
-  _i2.Future<_i4.AnonAccount?> getAccountByPublicKey(
-    String ultimateSigningPublicKeyHex,
-  );
-
-  /// Get account for recovery by ultimate public key
+  /// Look up account for recovery by ultimate public key.
+  ///
+  /// Returns [AnonAccount] if found, or `null` if no account matches.
+  /// The `encryptedDataKey` field is safe to return because it can only
+  /// be decrypted with the ultimate private key (held offline by the user).
   _i2.Future<_i4.AnonAccount?> getAccountForRecovery(String ultimatePublicKey);
 }
 

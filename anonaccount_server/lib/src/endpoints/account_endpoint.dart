@@ -3,12 +3,14 @@ import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
 
-/// Account management endpoints for anonymous identity operations.
+/// Abstract account endpoint for creation and recovery.
 ///
 /// Abstract so consuming projects must provide a concrete subclass with
-/// their own spam-prevention strategy (e.g. proof-of-work) on createAccount.
-/// Query methods (getAccountById, getAccountByPublicKey, getAccountForRecovery)
-/// are inherited as-is.
+/// their own spam-prevention strategy (e.g. proof-of-work) wrapping both
+/// [createAccount] and [getAccountForRecovery].
+///
+/// Server-only query methods (getAccountById, getAccountByPublicKey) live
+/// in [AccountQueryService] — not exposed to clients.
 abstract class AccountEndpoint extends Endpoint {
   /// Create new anonymous account with ECDSA P-256 public key identity.
   ///
@@ -81,60 +83,21 @@ abstract class AccountEndpoint extends Endpoint {
     }
   }
 
-  /// Get account by ID, requiring it to exist
-  Future<AnonAccount> getAccountById(
-    Session session,
-    int accountId,
-  ) async {
-    try {
-      final account = await AnonAccount.db.findById(session, accountId);
-      return AnonAccountHelpers.requireAccount(account, accountId, 'getAccountById');
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Unexpected error during account lookup: ${e.toString()}',
-        details: {'error': e.toString()},
-      );
-    }
-  }
-
-  /// Get account by public master key lookup
-  Future<AnonAccount?> getAccountByPublicKey(
-    Session session,
-    String ultimateSigningPublicKeyHex,
-  ) async {
-    try {
-      AnonAccountHelpers.validatePublicKey(ultimateSigningPublicKeyHex, 'getAccountByPublicKey');
-      final account = await AnonAccount.db.findFirstRow(
-        session,
-        where: (t) => t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
-      );
-      return account;
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Unexpected error during account lookup: ${e.toString()}',
-        details: {'error': e.toString()},
-      );
-    }
-  }
-
-  /// Get account for recovery by ultimate public key
+  /// Look up account for recovery by ultimate public key.
+  ///
+  /// Returns [AnonAccount] if found, or `null` if no account matches.
+  /// The `encryptedDataKey` field is safe to return because it can only
+  /// be decrypted with the ultimate private key (held offline by the user).
   Future<AnonAccount?> getAccountForRecovery(
     Session session,
     String ultimatePublicKey,
   ) async {
     try {
       AnonAccountHelpers.validatePublicKey(ultimatePublicKey, 'getAccountForRecovery');
-      final account = await AnonAccount.db.findFirstRow(
+      return await AnonAccount.db.findFirstRow(
         session,
         where: (t) => t.ultimatePublicKey.equals(ultimatePublicKey),
       );
-      return account;
     } on AuthenticationException {
       rethrow;
     } catch (e) {
