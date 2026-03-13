@@ -1,3 +1,5 @@
+import 'package:serverpod/serverpod.dart';
+
 import 'crypto_auth.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
@@ -5,6 +7,31 @@ import 'generated/protocol.dart';
 /// Simple static helper functions to reduce code duplication
 /// No complex abstractions, caching, or infrastructure
 class AnonAccountHelpers {
+
+  /// Resolve accountId from a device signing public key.
+  ///
+  /// Looks up the device by its signing key and returns the associated accountId.
+  /// Used by endpoints that previously took accountId as a parameter.
+  static Future<int> resolveAccountId(
+    Session session,
+    String publicKey,
+    String operation,
+  ) async {
+    final device = await AccountDevice.db.findFirstRow(
+      session,
+      where: (t) => t.deviceSigningPublicKeyHex.equals(publicKey),
+    );
+    if (device == null) {
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.authDeviceNotFound,
+        message: 'Device not found for public key',
+        operation: operation,
+        details: {'deviceSigningPublicKeyHex': publicKey},
+      );
+    }
+    return device.accountId;
+  }
+
 
   // === VALIDATION HELPERS ===
 

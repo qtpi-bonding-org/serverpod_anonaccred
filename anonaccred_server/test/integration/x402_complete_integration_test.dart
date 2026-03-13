@@ -32,12 +32,25 @@ void main() {
       await session.close();
 
       // Create a test account for tests that need it
-      final account = await AnonAccount.db.insertRow(sessionBuilder.build(), AnonAccount(
+      final setupSession = sessionBuilder.build();
+      final account = await AnonAccount.db.insertRow(setupSession, AnonAccount(
         ultimateSigningPublicKeyHex: validPublicKey,
         encryptedDataKey: 'encrypted_data_key_for_x402_test',
         ultimatePublicKey: validPublicKey, // Use the same valid key for ultimatePublicKey
       ));
       testAccountId = account.id!;
+
+      // Register validPublicKey as a device so AnonAccountHelpers.resolveAccountId
+      // can look it up for commerce endpoint calls.
+      await AccountDevice.db.insertRow(
+        setupSession,
+        AccountDevice(
+          accountId: testAccountId,
+          deviceSigningPublicKeyHex: validPublicKey,
+          encryptedDataKey: 'device_encrypted_key_x402_test',
+          label: 'Test Device',
+        ),
+      );
     });
 
     group('X402 Payment Rail Integration', () {
@@ -267,7 +280,6 @@ void main() {
             sessionBuilder,
             invalidPublicKey,
             signature,
-            testAccountId,
             'api_calls',
           ),
           throwsA(isA<AuthenticationException>()),
@@ -280,7 +292,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           '', // Empty consumable type
         );
         expect(result, equals(0.0));
@@ -304,7 +315,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           PaymentRail.x402_http,
           'api_calls', // Use SKU instead of item map
         );
@@ -323,7 +333,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccountId,
           );
 
           // Should return empty entitlements initially
@@ -334,7 +343,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccountId,
             'api_calls',
           );
 

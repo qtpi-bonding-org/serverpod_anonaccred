@@ -109,11 +109,6 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
             'rail': _i1.ParameterDescription(
               name: 'rail',
               type: _i1.getType<_i8.PaymentRail>(),
@@ -144,7 +139,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['publicKey'],
                     params['signature'],
-                    params['accountId'],
                     params['rail'],
                     params['storeProductId'],
                     clientReference: params['clientReference'],
@@ -193,11 +187,6 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
           },
           call:
               (
@@ -208,7 +197,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['publicKey'],
                     params['signature'],
-                    params['accountId'],
                   ),
         ),
         'getEntitlementBalance': _i1.MethodConnector(
@@ -222,11 +210,6 @@ class Endpoints extends _i1.EndpointDispatch {
             'signature': _i1.ParameterDescription(
               name: 'signature',
               type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
               nullable: false,
             ),
             'tag': _i1.ParameterDescription(
@@ -244,7 +227,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['publicKey'],
                     params['signature'],
-                    params['accountId'],
                     params['tag'],
                   ),
         ),
@@ -259,11 +241,6 @@ class Endpoints extends _i1.EndpointDispatch {
             'signature': _i1.ParameterDescription(
               name: 'signature',
               type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
               nullable: false,
             ),
             'tag': _i1.ParameterDescription(
@@ -286,7 +263,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['publicKey'],
                     params['signature'],
-                    params['accountId'],
                     params['tag'],
                     params['quantity'],
                   ),
@@ -335,11 +311,6 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
             'tag': _i1.ParameterDescription(
               name: 'tag',
               type: _i1.getType<String>(),
@@ -360,7 +331,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['publicKey'],
                     params['signature'],
-                    params['accountId'],
                     params['tag'],
                     headers: params['headers'],
                   ),
@@ -394,11 +364,6 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
             'internalTransactionId': _i1.ParameterDescription(
               name: 'internalTransactionId',
               type: _i1.getType<String?>(),
@@ -416,7 +381,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['signature'],
                     params['transactionId'],
                     params['productId'],
-                    params['accountId'],
                     internalTransactionId: params['internalTransactionId'],
                   ),
         ),
@@ -448,11 +412,6 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
             'internalTransactionId': _i1.ParameterDescription(
               name: 'internalTransactionId',
               type: _i1.getType<String?>(),
@@ -471,7 +430,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['packageName'],
                     params['productId'],
                     params['purchaseToken'],
-                    params['accountId'],
                     internalTransactionId: params['internalTransactionId'],
                   ),
         ),
@@ -608,11 +566,6 @@ class Endpoints extends _i1.EndpointDispatch {
         'manageEntitlements': _i1.MethodConnector(
           name: 'manageEntitlements',
           params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
             'tag': _i1.ParameterDescription(
               name: 'tag',
               type: _i1.getType<String>(),
@@ -636,7 +589,6 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['module'] as _i5.ModuleEndpoint)
                   .manageEntitlements(
                     session,
-                    params['accountId'],
                     params['tag'],
                     params['operation'],
                     params['quantity'],
@@ -741,11 +693,6 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
             'headers': _i1.ParameterDescription(
               name: 'headers',
               type: _i1.getType<Map<String, String>?>(),
@@ -762,7 +709,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['publicKey'],
                     params['signature'],
                     params['resourceId'],
-                    params['accountId'],
                     headers: params['headers'],
                   ),
         ),
@@ -789,11 +735,6 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<double>(),
               nullable: false,
             ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
             'headers': _i1.ParameterDescription(
               name: 'headers',
               type: _i1.getType<Map<String, String>?>(),
@@ -811,7 +752,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['signature'],
                     params['tag'],
                     params['quantity'],
-                    params['accountId'],
                     headers: params['headers'],
                   ),
         ),

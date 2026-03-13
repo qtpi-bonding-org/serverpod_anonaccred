@@ -7,7 +7,7 @@ import 'test_tools/serverpod_test_tools.dart';
 
 final _endpoint = TestAccountEndpoint();
 
-Future<AnonAccount> callCreateAccount(
+Future<AccountCreationResponse> callCreateAccount(
   TestSessionBuilder sessionBuilder,
   String publicKey,
   String encryptedDataKey,
@@ -64,7 +64,6 @@ void main() {
 
         expect(account.ultimateSigningPublicKeyHex, equals(validPublicKey));
         expect(account.encryptedDataKey, equals(encryptedDataKey));
-        expect(account.id, isNotNull);
         expect(account.createdAt, isNotNull);
       },
     );
@@ -145,8 +144,7 @@ void main() {
         );
 
         expect(foundAccount, isNotNull);
-        expect(foundAccount!.id, equals(createdAccount.id));
-        expect(foundAccount.ultimateSigningPublicKeyHex, equals(validPublicKey));
+        expect(foundAccount!.ultimateSigningPublicKeyHex, equals(createdAccount.ultimateSigningPublicKeyHex));
         expect(foundAccount.encryptedDataKey, equals(encryptedDataKey));
       },
     );

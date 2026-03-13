@@ -77,7 +77,6 @@ void main() {
             'test_signature',
             'mock_transaction_id',
             'mock_product_id',
-            1, // accountId
             internalTransactionId: 'test_order_123',
           );
           fail('Should have thrown authentication exception');
@@ -98,7 +97,6 @@ void main() {
               'valid_signature_format',
               '', // Empty transaction ID
               '', // Empty product ID
-              testAccount.id!,
               internalTransactionId: 'test_order_123',
             );
             fail('Should have thrown PaymentException');
@@ -124,7 +122,6 @@ void main() {
               'valid_signature_format',
               'mock_transaction_id',
               'mock_product_id',
-              testAccount.id!,
               internalTransactionId: 'test_order_123',
             );
             // If no error, the test passes (Apple not configured)
@@ -151,7 +148,6 @@ void main() {
               'valid_signature_format',
               'mock_transaction_id',
               'mock_product_id',
-              testAccount.id!,
               internalTransactionId: 'test_order_123',
             );
             // If no error, the test passes (Apple not configured)
@@ -178,7 +174,6 @@ void main() {
             'test_signature',
             'mock_transaction_id',
             'mock_product_id',
-            1,
             internalTransactionId: 'test_order_123',
           );
           // If no error, the test passes (Apple not configured)
@@ -209,7 +204,6 @@ void main() {
               'com.example.app',
               'com.example.premium',
               'mock_purchase_token',
-              1, // accountId
               internalTransactionId: 'test_order_456',
             );
             fail('Should have thrown authentication exception');
@@ -232,7 +226,6 @@ void main() {
               '', // Empty package name
               'com.example.premium',
               'mock_purchase_token',
-              testAccount.id!,
               internalTransactionId: 'test_order_456',
             );
             fail('Should have thrown PaymentException');
@@ -261,7 +254,6 @@ void main() {
               'com.example.app',
               'com.example.premium',
               'mock_purchase_token',
-              testAccount.id!,
               internalTransactionId: 'test_order_456',
             );
             // If no error, the test passes (Google not configured)
@@ -290,7 +282,6 @@ void main() {
               'com.example.app',
               'com.example.premium',
               'mock_purchase_token',
-              testAccount.id!,
               internalTransactionId: 'test_order_456',
             );
             // If no error, the test passes (Google not configured)
@@ -318,7 +309,6 @@ void main() {
             'com.example.app',
             'com.example.premium',
             'mock_purchase_token',
-            1,
             internalTransactionId: 'test_order_456',
           );
           // If no error, the test passes (Google not configured)

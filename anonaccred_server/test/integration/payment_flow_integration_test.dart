@@ -106,6 +106,18 @@ void main() {
       );
       testAccount = await AnonAccount.db.insertRow(session, testAccount);
 
+      // Register validPublicKey as a device for testAccount so that
+      // AnonAccountHelpers.resolveAccountId can find it via initiatePayment.
+      await AccountDevice.db.insertRow(
+        session,
+        AccountDevice(
+          accountId: testAccount.id!,
+          deviceSigningPublicKeyHex: validPublicKey,
+          encryptedDataKey: 'device_encrypted_key_payment_flow_test',
+          label: 'Test Device',
+        ),
+      );
+
       // Create dummy rail product
       final railProduct = await RailProduct.db.insertRow(
         session,
@@ -149,7 +161,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccount.id!,
           PaymentRail.monero,
           'test_product',
         );
@@ -213,7 +224,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccount.id!,
           PaymentRail.monero,
           'test_product',
         );
@@ -259,7 +269,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccount.id!,
             PaymentRail.monero,
             'test_product',
           ),
@@ -309,7 +318,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccount.id!,
             PaymentRail.monero,
             'test_product',
           ),
@@ -490,7 +498,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccount.id!,
           PaymentRail.monero,
           'test_product',
         );
@@ -534,7 +541,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             '',
-            testAccount.id!,
             PaymentRail.monero,
             'test_product',
           ),
@@ -549,7 +555,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccount.id!,
             PaymentRail.monero,
             'test_product',
           );

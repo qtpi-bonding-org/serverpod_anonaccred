@@ -17,7 +17,6 @@ abstract class AuthenticationResult
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   AuthenticationResult._({
     required this.success,
-    this.accountId,
     this.deviceId,
     this.errorCode,
     this.errorMessage,
@@ -26,7 +25,6 @@ abstract class AuthenticationResult
 
   factory AuthenticationResult({
     required bool success,
-    int? accountId,
     int? deviceId,
     String? errorCode,
     String? errorMessage,
@@ -38,7 +36,6 @@ abstract class AuthenticationResult
   ) {
     return AuthenticationResult(
       success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
-      accountId: jsonSerialization['accountId'] as int?,
       deviceId: jsonSerialization['deviceId'] as int?,
       errorCode: jsonSerialization['errorCode'] as String?,
       errorMessage: jsonSerialization['errorMessage'] as String?,
@@ -51,8 +48,6 @@ abstract class AuthenticationResult
   }
 
   bool success;
-
-  int? accountId;
 
   int? deviceId;
 
@@ -67,7 +62,6 @@ abstract class AuthenticationResult
   @_i1.useResult
   AuthenticationResult copyWith({
     bool? success,
-    int? accountId,
     int? deviceId,
     String? errorCode,
     String? errorMessage,
@@ -78,7 +72,6 @@ abstract class AuthenticationResult
     return {
       '__className__': 'anonaccount.AuthenticationResult',
       'success': success,
-      if (accountId != null) 'accountId': accountId,
       if (deviceId != null) 'deviceId': deviceId,
       if (errorCode != null) 'errorCode': errorCode,
       if (errorMessage != null) 'errorMessage': errorMessage,
@@ -91,7 +84,6 @@ abstract class AuthenticationResult
     return {
       '__className__': 'anonaccount.AuthenticationResult',
       'success': success,
-      if (accountId != null) 'accountId': accountId,
       if (deviceId != null) 'deviceId': deviceId,
       if (errorCode != null) 'errorCode': errorCode,
       if (errorMessage != null) 'errorMessage': errorMessage,
@@ -110,14 +102,12 @@ class _Undefined {}
 class _AuthenticationResultImpl extends AuthenticationResult {
   _AuthenticationResultImpl({
     required bool success,
-    int? accountId,
     int? deviceId,
     String? errorCode,
     String? errorMessage,
     Map<String, String>? details,
   }) : super._(
          success: success,
-         accountId: accountId,
          deviceId: deviceId,
          errorCode: errorCode,
          errorMessage: errorMessage,
@@ -130,7 +120,6 @@ class _AuthenticationResultImpl extends AuthenticationResult {
   @override
   AuthenticationResult copyWith({
     bool? success,
-    Object? accountId = _Undefined,
     Object? deviceId = _Undefined,
     Object? errorCode = _Undefined,
     Object? errorMessage = _Undefined,
@@ -138,7 +127,6 @@ class _AuthenticationResultImpl extends AuthenticationResult {
   }) {
     return AuthenticationResult(
       success: success ?? this.success,
-      accountId: accountId is int? ? accountId : this.accountId,
       deviceId: deviceId is int? ? deviceId : this.deviceId,
       errorCode: errorCode is String? ? errorCode : this.errorCode,
       errorMessage: errorMessage is String? ? errorMessage : this.errorMessage,

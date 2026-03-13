@@ -31,9 +31,9 @@ class Endpoints extends _i1.EndpointDispatch {
         'registerDevice': _i1.MethodConnector(
           name: 'registerDevice',
           params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
+            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'ultimateSigningPublicKeyHex',
+              type: _i1.getType<String>(),
               nullable: false,
             ),
             'deviceSigningPublicKeyHex': _i1.ParameterDescription(
@@ -59,7 +59,7 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['device'] as _i2.DeviceEndpoint).registerDevice(
                     session,
-                    params['accountId'],
+                    params['ultimateSigningPublicKeyHex'],
                     params['deviceSigningPublicKeyHex'],
                     params['encryptedDataKey'],
                     params['label'],

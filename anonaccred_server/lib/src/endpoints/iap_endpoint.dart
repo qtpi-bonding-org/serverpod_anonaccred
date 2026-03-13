@@ -24,15 +24,13 @@ class IAPEndpoint extends Endpoint {
   /// - [signature]: Signature of the request data
   /// - [transactionId]: Apple transaction ID from the app
   /// - [productId]: Apple product ID (SKU)
-  /// - [accountId]: Account ID for inventory management
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
   Future<IapValidationResponse> validateAppleTransaction(
     Session session,
     String publicKey,
     String signature,
     String transactionId,
-    String productId,
-    int accountId, {
+    String productId, {
     String? internalTransactionId,
   }) async {
     try {
@@ -56,6 +54,11 @@ class IAPEndpoint extends Endpoint {
           },
         );
       }
+
+      // Resolve accountId from device public key
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session, publicKey, 'validateAppleTransaction',
+      );
 
       // Create Apple IAP rail and validate transaction
       final appleRail = await AppleIAPRail.create();
@@ -98,7 +101,6 @@ class IAPEndpoint extends Endpoint {
             'Unexpected error validating Apple transaction: ${e.toString()}',
         details: {
           'error': e.toString(),
-          'accountId': accountId.toString(),
           'transactionId': transactionId,
         },
       );
@@ -116,7 +118,6 @@ class IAPEndpoint extends Endpoint {
   /// - [packageName]: Android app package name
   /// - [productId]: Google product ID (SKU)
   /// - [purchaseToken]: Google purchase token
-  /// - [accountId]: Account ID for inventory management
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
   Future<IapValidationResponse> validateGooglePurchase(
     Session session,
@@ -124,8 +125,7 @@ class IAPEndpoint extends Endpoint {
     String signature,
     String packageName,
     String productId,
-    String purchaseToken,
-    int accountId, {
+    String purchaseToken, {
     String? internalTransactionId,
   }) async {
     try {
@@ -145,6 +145,11 @@ class IAPEndpoint extends Endpoint {
           internalTransactionId: internalTransactionId,
         );
       }
+
+      // Resolve accountId from device public key
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session, publicKey, 'validateGooglePurchase',
+      );
 
       // Create Google IAP rail and validate purchase
       final googleRail = await GoogleIAPRail.create();
@@ -187,7 +192,6 @@ class IAPEndpoint extends Endpoint {
         message: 'Unexpected error validating Google purchase: ${e.toString()}',
         details: {
           'error': e.toString(),
-          'accountId': accountId.toString(),
           'productId': productId,
         },
       );

@@ -12,14 +12,16 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
-import 'package:anonaccount_client/src/protocol/account.dart' as _i3;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i4;
+import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
+    as _i3;
+import 'package:anonaccount_client/src/protocol/account.dart' as _i4;
+import 'package:anonaccount_client/src/protocol/account_device.dart' as _i5;
 import 'package:anonaccount_client/src/protocol/authentication_result.dart'
-    as _i5;
-import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
     as _i6;
-import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
+import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
     as _i7;
+import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
+    as _i8;
 
 /// Account management endpoints for anonymous identity operations.
 ///
@@ -31,23 +33,25 @@ import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
 abstract class EndpointAccount extends _i1.EndpointRef {
   EndpointAccount(_i1.EndpointCaller caller) : super(caller);
 
-  /// Create new anonymous account with ECDSA P-256 public key identity
-  _i2.Future<_i3.AnonAccount> createAccount(
+  /// Create new anonymous account with ECDSA P-256 public key identity.
+  ///
+  /// Returns [AccountCreationResponse] — no internal int id exposed to client.
+  _i2.Future<_i3.AccountCreationResponse> createAccount(
     String ultimateSigningPublicKeyHex,
     String encryptedDataKey,
     String ultimatePublicKey,
   );
 
   /// Get account by ID, requiring it to exist
-  _i2.Future<_i3.AnonAccount> getAccountById(int accountId);
+  _i2.Future<_i4.AnonAccount> getAccountById(int accountId);
 
   /// Get account by public master key lookup
-  _i2.Future<_i3.AnonAccount?> getAccountByPublicKey(
+  _i2.Future<_i4.AnonAccount?> getAccountByPublicKey(
     String ultimateSigningPublicKeyHex,
   );
 
   /// Get account for recovery by ultimate public key
-  _i2.Future<_i3.AnonAccount?> getAccountForRecovery(String ultimatePublicKey);
+  _i2.Future<_i4.AnonAccount?> getAccountForRecovery(String ultimatePublicKey);
 }
 
 /// Device management endpoints for ECDSA P-256 device registration and authentication
@@ -67,10 +71,11 @@ class EndpointDevice extends _i1.EndpointRef {
   /// Register new device with account
   ///
   /// Creates a new device registration associated with an account.
+  /// The account is resolved from the ultimate signing public key.
   /// The device is identified by its ECDSA P-256 device signing public key.
   ///
   /// Parameters:
-  /// - [accountId]: The account to associate the device with
+  /// - [ultimateSigningPublicKeyHex]: The account's ultimate signing public key (used to look up the account)
   /// - [deviceSigningPublicKeyHex]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
   /// - [encryptedDataKey]: Device-encrypted SDK (never decrypted server-side)
   /// - [label]: Human-readable device name
@@ -82,16 +87,16 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - Account does not exist
   /// - Public subkey is already registered
   /// - Required parameters are empty
-  _i2.Future<_i4.AccountDevice> registerDevice(
-    int accountId,
+  _i2.Future<_i5.AccountDevice> registerDevice(
+    String ultimateSigningPublicKeyHex,
     String deviceSigningPublicKeyHex,
     String encryptedDataKey,
     String label,
-  ) => caller.callServerEndpoint<_i4.AccountDevice>(
+  ) => caller.callServerEndpoint<_i5.AccountDevice>(
     'anonaccount.device',
     'registerDevice',
     {
-      'accountId': accountId,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
@@ -109,10 +114,10 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - [signature]: ECDSA P-256 signature of the challenge (128 hex chars, r||s format)
   ///
   /// Returns AuthenticationResult with success/failure information.
-  _i2.Future<_i5.AuthenticationResult> authenticateDevice(
+  _i2.Future<_i6.AuthenticationResult> authenticateDevice(
     String challenge,
     String signature,
-  ) => caller.callServerEndpoint<_i5.AuthenticationResult>(
+  ) => caller.callServerEndpoint<_i6.AuthenticationResult>(
     'anonaccount.device',
     'authenticateDevice',
     {
@@ -167,8 +172,8 @@ class EndpointDevice extends _i1.EndpointRef {
   ///
   /// Returns list of AccountDevice objects with metadata.
   /// Returns empty list if no devices are registered.
-  _i2.Future<List<_i4.AccountDevice>> listDevices() =>
-      caller.callServerEndpoint<List<_i4.AccountDevice>>(
+  _i2.Future<List<_i5.AccountDevice>> listDevices() =>
+      caller.callServerEndpoint<List<_i5.AccountDevice>>(
         'anonaccount.device',
         'listDevices',
         {},
@@ -181,12 +186,12 @@ class EndpointDevice extends _i1.EndpointRef {
   ///
   /// Parameters:
   /// - [signingKeyHex]: Device B's ECDSA P-256 signing public key (128 hex)
-  _i2.Stream<_i6.DevicePairingEvent> monitorRegistration(
+  _i2.Stream<_i7.DevicePairingEvent> monitorRegistration(
     String signingKeyHex,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i6.DevicePairingEvent>,
-        _i6.DevicePairingEvent
+        _i2.Stream<_i7.DevicePairingEvent>,
+        _i7.DevicePairingEvent
       >(
         'anonaccount.device',
         'monitorRegistration',
@@ -214,11 +219,11 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - Caller's device not found
   /// - New device public key format is invalid
   /// - New device public key already registered
-  _i2.Future<_i4.AccountDevice> registerDeviceForAccount(
+  _i2.Future<_i5.AccountDevice> registerDeviceForAccount(
     String newDeviceSigningPublicKeyHex,
     String newDeviceEncryptedDataKey,
     String label,
-  ) => caller.callServerEndpoint<_i4.AccountDevice>(
+  ) => caller.callServerEndpoint<_i5.AccountDevice>(
     'anonaccount.device',
     'registerDeviceForAccount',
     {
@@ -242,9 +247,9 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - [signingPublicKeyHex]: Device's ECDSA P-256 signing public key (128 hex)
   ///
   /// Returns DevicePairingInfo if device is registered, null otherwise.
-  _i2.Future<_i7.DevicePairingInfo?> getDeviceBySigningKey(
+  _i2.Future<_i8.DevicePairingInfo?> getDeviceBySigningKey(
     String signingPublicKeyHex,
-  ) => caller.callServerEndpoint<_i7.DevicePairingInfo?>(
+  ) => caller.callServerEndpoint<_i8.DevicePairingInfo?>(
     'anonaccount.device',
     'getDeviceBySigningKey',
     {'signingPublicKeyHex': signingPublicKeyHex},

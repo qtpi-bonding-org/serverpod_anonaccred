@@ -19,7 +19,6 @@ abstract class InventoryException
     required this.code,
     required this.message,
     this.details,
-    this.accountId,
     this.tag,
   });
 
@@ -27,7 +26,6 @@ abstract class InventoryException
     required String code,
     required String message,
     Map<String, String>? details,
-    int? accountId,
     String? tag,
   }) = _InventoryExceptionImpl;
 
@@ -40,7 +38,6 @@ abstract class InventoryException
           : _i2.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
-      accountId: jsonSerialization['accountId'] as int?,
       tag: jsonSerialization['tag'] as String?,
     );
   }
@@ -51,8 +48,6 @@ abstract class InventoryException
 
   Map<String, String>? details;
 
-  int? accountId;
-
   String? tag;
 
   /// Returns a shallow copy of this [InventoryException]
@@ -62,7 +57,6 @@ abstract class InventoryException
     String? code,
     String? message,
     Map<String, String>? details,
-    int? accountId,
     String? tag,
   });
   @override
@@ -72,14 +66,13 @@ abstract class InventoryException
       'code': code,
       'message': message,
       if (details != null) 'details': details?.toJson(),
-      if (accountId != null) 'accountId': accountId,
       if (tag != null) 'tag': tag,
     };
   }
 
   @override
   String toString() {
-    return 'InventoryException(code: $code, message: $message, details: $details, accountId: $accountId, tag: $tag)';
+    return 'InventoryException(code: $code, message: $message, details: $details, tag: $tag)';
   }
 }
 
@@ -90,13 +83,11 @@ class _InventoryExceptionImpl extends InventoryException {
     required String code,
     required String message,
     Map<String, String>? details,
-    int? accountId,
     String? tag,
   }) : super._(
          code: code,
          message: message,
          details: details,
-         accountId: accountId,
          tag: tag,
        );
 
@@ -108,7 +99,6 @@ class _InventoryExceptionImpl extends InventoryException {
     String? code,
     String? message,
     Object? details = _Undefined,
-    Object? accountId = _Undefined,
     Object? tag = _Undefined,
   }) {
     return InventoryException(
@@ -125,7 +115,6 @@ class _InventoryExceptionImpl extends InventoryException {
                 value0,
               ),
             ),
-      accountId: accountId is int? ? accountId : this.accountId,
       tag: tag is String? ? tag : this.tag,
     );
   }

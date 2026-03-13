@@ -1,0 +1,7 @@
+# Response model for account creation — no internal int id exposed
+class: AccountCreationResponse
+fields:
+  ultimateSigningPublicKeyHex: String
+  encryptedDataKey: String
+  ultimatePublicKey: String
+  createdAt: DateTime

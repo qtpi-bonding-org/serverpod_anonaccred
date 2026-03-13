@@ -83,7 +83,6 @@ void main() {
           AnonAccredExceptionFactory.createInventoryException(
             code: AnonAccredErrorCodes.inventoryInsufficientBalance,
             message: 'Inventory test',
-            accountId: 123,
             tag: 'test_consumable',
           );
 
@@ -91,7 +90,6 @@ void main() {
         inventoryException.code,
         equals(AnonAccredErrorCodes.inventoryInsufficientBalance),
       );
-      expect(inventoryException.accountId, equals(123));
       expect(inventoryException.tag, equals('test_consumable'));
     });
 

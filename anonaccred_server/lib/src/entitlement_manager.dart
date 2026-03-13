@@ -20,7 +20,6 @@ class EntitlementManager {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccredErrorCodes.inventoryInvalidQuantity,
         message: 'Grant quantity must be positive',
-        accountId: accountId,
         details: {
           'providedQuantity': quantity.toString(),
           'entitlementId': entitlementId.toString(),
@@ -75,7 +74,6 @@ class EntitlementManager {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccredErrorCodes.inventoryInvalidConsumable,
         message: 'Entitlement with tag "$tag" not found',
-        accountId: accountId,
         tag: tag,
       );
     }
@@ -102,7 +100,6 @@ class EntitlementManager {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccredErrorCodes.inventoryInvalidQuantity,
         message: 'Consumption amount must be positive',
-        accountId: accountId,
         tag: tag,
       );
     }
@@ -120,7 +117,6 @@ class EntitlementManager {
           throw AnonAccredExceptionFactory.createInventoryException(
             code: AnonAccredErrorCodes.inventoryInvalidConsumable,
             message: 'Entitlement with tag "$tag" not found',
-            accountId: accountId,
           );
         }
 
@@ -137,7 +133,6 @@ class EntitlementManager {
           throw AnonAccredExceptionFactory.createInventoryException(
             code: AnonAccredErrorCodes.inventoryInsufficientBalance,
             message: 'Insufficient balance for entitlement "$tag"',
-            accountId: accountId,
             tag: tag,
             details: {
               'currentBalance': (record?.balance ?? 0.0).toString(),
@@ -171,7 +166,6 @@ class EntitlementManager {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to consume entitlement: ${e.toString()}',
-        accountId: accountId,
         tag: tag,
         details: {'error': e.toString()},
       );
@@ -229,7 +223,6 @@ class EntitlementManager {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to revoke entitlement: ${e.toString()}',
-        accountId: accountId,
         details: {
           'error': e.toString(),
           'entitlementId': entitlementId.toString(),
@@ -264,7 +257,6 @@ class EntitlementManager {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to get entitlement balance: ${e.toString()}',
-        accountId: accountId,
         tag: tag,
       );
     }
@@ -287,7 +279,6 @@ class EntitlementManager {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to get account entitlements: ${e.toString()}',
-        accountId: accountId,
       );
     }
   }

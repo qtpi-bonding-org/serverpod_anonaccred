@@ -66,7 +66,7 @@ void main() {
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          account.id!,
+          account.ultimateSigningPublicKeyHex,
           devicePublicKeyHex,
           deviceEncryptedDataKey,
           deviceLabel,
@@ -127,7 +127,7 @@ void main() {
 
         await endpoints.device.registerDevice(
           sessionBuilder,
-          account.id!,
+          account.ultimateSigningPublicKeyHex,
           devicePublicKeyHex,
           deviceEncryptedDataKey,
           deviceLabel,
@@ -173,7 +173,7 @@ void main() {
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          account.id!,
+          account.ultimateSigningPublicKeyHex,
           devicePublicKeyHex,
           deviceEncryptedDataKey,
           deviceLabel,
@@ -246,7 +246,7 @@ void main() {
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          account.id!,
+          account.ultimateSigningPublicKeyHex,
           devicePublicKeyHex,
           deviceEncryptedDataKey,
           deviceLabel,
@@ -298,7 +298,7 @@ void main() {
 
           final device = await endpoints.device.registerDevice(
             sessionBuilder,
-            account.id!,
+            account.ultimateSigningPublicKeyHex,
             devicePublicKeyHex,
             deviceEncryptedDataKey,
             deviceLabel,
@@ -368,7 +368,7 @@ void main() {
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          account.id!,
+          account.ultimateSigningPublicKeyHex,
           devicePublicKeyHex,
           deviceEncryptedDataKey,
           deviceLabel,

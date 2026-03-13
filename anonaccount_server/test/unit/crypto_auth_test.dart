@@ -165,12 +165,10 @@ void main() {
     test('AuthenticationResult factory methods work correctly', () {
       // Test success result
       final successResult = AuthenticationResultFactory.success(
-        accountId: 123,
         deviceId: 456,
         details: {'test': 'value'},
       );
       expect(successResult.success, isTrue);
-      expect(successResult.accountId, equals(123));
       expect(successResult.deviceId, equals(456));
       expect(successResult.details?['test'], equals('value'));
 

@@ -68,7 +68,6 @@ class EndpointCommerce extends _i1.EndpointRef {
   _i2.Future<_i3.TransactionPayment> initiatePayment(
     String publicKey,
     String signature,
-    int accountId,
     _i4.PaymentRail rail,
     String storeProductId, {
     String? clientReference,
@@ -79,7 +78,6 @@ class EndpointCommerce extends _i1.EndpointRef {
     {
       'publicKey': publicKey,
       'signature': signature,
-      'accountId': accountId,
       'rail': rail,
       'storeProductId': storeProductId,
       'clientReference': clientReference,
@@ -126,14 +124,12 @@ class EndpointCommerce extends _i1.EndpointRef {
   _i2.Future<List<_i5.AccountEntitlement>> getEntitlements(
     String publicKey,
     String signature,
-    int accountId,
   ) => caller.callServerEndpoint<List<_i5.AccountEntitlement>>(
     'anonaccred.commerce',
     'getEntitlements',
     {
       'publicKey': publicKey,
       'signature': signature,
-      'accountId': accountId,
     },
   );
 
@@ -141,7 +137,6 @@ class EndpointCommerce extends _i1.EndpointRef {
   _i2.Future<double> getEntitlementBalance(
     String publicKey,
     String signature,
-    int accountId,
     String tag,
   ) => caller.callServerEndpoint<double>(
     'anonaccred.commerce',
@@ -149,7 +144,6 @@ class EndpointCommerce extends _i1.EndpointRef {
     {
       'publicKey': publicKey,
       'signature': signature,
-      'accountId': accountId,
       'tag': tag,
     },
   );
@@ -158,7 +152,6 @@ class EndpointCommerce extends _i1.EndpointRef {
   _i2.Future<_i6.ConsumeResult> consumeEntitlement(
     String publicKey,
     String signature,
-    int accountId,
     String tag,
     double quantity,
   ) => caller.callServerEndpoint<_i6.ConsumeResult>(
@@ -167,7 +160,6 @@ class EndpointCommerce extends _i1.EndpointRef {
     {
       'publicKey': publicKey,
       'signature': signature,
-      'accountId': accountId,
       'tag': tag,
       'quantity': quantity,
     },
@@ -205,7 +197,6 @@ class EndpointCommerce extends _i1.EndpointRef {
   _i2.Future<_i7.ApiResponse> getEntitlementBalanceWithX402(
     String publicKey,
     String signature,
-    int accountId,
     String tag, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<_i7.ApiResponse>(
@@ -214,7 +205,6 @@ class EndpointCommerce extends _i1.EndpointRef {
     {
       'publicKey': publicKey,
       'signature': signature,
-      'accountId': accountId,
       'tag': tag,
       'headers': headers,
     },
@@ -244,14 +234,12 @@ class EndpointIAP extends _i1.EndpointRef {
   /// - [signature]: Signature of the request data
   /// - [transactionId]: Apple transaction ID from the app
   /// - [productId]: Apple product ID (SKU)
-  /// - [accountId]: Account ID for inventory management
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
   _i2.Future<_i8.IapValidationResponse> validateAppleTransaction(
     String publicKey,
     String signature,
     String transactionId,
-    String productId,
-    int accountId, {
+    String productId, {
     String? internalTransactionId,
   }) => caller.callServerEndpoint<_i8.IapValidationResponse>(
     'anonaccred.iAP',
@@ -261,7 +249,6 @@ class EndpointIAP extends _i1.EndpointRef {
       'signature': signature,
       'transactionId': transactionId,
       'productId': productId,
-      'accountId': accountId,
       'internalTransactionId': internalTransactionId,
     },
   );
@@ -277,15 +264,13 @@ class EndpointIAP extends _i1.EndpointRef {
   /// - [packageName]: Android app package name
   /// - [productId]: Google product ID (SKU)
   /// - [purchaseToken]: Google purchase token
-  /// - [accountId]: Account ID for inventory management
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
   _i2.Future<_i8.IapValidationResponse> validateGooglePurchase(
     String publicKey,
     String signature,
     String packageName,
     String productId,
-    String purchaseToken,
-    int accountId, {
+    String purchaseToken, {
     String? internalTransactionId,
   }) => caller.callServerEndpoint<_i8.IapValidationResponse>(
     'anonaccred.iAP',
@@ -296,7 +281,6 @@ class EndpointIAP extends _i1.EndpointRef {
       'packageName': packageName,
       'productId': productId,
       'purchaseToken': purchaseToken,
-      'accountId': accountId,
       'internalTransactionId': internalTransactionId,
     },
   );
@@ -378,7 +362,6 @@ class EndpointModule extends _i1.EndpointRef {
   /// Manages entitlement operations (check balance, grant)
   /// Throws InventoryException on failure
   _i2.Future<double> manageEntitlements(
-    int accountId,
     String tag,
     String operation,
     double? quantity,
@@ -386,7 +369,6 @@ class EndpointModule extends _i1.EndpointRef {
     'anonaccred.module',
     'manageEntitlements',
     {
-      'accountId': accountId,
       'tag': tag,
       'operation': operation,
       'quantity': quantity,
@@ -476,8 +458,7 @@ class EndpointX402 extends _i1.EndpointRef {
   _i2.Future<_i7.ApiResponse> requestPaidResource(
     String publicKey,
     String signature,
-    String resourceId,
-    int accountId, {
+    String resourceId, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<_i7.ApiResponse>(
     'anonaccred.x402',
@@ -486,7 +467,6 @@ class EndpointX402 extends _i1.EndpointRef {
       'publicKey': publicKey,
       'signature': signature,
       'resourceId': resourceId,
-      'accountId': accountId,
       'headers': headers,
     },
   );
@@ -511,8 +491,7 @@ class EndpointX402 extends _i1.EndpointRef {
     String publicKey,
     String signature,
     String tag,
-    double quantity,
-    int accountId, {
+    double quantity, {
     Map<String, String>? headers,
   }) => caller.callServerEndpoint<_i7.ApiResponse>(
     'anonaccred.x402',
@@ -522,7 +501,6 @@ class EndpointX402 extends _i1.EndpointRef {
       'signature': signature,
       'tag': tag,
       'quantity': quantity,
-      'accountId': accountId,
       'headers': headers,
     },
   );

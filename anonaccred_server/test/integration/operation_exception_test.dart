@@ -1,5 +1,6 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
@@ -9,6 +10,24 @@ void main() {
     sessionBuilder,
     endpoints,
   ) {
+    late int testAccountId;
+
+    setUp(() async {
+      // Create a test account so manageEntitlements has an authenticated session
+      final session = sessionBuilder.build();
+      final account = await AnonAccount.db.insertRow(
+        session,
+        AnonAccount(
+          ultimateSigningPublicKeyHex:
+              'opextest1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12',
+          encryptedDataKey: 'encrypted_data_key_operation_exception_test',
+          ultimatePublicKey:
+              'opextest1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12',
+        ),
+      );
+      testAccountId = account.id!;
+    });
+
     test(
       'when authenticateUser is called with invalid signature then AuthenticationException is thrown',
       () async {
@@ -102,9 +121,14 @@ void main() {
     test(
       'when manageEntitlements is called with invalid account ID then returns 0.0',
       () async {
+        final authenticatedSession = sessionBuilder.copyWith(
+          authentication: AuthenticationOverride.authenticationInfo(
+            testAccountId.toString(),
+            {},
+          ),
+        );
         final result = await endpoints.module.manageEntitlements(
-          sessionBuilder,
-          404, // Account not found
+          authenticatedSession,
           'api_calls',
           'check',
           null,
@@ -116,9 +140,14 @@ void main() {
     test(
       'when manageEntitlements is called with invalid consumable type then returns 0.0',
       () async {
+        final authenticatedSession = sessionBuilder.copyWith(
+          authentication: AuthenticationOverride.authenticationInfo(
+            testAccountId.toString(),
+            {},
+          ),
+        );
         final result = await endpoints.module.manageEntitlements(
-          sessionBuilder,
-          123,
+          authenticatedSession,
           'invalid_type', // Invalid consumable type
           'check',
           null,
@@ -130,9 +159,14 @@ void main() {
     test(
       'when manageEntitlements is called with valid parameters then returns balance',
       () async {
+        final authenticatedSession = sessionBuilder.copyWith(
+          authentication: AuthenticationOverride.authenticationInfo(
+            testAccountId.toString(),
+            {},
+          ),
+        );
         final result = await endpoints.module.manageEntitlements(
-          sessionBuilder,
-          123,
+          authenticatedSession,
           'api_calls',
           'check',
           null,

@@ -228,7 +228,6 @@ class _CommerceEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
-    int accountId,
     _i5.PaymentRail rail,
     String storeProductId, {
     String? clientReference,
@@ -248,7 +247,6 @@ class _CommerceEndpoint {
           parameters: _i1.testObjectToJson({
             'publicKey': publicKey,
             'signature': signature,
-            'accountId': accountId,
             'rail': rail,
             'storeProductId': storeProductId,
             'clientReference': clientReference,
@@ -334,7 +332,6 @@ class _CommerceEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
-    int accountId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -350,7 +347,6 @@ class _CommerceEndpoint {
           parameters: _i1.testObjectToJson({
             'publicKey': publicKey,
             'signature': signature,
-            'accountId': accountId,
           }),
           serializationManager: _serializationManager,
         );
@@ -371,7 +367,6 @@ class _CommerceEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
-    int accountId,
     String tag,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -388,7 +383,6 @@ class _CommerceEndpoint {
           parameters: _i1.testObjectToJson({
             'publicKey': publicKey,
             'signature': signature,
-            'accountId': accountId,
             'tag': tag,
           }),
           serializationManager: _serializationManager,
@@ -410,7 +404,6 @@ class _CommerceEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
-    int accountId,
     String tag,
     double quantity,
   ) async {
@@ -428,7 +421,6 @@ class _CommerceEndpoint {
           parameters: _i1.testObjectToJson({
             'publicKey': publicKey,
             'signature': signature,
-            'accountId': accountId,
             'tag': tag,
             'quantity': quantity,
           }),
@@ -488,7 +480,6 @@ class _CommerceEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
-    int accountId,
     String tag, {
     Map<String, String>? headers,
   }) async {
@@ -506,7 +497,6 @@ class _CommerceEndpoint {
           parameters: _i1.testObjectToJson({
             'publicKey': publicKey,
             'signature': signature,
-            'accountId': accountId,
             'tag': tag,
             'headers': headers,
           }),
@@ -541,8 +531,7 @@ class _IAPEndpoint {
     String publicKey,
     String signature,
     String transactionId,
-    String productId,
-    int accountId, {
+    String productId, {
     String? internalTransactionId,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -561,7 +550,6 @@ class _IAPEndpoint {
             'signature': signature,
             'transactionId': transactionId,
             'productId': productId,
-            'accountId': accountId,
             'internalTransactionId': internalTransactionId,
           }),
           serializationManager: _serializationManager,
@@ -585,8 +573,7 @@ class _IAPEndpoint {
     String signature,
     String packageName,
     String productId,
-    String purchaseToken,
-    int accountId, {
+    String purchaseToken, {
     String? internalTransactionId,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -606,7 +593,6 @@ class _IAPEndpoint {
             'packageName': packageName,
             'productId': productId,
             'purchaseToken': purchaseToken,
-            'accountId': accountId,
             'internalTransactionId': internalTransactionId,
           }),
           serializationManager: _serializationManager,
@@ -819,7 +805,6 @@ class _ModuleEndpoint {
 
   _i3.Future<double> manageEntitlements(
     _i1.TestSessionBuilder sessionBuilder,
-    int accountId,
     String tag,
     String operation,
     double? quantity,
@@ -836,7 +821,6 @@ class _ModuleEndpoint {
           endpointPath: 'module',
           methodName: 'manageEntitlements',
           parameters: _i1.testObjectToJson({
-            'accountId': accountId,
             'tag': tag,
             'operation': operation,
             'quantity': quantity,
@@ -985,8 +969,7 @@ class _X402Endpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String publicKey,
     String signature,
-    String resourceId,
-    int accountId, {
+    String resourceId, {
     Map<String, String>? headers,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1004,7 +987,6 @@ class _X402Endpoint {
             'publicKey': publicKey,
             'signature': signature,
             'resourceId': resourceId,
-            'accountId': accountId,
             'headers': headers,
           }),
           serializationManager: _serializationManager,
@@ -1027,8 +1009,7 @@ class _X402Endpoint {
     String publicKey,
     String signature,
     String tag,
-    double quantity,
-    int accountId, {
+    double quantity, {
     Map<String, String>? headers,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1047,7 +1028,6 @@ class _X402Endpoint {
             'signature': signature,
             'tag': tag,
             'quantity': quantity,
-            'accountId': accountId,
             'headers': headers,
           }),
           serializationManager: _serializationManager,

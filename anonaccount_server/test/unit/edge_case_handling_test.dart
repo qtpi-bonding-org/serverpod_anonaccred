@@ -25,7 +25,7 @@ void main() {
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.id!,
+            testAccount.ultimateSigningPublicKeyHex,
             '', // Empty public subkey
             'encrypted_data_key',
             'Test Device',
@@ -51,7 +51,7 @@ void main() {
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.id!,
+            testAccount.ultimateSigningPublicKeyHex,
             'invalid_key_format', // Invalid format
             'encrypted_data_key',
             'Test Device',

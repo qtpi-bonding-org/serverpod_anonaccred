@@ -21,13 +21,11 @@ class AnonAccredExceptionFactory {
   static InventoryException createInventoryException({
     required String code,
     required String message,
-    int? accountId,
     String? tag,
     Map<String, String>? details,
   }) => InventoryException(
     code: code,
     message: message,
-    accountId: accountId,
     tag: tag,
     details: details,
   );

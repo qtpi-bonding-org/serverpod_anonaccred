@@ -67,13 +67,11 @@ void main() {
           );
 
           // Test inventory exception
-          final accountId = _generateRandomAccountId();
           final tag = _generateRandomTag();
           final inventoryException =
               AnonAccredExceptionFactory.createInventoryException(
                 code: code,
                 message: message,
-                accountId: accountId,
                 tag: tag,
                 details: details,
               );
@@ -82,7 +80,6 @@ void main() {
             inventoryException,
             code,
             message,
-            accountId,
             tag,
             details,
           );
@@ -172,13 +169,11 @@ void _verifyInventoryExceptionStructure(
   InventoryException exception,
   String expectedCode,
   String expectedMessage,
-  int? expectedAccountId,
   String? expectedTag,
   Map<String, String>? expectedDetails,
 ) {
   expect(exception.code, equals(expectedCode));
   expect(exception.message, equals(expectedMessage));
-  expect(exception.accountId, equals(expectedAccountId));
   expect(exception.tag, equals(expectedTag));
   expect(exception.details, equals(expectedDetails));
   expect(exception.toString(), contains(expectedCode));
@@ -247,14 +242,6 @@ String? _generateRandomPaymentRail() {
 
   final rails = ['x402', 'monero', 'iap'];
   return rails[Random().nextInt(rails.length)];
-}
-
-int? _generateRandomAccountId() {
-  if (Random().nextBool()) {
-    return null; // Sometimes no account ID
-  }
-
-  return Random().nextInt(10000) + 1;
 }
 
 String? _generateRandomTag() {

@@ -158,7 +158,6 @@ class CommerceEndpoint extends Endpoint {
     Session session,
     String publicKey,
     String signature,
-    int accountId,
     PaymentRail rail,
     String storeProductId, {
     String? clientReference,
@@ -171,6 +170,11 @@ class CommerceEndpoint extends Endpoint {
         publicKey,
         signature,
         'initiatePayment',
+      );
+
+      // Resolve accountId from device public key
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session, publicKey, 'initiatePayment',
       );
 
       // Initiate payment via manager
@@ -264,7 +268,6 @@ class CommerceEndpoint extends Endpoint {
     Session session,
     String publicKey,
     String signature,
-    int accountId,
   ) async {
     try {
       // Validate authentication
@@ -273,6 +276,11 @@ class CommerceEndpoint extends Endpoint {
         publicKey,
         signature,
         'getEntitlements',
+      );
+
+      // Resolve accountId from device public key
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session, publicKey, 'getEntitlements',
       );
 
       // Get entitlements using EntitlementManager
@@ -299,7 +307,6 @@ class CommerceEndpoint extends Endpoint {
     Session session,
     String publicKey,
     String signature,
-    int accountId,
     String tag,
   ) async {
     try {
@@ -309,6 +316,11 @@ class CommerceEndpoint extends Endpoint {
         publicKey,
         signature,
         'getEntitlementBalance',
+      );
+
+      // Resolve accountId from device public key
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session, publicKey, 'getEntitlementBalance',
       );
 
       // Get balance using EntitlementManager
@@ -336,7 +348,6 @@ class CommerceEndpoint extends Endpoint {
     Session session,
     String publicKey,
     String signature,
-    int accountId,
     String tag,
     double quantity,
   ) async {
@@ -347,6 +358,11 @@ class CommerceEndpoint extends Endpoint {
         publicKey,
         signature,
         'consumeEntitlement',
+      );
+
+      // Resolve accountId from device public key
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session, publicKey, 'consumeEntitlement',
       );
 
       // Attempt consumption using EntitlementUtils
@@ -446,7 +462,6 @@ class CommerceEndpoint extends Endpoint {
     Session session,
     String publicKey,
     String signature,
-    int accountId,
     String tag, {
     Map<String, String>? headers,
   }) async {
@@ -459,15 +474,20 @@ class CommerceEndpoint extends Endpoint {
         'getEntitlementBalanceWithX402',
       );
 
+      // Resolve accountId from device public key
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session, publicKey, 'getEntitlementBalanceWithX402',
+      );
+
       // Use X402 interceptor to handle payment flow
       return await X402Interceptor.interceptRequest(
         session: session,
         headers: headers ?? <String, String>{},
-        resourceId: 'balance_${accountId}_$tag',
+        resourceId: 'balance_$tag',
         amount: 0.05,
         onPaymentRequired: () async => X402Interceptor.generatePaymentRequired(
           session: session,
-          resourceId: 'balance_${accountId}_$tag',
+          resourceId: 'balance_$tag',
           amount: 0.05,
           description: 'Balance query for $tag',
         ),
@@ -481,7 +501,6 @@ class CommerceEndpoint extends Endpoint {
           return ApiResponse(
             success: true,
             jsonData: jsonEncode({
-              'accountId': accountId,
               'tag': tag,
               'balance': balance,
               'accessTime': DateTime.now().toIso8601String(),

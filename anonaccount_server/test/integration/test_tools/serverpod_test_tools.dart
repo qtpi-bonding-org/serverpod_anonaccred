@@ -157,7 +157,7 @@ class _DeviceEndpoint {
 
   _i3.Future<_i4.AccountDevice> registerDevice(
     _i1.TestSessionBuilder sessionBuilder,
-    int accountId,
+    String ultimateSigningPublicKeyHex,
     String deviceSigningPublicKeyHex,
     String encryptedDataKey,
     String label,
@@ -174,7 +174,7 @@ class _DeviceEndpoint {
           endpointPath: 'device',
           methodName: 'registerDevice',
           parameters: _i1.testObjectToJson({
-            'accountId': accountId,
+            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
             'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
             'encryptedDataKey': encryptedDataKey,
             'label': label,

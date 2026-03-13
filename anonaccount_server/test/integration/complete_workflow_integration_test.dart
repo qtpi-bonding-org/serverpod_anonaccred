@@ -78,7 +78,7 @@ void main() {
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          account.id!,
+          account.ultimateSigningPublicKeyHex,
           devicePublicKeyHex,
           deviceEncryptedDataKey,
           deviceLabel,
@@ -215,7 +215,7 @@ void main() {
         final devicePublicKey = AuthTestHelper.generateValidDeviceKey();
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.id!,
+          testAccount.ultimateSigningPublicKeyHex,
           devicePublicKey,
           'encrypted_device_data_key',
           'Test Device',
@@ -229,7 +229,7 @@ void main() {
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.id!,
+            testAccount.ultimateSigningPublicKeyHex,
             devicePublicKey, // Same key
             'encrypted_device_data_key_2',
             'Test Device 2',
@@ -238,10 +238,13 @@ void main() {
         );
 
         // Test registration with non-existent account fails
+        const nonExistentUltimateSigningPublicKeyHex =
+            'ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00'
+            'ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00';
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            99999, // Non-existent account
+            nonExistentUltimateSigningPublicKeyHex,
             'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
                 '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
             'encrypted_device_data_key',

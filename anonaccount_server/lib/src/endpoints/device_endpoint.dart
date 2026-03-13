@@ -20,10 +20,11 @@ class DeviceEndpoint extends Endpoint {
   /// Register new device with account
   ///
   /// Creates a new device registration associated with an account.
+  /// The account is resolved from the ultimate signing public key.
   /// The device is identified by its ECDSA P-256 device signing public key.
   ///
   /// Parameters:
-  /// - [accountId]: The account to associate the device with
+  /// - [ultimateSigningPublicKeyHex]: The account's ultimate signing public key (used to look up the account)
   /// - [deviceSigningPublicKeyHex]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
   /// - [encryptedDataKey]: Device-encrypted SDK (never decrypted server-side)
   /// - [label]: Human-readable device name
@@ -37,144 +38,33 @@ class DeviceEndpoint extends Endpoint {
   /// - Required parameters are empty
   Future<AccountDevice> registerDevice(
     Session session,
-    int accountId,
+    String ultimateSigningPublicKeyHex,
     String deviceSigningPublicKeyHex,
     String encryptedDataKey,
     String label,
   ) async {
-    session.log('DeviceEndpoint: registerDevice called', level: LogLevel.info);
-    session.log('DeviceEndpoint: accountId: $accountId', level: LogLevel.info);
-    session.log(
-      'DeviceEndpoint: deviceSigningPublicKeyHex length: ${deviceSigningPublicKeyHex.length}',
-      level: LogLevel.info,
-    );
-    session.log(
-      'DeviceEndpoint: deviceSigningPublicKeyHex prefix: ${deviceSigningPublicKeyHex.length > 20 ? deviceSigningPublicKeyHex.substring(0, 20) : deviceSigningPublicKeyHex}...',
-      level: LogLevel.info,
-    );
-    session.log(
-      'DeviceEndpoint: encryptedDataKey length: ${encryptedDataKey.length}',
-      level: LogLevel.info,
-    );
-    session.log('DeviceEndpoint: label: "$label"', level: LogLevel.info);
-
     try {
       // Validate input parameters
-      session.log(
-        'DeviceEndpoint: Validating input parameters...',
-        level: LogLevel.info,
+      AnonAccountHelpers.validatePublicKey(ultimateSigningPublicKeyHex, 'registerDevice');
+      AnonAccountHelpers.validatePublicKey(deviceSigningPublicKeyHex, 'registerDevice');
+      AnonAccountHelpers.validateNonEmpty(encryptedDataKey, 'encryptedDataKey', 'registerDevice');
+      AnonAccountHelpers.validateNonEmpty(label, 'label', 'registerDevice');
+
+      // Resolve account from ultimate signing public key
+      final account = await AnonAccount.db.findFirstRow(
+        session,
+        where: (t) => t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
       );
-      if (deviceSigningPublicKeyHex.isEmpty) {
-        session.log(
-          'DeviceEndpoint: ERROR - deviceSigningPublicKeyHex is empty',
-          level: LogLevel.error,
-        );
-        final exception =
-            AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authMissingKey,
-              message:
-                  'Device signing public key is required for device registration',
-              operation: 'registerDevice',
-              details: {'deviceSigningPublicKeyHex': 'empty'},
-            );
-
-        throw exception;
-      }
-
-      if (encryptedDataKey.isEmpty) {
-        session.log(
-          'DeviceEndpoint: ERROR - encryptedDataKey is empty',
-          level: LogLevel.error,
-        );
-        final exception =
-            AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.cryptoInvalidMessage,
-              message: 'Encrypted data key is required for device registration',
-              operation: 'registerDevice',
-              details: {'encryptedDataKey': 'empty'},
-            );
-
-        throw exception;
-      }
-
-      if (label.isEmpty) {
-        session.log(
-          'DeviceEndpoint: ERROR - label is empty',
-          level: LogLevel.error,
-        );
-        final exception =
-            AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.cryptoInvalidMessage,
-              message: 'Device label is required for device registration',
-              operation: 'registerDevice',
-              details: {'label': 'empty'},
-            );
-
-        throw exception;
-      }
-
-      // Validate device signing public key format
-      session.log(
-        'DeviceEndpoint: Validating device signing public key format...',
-        level: LogLevel.info,
-      );
-      if (!CryptoAuth.isValidPublicKey(deviceSigningPublicKeyHex)) {
-        session.log(
-          'DeviceEndpoint: ERROR - Invalid device signing public key format',
-          level: LogLevel.error,
-        );
-        final exception =
-            AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
-              message: 'Invalid ECDSA P-256 device signing public key format',
-              operation: 'registerDevice',
-              details: {
-                'deviceSigningPublicKeyHexLength': deviceSigningPublicKeyHex
-                    .length
-                    .toString(),
-                'expectedLength': '128 or 130',
-                'accountId': accountId.toString(),
-              },
-            );
-
-        throw exception;
-      }
-      session.log(
-        'DeviceEndpoint: Device signing public key format is valid',
-        level: LogLevel.info,
-      );
-
-      // Check if account exists
-      session.log(
-        'DeviceEndpoint: Checking if account exists...',
-        level: LogLevel.info,
-      );
-      final account = await AnonAccount.db.findById(session, accountId);
       if (account == null) {
-        session.log(
-          'DeviceEndpoint: ERROR - Account not found, ID: $accountId',
-          level: LogLevel.error,
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authAccountNotFound,
+          message: 'Account not found for ultimate signing key',
+          operation: 'registerDevice',
+          details: {'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex},
         );
-        final exception =
-            AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authAccountNotFound,
-              message: 'Account not found',
-              operation: 'registerDevice',
-              details: {'accountId': accountId.toString()},
-            );
-
-        throw exception;
       }
-      session.log(
-        'DeviceEndpoint: Account found, ID: $accountId',
-        level: LogLevel.info,
-      );
 
       // Check for duplicate device signing public key
-      session.log(
-        'DeviceEndpoint: Checking for duplicate device signing public key...',
-        level: LogLevel.info,
-      );
       final existingDevice = await AccountDevice.db.findFirstRow(
         session,
         where: (t) =>
@@ -182,36 +72,20 @@ class DeviceEndpoint extends Endpoint {
       );
 
       if (existingDevice != null) {
-        session.log(
-          'DeviceEndpoint: ERROR - Device signing public key already registered, existing device ID: ${existingDevice.id}',
-          level: LogLevel.error,
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authDuplicateDevice,
+          message: 'Device signing public key already registered',
+          operation: 'registerDevice',
+          details: {
+            'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+            'existingDeviceId': existingDevice.id.toString(),
+          },
         );
-        final exception =
-            AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authDuplicateDevice,
-              message: 'Device signing public key already registered',
-              operation: 'registerDevice',
-              details: {
-                'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
-                'existingDeviceId': existingDevice.id.toString(),
-                'accountId': accountId.toString(),
-              },
-            );
-
-        throw exception;
       }
-      session.log(
-        'DeviceEndpoint: No duplicate device signing public key found',
-        level: LogLevel.info,
-      );
 
       // Create new device
-      session.log(
-        'DeviceEndpoint: Creating new device...',
-        level: LogLevel.info,
-      );
       final device = AccountDevice(
-        accountId: accountId,
+        accountId: account.id!,
         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         label: label,
@@ -219,11 +93,6 @@ class DeviceEndpoint extends Endpoint {
         isRevoked: false,
       );
 
-      // Insert device into database
-      session.log(
-        'DeviceEndpoint: Inserting device into database...',
-        level: LogLevel.info,
-      );
       final insertedDevice = await AccountDevice.db.insertRow(session, device);
 
       session.log(
@@ -231,19 +100,11 @@ class DeviceEndpoint extends Endpoint {
         level: LogLevel.info,
       );
       return insertedDevice;
-    } on AuthenticationException catch (e) {
-      session.log(
-        'DeviceEndpoint: Authentication exception: $e',
-        level: LogLevel.error,
-      );
+    } on AuthenticationException {
       rethrow;
     } catch (e, stackTrace) {
       session.log(
-        'DeviceEndpoint: Unexpected error: $e',
-        level: LogLevel.error,
-      );
-      session.log(
-        'DeviceEndpoint: Stack trace: $stackTrace',
+        'DeviceEndpoint: Unexpected error: $e\n$stackTrace',
         level: LogLevel.error,
       );
 
@@ -251,7 +112,7 @@ class DeviceEndpoint extends Endpoint {
         code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to register device: ${e.toString()}',
         operation: 'registerDevice',
-        details: {'error': e.toString(), 'accountId': accountId.toString()},
+        details: {'error': e.toString()},
       );
     }
   }
@@ -283,9 +144,8 @@ class DeviceEndpoint extends Endpoint {
         );
       }
 
-      // Get device key and account ID from authenticated session
+      // Get device key from authenticated session
       final publicKey = AnonAccountAuthHandler.getDevicePublicKey(session);
-      final accountId = int.parse(session.authenticated!.userIdentifier);
 
       // Validate input parameters using helpers
       AnonAccountHelpers.validateNonEmpty(
@@ -343,7 +203,6 @@ class DeviceEndpoint extends Endpoint {
         );
 
         return AuthenticationResultFactory.success(
-          accountId: accountId,
           deviceId: activeDevice.id,
           details: {
             'deviceSigningPublicKeyHex': publicKey,

@@ -36,7 +36,7 @@ void main() {
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.id!,
+          testAccount.ultimateSigningPublicKeyHex,
           devicePublicKey,
           deviceEncryptedDataKey,
           deviceLabel,
@@ -75,7 +75,7 @@ void main() {
         final devicePublicKey2 = _generateRandomEd25519PublicKey();
         final device2 = await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.id!,
+          testAccount.ultimateSigningPublicKeyHex,
           devicePublicKey2,
           'device_encrypted_data_key_2',
           'Test Device 2',

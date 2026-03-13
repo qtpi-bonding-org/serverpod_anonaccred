@@ -7,12 +7,10 @@ import 'generated/protocol.dart';
 class AuthenticationResultFactory {
   /// Create a successful authentication result
   static AuthenticationResult success({
-    int? accountId,
     int? deviceId,
     Map<String, String>? details,
   }) => AuthenticationResult(
     success: true,
-    accountId: accountId,
     deviceId: deviceId,
     details: details,
   );

@@ -1,7 +1,6 @@
 class: AuthenticationResult
 fields:
   success: bool
-  accountId: int?
   deviceId: int?
   errorCode: String?
   errorMessage: String?

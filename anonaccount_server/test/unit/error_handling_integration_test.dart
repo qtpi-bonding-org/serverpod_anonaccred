@@ -130,7 +130,7 @@ void main() {
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.id!,
+            testAccount.ultimateSigningPublicKeyHex,
             '', // Empty device key
             'encrypted_data_key',
             'Test Device',
@@ -140,7 +140,7 @@ void main() {
               isA<AuthenticationException>(),
               predicate<AuthenticationException>((e) =>
                 e.toString().contains('AUTH_MISSING_KEY') &&
-                e.toString().contains('Device signing public key is required')
+                e.toString().contains('publicKey is required for registerDevice')
               ),
             ),
           ),
@@ -150,7 +150,7 @@ void main() {
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.id!,
+            testAccount.ultimateSigningPublicKeyHex,
             'invalid_format', // Invalid format
             'encrypted_data_key',
             'Test Device',
@@ -160,7 +160,7 @@ void main() {
               isA<AuthenticationException>(),
               predicate<AuthenticationException>((e) =>
                 e.toString().contains('CRYPTO_INVALID_PUBLIC_KEY') &&
-                e.toString().contains('Invalid ECDSA P-256 device signing public key format')
+                e.toString().contains('Invalid ECDSA P-256 public key format')
               ),
             ),
           ),
@@ -172,7 +172,7 @@ void main() {
         // First registration should succeed
         await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.id!,
+          testAccount.ultimateSigningPublicKeyHex,
           validDeviceKey,
           'encrypted_data_key',
           'Test Device',
@@ -182,7 +182,7 @@ void main() {
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.id!,
+            testAccount.ultimateSigningPublicKeyHex,
             validDeviceKey, // Duplicate key
             'encrypted_data_key_2',
             'Test Device 2',

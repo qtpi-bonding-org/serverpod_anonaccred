@@ -82,6 +82,22 @@ void main() {
       ));
       testAccountId = account.id!;
 
+      // Ensure a device exists for this account with the validPublicKey so that
+      // AnonAccountHelpers.resolveAccountId can find it.
+      var device = await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) => t.deviceSigningPublicKeyHex.equals(validPublicKey),
+      );
+      device ??= await AccountDevice.db.insertRow(
+        session,
+        AccountDevice(
+          accountId: testAccountId,
+          deviceSigningPublicKeyHex: validPublicKey,
+          encryptedDataKey: 'device_encrypted_key_commerce_test',
+          label: 'Test Device',
+        ),
+      );
+
       // Clean up any leftover entitlement balances from prior runs
       await AccountEntitlement.db.deleteWhere(
         session,
@@ -312,7 +328,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           PaymentRail.monero,
           'storage_days',
         );
@@ -335,7 +350,6 @@ void main() {
             sessionBuilder,
             '', // empty public key
             validSignature,
-            testAccountId,
             PaymentRail.monero,
             'storage_days',
           ),
@@ -349,7 +363,6 @@ void main() {
             sessionBuilder,
             'invalid_key',
             validSignature,
-            testAccountId,
             PaymentRail.monero,
             'storage_days',
           ),
@@ -363,7 +376,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             '', // empty signature
-            testAccountId,
             PaymentRail.monero,
             'storage_days',
           ),
@@ -377,7 +389,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccountId,
             PaymentRail.monero,
             'unregistered_item',
           ),
@@ -390,7 +401,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           PaymentRail.x402_http,
           'premium_features',
         );
@@ -405,7 +415,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           PaymentRail.x402_http,
           'storage_days', // Registered at 5.99
           customPrice: 15.99, // Override with custom price
@@ -425,7 +434,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccountId,
           );
 
           expect(entitlements, isEmpty);
@@ -438,7 +446,6 @@ void main() {
             sessionBuilder,
             '', // empty public key
             validSignature,
-            testAccountId,
           ),
           throwsA(isA<Exception>()),
         );
@@ -450,7 +457,6 @@ void main() {
             sessionBuilder,
             'invalid_key',
             validSignature,
-            testAccountId,
           ),
           throwsA(isA<Exception>()),
         );
@@ -462,7 +468,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             '', // empty signature
-            testAccountId,
           ),
           throwsA(isA<Exception>()),
         );
@@ -475,7 +480,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           'non_existent_item',
         );
 
@@ -488,7 +492,6 @@ void main() {
             sessionBuilder,
             '', // empty public key
             validSignature,
-            testAccountId,
             'test_item',
           ),
           throwsA(isA<Exception>()),
@@ -501,7 +504,6 @@ void main() {
             sessionBuilder,
             'invalid_key',
             validSignature,
-            testAccountId,
             'test_item',
           ),
           throwsA(isA<Exception>()),
@@ -514,7 +516,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             '', // empty signature
-            testAccountId,
             'test_item',
           ),
           throwsA(isA<Exception>()),
@@ -527,7 +528,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           '', // empty tag
         );
         expect(result, equals(0.0));
@@ -556,7 +556,6 @@ void main() {
             sessionBuilder,
             invalidKey,
             validSignature,
-            testAccountId,
             PaymentRail.monero,
             'test_item',
           ),
@@ -568,7 +567,6 @@ void main() {
             sessionBuilder,
             invalidKey,
             validSignature,
-            testAccountId,
           ),
           throwsA(isA<Exception>()),
         );
@@ -578,7 +576,6 @@ void main() {
             sessionBuilder,
             invalidKey,
             validSignature,
-            testAccountId,
             'test_item',
           ),
           throwsA(isA<Exception>()),
@@ -606,7 +603,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             emptySignature,
-            testAccountId,
             PaymentRail.monero,
             'test_item',
           ),
@@ -618,7 +614,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             emptySignature,
-            testAccountId,
           ),
           throwsA(isA<Exception>()),
         );
@@ -628,7 +623,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             emptySignature,
-            testAccountId,
             'test_item',
           ),
           throwsA(isA<Exception>()),
@@ -673,7 +667,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           'api_calls',
           25.0,
         );
@@ -688,7 +681,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           'api_calls',
           150.0, // More than available
         );
@@ -703,7 +695,6 @@ void main() {
             sessionBuilder,
             '', // empty public key
             validSignature,
-            testAccountId,
             'api_calls',
             10.0,
           ),
@@ -717,7 +708,6 @@ void main() {
             sessionBuilder,
             'invalid_key',
             validSignature,
-            testAccountId,
             'api_calls',
             10.0,
           ),
@@ -731,7 +721,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             '', // empty signature
-            testAccountId,
             'api_calls',
             10.0,
           ),
@@ -744,7 +733,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           '', // empty consumable type
           10.0,
         );
@@ -757,7 +745,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           'test_consumable',
           -5.0, // negative quantity
         );
@@ -770,7 +757,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           'test_consumable',
           0.0, // zero quantity
         );
@@ -789,7 +775,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccountId,
             'api_calls',
             50.0,
           );
@@ -802,7 +787,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccountId,
             'api_calls',
             50.0,
           );
@@ -815,7 +799,6 @@ void main() {
             sessionBuilder,
             validPublicKey,
             validSignature,
-            testAccountId,
             'api_calls',
             1.0,
           );
@@ -831,7 +814,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           'non_existent_consumable',
           10.0,
         );
@@ -846,7 +828,6 @@ void main() {
           sessionBuilder,
           validPublicKey,
           validSignature,
-          testAccountId,
           'api_calls',
           25.5, // fractional quantity
         );

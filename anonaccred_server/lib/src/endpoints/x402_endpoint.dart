@@ -42,8 +42,7 @@ class X402Endpoint extends Endpoint {
     Session session,
     String publicKey,
     String signature,
-    String resourceId,
-    int accountId, {
+    String resourceId, {
     Map<String, String>? headers,
   }) async {
     try {
@@ -69,8 +68,7 @@ class X402Endpoint extends Endpoint {
       final hasPayment = X402Interceptor.hasPaymentHeader(requestHeaders);
 
       if (!hasPayment) {
-        // No payment provided - return HTTP 402 with payment requirements
-        return await _generatePaymentRequired(session, resourceId, accountId);
+        return await _generatePaymentRequired(session, resourceId);
       }
 
       // Payment provided - verify it
@@ -79,17 +77,16 @@ class X402Endpoint extends Endpoint {
       );
 
       if (!paymentVerified) {
-        // Payment verification failed - return HTTP 402 with payment requirements
         session.log(
           'X402 payment verification failed for resource: $resourceId',
           level: LogLevel.warning,
         );
 
-        return await _generatePaymentRequired(session, resourceId, accountId);
+        return await _generatePaymentRequired(session, resourceId);
       }
 
       // Payment verified - deliver the requested resource
-      return await _deliverResource(session, resourceId, accountId);
+      return await _deliverResource(session, resourceId);
     } on AuthenticationException {
       rethrow;
     } on PaymentException {
@@ -101,7 +98,6 @@ class X402Endpoint extends Endpoint {
         details: {
           'error': e.toString(),
           'resourceId': resourceId,
-          'accountId': accountId.toString(),
         },
       );
     }
@@ -128,8 +124,7 @@ class X402Endpoint extends Endpoint {
     String publicKey,
     String signature,
     String tag,
-    double quantity,
-    int accountId, {
+    double quantity, {
     Map<String, String>? headers,
   }) async {
     try {
@@ -146,7 +141,6 @@ class X402Endpoint extends Endpoint {
         throw AnonAccredExceptionFactory.createInventoryException(
           code: AnonAccredErrorCodes.inventoryInvalidConsumable,
           message: 'Consumable tag cannot be empty',
-          accountId: accountId,
           tag: tag,
           details: {'tag': 'empty'},
         );
@@ -156,11 +150,15 @@ class X402Endpoint extends Endpoint {
         throw AnonAccredExceptionFactory.createInventoryException(
           code: AnonAccredErrorCodes.inventoryInvalidQuantity,
           message: 'Quantity must be positive',
-          accountId: accountId,
           tag: tag,
           details: {'quantity': quantity.toString()},
         );
       }
+
+      // Resolve accountId from device public key
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session, publicKey, 'requestConsumableAccess',
+      );
 
       // Check current inventory balance
       final currentBalance = await EntitlementManager.getEntitlementBalance(
@@ -179,7 +177,6 @@ class X402Endpoint extends Endpoint {
           session,
           tag,
           quantity,
-          accountId,
         );
       }
 
@@ -199,12 +196,9 @@ class X402Endpoint extends Endpoint {
             session,
             tag,
             quantity,
-            accountId,
           );
         }
 
-        // Payment verified - this would typically add to inventory
-        // For this demo, we'll simulate successful payment processing
         session.log(
           'X402 payment verified for consumable access: $tag',
           level: LogLevel.info,
@@ -236,7 +230,6 @@ class X402Endpoint extends Endpoint {
           'error': e.toString(),
           'tag': tag,
           'quantity': quantity.toString(),
-          'accountId': accountId.toString(),
         },
       );
     }
@@ -246,7 +239,6 @@ class X402Endpoint extends Endpoint {
   Future<ApiResponse> _generatePaymentRequired(
     Session session,
     String resourceId,
-    int accountId,
   ) async {
     // Generate unique internal transaction ID for this payment request
     final internalTransactionId =
@@ -281,7 +273,6 @@ class X402Endpoint extends Endpoint {
     Session session,
     String tag,
     double quantity,
-    int accountId,
   ) async {
     // Generate unique internal transaction ID for this payment request
     final internalTransactionId =
@@ -318,7 +309,6 @@ class X402Endpoint extends Endpoint {
   Future<ApiResponse> _deliverResource(
     Session session,
     String resourceId,
-    int accountId,
   ) async {
     session.log(
       'Delivering resource after X402 payment verification: $resourceId',
@@ -334,7 +324,6 @@ class X402Endpoint extends Endpoint {
           'metadata': {
             'accessTime': DateTime.now().toIso8601String(),
             'paymentMethod': 'x402_http',
-            'accountId': accountId,
           },
         },
       }),

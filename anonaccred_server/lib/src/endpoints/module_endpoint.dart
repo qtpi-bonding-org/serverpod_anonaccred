@@ -198,28 +198,27 @@ class ModuleEndpoint extends Endpoint {
   /// Throws InventoryException on failure
   Future<double> manageEntitlements(
     Session session,
-    int accountId,
     String tag,
     String operation, // 'check' or 'grant'
     double? quantity,
   ) async {
     try {
-      // Validate input parameters
-      if (accountId <= 0) {
-        throw AnonAccredExceptionFactory.createInventoryException(
-          code: AnonAccredErrorCodes.inventoryAccountNotFound,
-          message: 'Invalid account ID provided',
-          accountId: accountId,
-          tag: tag,
-          details: {'accountId': accountId.toString()},
+      // Require authentication
+      if (session.authenticated == null) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authMissingKey,
+          message: 'Authentication required for entitlement operations',
+          operation: 'manageEntitlements',
+          details: {},
         );
       }
+
+      final accountId = int.parse(session.authenticated!.userIdentifier);
 
       if (tag.isEmpty) {
         throw AnonAccredExceptionFactory.createInventoryException(
           code: AnonAccredErrorCodes.inventoryInvalidConsumable,
           message: 'Entitlement tag is required',
-          accountId: accountId,
           tag: tag,
           details: {'tag': 'empty'},
         );
@@ -239,7 +238,6 @@ class ModuleEndpoint extends Endpoint {
             throw AnonAccredExceptionFactory.createInventoryException(
               code: AnonAccredErrorCodes.inventoryInvalidConsumable,
               message: 'Quantity must be greater than zero for grant operation',
-              accountId: accountId,
               tag: tag,
               details: {'quantity': quantity?.toString() ?? 'null'},
             );
@@ -266,7 +264,6 @@ class ModuleEndpoint extends Endpoint {
           throw AnonAccredExceptionFactory.createInventoryException(
             code: AnonAccredErrorCodes.inventoryInvalidConsumable,
             message: 'Invalid operation specified: $operation',
-            accountId: accountId,
             tag: tag,
             details: {
               'operation': operation,
@@ -276,12 +273,13 @@ class ModuleEndpoint extends Endpoint {
       }
     } on InventoryException {
       rethrow;
+    } on AuthenticationException {
+      rethrow;
     } catch (e) {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.internalError,
         message:
             'Unexpected error during entitlement operation: ${e.toString()}',
-        accountId: accountId,
         tag: tag,
         details: {'error': e.toString()},
       );

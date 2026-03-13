@@ -33,7 +33,7 @@ void main() {
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.id!,
+          testAccount.ultimateSigningPublicKeyHex,
           deviceSigningPublicKeyHex,
           encryptedDataKey,
           label,
@@ -79,7 +79,7 @@ void main() {
         // Register device first time - should succeed
         await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.id!,
+          testAccount.ultimateSigningPublicKeyHex,
           deviceSigningPublicKeyHex,
           encryptedDataKey,
           label,
@@ -89,7 +89,7 @@ void main() {
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.id!,
+            testAccount.ultimateSigningPublicKeyHex,
             deviceSigningPublicKeyHex,
             'different_encrypted_data_key',
             'Different Device',
@@ -122,7 +122,7 @@ void main() {
       expect(
         () => endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.id!,
+          testAccount.ultimateSigningPublicKeyHex,
           invalidDeviceSigningPublicKeyHex,
           encryptedDataKey,
           label,
@@ -139,12 +139,14 @@ void main() {
             'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
-        const nonExistentAccountId = 99999;
+        const nonExistentUltimateSigningPublicKeyHex =
+            'ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00'
+            'ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00';
 
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            nonExistentAccountId,
+            nonExistentUltimateSigningPublicKeyHex,
             deviceSigningPublicKeyHex,
             encryptedDataKey,
             label,
@@ -178,7 +180,7 @@ void main() {
 
       await endpoints.device.registerDevice(
         sessionBuilder,
-        testAccount.id!,
+        testAccount.ultimateSigningPublicKeyHex,
         deviceSigningPublicKeyHex,
         encryptedDataKey,
         label,

@@ -12,14 +12,16 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'account.dart' as _i2;
-import 'account_device.dart' as _i3;
-import 'anonaccount_exception.dart' as _i4;
-import 'authentication_exception.dart' as _i5;
-import 'authentication_result.dart' as _i6;
-import 'device_pairing_event.dart' as _i7;
-import 'device_pairing_info.dart' as _i8;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i9;
+import 'account_creation_response.dart' as _i3;
+import 'account_device.dart' as _i4;
+import 'anonaccount_exception.dart' as _i5;
+import 'authentication_exception.dart' as _i6;
+import 'authentication_result.dart' as _i7;
+import 'device_pairing_event.dart' as _i8;
+import 'device_pairing_info.dart' as _i9;
+import 'package:anonaccount_client/src/protocol/account_device.dart' as _i10;
 export 'account.dart';
+export 'account_creation_response.dart';
 export 'account_device.dart';
 export 'anonaccount_exception.dart';
 export 'authentication_exception.dart';
@@ -67,47 +69,54 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i2.AnonAccount) {
       return _i2.AnonAccount.fromJson(data) as T;
     }
-    if (t == _i3.AccountDevice) {
-      return _i3.AccountDevice.fromJson(data) as T;
+    if (t == _i3.AccountCreationResponse) {
+      return _i3.AccountCreationResponse.fromJson(data) as T;
     }
-    if (t == _i4.AnonAccountException) {
-      return _i4.AnonAccountException.fromJson(data) as T;
+    if (t == _i4.AccountDevice) {
+      return _i4.AccountDevice.fromJson(data) as T;
     }
-    if (t == _i5.AuthenticationException) {
-      return _i5.AuthenticationException.fromJson(data) as T;
+    if (t == _i5.AnonAccountException) {
+      return _i5.AnonAccountException.fromJson(data) as T;
     }
-    if (t == _i6.AuthenticationResult) {
-      return _i6.AuthenticationResult.fromJson(data) as T;
+    if (t == _i6.AuthenticationException) {
+      return _i6.AuthenticationException.fromJson(data) as T;
     }
-    if (t == _i7.DevicePairingEvent) {
-      return _i7.DevicePairingEvent.fromJson(data) as T;
+    if (t == _i7.AuthenticationResult) {
+      return _i7.AuthenticationResult.fromJson(data) as T;
     }
-    if (t == _i8.DevicePairingInfo) {
-      return _i8.DevicePairingInfo.fromJson(data) as T;
+    if (t == _i8.DevicePairingEvent) {
+      return _i8.DevicePairingEvent.fromJson(data) as T;
+    }
+    if (t == _i9.DevicePairingInfo) {
+      return _i9.DevicePairingInfo.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AnonAccount?>()) {
       return (data != null ? _i2.AnonAccount.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i3.AccountDevice?>()) {
-      return (data != null ? _i3.AccountDevice.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i4.AnonAccountException?>()) {
-      return (data != null ? _i4.AnonAccountException.fromJson(data) : null)
+    if (t == _i1.getType<_i3.AccountCreationResponse?>()) {
+      return (data != null ? _i3.AccountCreationResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i5.AuthenticationException?>()) {
-      return (data != null ? _i5.AuthenticationException.fromJson(data) : null)
+    if (t == _i1.getType<_i4.AccountDevice?>()) {
+      return (data != null ? _i4.AccountDevice.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i5.AnonAccountException?>()) {
+      return (data != null ? _i5.AnonAccountException.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i6.AuthenticationResult?>()) {
-      return (data != null ? _i6.AuthenticationResult.fromJson(data) : null)
+    if (t == _i1.getType<_i6.AuthenticationException?>()) {
+      return (data != null ? _i6.AuthenticationException.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i7.DevicePairingEvent?>()) {
-      return (data != null ? _i7.DevicePairingEvent.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i7.AuthenticationResult?>()) {
+      return (data != null ? _i7.AuthenticationResult.fromJson(data) : null)
+          as T;
     }
-    if (t == _i1.getType<_i8.DevicePairingInfo?>()) {
-      return (data != null ? _i8.DevicePairingInfo.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i8.DevicePairingEvent?>()) {
+      return (data != null ? _i8.DevicePairingEvent.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i9.DevicePairingInfo?>()) {
+      return (data != null ? _i9.DevicePairingInfo.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -124,9 +133,9 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i9.AccountDevice>) {
+    if (t == List<_i10.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i9.AccountDevice>(e))
+              .map((e) => deserialize<_i10.AccountDevice>(e))
               .toList()
           as T;
     }
@@ -136,12 +145,13 @@ class Protocol extends _i1.SerializationManager {
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _i2.AnonAccount => 'AnonAccount',
-      _i3.AccountDevice => 'AccountDevice',
-      _i4.AnonAccountException => 'AnonAccountException',
-      _i5.AuthenticationException => 'AuthenticationException',
-      _i6.AuthenticationResult => 'AuthenticationResult',
-      _i7.DevicePairingEvent => 'DevicePairingEvent',
-      _i8.DevicePairingInfo => 'DevicePairingInfo',
+      _i3.AccountCreationResponse => 'AccountCreationResponse',
+      _i4.AccountDevice => 'AccountDevice',
+      _i5.AnonAccountException => 'AnonAccountException',
+      _i6.AuthenticationException => 'AuthenticationException',
+      _i7.AuthenticationResult => 'AuthenticationResult',
+      _i8.DevicePairingEvent => 'DevicePairingEvent',
+      _i9.DevicePairingInfo => 'DevicePairingInfo',
       _ => null,
     };
   }
@@ -158,17 +168,19 @@ class Protocol extends _i1.SerializationManager {
     switch (data) {
       case _i2.AnonAccount():
         return 'AnonAccount';
-      case _i3.AccountDevice():
+      case _i3.AccountCreationResponse():
+        return 'AccountCreationResponse';
+      case _i4.AccountDevice():
         return 'AccountDevice';
-      case _i4.AnonAccountException():
+      case _i5.AnonAccountException():
         return 'AnonAccountException';
-      case _i5.AuthenticationException():
+      case _i6.AuthenticationException():
         return 'AuthenticationException';
-      case _i6.AuthenticationResult():
+      case _i7.AuthenticationResult():
         return 'AuthenticationResult';
-      case _i7.DevicePairingEvent():
+      case _i8.DevicePairingEvent():
         return 'DevicePairingEvent';
-      case _i8.DevicePairingInfo():
+      case _i9.DevicePairingInfo():
         return 'DevicePairingInfo';
     }
     return null;
@@ -183,23 +195,26 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'AnonAccount') {
       return deserialize<_i2.AnonAccount>(data['data']);
     }
+    if (dataClassName == 'AccountCreationResponse') {
+      return deserialize<_i3.AccountCreationResponse>(data['data']);
+    }
     if (dataClassName == 'AccountDevice') {
-      return deserialize<_i3.AccountDevice>(data['data']);
+      return deserialize<_i4.AccountDevice>(data['data']);
     }
     if (dataClassName == 'AnonAccountException') {
-      return deserialize<_i4.AnonAccountException>(data['data']);
+      return deserialize<_i5.AnonAccountException>(data['data']);
     }
     if (dataClassName == 'AuthenticationException') {
-      return deserialize<_i5.AuthenticationException>(data['data']);
+      return deserialize<_i6.AuthenticationException>(data['data']);
     }
     if (dataClassName == 'AuthenticationResult') {
-      return deserialize<_i6.AuthenticationResult>(data['data']);
+      return deserialize<_i7.AuthenticationResult>(data['data']);
     }
     if (dataClassName == 'DevicePairingEvent') {
-      return deserialize<_i7.DevicePairingEvent>(data['data']);
+      return deserialize<_i8.DevicePairingEvent>(data['data']);
     }
     if (dataClassName == 'DevicePairingInfo') {
-      return deserialize<_i8.DevicePairingInfo>(data['data']);
+      return deserialize<_i9.DevicePairingInfo>(data['data']);
     }
     return super.deserializeByClassName(data);
   }
