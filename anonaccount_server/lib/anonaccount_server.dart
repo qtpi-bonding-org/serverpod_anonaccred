@@ -20,6 +20,8 @@ export 'src/crypto_utils.dart';
 export 'src/challenge_storage.dart';
 // Exception handling
 export 'src/exception_factory.dart';
+// Endpoints (abstract — consuming projects must subclass)
+export 'src/endpoints/account_endpoint.dart';
 // Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';
