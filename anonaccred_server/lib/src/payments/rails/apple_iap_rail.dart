@@ -220,7 +220,9 @@ class AppleIAPRail implements PaymentRailInterface {
       transactionId,
     );
 
-    // 4. Decode and verify the signed transaction
+    // 4. Decode signed transactions and find the one matching the requested ID.
+    //    getTransactionHistory returns ALL transactions for the customer, so we
+    //    must match on transactionId — taking .first returned the wrong product.
     if (historyResponse.signedTransactions.isEmpty) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
@@ -229,8 +231,24 @@ class AppleIAPRail implements PaymentRailInterface {
       );
     }
 
-    final signedTransaction = historyResponse.signedTransactions.first;
-    final decodedTransaction = _decodeSignedTransaction(signedTransaction);
+    final allDecoded = historyResponse.signedTransactions
+        .map(_decodeSignedTransaction)
+        .toList();
+    final decodedTransaction = allDecoded.cast<DecodedTransaction?>().firstWhere(
+          (t) => t!.transactionId == transactionId,
+          orElse: () => null,
+        );
+
+    if (decodedTransaction == null) {
+      throw AnonAccredExceptionFactory.createPaymentException(
+        code: AnonAccredErrorCodes.paymentValidationFailed,
+        message:
+            'Transaction $transactionId not found in Apple history response '
+            '(got ${allDecoded.length} transactions: '
+            '${allDecoded.map((t) => '${t.transactionId}=${t.productId}').join(', ')})',
+        details: {'transactionId': transactionId},
+      );
+    }
 
     // 5. Apple receipt is the source of truth for product ID.
     // The client may send a mismatched productId when Apple re-delivers

@@ -179,7 +179,10 @@ void main() {
         );
       });
 
-      test('throws when returned product ID does not match expected', () async {
+      test('throws when Apple product ID has no RailProduct mapping', () async {
+        // When client sends one product ID but Apple's receipt has a different
+        // one, the server trusts Apple's receipt. If that product has no
+        // RailProduct row the call fails with a configuration error.
         final session = sessionBuilder.build();
         const txnId = 'txn_product_mismatch';
 
@@ -207,7 +210,7 @@ void main() {
             productId: 'com.quanitya.coins_100', // different from what Apple returned
             accountId: 1,
           ),
-          throwsA(isA<PaymentException>()),
+          throwsA(isA<AnonAccountException>()),
         );
       });
 
