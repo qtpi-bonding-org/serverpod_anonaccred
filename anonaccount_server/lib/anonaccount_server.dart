@@ -35,6 +35,7 @@ export 'src/endpoints/jwt_endpoint.dart';
 export 'src/endpoints/pow_protected_endpoint.dart';
 export 'src/endpoints/authenticated_endpoint.dart';
 // Endpoints (concrete with built-in PoW spam prevention)
+export 'src/endpoints/entrypoint_endpoint.dart';
 export 'src/endpoints/account_endpoint.dart';
 export 'src/endpoints/device_endpoint.dart';
 export 'src/endpoints/device_management_endpoint.dart';

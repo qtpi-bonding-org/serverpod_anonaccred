@@ -34,7 +34,7 @@ void main() {
         const deviceLabel = 'Test Device for Revocation';
 
         final regChallenge =
-            await endpoints.device.getChallenge(sessionBuilder);
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -81,7 +81,7 @@ void main() {
         final (_, devicePubKey2) = SigningTestHelper.generateKeypair();
 
         final regChallenge2 =
-            await endpoints.device.getChallenge(sessionBuilder);
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow2 = await PowTestHelper.mint(
           regChallenge2.challenge,
           difficulty: regChallenge2.difficulty,

@@ -2,7 +2,6 @@ account:
   - createAccount:
   - getAccountForRecovery:
   - verifySignedPow:
-  - getChallenge:
   - verifyHashcash:
 device:
   - registerDevice:
@@ -10,9 +9,11 @@ device:
   - getDeviceBySigningKey:
   - monitorRegistration:
   - verifySignedPow:
-  - getChallenge:
   - verifyHashcash:
 deviceManagement:
   - revokeDevice:
   - listDevices:
   - registerDeviceForAccount:
+entrypoint:
+  - getChallenge:
+  - verifyHashcash:

@@ -56,7 +56,7 @@ void main() {
         const deviceLabel = 'Test Device';
 
         // PoW for registerDevice (signed with ultimate key)
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -122,7 +122,7 @@ void main() {
         const deviceLabel = 'Test Device Invalid';
 
         // PoW for registerDevice (signed with ultimate key)
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -175,7 +175,7 @@ void main() {
         const deviceLabel = 'Test Device Revoked';
 
         // PoW for registerDevice (signed with ultimate key)
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -251,7 +251,7 @@ void main() {
         const deviceLabel = 'Test Device Info';
 
         // PoW for registerDevice (signed with ultimate key)
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -310,7 +310,7 @@ void main() {
           final deviceLabel = 'Test Device Multi $i';
 
           // PoW for registerDevice (signed with ultimate key)
-          final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+          final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
           final regPow = await PowTestHelper.mint(
             regChallenge.challenge,
             difficulty: regChallenge.difficulty,
@@ -384,7 +384,7 @@ void main() {
         const deviceLabel = 'Test Device Extract';
 
         // PoW for registerDevice (signed with ultimate key)
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,

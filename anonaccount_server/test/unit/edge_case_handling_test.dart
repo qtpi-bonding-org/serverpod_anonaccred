@@ -21,7 +21,7 @@ void main() {
         );
 
         // PoW for registerDevice (signed with ultimate key)
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -56,7 +56,7 @@ void main() {
         );
 
         // PoW for registerDevice (signed with ultimate key)
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,

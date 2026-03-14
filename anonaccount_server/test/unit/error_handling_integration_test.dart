@@ -15,7 +15,7 @@ void main() {
       test('should return structured error for invalid signature on createAccount',
           () async {
         final challengeResponse =
-            await endpoints.account.getChallenge(sessionBuilder);
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
         final proofOfWork = await PowTestHelper.mint(
           challengeResponse.challenge,
           difficulty: challengeResponse.difficulty,
@@ -91,7 +91,7 @@ void main() {
         );
 
         final regChallenge =
-            await endpoints.device.getChallenge(sessionBuilder);
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -138,7 +138,7 @@ void main() {
         );
 
         final regChallenge =
-            await endpoints.device.getChallenge(sessionBuilder);
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -188,7 +188,7 @@ void main() {
 
         // Register first time
         final regChallenge1 =
-            await endpoints.device.getChallenge(sessionBuilder);
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow1 = await PowTestHelper.mint(
           regChallenge1.challenge,
           difficulty: regChallenge1.difficulty,
@@ -212,7 +212,7 @@ void main() {
 
         // Duplicate should fail
         final regChallenge2 =
-            await endpoints.device.getChallenge(sessionBuilder);
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow2 = await PowTestHelper.mint(
           regChallenge2.challenge,
           difficulty: regChallenge2.difficulty,

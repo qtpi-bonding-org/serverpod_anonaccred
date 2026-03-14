@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import '../generated/protocol.dart';
 import '../services/public_challenge_service.dart';
 import 'pow_endpoint.dart';
 
@@ -9,8 +10,16 @@ import 'pow_endpoint.dart';
 /// - Per-public-key rate limiting (no IP tracking)
 ///
 /// Subclasses call [verifySignedPow] at the top of each endpoint method.
-/// Inherits [getChallenge] and [verifyHashcash] from [PowEndpoint].
+///
+/// Note: [getChallenge] is hidden via `@doNotGenerate` — clients use
+/// [EntrypointEndpoint.getChallenge] instead of per-endpoint challenges.
 abstract class SignedPowEndpoint extends PowEndpoint {
+  /// Hidden from client generation — use [EntrypointEndpoint.getChallenge].
+  @override
+  @doNotGenerate
+  Future<PublicChallengeResponse> getChallenge(Session session) async {
+    throw UnimplementedError();
+  }
   /// Endpoint type for rate limiting bucketing.
   ///
   /// Override in subclasses to separate rate limit counters per endpoint.

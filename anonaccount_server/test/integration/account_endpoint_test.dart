@@ -13,7 +13,7 @@ void main() {
     endpoints,
   ) {
     test('getChallenge returns valid challenge response', () async {
-      final challenge = await endpoints.account.getChallenge(sessionBuilder);
+      final challenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
 
       expect(challenge.challenge, hasLength(32));
       expect(challenge.difficulty, equals(20));
@@ -25,7 +25,7 @@ void main() {
       final (privKey, pubKey) = SigningTestHelper.generateKeypair();
 
       final challengeResponse =
-          await endpoints.account.getChallenge(sessionBuilder);
+          await endpoints.entrypoint.getChallenge(sessionBuilder);
 
       final proofOfWork = await PowTestHelper.mint(
         challengeResponse.challenge,
@@ -74,7 +74,7 @@ void main() {
 
       // Try to create second account with same signing key via PoW
       final challengeResponse =
-          await endpoints.account.getChallenge(sessionBuilder);
+          await endpoints.entrypoint.getChallenge(sessionBuilder);
       final proofOfWork = await PowTestHelper.mint(
         challengeResponse.challenge,
         difficulty: challengeResponse.difficulty,
@@ -114,7 +114,7 @@ void main() {
 
       // Recover via PoW — signature verified against ultimatePublicKey
       final challengeResponse =
-          await endpoints.account.getChallenge(sessionBuilder);
+          await endpoints.entrypoint.getChallenge(sessionBuilder);
       final proofOfWork = await PowTestHelper.mint(
         challengeResponse.challenge,
         difficulty: challengeResponse.difficulty,
@@ -145,7 +145,7 @@ void main() {
       final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
 
       final challengeResponse =
-          await endpoints.account.getChallenge(sessionBuilder);
+          await endpoints.entrypoint.getChallenge(sessionBuilder);
       final proofOfWork = await PowTestHelper.mint(
         challengeResponse.challenge,
         difficulty: challengeResponse.difficulty,

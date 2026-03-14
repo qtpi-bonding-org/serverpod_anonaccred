@@ -17,14 +17,14 @@ import 'dart:async' as _i3;
 import 'package:anonaccount_server/src/generated/account_creation_response.dart'
     as _i4;
 import 'package:anonaccount_server/src/generated/account.dart' as _i5;
-import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
-    as _i6;
-import 'package:anonaccount_server/src/generated/account_device.dart' as _i7;
+import 'package:anonaccount_server/src/generated/account_device.dart' as _i6;
 import 'package:anonaccount_server/src/generated/authentication_result.dart'
-    as _i8;
+    as _i7;
 import 'package:anonaccount_server/src/generated/device_pairing_info.dart'
-    as _i9;
+    as _i8;
 import 'package:anonaccount_server/src/generated/device_pairing_event.dart'
+    as _i9;
+import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
     as _i10;
 import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/generated/endpoints.dart';
@@ -138,6 +138,8 @@ class TestEndpoints {
   late final _DeviceEndpoint device;
 
   late final _DeviceManagementEndpoint deviceManagement;
+
+  late final _EntrypointEndpoint entrypoint;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -156,6 +158,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     deviceManagement = _DeviceManagementEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    entrypoint = _EntrypointEndpoint(
       endpoints,
       serializationManager,
     );
@@ -297,36 +303,6 @@ class _AccountEndpoint {
     });
   }
 
-  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'account',
-            method: 'getChallenge',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'account',
-          methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i6.PublicChallengeResponse>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
   _i3.Future<void> verifyHashcash(
     _i1.TestSessionBuilder sessionBuilder,
     String challenge,
@@ -373,7 +349,7 @@ class _DeviceEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i7.AccountDevice> registerDevice(
+  _i3.Future<_i6.AccountDevice> registerDevice(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -410,7 +386,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.AccountDevice>);
+                as _i3.Future<_i6.AccountDevice>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -418,7 +394,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<_i8.AuthenticationResult> signIn(
+  _i3.Future<_i7.AuthenticationResult> signIn(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -449,7 +425,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.AuthenticationResult>);
+                as _i3.Future<_i7.AuthenticationResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -457,7 +433,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<_i9.DevicePairingInfo?> getDeviceBySigningKey(
+  _i3.Future<_i8.DevicePairingInfo?> getDeviceBySigningKey(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -488,7 +464,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.DevicePairingInfo?>);
+                as _i3.Future<_i8.DevicePairingInfo?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -496,7 +472,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Stream<_i10.DevicePairingEvent> monitorRegistration(
+  _i3.Stream<_i9.DevicePairingEvent> monitorRegistration(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -504,7 +480,7 @@ class _DeviceEndpoint {
     required String signingKeyHex,
   }) {
     var _localTestStreamManager =
-        _i1.TestStreamManager<_i10.DevicePairingEvent>();
+        _i1.TestStreamManager<_i9.DevicePairingEvent>();
     _i1.callStreamFunctionAndHandleExceptions(
       () async {
         var _localUniqueSession =
@@ -571,36 +547,6 @@ class _DeviceEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<void>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'getChallenge',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i6.PublicChallengeResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -685,7 +631,7 @@ class _DeviceManagementEndpoint {
     });
   }
 
-  _i3.Future<List<_i7.AccountDevice>> listDevices(
+  _i3.Future<List<_i6.AccountDevice>> listDevices(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -707,7 +653,7 @@ class _DeviceManagementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i7.AccountDevice>>);
+                as _i3.Future<List<_i6.AccountDevice>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -715,7 +661,7 @@ class _DeviceManagementEndpoint {
     });
   }
 
-  _i3.Future<_i7.AccountDevice> registerDeviceForAccount(
+  _i3.Future<_i6.AccountDevice> registerDeviceForAccount(
     _i1.TestSessionBuilder sessionBuilder,
     String newDeviceSigningPublicKeyHex,
     String newDeviceEncryptedDataKey,
@@ -744,7 +690,83 @@ class _DeviceManagementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.AccountDevice>);
+                as _i3.Future<_i6.AccountDevice>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _EntrypointEndpoint {
+  _EntrypointEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i10.PublicChallengeResponse> getChallenge(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'entrypoint',
+            method: 'getChallenge',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'entrypoint',
+          methodName: 'getChallenge',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i10.PublicChallengeResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> verifyHashcash(
+    _i1.TestSessionBuilder sessionBuilder,
+    String challenge,
+    String proofOfWork,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'entrypoint',
+            method: 'verifyHashcash',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'entrypoint',
+          methodName: 'verifyHashcash',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

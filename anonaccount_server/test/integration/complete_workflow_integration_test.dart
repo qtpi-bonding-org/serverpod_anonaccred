@@ -26,7 +26,7 @@ void main() {
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
         final challengeResponse =
-            await endpoints.account.getChallenge(sessionBuilder);
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
         final proofOfWork = await PowTestHelper.mint(
           challengeResponse.challenge,
           difficulty: challengeResponse.difficulty,
@@ -76,7 +76,7 @@ void main() {
         const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
         const deviceLabel = 'Test Device for Complete Workflow';
 
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -101,7 +101,7 @@ void main() {
         expect(device.isRevoked, isFalse);
 
         // Step 5: Test sign-in for device auth (PoW-protected)
-        final authChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final authChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final authPow = await PowTestHelper.mint(
           authChallenge.challenge,
           difficulty: authChallenge.difficulty,
@@ -203,7 +203,7 @@ void main() {
 
         final (_, devicePubKey) = SigningTestHelper.generateKeypair();
 
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -237,7 +237,7 @@ void main() {
         final (_, devicePubKey) = SigningTestHelper.generateKeypair();
 
         // Register first
-        final regChallenge1 = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge1 = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow1 = await PowTestHelper.mint(
           regChallenge1.challenge,
           difficulty: regChallenge1.difficulty,
@@ -257,7 +257,7 @@ void main() {
         );
 
         // Duplicate should fail
-        final regChallenge2 = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge2 = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow2 = await PowTestHelper.mint(
           regChallenge2.challenge,
           difficulty: regChallenge2.difficulty,
@@ -283,7 +283,7 @@ void main() {
       test('non-existent account registration fails', () async {
         final (nonExistPrivKey, nonExistPubKey) = SigningTestHelper.generateKeypair();
 
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,

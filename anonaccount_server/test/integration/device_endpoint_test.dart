@@ -27,7 +27,7 @@ void main() {
         const label = 'Test Device';
 
         // PoW for registerDevice (signed with ultimate key)
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -77,7 +77,7 @@ void main() {
         const label = 'Test Device';
 
         // Register device first time - should succeed
-        final regChallenge1 = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge1 = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow1 = await PowTestHelper.mint(
           regChallenge1.challenge,
           difficulty: regChallenge1.difficulty,
@@ -97,7 +97,7 @@ void main() {
         );
 
         // Try to register same device signing public key again - should fail
-        final regChallenge2 = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge2 = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow2 = await PowTestHelper.mint(
           regChallenge2.challenge,
           difficulty: regChallenge2.difficulty,
@@ -137,7 +137,7 @@ void main() {
       const label = 'Test Device';
 
       // PoW for registerDevice (signed with ultimate key)
-      final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+      final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
       final regPow = await PowTestHelper.mint(
         regChallenge.challenge,
         difficulty: regChallenge.difficulty,
@@ -170,7 +170,7 @@ void main() {
         // Use a real keypair for the non-existent account (so PoW passes)
         final (nonExistPrivKey, nonExistPubKey) = SigningTestHelper.generateKeypair();
 
-        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
@@ -210,7 +210,7 @@ void main() {
       const label = 'Challenge Test Device';
 
       // Register the device with PoW
-      final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+      final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
       final regPow = await PowTestHelper.mint(
         regChallenge.challenge,
         difficulty: regChallenge.difficulty,
@@ -230,7 +230,7 @@ void main() {
       );
 
       // Now sign in with PoW (signed with device key)
-      final authChallenge1 = await endpoints.device.getChallenge(sessionBuilder);
+      final authChallenge1 = await endpoints.entrypoint.getChallenge(sessionBuilder);
       final authPow1 = await PowTestHelper.mint(
         authChallenge1.challenge,
         difficulty: authChallenge1.difficulty,
@@ -246,7 +246,7 @@ void main() {
         devicePublicKeyHex: devicePubKey,
       );
 
-      final authChallenge2 = await endpoints.device.getChallenge(sessionBuilder);
+      final authChallenge2 = await endpoints.entrypoint.getChallenge(sessionBuilder);
       final authPow2 = await PowTestHelper.mint(
         authChallenge2.challenge,
         difficulty: authChallenge2.difficulty,

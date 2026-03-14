@@ -14,6 +14,7 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/account_endpoint.dart' as _i2;
 import '../endpoints/device_endpoint.dart' as _i3;
 import '../endpoints/device_management_endpoint.dart' as _i4;
+import '../endpoints/entrypoint_endpoint.dart' as _i5;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -35,6 +36,12 @@ class Endpoints extends _i1.EndpointDispatch {
         ..initialize(
           server,
           'deviceManagement',
+          'anonaccount',
+        ),
+      'entrypoint': _i5.EntrypointEndpoint()
+        ..initialize(
+          server,
+          'entrypoint',
           'anonaccount',
         ),
     };
@@ -177,16 +184,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['signature'],
                     params['payload'],
                   ),
-        ),
-        'getChallenge': _i1.MethodConnector(
-          name: 'getChallenge',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['account'] as _i2.AccountEndpoint)
-                  .getChallenge(session),
         ),
         'verifyHashcash': _i1.MethodConnector(
           name: 'verifyHashcash',
@@ -392,16 +389,6 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['payload'],
                   ),
         ),
-        'getChallenge': _i1.MethodConnector(
-          name: 'getChallenge',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i3.DeviceEndpoint)
-                  .getChallenge(session),
-        ),
         'verifyHashcash': _i1.MethodConnector(
           name: 'verifyHashcash',
           params: {
@@ -538,6 +525,47 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['newDeviceEncryptedDataKey'],
                         params['label'],
                       ),
+        ),
+      },
+    );
+    connectors['entrypoint'] = _i1.EndpointConnector(
+      name: 'entrypoint',
+      endpoint: endpoints['entrypoint']!,
+      methodConnectors: {
+        'getChallenge': _i1.MethodConnector(
+          name: 'getChallenge',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['entrypoint'] as _i5.EntrypointEndpoint)
+                  .getChallenge(session),
+        ),
+        'verifyHashcash': _i1.MethodConnector(
+          name: 'verifyHashcash',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['entrypoint'] as _i5.EntrypointEndpoint)
+                  .verifyHashcash(
+                    session,
+                    params['challenge'],
+                    params['proofOfWork'],
+                  ),
         ),
       },
     );
