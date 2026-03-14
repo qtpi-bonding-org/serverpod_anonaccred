@@ -71,17 +71,28 @@ void main() {
         expect(account, isNotNull);
         expect(account!.id, isNotNull);
 
-        // Step 4: Generate device keypair and register
-        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+        // Step 4: Generate device keypair and register with PoW
+        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
         const deviceLabel = 'Test Device for Complete Workflow';
 
+        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload = '${regChallenge.challenge}:registerDevice:${account.ultimateSigningPublicKeyHex}';
+        final regSignature = SigningTestHelper.signWith(regPayload, privKey);
+
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          account.ultimateSigningPublicKeyHex,
-          devicePubKey,
-          deviceEncryptedDataKey,
-          deviceLabel,
+          challenge: regChallenge.challenge,
+          proofOfWork: regPow,
+          signature: regSignature,
+          ultimateSigningPublicKeyHex: account.ultimateSigningPublicKeyHex,
+          deviceSigningPublicKeyHex: devicePubKey,
+          encryptedDataKey: deviceEncryptedDataKey,
+          label: deviceLabel,
         );
 
         expect(device.id, isNotNull);
@@ -89,10 +100,21 @@ void main() {
         expect(device.deviceSigningPublicKeyHex, equals(devicePubKey));
         expect(device.isRevoked, isFalse);
 
-        // Step 5: Test challenge generation for device auth
+        // Step 5: Test challenge generation for device auth (PoW-protected)
+        final authChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final authPow = await PowTestHelper.mint(
+          authChallenge.challenge,
+          difficulty: authChallenge.difficulty,
+        );
+        final authPayload = '${authChallenge.challenge}:generateAuthChallenge:$devicePubKey';
+        final authSignature = SigningTestHelper.signWith(authPayload, devicePrivKey);
+
         final challenge = await endpoints.device.generateAuthChallenge(
           sessionBuilder,
-          devicePubKey,
+          challenge: authChallenge.challenge,
+          proofOfWork: authPow,
+          signature: authSignature,
+          devicePublicKey: devicePubKey,
         );
         expect(challenge, isNotEmpty);
         expect(challenge.length, greaterThan(10));
@@ -170,51 +192,116 @@ void main() {
         );
       });
 
-      test('device registration validation workflow', () async {
-        final account = await createTestAccount(
+      test('device registration succeeds with valid data', () async {
+        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+
+        await createTestAccount(
           sessionBuilder,
-          ultimateSigningPublicKeyHex:
-              'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-              '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+          ultimateSigningPublicKeyHex: ultimatePubKey,
         );
 
-        // Successful device registration
-        final devicePublicKey = AuthTestHelper.generateValidDeviceKey();
+        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+
+        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload = '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          account.ultimateSigningPublicKeyHex,
-          devicePublicKey,
-          'encrypted_device_data_key',
-          'Test Device',
+          challenge: regChallenge.challenge,
+          proofOfWork: regPow,
+          signature: regSignature,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+          deviceSigningPublicKeyHex: devicePubKey,
+          encryptedDataKey: 'encrypted_device_data_key',
+          label: 'Test Device',
         );
 
         expect(device.id, isNotNull);
         expect(device.isRevoked, isFalse);
+      });
 
-        // Duplicate device registration fails
+      test('duplicate device registration fails', () async {
+        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+
+        await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+        );
+
+        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+
+        // Register first
+        final regChallenge1 = await endpoints.device.getChallenge(sessionBuilder);
+        final regPow1 = await PowTestHelper.mint(
+          regChallenge1.challenge,
+          difficulty: regChallenge1.difficulty,
+        );
+        final regPayload1 = '${regChallenge1.challenge}:registerDevice:$ultimatePubKey';
+        final regSignature1 = SigningTestHelper.signWith(regPayload1, ultimatePrivKey);
+
+        await endpoints.device.registerDevice(
+          sessionBuilder,
+          challenge: regChallenge1.challenge,
+          proofOfWork: regPow1,
+          signature: regSignature1,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+          deviceSigningPublicKeyHex: devicePubKey,
+          encryptedDataKey: 'encrypted_device_data_key',
+          label: 'Test Device',
+        );
+
+        // Duplicate should fail
+        final regChallenge2 = await endpoints.device.getChallenge(sessionBuilder);
+        final regPow2 = await PowTestHelper.mint(
+          regChallenge2.challenge,
+          difficulty: regChallenge2.difficulty,
+        );
+        final regPayload2 = '${regChallenge2.challenge}:registerDevice:$ultimatePubKey';
+        final regSignature2 = SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
+
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            account.ultimateSigningPublicKeyHex,
-            devicePublicKey,
-            'encrypted_device_data_key_2',
-            'Test Device 2',
+            challenge: regChallenge2.challenge,
+            proofOfWork: regPow2,
+            signature: regSignature2,
+            ultimateSigningPublicKeyHex: ultimatePubKey,
+            deviceSigningPublicKeyHex: devicePubKey,
+            encryptedDataKey: 'encrypted_device_data_key_2',
+            label: 'Test Device 2',
           ),
           throwsA(isA<AuthenticationException>()),
         );
+      });
 
-        // Non-existent account fails
-        const nonExistentKey =
-            'ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00'
-            'ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00';
+      test('non-existent account registration fails', () async {
+        final (nonExistPrivKey, nonExistPubKey) = SigningTestHelper.generateKeypair();
+
+        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload = '${regChallenge.challenge}:registerDevice:$nonExistPubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, nonExistPrivKey);
+
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            nonExistentKey,
-            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            challenge: regChallenge.challenge,
+            proofOfWork: regPow,
+            signature: regSignature,
+            ultimateSigningPublicKeyHex: nonExistPubKey,
+            deviceSigningPublicKeyHex:
+                'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
                 '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-            'encrypted_device_data_key',
-            'Test Device',
+            encryptedDataKey: 'encrypted_device_data_key',
+            label: 'Test Device',
           ),
           throwsA(isA<AuthenticationException>()),
         );

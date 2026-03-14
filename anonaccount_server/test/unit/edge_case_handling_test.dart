@@ -3,58 +3,78 @@ import 'package:test/test.dart';
 
 import '../integration/test_tools/auth_test_helper.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/pow_test_helper.dart';
+import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
 
 void main() {
   withServerpod('Edge Case Handling Tests', (sessionBuilder, endpoints) {
     group('Device Registration Edge Cases', () {
       test('registerDevice - should reject empty public subkey', () async {
-        // Create a test account first
-        const accountPublicKey =
-            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const accountEncryptedDataKey = 'encrypted_test_data_key';
+        // Use real keypair so PoW signature verification passes
+        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
 
         final testAccount = await createTestAccount(
           sessionBuilder,
-          ultimateSigningPublicKeyHex: accountPublicKey,
-          encryptedDataKey: accountEncryptedDataKey,
-          ultimatePublicKey: accountPublicKey,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+          encryptedDataKey: 'encrypted_test_data_key',
+          ultimatePublicKey: ultimatePubKey,
         );
+
+        // PoW for registerDevice (signed with ultimate key)
+        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload = '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.ultimateSigningPublicKeyHex,
-            '', // Empty public subkey
-            'encrypted_data_key',
-            'Test Device',
+            challenge: regChallenge.challenge,
+            proofOfWork: regPow,
+            signature: regSignature,
+            ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
+            deviceSigningPublicKeyHex: '', // Empty public subkey
+            encryptedDataKey: 'encrypted_data_key',
+            label: 'Test Device',
           ),
           throwsA(isA<AuthenticationException>()),
         );
       });
 
       test('registerDevice - should reject invalid public subkey format', () async {
-        // Create a test account first
-        const accountPublicKey =
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const accountEncryptedDataKey = 'encrypted_test_data_key_2';
+        // Use real keypair so PoW signature verification passes
+        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
 
         final testAccount = await createTestAccount(
           sessionBuilder,
-          ultimateSigningPublicKeyHex: accountPublicKey,
-          encryptedDataKey: accountEncryptedDataKey,
-          ultimatePublicKey: accountPublicKey,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+          encryptedDataKey: 'encrypted_test_data_key_2',
+          ultimatePublicKey: ultimatePubKey,
         );
+
+        // PoW for registerDevice (signed with ultimate key)
+        final regChallenge = await endpoints.device.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload = '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.ultimateSigningPublicKeyHex,
-            'invalid_key_format', // Invalid format
-            'encrypted_data_key',
-            'Test Device',
+            challenge: regChallenge.challenge,
+            proofOfWork: regPow,
+            signature: regSignature,
+            ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
+            deviceSigningPublicKeyHex: 'invalid_key_format', // Invalid format
+            encryptedDataKey: 'encrypted_data_key',
+            label: 'Test Device',
           ),
           throwsA(isA<AuthenticationException>()),
         );

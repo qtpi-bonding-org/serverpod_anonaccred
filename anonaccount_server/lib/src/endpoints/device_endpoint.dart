@@ -5,62 +5,79 @@ import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
+import '../services/public_challenge_service.dart';
 
-
-/// Device management endpoints for ECDSA P-256 device registration and authentication
+/// Device management endpoints for ECDSA P-256 device registration and authentication.
 ///
-/// This endpoint provides device management functionality including:
-/// - Device registration with ECDSA P-256 subkeys
-/// - Challenge-response authentication
-/// - Device revocation and listing
-/// - Integration with existing AccountDevice model from Phase 1
+/// Security model: every method is protected by either:
+/// - **Session auth** (authenticated device key) — for operations on own account
+/// - **PoW + rate limit** — for unauthenticated public operations
 class DeviceEndpoint extends Endpoint {
   @override
   bool get requireLogin => false; // Methods handle authentication individually
-  /// Register new device with account
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PUBLIC METHODS (PoW + rate limited)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Register new device with account (PoW-protected).
   ///
   /// Creates a new device registration associated with an account.
   /// The account is resolved from the ultimate signing public key.
-  /// The device is identified by its ECDSA P-256 device signing public key.
-  ///
-  /// Parameters:
-  /// - [ultimateSigningPublicKeyHex]: The account's ultimate signing public key (used to look up the account)
-  /// - [deviceSigningPublicKeyHex]: ECDSA P-256 public key for the device (128 hex chars, x||y coordinates)
-  /// - [encryptedDataKey]: Device-encrypted SDK (never decrypted server-side)
-  /// - [label]: Human-readable device name
-  ///
-  /// Returns the created AccountDevice with assigned ID.
-  ///
-  /// Throws AuthenticationException if:
-  /// - Public subkey format is invalid
-  /// - Account does not exist
-  /// - Public subkey is already registered
-  /// - Required parameters are empty
   Future<AccountDevice> registerDevice(
-    Session session,
-    String ultimateSigningPublicKeyHex,
-    String deviceSigningPublicKeyHex,
-    String encryptedDataKey,
-    String label,
-  ) async {
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String ultimateSigningPublicKeyHex,
+    required String deviceSigningPublicKeyHex,
+    required String encryptedDataKey,
+    required String label,
+  }) async {
     try {
+      // Verify PoW + signature + rate limit
+      final payload =
+          '$challenge:registerDevice:$ultimateSigningPublicKeyHex';
+
+      await PublicChallengeService.verifyAndRateLimit(
+        session,
+        challenge,
+        proofOfWork,
+        ultimateSigningPublicKeyHex,
+        signature,
+        payload,
+      );
+
       // Validate input parameters
-      AnonAccountHelpers.validatePublicKey(ultimateSigningPublicKeyHex, 'registerDevice');
-      AnonAccountHelpers.validatePublicKey(deviceSigningPublicKeyHex, 'registerDevice');
-      AnonAccountHelpers.validateNonEmpty(encryptedDataKey, 'encryptedDataKey', 'registerDevice');
+      AnonAccountHelpers.validatePublicKey(
+        ultimateSigningPublicKeyHex,
+        'registerDevice',
+      );
+      AnonAccountHelpers.validatePublicKey(
+        deviceSigningPublicKeyHex,
+        'registerDevice',
+      );
+      AnonAccountHelpers.validateNonEmpty(
+        encryptedDataKey,
+        'encryptedDataKey',
+        'registerDevice',
+      );
       AnonAccountHelpers.validateNonEmpty(label, 'label', 'registerDevice');
 
       // Resolve account from ultimate signing public key
       final account = await AnonAccount.db.findFirstRow(
         session,
-        where: (t) => t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
+        where: (t) => t.ultimateSigningPublicKeyHex
+            .equals(ultimateSigningPublicKeyHex),
       );
       if (account == null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authAccountNotFound,
           message: 'Account not found for ultimate signing key',
           operation: 'registerDevice',
-          details: {'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex},
+          details: {
+            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+          },
         );
       }
 
@@ -93,7 +110,8 @@ class DeviceEndpoint extends Endpoint {
         isRevoked: false,
       );
 
-      final insertedDevice = await AccountDevice.db.insertRow(session, device);
+      final insertedDevice =
+          await AccountDevice.db.insertRow(session, device);
 
       session.log(
         'DeviceEndpoint: Device registered successfully with ID: ${insertedDevice.id}',
@@ -117,24 +135,187 @@ class DeviceEndpoint extends Endpoint {
     }
   }
 
-  /// Authenticate device with challenge-response
+  /// Generate authentication challenge (PoW-protected).
   ///
-  /// Performs ECDSA P-256 signature verification for device authentication.
-  /// Updates the device's last active timestamp on successful authentication.
-  /// Authentication already validated by Serverpod - device key extracted from session.
+  /// Creates a cryptographically secure challenge string for client use.
+  /// The challenge should be signed by the client's private key and returned
+  /// for verification via authenticateDevice.
+  Future<String> generateAuthChallenge(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String devicePublicKey,
+  }) async {
+    try {
+      // Verify PoW + signature + rate limit
+      final payload =
+          '$challenge:generateAuthChallenge:$devicePublicKey';
+
+      await PublicChallengeService.verifyAndRateLimit(
+        session,
+        challenge,
+        proofOfWork,
+        devicePublicKey,
+        signature,
+        payload,
+      );
+
+      // Validate device exists and is active
+      final device = await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) => t.deviceSigningPublicKeyHex.equals(devicePublicKey),
+      );
+
+      if (device == null) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authDeviceNotFound,
+          message: 'Device not found',
+          operation: 'generateAuthChallenge',
+          details: {'devicePublicKey': devicePublicKey},
+        );
+      }
+
+      if (device.isRevoked) {
+        final deviceIdStr =
+            device.id != null ? device.id.toString() : 'unknown';
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authDeviceRevoked,
+          message: 'Device has been revoked',
+          operation: 'generateAuthChallenge',
+          details: {'deviceId': deviceIdStr},
+        );
+      }
+
+      // Generate and store challenge in Redis with 5-minute TTL
+      final challengeStorage = DeviceChallengeStorage(session);
+      return await challengeStorage
+          .generateAndStoreChallenge(devicePublicKey);
+    } on AuthenticationException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.databaseError,
+        message: 'Failed to generate auth challenge: ${e.toString()}',
+        operation: 'generateAuthChallenge',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
+  /// Get device info by signing public key (PoW-protected).
   ///
-  /// Parameters:
-  /// - [challenge]: The challenge string that was signed
-  /// - [signature]: ECDSA P-256 signature of the challenge (128 hex chars, r||s format)
+  /// Used by Device B during pairing to get its encrypted data key.
+  /// Only returns the encrypted blob (useless without Device B's private key).
+  Future<DevicePairingInfo?> getDeviceBySigningKey(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String signingPublicKeyHex,
+  }) async {
+    try {
+      // Verify PoW + signature + rate limit
+      final payload =
+          '$challenge:getDeviceBySigningKey:$signingPublicKeyHex';
+
+      await PublicChallengeService.verifyAndRateLimit(
+        session,
+        challenge,
+        proofOfWork,
+        signingPublicKeyHex,
+        signature,
+        payload,
+      );
+
+      AnonAccountHelpers.validatePublicKey(
+        signingPublicKeyHex,
+        'getDeviceBySigningKey',
+      );
+
+      final device = await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.deviceSigningPublicKeyHex.equals(signingPublicKeyHex),
+      );
+
+      if (device == null) return null;
+
+      return DevicePairingInfo(encryptedDataKey: device.encryptedDataKey);
+    } on AuthenticationException {
+      rethrow;
+    } catch (e) {
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.databaseError,
+        message: 'Failed to get device by signing key: ${e.toString()}',
+        operation: 'getDeviceBySigningKey',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
+  /// Monitor registration status for a specific signing key (PoW-protected).
   ///
-  /// Returns AuthenticationResult with success/failure information.
+  /// Device B (unauthenticated) calls this to wait for Device A to complete
+  /// the registration. PoW is verified before opening the stream.
+  Stream<DevicePairingEvent> monitorRegistration(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String signingKeyHex,
+  }) async* {
+    // Verify PoW + signature + rate limit before opening stream
+    final payload =
+        '$challenge:monitorRegistration:$signingKeyHex';
+
+    await PublicChallengeService.verifyAndRateLimit(
+      session,
+      challenge,
+      proofOfWork,
+      signingKeyHex,
+      signature,
+      payload,
+    );
+
+    session.log(
+      'DeviceEndpoint: monitorRegistration info $signingKeyHex',
+      level: LogLevel.info,
+    );
+
+    final channelName = 'pairing-updates-$signingKeyHex';
+    final stream = session.messages.createStream<DevicePairingEvent>(
+      channelName,
+    );
+
+    await for (final event in stream) {
+      yield event;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SHARED: PoW challenge generation (used by all public device methods)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Get challenge for proof-of-work (shared by all public device methods).
+  Future<PublicChallengeResponse> getChallenge(Session session) async {
+    return await PublicChallengeService.generateChallenge(session);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTHENTICATED METHODS (session auth)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Authenticate device with challenge-response.
+  ///
+  /// Requires session auth. Performs ECDSA P-256 signature verification.
+  /// Updates the device's last active timestamp on success.
   Future<AuthenticationResult> authenticateDevice(
     Session session,
     String challenge,
     String signature,
   ) async {
     try {
-      // Check if session is authenticated
       if (session.authenticated == null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authMissingKey,
@@ -144,10 +325,9 @@ class DeviceEndpoint extends Endpoint {
         );
       }
 
-      // Get device key from authenticated session
-      final publicKey = AnonAccountAuthHandler.getDevicePublicKey(session);
+      final publicKey =
+          AnonAccountAuthHandler.getDevicePublicKey(session);
 
-      // Validate input parameters using helpers
       AnonAccountHelpers.validateNonEmpty(
         challenge,
         'challenge',
@@ -159,20 +339,17 @@ class DeviceEndpoint extends Endpoint {
         'authenticateDevice',
       );
 
-      // Find device by device signing public key (should exist since authentication passed)
       final device = await AccountDevice.db.findFirstRow(
         session,
         where: (t) => t.deviceSigningPublicKeyHex.equals(publicKey),
       );
 
-      // Use helper to ensure device exists and is active
       final activeDevice = AnonAccountHelpers.requireActiveDevice(
         device,
         publicKey,
         'authenticateDevice',
       );
 
-      // Verify challenge exists in Redis and consume it (single use, 5-min TTL)
       final challengeStorage = DeviceChallengeStorage(session);
       final challengeValid = await challengeStorage.verifyAndConsume(
         publicKey,
@@ -187,8 +364,8 @@ class DeviceEndpoint extends Endpoint {
         );
       }
 
-      // Verify signature (timestamp validation skipped - Redis handles freshness)
-      final verificationResult = await CryptoAuth.verifyChallengeResponse(
+      final verificationResult =
+          await CryptoAuth.verifyChallengeResponse(
         publicKey,
         challenge,
         signature,
@@ -196,10 +373,11 @@ class DeviceEndpoint extends Endpoint {
       );
 
       if (verificationResult.success) {
-        // Update last active timestamp with 1-minute precision (privacy hardening)
         final updatedDevice = await AccountDevice.db.updateRow(
           session,
-          activeDevice.copyWith(lastActive: _roundToMinute(DateTime.now())),
+          activeDevice.copyWith(
+            lastActive: _roundToMinute(DateTime.now()),
+          ),
         );
 
         return AuthenticationResultFactory.success(
@@ -210,7 +388,7 @@ class DeviceEndpoint extends Endpoint {
           },
         );
       } else {
-        return verificationResult; // Return the failure result from crypto verification
+        return verificationResult;
       }
     } on AuthenticationException {
       rethrow;
@@ -224,67 +402,9 @@ class DeviceEndpoint extends Endpoint {
     }
   }
 
-  /// Generate authentication challenge
-  ///
-  /// Creates a cryptographically secure challenge string for client use.
-  /// The challenge should be signed by the client's private key and returned
-  /// for verification via authenticateDevice.
-  ///
-  /// Parameters:
-  /// - [devicePublicKey]: The device's ECDSA P-256 signing public key (128 hex chars)
-  ///
-  /// Returns a hex-encoded challenge string.
-  ///
-  /// Throws AuthenticationException if device is not found or is revoked.
-  Future<String> generateAuthChallenge(
-    Session session,
-    String devicePublicKey,
-  ) async {
-    // Validate device exists and is active
-    final device = await AccountDevice.db.findFirstRow(
-      session,
-      where: (t) => t.deviceSigningPublicKeyHex.equals(devicePublicKey),
-    );
-
-    if (device == null) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.authDeviceNotFound,
-        message: 'Device not found',
-        operation: 'generateAuthChallenge',
-        details: {'devicePublicKey': devicePublicKey},
-      );
-    }
-
-    if (device.isRevoked) {
-      final deviceIdStr = device.id != null ? device.id.toString() : 'unknown';
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.authDeviceRevoked,
-        message: 'Device has been revoked',
-        operation: 'generateAuthChallenge',
-        details: {'deviceId': deviceIdStr},
-      );
-    }
-
-    // Generate and store challenge in Redis with 5-minute TTL
-    final challengeStorage = DeviceChallengeStorage(session);
-    return await challengeStorage.generateAndStoreChallenge(devicePublicKey);
-  }
-
-  /// Revoke device access
-  ///
-  /// Marks a device as revoked, preventing future authentication attempts.
-  /// The device record is preserved for audit purposes.
-  /// Account ownership automatically verified through authentication.
-  ///
-  /// Parameters:
-  /// - [deviceId]: The device to revoke
-  ///
-  /// Returns true if revocation succeeded.
-  ///
-  /// Throws AuthenticationException if device validation fails or device not found.
+  /// Revoke device access (session auth required).
   Future<bool> revokeDevice(Session session, int deviceId) async {
     try {
-      // Check if session is authenticated
       if (session.authenticated == null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authMissingKey,
@@ -294,7 +414,6 @@ class DeviceEndpoint extends Endpoint {
         );
       }
 
-      // Validate deviceId parameter
       if (deviceId <= 0) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authMissingKey,
@@ -304,23 +423,21 @@ class DeviceEndpoint extends Endpoint {
         );
       }
 
-      // Get authenticated account ID from session
-      final accountId = int.parse(session.authenticated!.userIdentifier);
+      final accountId =
+          int.parse(session.authenticated!.userIdentifier);
 
-      // Find device and verify it belongs to the authenticated account
       final device = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.id.equals(deviceId) & t.accountId.equals(accountId),
+        where: (t) =>
+            t.id.equals(deviceId) & t.accountId.equals(accountId),
       );
 
-      // Use helper to ensure device exists and belongs to account
       final foundDevice = AnonAccountHelpers.requireDevice(
         device,
         'deviceId:$deviceId',
         'revokeDevice',
       );
 
-      // Mark device as revoked
       await AccountDevice.db.updateRow(
         session,
         foundDevice.copyWith(isRevoked: true),
@@ -334,22 +451,17 @@ class DeviceEndpoint extends Endpoint {
         code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to revoke device: ${e.toString()}',
         operation: 'revokeDevice',
-        details: {'error': e.toString(), 'deviceId': deviceId.toString()},
+        details: {
+          'error': e.toString(),
+          'deviceId': deviceId.toString(),
+        },
       );
     }
   }
 
-  /// List account devices
-  ///
-  /// Returns all devices registered to the authenticated account with complete metadata.
-  /// Includes both active and revoked devices for management purposes.
-  /// Account ownership automatically verified through authentication.
-  ///
-  /// Returns list of AccountDevice objects with metadata.
-  /// Returns empty list if no devices are registered.
+  /// List account devices (session auth required).
   Future<List<AccountDevice>> listDevices(Session session) async {
     try {
-      // Check if session is authenticated
       if (session.authenticated == null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authMissingKey,
@@ -359,14 +471,14 @@ class DeviceEndpoint extends Endpoint {
         );
       }
 
-      final accountId = int.parse(session.authenticated!.userIdentifier);
+      final accountId =
+          int.parse(session.authenticated!.userIdentifier);
 
-      // Find all devices for the authenticated account
       final devices = await AccountDevice.db.find(
         session,
         where: (t) => t.accountId.equals(accountId),
         orderBy: (t) => t.lastActive,
-        orderDescending: true, // Most recently active first
+        orderDescending: true,
       );
 
       return devices;
@@ -380,56 +492,9 @@ class DeviceEndpoint extends Endpoint {
     }
   }
 
-  /// Monitor registration status for a specific signing key.
+  /// Register a new device for the caller's account (session auth required).
   ///
-  /// Device B (unauthenticated) calls this to wait for Device A to complete the registration.
-  /// The stream will emit a [DevicePairingEvent] when registration is complete.
-  ///
-  /// Parameters:
-  /// - [signingKeyHex]: Device B's ECDSA P-256 signing public key (128 hex)
-  Stream<DevicePairingEvent> monitorRegistration(
-    Session session,
-    String signingKeyHex,
-  ) async* {
-    session.log(
-      'DeviceEndpoint: monitorRegistration info $signingKeyHex',
-      level: LogLevel.info,
-    );
-
-    // Create a unique channel for this device's registration events
-    final channelName = 'pairing-updates-$signingKeyHex';
-
-    // Subscribe to the channel
-    final stream = session.messages.createStream<DevicePairingEvent>(
-      channelName,
-    );
-
-    // Forward events to the client
-    await for (final event in stream) {
-      yield event;
-    }
-  }
-
-  /// Register a new device for the caller's account (QR code pairing flow).
-  ///
-  /// Device A (authenticated) calls this to register Device B.
-  /// Server derives accountId from Device A's authenticated session.
-  ///
-  /// SECURITY: Caller must be authenticated with an active (non-revoked) device.
-  /// The auth handler already enforces this via requireActiveDevice().
-  ///
-  /// Parameters:
-  /// - [newDeviceSigningPublicKeyHex]: Device B's ECDSA P-256 signing public key (128 hex)
-  /// - [newDeviceEncryptedDataKey]: SDK encrypted with Device B's RSA public key
-  /// - [label]: Human-readable device name
-  ///
-  /// Returns the created AccountDevice.
-  ///
-  /// Throws AuthenticationException if:
-  /// - Caller is not authenticated
-  /// - Caller's device not found
-  /// - New device public key format is invalid
-  /// - New device public key already registered
+  /// QR code pairing flow: Device A (authenticated) registers Device B.
   Future<AccountDevice> registerDeviceForAccount(
     Session session,
     String newDeviceSigningPublicKeyHex,
@@ -441,7 +506,6 @@ class DeviceEndpoint extends Endpoint {
       level: LogLevel.info,
     );
     try {
-      // Require authentication (revoked devices already blocked by auth handler)
       if (session.authenticated == null) {
         session.log(
           'DeviceEndpoint: ERROR - Not authenticated',
@@ -455,8 +519,8 @@ class DeviceEndpoint extends Endpoint {
         );
       }
 
-      // Get caller's device → derive accountId
-      final callerDeviceKey = AnonAccountAuthHandler.getDevicePublicKey(session);
+      final callerDeviceKey =
+          AnonAccountAuthHandler.getDevicePublicKey(session);
       session.log(
         'DeviceEndpoint: Caller device key: ${callerDeviceKey.substring(0, 10)}...',
         level: LogLevel.info,
@@ -464,7 +528,8 @@ class DeviceEndpoint extends Endpoint {
 
       final callerDevice = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.deviceSigningPublicKeyHex.equals(callerDeviceKey),
+        where: (t) =>
+            t.deviceSigningPublicKeyHex.equals(callerDeviceKey),
       );
 
       if (callerDevice == null) {
@@ -485,7 +550,6 @@ class DeviceEndpoint extends Endpoint {
         level: LogLevel.info,
       );
 
-      // Validate new device key format
       AnonAccountHelpers.validatePublicKey(
         newDeviceSigningPublicKeyHex,
         'registerDeviceForAccount',
@@ -501,11 +565,10 @@ class DeviceEndpoint extends Endpoint {
         'registerDeviceForAccount',
       );
 
-      // Check for duplicate
       final existing = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(newDeviceSigningPublicKeyHex),
+        where: (t) => t.deviceSigningPublicKeyHex
+            .equals(newDeviceSigningPublicKeyHex),
       );
       if (existing != null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -518,9 +581,8 @@ class DeviceEndpoint extends Endpoint {
         );
       }
 
-      // Register new device under same account
       final newDevice = AccountDevice(
-        accountId: callerDevice.accountId, // Derived from caller's session
+        accountId: callerDevice.accountId,
         deviceSigningPublicKeyHex: newDeviceSigningPublicKeyHex,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,
@@ -533,9 +595,8 @@ class DeviceEndpoint extends Endpoint {
         newDevice,
       );
 
-      // Broadcast registration event to waiting device
-      final channelName = 'pairing-updates-$newDeviceSigningPublicKeyHex';
-
+      final channelName =
+          'pairing-updates-$newDeviceSigningPublicKeyHex';
       session.messages.postMessage(
         channelName,
         DevicePairingEvent(
@@ -550,59 +611,15 @@ class DeviceEndpoint extends Endpoint {
     } catch (e) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
         code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to register device for account: ${e.toString()}',
+        message:
+            'Failed to register device for account: ${e.toString()}',
         operation: 'registerDeviceForAccount',
         details: {'error': e.toString()},
       );
     }
   }
 
-  /// Get device info by signing public key (for pairing completion).
-  ///
-  /// UNAUTHENTICATED - Device B doesn't have credentials yet.
-  /// Only returns the encrypted blob needed to complete pairing.
-  ///
-  /// SECURITY:
-  /// - Only returns encryptedDataKey (useless without Device B's private key)
-  /// - No account identifiers exposed
-  /// - 128-hex key is not enumerable (2^512 possibilities)
-  ///
-  /// Parameters:
-  /// - [signingPublicKeyHex]: Device's ECDSA P-256 signing public key (128 hex)
-  ///
-  /// Returns DevicePairingInfo if device is registered, null otherwise.
-  Future<DevicePairingInfo?> getDeviceBySigningKey(
-    Session session,
-    String signingPublicKeyHex,
-  ) async {
-    try {
-      // Validate key format
-      AnonAccountHelpers.validatePublicKey(
-        signingPublicKeyHex,
-        'getDeviceBySigningKey',
-      );
-
-      final device = await AccountDevice.db.findFirstRow(
-        session,
-        where: (t) => t.deviceSigningPublicKeyHex.equals(signingPublicKeyHex),
-      );
-
-      if (device == null) return null;
-
-      // Return only what Device B needs - no account identifiers
-      return DevicePairingInfo(encryptedDataKey: device.encryptedDataKey);
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to get device by signing key: ${e.toString()}',
-        operation: 'getDeviceBySigningKey',
-        details: {'error': e.toString()},
-      );
-    }
-  }
-
   /// Rounds a DateTime to the nearest minute for privacy hardening.
-  DateTime _roundToMinute(DateTime dt) => DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
+  DateTime _roundToMinute(DateTime dt) =>
+      DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
 }

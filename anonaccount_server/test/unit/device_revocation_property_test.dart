@@ -1,10 +1,10 @@
-import 'dart:math';
-
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:test/test.dart';
 
 import '../integration/test_tools/auth_test_helper.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/pow_test_helper.dart';
+import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
 
 /// **Feature: anonaccred-phase2, Property 6: Revocation enforcement**
@@ -18,37 +18,52 @@ void main() {
     test(
       'Property 6: Revocation enforcement - Device revocation workflow validation',
       () async {
-        // Create test account
-        final accountPublicKey = _generateRandomEd25519PublicKey();
+        // Create test account with real keypair
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
         const accountEncryptedDataKey = 'encrypted_test_data_key';
 
         final testAccount = await createTestAccount(
           sessionBuilder,
-          ultimateSigningPublicKeyHex: accountPublicKey,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: accountEncryptedDataKey,
-          ultimatePublicKey: accountPublicKey,
+          ultimatePublicKey: ultimatePubKey,
         );
 
-        // Register a device
-        final devicePublicKey = _generateRandomEd25519PublicKey();
+        // Register a device with PoW
+        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'device_encrypted_data_key';
         const deviceLabel = 'Test Device for Revocation';
 
+        final regChallenge =
+            await endpoints.device.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload =
+            '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+        final regSignature =
+            SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.ultimateSigningPublicKeyHex,
-          devicePublicKey,
-          deviceEncryptedDataKey,
-          deviceLabel,
+          challenge: regChallenge.challenge,
+          proofOfWork: regPow,
+          signature: regSignature,
+          ultimateSigningPublicKeyHex:
+              testAccount.ultimateSigningPublicKeyHex,
+          deviceSigningPublicKeyHex: devicePubKey,
+          encryptedDataKey: deviceEncryptedDataKey,
+          label: deviceLabel,
         );
 
         // Verify device is initially active
         expect(device.id, isNotNull);
         expect(device.isRevoked, isFalse);
-        expect(device.deviceSigningPublicKeyHex, equals(devicePublicKey));
+        expect(device.deviceSigningPublicKeyHex, equals(devicePubKey));
 
-        // Test that authentication endpoints require authentication
-        // (These will fail because we don't have proper authentication setup in tests)
+        // Test that session-auth endpoints require authentication
         expect(
           () => endpoints.device.authenticateDevice(
             sessionBuilder,
@@ -71,14 +86,30 @@ void main() {
           throwsA(isA<AuthenticationException>()),
         );
 
-        // Verify device registration still works (doesn't require auth)
-        final devicePublicKey2 = _generateRandomEd25519PublicKey();
+        // Verify device registration still works (PoW-protected, not session-auth)
+        final (_, devicePubKey2) = SigningTestHelper.generateKeypair();
+
+        final regChallenge2 =
+            await endpoints.device.getChallenge(sessionBuilder);
+        final regPow2 = await PowTestHelper.mint(
+          regChallenge2.challenge,
+          difficulty: regChallenge2.difficulty,
+        );
+        final regPayload2 =
+            '${regChallenge2.challenge}:registerDevice:$ultimatePubKey';
+        final regSignature2 =
+            SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
+
         final device2 = await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.ultimateSigningPublicKeyHex,
-          devicePublicKey2,
-          'device_encrypted_data_key_2',
-          'Test Device 2',
+          challenge: regChallenge2.challenge,
+          proofOfWork: regPow2,
+          signature: regSignature2,
+          ultimateSigningPublicKeyHex:
+              testAccount.ultimateSigningPublicKeyHex,
+          deviceSigningPublicKeyHex: devicePubKey2,
+          encryptedDataKey: 'device_encrypted_data_key_2',
+          label: 'Test Device 2',
         );
 
         expect(device2.id, isNotNull);
@@ -86,15 +117,4 @@ void main() {
       },
     );
   });
-}
-
-// Test data generators - These generate FAKE hex strings for testing, not real cryptographic keys
-String _generateRandomEd25519PublicKey() {
-  // Generate a fake 128-character hex string for ECDSA P-256 format (not Ed25519)
-  final random = Random();
-  const chars = '0123456789abcdef';
-  return List.generate(
-    128, // ECDSA P-256 public key format
-    (index) => chars[random.nextInt(chars.length)],
-  ).join();
 }

@@ -21,22 +21,21 @@ void main() {
     });
 
     test('createAccount with valid PoW succeeds', () async {
-      // 1. Get challenge
+      // Use unique keypair to avoid rate limit collisions across tests
+      final (privKey, pubKey) = SigningTestHelper.generateKeypair();
+
       final challengeResponse =
           await endpoints.account.getChallenge(sessionBuilder);
 
-      // 2. Mine PoW
       final proofOfWork = await PowTestHelper.mint(
         challengeResponse.challenge,
         difficulty: challengeResponse.difficulty,
       );
 
-      // 3. Sign payload
       final payload =
-          '${challengeResponse.challenge}:createAccount:${SigningTestHelper.testPublicKeyHex}';
-      final signature = SigningTestHelper.sign(payload);
+          '${challengeResponse.challenge}:createAccount:$pubKey';
+      final signature = SigningTestHelper.signWith(payload, privKey);
 
-      // 4. Create account
       const ultimatePublicKey =
           'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
           'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
@@ -46,24 +45,27 @@ void main() {
         challenge: challengeResponse.challenge,
         proofOfWork: proofOfWork,
         signature: signature,
-        ultimateSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+        ultimateSigningPublicKeyHex: pubKey,
         encryptedDataKey: 'test-encrypted-data-key',
         ultimatePublicKey: ultimatePublicKey,
       );
 
       expect(
         account.ultimateSigningPublicKeyHex,
-        equals(SigningTestHelper.testPublicKeyHex),
+        equals(pubKey),
       );
       expect(account.encryptedDataKey, equals('test-encrypted-data-key'));
       expect(account.createdAt, isNotNull);
     });
 
     test('createAccount fails with duplicate signing key', () async {
+      // Use unique keypair to avoid rate limit collisions
+      final (privKey, pubKey) = SigningTestHelper.generateKeypair();
+
       // Create first account via direct DB insert
       await createTestAccount(
         sessionBuilder,
-        ultimateSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+        ultimateSigningPublicKeyHex: pubKey,
         ultimatePublicKey:
             'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -77,8 +79,8 @@ void main() {
         difficulty: challengeResponse.difficulty,
       );
       final payload =
-          '${challengeResponse.challenge}:createAccount:${SigningTestHelper.testPublicKeyHex}';
-      final signature = SigningTestHelper.sign(payload);
+          '${challengeResponse.challenge}:createAccount:$pubKey';
+      final signature = SigningTestHelper.signWith(payload, privKey);
 
       expect(
         () => endpoints.account.createAccount(
@@ -86,7 +88,7 @@ void main() {
           challenge: challengeResponse.challenge,
           proofOfWork: proofOfWork,
           signature: signature,
-          ultimateSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+          ultimateSigningPublicKeyHex: pubKey,
           encryptedDataKey: 'test-encrypted-data-key-2',
           ultimatePublicKey:
               'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
