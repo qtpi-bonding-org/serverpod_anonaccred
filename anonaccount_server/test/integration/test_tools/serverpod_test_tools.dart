@@ -14,13 +14,18 @@
 import 'package:serverpod_test/serverpod_test.dart' as _i1;
 import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
-import 'package:anonaccount_server/src/generated/account_device.dart' as _i4;
-import 'package:anonaccount_server/src/generated/authentication_result.dart'
+import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
+    as _i4;
+import 'package:anonaccount_server/src/generated/account_creation_response.dart'
     as _i5;
+import 'package:anonaccount_server/src/generated/account.dart' as _i6;
+import 'package:anonaccount_server/src/generated/account_device.dart' as _i7;
+import 'package:anonaccount_server/src/generated/authentication_result.dart'
+    as _i8;
 import 'package:anonaccount_server/src/generated/device_pairing_event.dart'
-    as _i6;
+    as _i9;
 import 'package:anonaccount_server/src/generated/device_pairing_info.dart'
-    as _i7;
+    as _i10;
 import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -128,6 +133,8 @@ void withServerpod(
 }
 
 class TestEndpoints {
+  late final _AccountEndpoint account;
+
   late final _DeviceEndpoint device;
 }
 
@@ -138,10 +145,137 @@ class _InternalTestEndpoints extends TestEndpoints
     _i2.SerializationManager serializationManager,
     _i2.EndpointDispatch endpoints,
   ) {
+    account = _AccountEndpoint(
+      endpoints,
+      serializationManager,
+    );
     device = _DeviceEndpoint(
       endpoints,
       serializationManager,
     );
+  }
+}
+
+class _AccountEndpoint {
+  _AccountEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i4.PublicChallengeResponse> getChallenge(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'account',
+            method: 'getChallenge',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'account',
+          methodName: 'getChallenge',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i4.PublicChallengeResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i5.AccountCreationResponse> createAccount(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String ultimateSigningPublicKeyHex,
+    required String encryptedDataKey,
+    required String ultimatePublicKey,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'account',
+            method: 'createAccount',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'account',
+          methodName: 'createAccount',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+            'encryptedDataKey': encryptedDataKey,
+            'ultimatePublicKey': ultimatePublicKey,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i5.AccountCreationResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i6.AnonAccount?> getAccountForRecovery(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String ultimatePublicKey,
+    required String signature,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'account',
+            method: 'getAccountForRecovery',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'account',
+          methodName: 'getAccountForRecovery',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'ultimatePublicKey': ultimatePublicKey,
+            'signature': signature,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.AnonAccount?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
   }
 }
 
@@ -155,7 +289,7 @@ class _DeviceEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i4.AccountDevice> registerDevice(
+  _i3.Future<_i7.AccountDevice> registerDevice(
     _i1.TestSessionBuilder sessionBuilder,
     String ultimateSigningPublicKeyHex,
     String deviceSigningPublicKeyHex,
@@ -186,7 +320,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i4.AccountDevice>);
+                as _i3.Future<_i7.AccountDevice>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -194,7 +328,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<_i5.AuthenticationResult> authenticateDevice(
+  _i3.Future<_i8.AuthenticationResult> authenticateDevice(
     _i1.TestSessionBuilder sessionBuilder,
     String challenge,
     String signature,
@@ -221,7 +355,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.AuthenticationResult>);
+                as _i3.Future<_i8.AuthenticationResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -293,7 +427,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<List<_i4.AccountDevice>> listDevices(
+  _i3.Future<List<_i7.AccountDevice>> listDevices(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -315,7 +449,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i4.AccountDevice>>);
+                as _i3.Future<List<_i7.AccountDevice>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -323,12 +457,12 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Stream<_i6.DevicePairingEvent> monitorRegistration(
+  _i3.Stream<_i9.DevicePairingEvent> monitorRegistration(
     _i1.TestSessionBuilder sessionBuilder,
     String signingKeyHex,
   ) {
     var _localTestStreamManager =
-        _i1.TestStreamManager<_i6.DevicePairingEvent>();
+        _i1.TestStreamManager<_i9.DevicePairingEvent>();
     _i1.callStreamFunctionAndHandleExceptions(
       () async {
         var _localUniqueSession =
@@ -356,7 +490,7 @@ class _DeviceEndpoint {
     return _localTestStreamManager.outputStreamController.stream;
   }
 
-  _i3.Future<_i4.AccountDevice> registerDeviceForAccount(
+  _i3.Future<_i7.AccountDevice> registerDeviceForAccount(
     _i1.TestSessionBuilder sessionBuilder,
     String newDeviceSigningPublicKeyHex,
     String newDeviceEncryptedDataKey,
@@ -385,7 +519,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i4.AccountDevice>);
+                as _i3.Future<_i7.AccountDevice>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -393,7 +527,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<_i7.DevicePairingInfo?> getDeviceBySigningKey(
+  _i3.Future<_i10.DevicePairingInfo?> getDeviceBySigningKey(
     _i1.TestSessionBuilder sessionBuilder,
     String signingPublicKeyHex,
   ) async {
@@ -418,7 +552,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.DevicePairingInfo?>);
+                as _i3.Future<_i10.DevicePairingInfo?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

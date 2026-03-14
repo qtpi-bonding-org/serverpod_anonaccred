@@ -1,0 +1,12 @@
+class: PublicChallenge
+table: public_challenges
+fields:
+  challenge: String
+  expiresAt: DateTime
+
+indexes:
+  public_challenges_challenge_idx:
+    fields: challenge
+    unique: true
+  public_challenges_expires_idx:
+    fields: expiresAt

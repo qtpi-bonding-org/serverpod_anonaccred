@@ -1,3 +1,7 @@
+account:
+  - getChallenge:
+  - createAccount:
+  - getAccountForRecovery:
 device:
   - registerDevice:
   - authenticateDevice:

@@ -42,6 +42,13 @@ class AnonAccountErrorCodes {
   static const String cryptoVerificationFailed = 'CRYPTO_VERIFICATION_FAILED';
   static const String cryptoFormatError = 'CRYPTO_FORMAT_ERROR';
 
+  // Proof-of-work error codes
+  static const String powInvalidStamp = 'POW_INVALID_STAMP';
+  static const String powChallengeExpired = 'POW_CHALLENGE_EXPIRED';
+  static const String powInsufficientWork = 'POW_INSUFFICIENT_WORK';
+  static const String powVerificationFailed = 'POW_VERIFICATION_FAILED';
+  static const String rateLimitExceeded = 'RATE_LIMIT_EXCEEDED';
+
   // General error codes
   static const String networkTimeout = 'NETWORK_TIMEOUT';
   static const String databaseError = 'DATABASE_ERROR';

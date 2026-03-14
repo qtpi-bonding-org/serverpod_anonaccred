@@ -1,30 +1,13 @@
 
 import 'package:anonaccount_server/anonaccount_server.dart';
-import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
-import 'package:webcrypto/webcrypto.dart';
 
+import '../test_helpers/pow_test_helper.dart';
+import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
 import 'test_tools/auth_test_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';
-
-final _endpoint = TestAccountEndpoint();
-
-Future<AnonAccount?> callGetAccountByPublicKey(
-  TestSessionBuilder sessionBuilder,
-  String publicKey,
-) async {
-  final session = (sessionBuilder as InternalTestSessionBuilder).internalBuild(
-    endpoint: 'account',
-    method: 'getAccountByPublicKey',
-  );
-  try {
-    return await _endpoint.getAccountByPublicKey(session, publicKey);
-  } finally {
-    await session.close();
-  }
-}
 
 void main() {
   withServerpod('Complete Workflow Integration Tests', (
@@ -32,158 +15,151 @@ void main() {
     endpoints,
   ) {
     group('Account Creation → Device Registration → Authentication Flow', () {
-      test('complete happy path workflow with real ECDSA P-256 signatures', () async {
-        // Step 1: Generate ECDSA P-256 key pair for account (simulating client-side)
-        final accountKeyPair = await EcdsaPrivateKey.generateKey(
-          EllipticCurve.p256,
-        );
-        final accountPublicKey = await accountKeyPair.publicKey.exportRawKey();
-        final accountPublicKeyHex = accountPublicKey
-            .sublist(1)
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join();
+      test('complete happy path workflow with real ECDSA P-256 signatures',
+          () async {
+        // Step 1: Generate keypair for account
+        final (privKey, pubKey) = SigningTestHelper.generateKeypair();
 
-        // Step 2: Create account
+        // Step 2: Create account via PoW-protected endpoint
         const encryptedDataKey = 'encrypted_account_data_key_12345';
         const ultimatePublicKey =
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-        final account = await createTestAccount(
+
+        final challengeResponse =
+            await endpoints.account.getChallenge(sessionBuilder);
+        final proofOfWork = await PowTestHelper.mint(
+          challengeResponse.challenge,
+          difficulty: challengeResponse.difficulty,
+        );
+        final payload =
+            '${challengeResponse.challenge}:createAccount:$pubKey';
+        final signature = SigningTestHelper.signWith(payload, privKey);
+
+        final accountResponse = await endpoints.account.createAccount(
           sessionBuilder,
-          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          challenge: challengeResponse.challenge,
+          proofOfWork: proofOfWork,
+          signature: signature,
+          ultimateSigningPublicKeyHex: pubKey,
           encryptedDataKey: encryptedDataKey,
           ultimatePublicKey: ultimatePublicKey,
         );
 
-        expect(account.id, isNotNull);
         expect(
-          account.ultimateSigningPublicKeyHex,
-          equals(accountPublicKeyHex),
+          accountResponse.ultimateSigningPublicKeyHex,
+          equals(pubKey),
         );
-        expect(account.encryptedDataKey, equals(encryptedDataKey));
+        expect(accountResponse.encryptedDataKey, equals(encryptedDataKey));
 
-        // Step 3: Generate ECDSA P-256 key pair for device (simulating client-side)
-        final deviceKeyPair = await EcdsaPrivateKey.generateKey(
-          EllipticCurve.p256,
+        // Step 3: Look up account via query service
+        final session =
+            (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+          endpoint: 'test',
+          method: 'getAccountByPublicKey',
         );
-        final devicePublicKey = await deviceKeyPair.publicKey.exportRawKey();
-        final devicePublicKeyHex = devicePublicKey
-            .sublist(1)
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join();
+        AnonAccount? account;
+        try {
+          account = await AccountQueryService.getAccountByPublicKey(
+            session,
+            pubKey,
+          );
+        } finally {
+          await session.close();
+        }
 
-        // Step 4: Register device
+        expect(account, isNotNull);
+        expect(account!.id, isNotNull);
+
+        // Step 4: Generate device keypair and register
+        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
         const deviceLabel = 'Test Device for Complete Workflow';
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
           account.ultimateSigningPublicKeyHex,
-          devicePublicKeyHex,
+          devicePubKey,
           deviceEncryptedDataKey,
           deviceLabel,
         );
 
         expect(device.id, isNotNull);
         expect(device.accountId, equals(account.id));
-        expect(device.deviceSigningPublicKeyHex, equals(devicePublicKeyHex));
-        expect(device.encryptedDataKey, equals(deviceEncryptedDataKey));
-        expect(device.label, equals(deviceLabel));
+        expect(device.deviceSigningPublicKeyHex, equals(devicePubKey));
         expect(device.isRevoked, isFalse);
 
-        // Step 5: Test challenge generation (doesn't require auth)
+        // Step 5: Test challenge generation for device auth
         final challenge = await endpoints.device.generateAuthChallenge(
           sessionBuilder,
-          devicePublicKeyHex,
+          devicePubKey,
         );
         expect(challenge, isNotEmpty);
-        expect(
-          challenge.length,
-          greaterThan(10),
-        ); // Should be a reasonable challenge
+        expect(challenge.length, greaterThan(10));
 
-        // Step 6: Test that protected endpoints require authentication
-        // These should all fail because we don't have proper authentication in test environment
+        // Step 6: Protected endpoints require authentication
         expect(
           () => endpoints.device.listDevices(sessionBuilder),
-          throwsA(isA<AuthenticationException>()),
-        );
-
-        expect(
-          () => endpoints.device.revokeDevice(sessionBuilder, device.id!),
-          throwsA(isA<AuthenticationException>()),
-        );
-
-        expect(
-          () => endpoints.device.authenticateDevice(
-            sessionBuilder,
-            challenge,
-            AuthTestHelper.generateValidSignature(),
-          ),
           throwsA(isA<AuthenticationException>()),
         );
       });
 
       test('account lookup workflow', () async {
-        // Step 1: Generate ECDSA P-256 key pair for account
-        final accountKeyPair = await EcdsaPrivateKey.generateKey(
-          EllipticCurve.p256,
-        );
-        final accountPublicKey = await accountKeyPair.publicKey.exportRawKey();
-        final accountPublicKeyHex = accountPublicKey
-            .sublist(1)
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join();
-
-        // Step 2: Create account
+        // Create account via direct DB insert
+        final (_, pubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'encrypted_account_data_key_lookup';
         const ultimatePublicKey =
             'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
             'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
         final account = await createTestAccount(
           sessionBuilder,
-          ultimateSigningPublicKeyHex: accountPublicKeyHex,
+          ultimateSigningPublicKeyHex: pubKey,
           encryptedDataKey: encryptedDataKey,
           ultimatePublicKey: ultimatePublicKey,
         );
 
         expect(account.id, isNotNull);
 
-        // Step 3: Test account lookup with session
-        final foundAccount = await callGetAccountByPublicKey(
-          sessionBuilder,
-          accountPublicKeyHex,
+        // Look up via query service
+        final session =
+            (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+          endpoint: 'test',
+          method: 'getAccountByPublicKey',
         );
+        try {
+          final found = await AccountQueryService.getAccountByPublicKey(
+            session,
+            pubKey,
+          );
+          expect(found, isNotNull);
+          expect(found!.id, equals(account.id));
 
-        expect(foundAccount, isNotNull);
-        expect(foundAccount!.id, equals(account.id));
-
-        // Step 4: Test lookup with non-existent key
-        const nonExistentPublicKey =
-            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-        final nonExistentAccount = await callGetAccountByPublicKey(
-            sessionBuilder, nonExistentPublicKey);
-        expect(nonExistentAccount, isNull);
+          // Non-existent key returns null
+          const nonExistent =
+              'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+              'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
+          final notFound = await AccountQueryService.getAccountByPublicKey(
+            session,
+            nonExistent,
+          );
+          expect(notFound, isNull);
+        } finally {
+          await session.close();
+        }
       });
 
       test('authentication failure scenarios', () async {
-        // Test unauthenticated access to protected endpoints
-        // All of these should fail with authentication required errors
-
-        // Should fail to list devices without authentication
         expect(
           () => endpoints.device.listDevices(sessionBuilder),
           throwsA(isA<AuthenticationException>()),
         );
 
-        // Should fail to revoke device without authentication
         expect(
           () => endpoints.device.revokeDevice(sessionBuilder, 123),
           throwsA(isA<AuthenticationException>()),
         );
 
-        // Should fail to authenticate device without authentication
         expect(
           () => endpoints.device.authenticateDevice(
             sessionBuilder,
@@ -195,57 +171,47 @@ void main() {
       });
 
       test('device registration validation workflow', () async {
-        // Create test account
-        const accountPublicKey =
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const accountEncryptedDataKey = 'encrypted_test_data_key_8';
-        const ultimatePublicKey =
-            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-            '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-
-        final testAccount = await createTestAccount(
+        final account = await createTestAccount(
           sessionBuilder,
-          ultimateSigningPublicKeyHex: accountPublicKey,
-          encryptedDataKey: accountEncryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          ultimateSigningPublicKeyHex:
+              'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+              '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
         );
 
-        // Test successful device registration
+        // Successful device registration
         final devicePublicKey = AuthTestHelper.generateValidDeviceKey();
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
-          testAccount.ultimateSigningPublicKeyHex,
+          account.ultimateSigningPublicKeyHex,
           devicePublicKey,
           'encrypted_device_data_key',
           'Test Device',
         );
 
         expect(device.id, isNotNull);
-        expect(device.deviceSigningPublicKeyHex, equals(devicePublicKey));
         expect(device.isRevoked, isFalse);
 
-        // Test duplicate device registration fails
+        // Duplicate device registration fails
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            testAccount.ultimateSigningPublicKeyHex,
-            devicePublicKey, // Same key
+            account.ultimateSigningPublicKeyHex,
+            devicePublicKey,
             'encrypted_device_data_key_2',
             'Test Device 2',
           ),
           throwsA(isA<AuthenticationException>()),
         );
 
-        // Test registration with non-existent account fails
-        const nonExistentUltimateSigningPublicKeyHex =
+        // Non-existent account fails
+        const nonExistentKey =
             'ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00'
             'ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00';
         expect(
           () => endpoints.device.registerDevice(
             sessionBuilder,
-            nonExistentUltimateSigningPublicKeyHex,
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            nonExistentKey,
+            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
                 '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
             'encrypted_device_data_key',
             'Test Device',

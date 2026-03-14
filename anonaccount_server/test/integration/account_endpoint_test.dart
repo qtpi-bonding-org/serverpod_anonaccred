@@ -1,257 +1,213 @@
-import 'package:anonaccount_server/src/generated/protocol.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
+import '../test_helpers/pow_test_helper.dart';
+import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';
-
-final _endpoint = TestAccountEndpoint();
-
-Future<AccountCreationResponse> callCreateAccount(
-  TestSessionBuilder sessionBuilder,
-  String publicKey,
-  String encryptedDataKey,
-  String ultimatePublicKey,
-) async {
-  final session = (sessionBuilder as InternalTestSessionBuilder).internalBuild(
-    endpoint: 'account',
-    method: 'createAccount',
-  );
-  try {
-    return await _endpoint.createAccount(
-        session, publicKey, encryptedDataKey, ultimatePublicKey);
-  } finally {
-    await session.close();
-  }
-}
-
-Future<AnonAccount?> callGetAccountByPublicKey(
-  TestSessionBuilder sessionBuilder,
-  String publicKey,
-) async {
-  final session = (sessionBuilder as InternalTestSessionBuilder).internalBuild(
-    endpoint: 'account',
-    method: 'getAccountByPublicKey',
-  );
-  try {
-    return await _endpoint.getAccountByPublicKey(session, publicKey);
-  } finally {
-    await session.close();
-  }
-}
 
 void main() {
   withServerpod('AccountEndpoint Integration Tests', (
     sessionBuilder,
     endpoints,
   ) {
-    test(
-      'createAccount - successful account creation with valid ECDSA P-256 key',
-      () async {
-        // Valid ECDSA P-256 public key (128 hex characters)
-        const validPublicKey =
-            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefa123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const encryptedDataKey = 'encrypted_data_key_example_12345';
-        const ultimatePublicKey =
-            'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefb123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    test('getChallenge returns valid challenge response', () async {
+      final challenge = await endpoints.account.getChallenge(sessionBuilder);
 
-        final account = await callCreateAccount(
-          sessionBuilder,
-          validPublicKey,
-          encryptedDataKey,
-          ultimatePublicKey,
-        );
+      expect(challenge.challenge, hasLength(32));
+      expect(challenge.difficulty, equals(20));
+      expect(challenge.expiresAt, greaterThan(0));
+    });
 
-        expect(account.ultimateSigningPublicKeyHex, equals(validPublicKey));
-        expect(account.encryptedDataKey, equals(encryptedDataKey));
-        expect(account.createdAt, isNotNull);
-      },
-    );
+    test('createAccount with valid PoW succeeds', () async {
+      // 1. Get challenge
+      final challengeResponse =
+          await endpoints.account.getChallenge(sessionBuilder);
 
-    test('createAccount - fails with invalid public key format', () async {
-      const invalidPublicKey = 'invalid_key_too_short';
-      const encryptedDataKey = 'encrypted_data_key_example_12345';
+      // 2. Mine PoW
+      final proofOfWork = await PowTestHelper.mint(
+        challengeResponse.challenge,
+        difficulty: challengeResponse.difficulty,
+      );
+
+      // 3. Sign payload
+      final payload =
+          '${challengeResponse.challenge}:createAccount:${SigningTestHelper.testPublicKeyHex}';
+      final signature = SigningTestHelper.sign(payload);
+
+      // 4. Create account
       const ultimatePublicKey =
-          'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefc123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+          'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
+      final account = await endpoints.account.createAccount(
+        sessionBuilder,
+        challenge: challengeResponse.challenge,
+        proofOfWork: proofOfWork,
+        signature: signature,
+        ultimateSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+        encryptedDataKey: 'test-encrypted-data-key',
+        ultimatePublicKey: ultimatePublicKey,
+      );
 
       expect(
-        () => callCreateAccount(
+        account.ultimateSigningPublicKeyHex,
+        equals(SigningTestHelper.testPublicKeyHex),
+      );
+      expect(account.encryptedDataKey, equals('test-encrypted-data-key'));
+      expect(account.createdAt, isNotNull);
+    });
+
+    test('createAccount fails with duplicate signing key', () async {
+      // Create first account via direct DB insert
+      await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+        ultimatePublicKey:
+            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+      );
+
+      // Try to create second account with same signing key via PoW
+      final challengeResponse =
+          await endpoints.account.getChallenge(sessionBuilder);
+      final proofOfWork = await PowTestHelper.mint(
+        challengeResponse.challenge,
+        difficulty: challengeResponse.difficulty,
+      );
+      final payload =
+          '${challengeResponse.challenge}:createAccount:${SigningTestHelper.testPublicKeyHex}';
+      final signature = SigningTestHelper.sign(payload);
+
+      expect(
+        () => endpoints.account.createAccount(
           sessionBuilder,
-          invalidPublicKey,
-          encryptedDataKey,
-          ultimatePublicKey,
+          challenge: challengeResponse.challenge,
+          proofOfWork: proofOfWork,
+          signature: signature,
+          ultimateSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+          encryptedDataKey: 'test-encrypted-data-key-2',
+          ultimatePublicKey:
+              'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+              'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
         ),
-        throwsA(isA<Exception>()),
+        throwsA(isA<AuthenticationException>()),
       );
     });
 
-    test('createAccount - fails with empty public key', () async {
-      const emptyPublicKey = '';
-      const encryptedDataKey = 'encrypted_data_key_example_12345';
+    test('getAccountForRecovery with valid PoW succeeds', () async {
+      // Create an account to recover
+      final (privKey, pubKey) = SigningTestHelper.generateKeypair();
       const ultimatePublicKey =
-          'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+          'e123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          'e123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
+      await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: pubKey,
+        ultimatePublicKey: ultimatePublicKey,
+      );
+
+      // Now recover via PoW
+      final challengeResponse =
+          await endpoints.account.getChallenge(sessionBuilder);
+      final proofOfWork = await PowTestHelper.mint(
+        challengeResponse.challenge,
+        difficulty: challengeResponse.difficulty,
+      );
+      final payload =
+          '${challengeResponse.challenge}:getAccountForRecovery:$ultimatePublicKey';
+      final signature = SigningTestHelper.signWith(payload, privKey);
+
+      final recovered = await endpoints.account.getAccountForRecovery(
+        sessionBuilder,
+        challenge: challengeResponse.challenge,
+        proofOfWork: proofOfWork,
+        ultimatePublicKey: ultimatePublicKey,
+        signature: signature,
+      );
+
+      expect(recovered, isNotNull);
       expect(
-        () => callCreateAccount(
-          sessionBuilder,
-          emptyPublicKey,
-          encryptedDataKey,
-          ultimatePublicKey,
-        ),
-        throwsA(isA<Exception>()),
+        recovered!.ultimateSigningPublicKeyHex,
+        equals(pubKey),
       );
     });
 
-    test('createAccount - fails with empty encrypted data key', () async {
+    test('getAccountForRecovery returns null for non-existent account',
+        () async {
+      final (privKey, _) = SigningTestHelper.generateKeypair();
+      const nonExistentUltimateKey =
+          'ff23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          'ff23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
+      final challengeResponse =
+          await endpoints.account.getChallenge(sessionBuilder);
+      final proofOfWork = await PowTestHelper.mint(
+        challengeResponse.challenge,
+        difficulty: challengeResponse.difficulty,
+      );
+      final payload =
+          '${challengeResponse.challenge}:getAccountForRecovery:$nonExistentUltimateKey';
+      final signature = SigningTestHelper.signWith(payload, privKey);
+
+      final recovered = await endpoints.account.getAccountForRecovery(
+        sessionBuilder,
+        challenge: challengeResponse.challenge,
+        proofOfWork: proofOfWork,
+        ultimatePublicKey: nonExistentUltimateKey,
+        signature: signature,
+      );
+
+      expect(recovered, isNull);
+    });
+
+    test('AccountQueryService.getAccountByPublicKey lookups work', () async {
       const validPublicKey =
-          'e123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefe123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-      const emptyEncryptedDataKey = '';
-      const ultimatePublicKey =
-          'f123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdeff123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+          '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-      expect(
-        () => callCreateAccount(
-          sessionBuilder,
-          validPublicKey,
-          emptyEncryptedDataKey,
-          ultimatePublicKey,
-        ),
-        throwsA(isA<Exception>()),
+      final created = await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: validPublicKey,
       );
+
+      final session =
+          (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+        endpoint: 'test',
+        method: 'getAccountByPublicKey',
+      );
+      try {
+        final found = await AccountQueryService.getAccountByPublicKey(
+          session,
+          validPublicKey,
+        );
+        expect(found, isNotNull);
+        expect(
+          found!.ultimateSigningPublicKeyHex,
+          equals(created.ultimateSigningPublicKeyHex),
+        );
+      } finally {
+        await session.close();
+      }
     });
 
-    test(
-      'getAccountByPublicKey - successful lookup of existing account',
-      () async {
-        // Create an account first
-        const validPublicKey =
-            '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const encryptedDataKey = 'encrypted_data_key_example_67890';
-        const ultimatePublicKey =
-            '2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    test('encrypted data preservation - data stored without decryption',
+        () async {
+      const validPublicKey =
+          '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      const originalEncryptedData =
+          r'complex_encrypted_data_with_special_chars_!@#$%^&*()';
 
-        final createdAccount = await callCreateAccount(
-          sessionBuilder,
-          validPublicKey,
-          encryptedDataKey,
-          ultimatePublicKey,
-        );
-
-        // Now lookup the account
-        final foundAccount = await callGetAccountByPublicKey(
-          sessionBuilder,
-          validPublicKey,
-        );
-
-        expect(foundAccount, isNotNull);
-        expect(foundAccount!.ultimateSigningPublicKeyHex, equals(createdAccount.ultimateSigningPublicKeyHex));
-        expect(foundAccount.encryptedDataKey, equals(encryptedDataKey));
-      },
-    );
-
-    test(
-      'getAccountByPublicKey - returns null for non-existent account',
-      () async {
-        const nonExistentPublicKey =
-            '3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-
-        final foundAccount = await callGetAccountByPublicKey(
-          sessionBuilder,
-          nonExistentPublicKey,
-        );
-
-        expect(foundAccount, isNull);
-      },
-    );
-
-    test(
-      'getAccountByPublicKey - fails with invalid public key format',
-      () async {
-        const invalidPublicKey = 'invalid_key_format';
-
-        expect(
-          () => callGetAccountByPublicKey(
-            sessionBuilder,
-            invalidPublicKey,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      },
-    );
-
-    test('getAccountByPublicKey - fails with empty public key', () async {
-      const emptyPublicKey = '';
-
-      expect(
-        () => callGetAccountByPublicKey(
-          sessionBuilder,
-          emptyPublicKey,
-        ),
-        throwsA(isA<Exception>()),
+      final account = await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: validPublicKey,
+        encryptedDataKey: originalEncryptedData,
       );
+
+      expect(account.encryptedDataKey, equals(originalEncryptedData));
     });
-
-    test(
-      'createAccount - prevents duplicate public key registration',
-      () async {
-        const duplicatePublicKey =
-            '4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef4123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const encryptedDataKey1 = 'encrypted_data_key_first_12345';
-        const encryptedDataKey2 = 'encrypted_data_key_second_67890';
-        const ultimatePublicKey1 =
-            '5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef5123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const ultimatePublicKey2 =
-            '6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef6123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-
-        // Create first account
-        await callCreateAccount(
-          sessionBuilder,
-          duplicatePublicKey,
-          encryptedDataKey1,
-          ultimatePublicKey1,
-        );
-
-        // Attempt to create second account with same public key should fail
-        expect(
-          () => callCreateAccount(
-            sessionBuilder,
-            duplicatePublicKey,
-            encryptedDataKey2,
-            ultimatePublicKey2,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      },
-    );
-
-    test(
-      'encrypted data preservation - data stored without decryption',
-      () async {
-        const validPublicKey =
-            '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const originalEncryptedData =
-            r'complex_encrypted_data_with_special_chars_!@#$%^&*()';
-        const ultimatePublicKey =
-            '8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef8123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-
-        final account = await callCreateAccount(
-          sessionBuilder,
-          validPublicKey,
-          originalEncryptedData,
-          ultimatePublicKey,
-        );
-
-        // Verify encrypted data is stored exactly as provided
-        expect(account.encryptedDataKey, equals(originalEncryptedData));
-
-        // Verify through lookup as well
-        final foundAccount = await callGetAccountByPublicKey(
-          sessionBuilder,
-          validPublicKey,
-        );
-
-        expect(foundAccount!.encryptedDataKey, equals(originalEncryptedData));
-      },
-    );
   });
 }

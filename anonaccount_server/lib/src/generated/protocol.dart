@@ -21,7 +21,10 @@ import 'authentication_result.dart' as _i8;
 import 'challenge_exists.dart' as _i9;
 import 'device_pairing_event.dart' as _i10;
 import 'device_pairing_info.dart' as _i11;
-import 'package:anonaccount_server/src/generated/account_device.dart' as _i12;
+import 'public_challenge.dart' as _i12;
+import 'public_challenge_response.dart' as _i13;
+import 'rate_limit_counter.dart' as _i14;
+import 'package:anonaccount_server/src/generated/account_device.dart' as _i15;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -31,6 +34,9 @@ export 'authentication_result.dart';
 export 'challenge_exists.dart';
 export 'device_pairing_event.dart';
 export 'device_pairing_info.dart';
+export 'public_challenge.dart';
+export 'public_challenge_response.dart';
+export 'rate_limit_counter.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -208,6 +214,76 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
+    _i2.TableDefinition(
+      name: 'public_challenges',
+      dartName: 'PublicChallenge',
+      schema: 'public',
+      module: 'anonaccount',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'public_challenges_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'challenge',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'expiresAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'public_challenges_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'public_challenges_challenge_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'challenge',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'public_challenges_expires_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'expiresAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
   ];
 
   static String? getClassNameFromObjectJson(dynamic data) {
@@ -266,6 +342,15 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i11.DevicePairingInfo) {
       return _i11.DevicePairingInfo.fromJson(data) as T;
     }
+    if (t == _i12.PublicChallenge) {
+      return _i12.PublicChallenge.fromJson(data) as T;
+    }
+    if (t == _i13.PublicChallengeResponse) {
+      return _i13.PublicChallengeResponse.fromJson(data) as T;
+    }
+    if (t == _i14.RateLimitCounter) {
+      return _i14.RateLimitCounter.fromJson(data) as T;
+    }
     if (t == _i1.getType<_i3.AnonAccount?>()) {
       return (data != null ? _i3.AnonAccount.fromJson(data) : null) as T;
     }
@@ -298,6 +383,16 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i11.DevicePairingInfo?>()) {
       return (data != null ? _i11.DevicePairingInfo.fromJson(data) : null) as T;
     }
+    if (t == _i1.getType<_i12.PublicChallenge?>()) {
+      return (data != null ? _i12.PublicChallenge.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i13.PublicChallengeResponse?>()) {
+      return (data != null ? _i13.PublicChallengeResponse.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i14.RateLimitCounter?>()) {
+      return (data != null ? _i14.RateLimitCounter.fromJson(data) : null) as T;
+    }
     if (t == Map<String, String>) {
       return (data as Map).map(
             (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
@@ -313,9 +408,9 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i12.AccountDevice>) {
+    if (t == List<_i15.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i12.AccountDevice>(e))
+              .map((e) => deserialize<_i15.AccountDevice>(e))
               .toList()
           as T;
     }
@@ -336,6 +431,9 @@ class Protocol extends _i1.SerializationManagerServer {
       _i9.ChallengeExists => 'ChallengeExists',
       _i10.DevicePairingEvent => 'DevicePairingEvent',
       _i11.DevicePairingInfo => 'DevicePairingInfo',
+      _i12.PublicChallenge => 'PublicChallenge',
+      _i13.PublicChallengeResponse => 'PublicChallengeResponse',
+      _i14.RateLimitCounter => 'RateLimitCounter',
       _ => null,
     };
   }
@@ -368,6 +466,12 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'DevicePairingEvent';
       case _i11.DevicePairingInfo():
         return 'DevicePairingInfo';
+      case _i12.PublicChallenge():
+        return 'PublicChallenge';
+      case _i13.PublicChallengeResponse():
+        return 'PublicChallengeResponse';
+      case _i14.RateLimitCounter():
+        return 'RateLimitCounter';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -409,6 +513,15 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'DevicePairingInfo') {
       return deserialize<_i11.DevicePairingInfo>(data['data']);
     }
+    if (dataClassName == 'PublicChallenge') {
+      return deserialize<_i12.PublicChallenge>(data['data']);
+    }
+    if (dataClassName == 'PublicChallengeResponse') {
+      return deserialize<_i13.PublicChallengeResponse>(data['data']);
+    }
+    if (dataClassName == 'RateLimitCounter') {
+      return deserialize<_i14.RateLimitCounter>(data['data']);
+    }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
       return _i2.Protocol().deserializeByClassName(data);
@@ -429,6 +542,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i3.AnonAccount.t;
       case _i5.AccountDevice:
         return _i5.AccountDevice.t;
+      case _i12.PublicChallenge:
+        return _i12.PublicChallenge.t;
     }
     return null;
   }

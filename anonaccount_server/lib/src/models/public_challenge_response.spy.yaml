@@ -1,0 +1,5 @@
+class: PublicChallengeResponse
+fields:
+  challenge: String
+  difficulty: int
+  expiresAt: int

@@ -12,44 +12,89 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
-import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
+import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
     as _i3;
-import 'package:anonaccount_client/src/protocol/account.dart' as _i4;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i5;
+import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
+    as _i4;
+import 'package:anonaccount_client/src/protocol/account.dart' as _i5;
+import 'package:anonaccount_client/src/protocol/account_device.dart' as _i6;
 import 'package:anonaccount_client/src/protocol/authentication_result.dart'
-    as _i6;
-import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
     as _i7;
-import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
+import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
     as _i8;
+import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
+    as _i9;
 
-/// Abstract account endpoint for creation and recovery.
+/// Concrete account endpoint with built-in hashcash PoW spam prevention.
 ///
-/// Abstract so consuming projects must provide a concrete subclass with
-/// their own spam-prevention strategy (e.g. proof-of-work) wrapping both
-/// [createAccount] and [getAccountForRecovery].
+/// Provides account creation and recovery with:
+/// - Hashcash proof-of-work for spam prevention
+/// - ECDSA P-256 signature verification
+/// - Redis-based rate limiting by public key
 ///
 /// Server-only query methods (getAccountById, getAccountByPublicKey) live
 /// in [AccountQueryService] — not exposed to clients.
 /// {@category Endpoint}
-abstract class EndpointAccount extends _i1.EndpointRef {
+class EndpointAccount extends _i1.EndpointRef {
   EndpointAccount(_i1.EndpointCaller caller) : super(caller);
 
-  /// Create new anonymous account with ECDSA P-256 public key identity.
+  @override
+  String get name => 'anonaccount.account';
+
+  /// Get challenge for proof-of-work.
+  ///
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// The client must solve the hashcash puzzle before calling
+  /// [createAccount] or [getAccountForRecovery].
+  _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i3.PublicChallengeResponse>(
+        'anonaccount.account',
+        'getChallenge',
+        {},
+      );
+
+  /// Create new anonymous account with PoW verification.
   ///
   /// Returns [AccountCreationResponse] — no internal int id exposed to client.
-  _i2.Future<_i3.AccountCreationResponse> createAccount(
-    String ultimateSigningPublicKeyHex,
-    String encryptedDataKey,
-    String ultimatePublicKey,
+  _i2.Future<_i4.AccountCreationResponse> createAccount({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String ultimateSigningPublicKeyHex,
+    required String encryptedDataKey,
+    required String ultimatePublicKey,
+  }) => caller.callServerEndpoint<_i4.AccountCreationResponse>(
+    'anonaccount.account',
+    'createAccount',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+      'encryptedDataKey': encryptedDataKey,
+      'ultimatePublicKey': ultimatePublicKey,
+    },
   );
 
-  /// Look up account for recovery by ultimate public key.
+  /// Look up account for recovery with PoW verification.
   ///
+  /// Requires PoW to prevent brute-force probing of public keys.
   /// Returns [AnonAccount] if found, or `null` if no account matches.
-  /// The `encryptedDataKey` field is safe to return because it can only
-  /// be decrypted with the ultimate private key (held offline by the user).
-  _i2.Future<_i4.AnonAccount?> getAccountForRecovery(String ultimatePublicKey);
+  _i2.Future<_i5.AnonAccount?> getAccountForRecovery({
+    required String challenge,
+    required String proofOfWork,
+    required String ultimatePublicKey,
+    required String signature,
+  }) => caller.callServerEndpoint<_i5.AnonAccount?>(
+    'anonaccount.account',
+    'getAccountForRecovery',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'ultimatePublicKey': ultimatePublicKey,
+      'signature': signature,
+    },
+  );
 }
 
 /// Device management endpoints for ECDSA P-256 device registration and authentication
@@ -85,12 +130,12 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - Account does not exist
   /// - Public subkey is already registered
   /// - Required parameters are empty
-  _i2.Future<_i5.AccountDevice> registerDevice(
+  _i2.Future<_i6.AccountDevice> registerDevice(
     String ultimateSigningPublicKeyHex,
     String deviceSigningPublicKeyHex,
     String encryptedDataKey,
     String label,
-  ) => caller.callServerEndpoint<_i5.AccountDevice>(
+  ) => caller.callServerEndpoint<_i6.AccountDevice>(
     'anonaccount.device',
     'registerDevice',
     {
@@ -112,10 +157,10 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - [signature]: ECDSA P-256 signature of the challenge (128 hex chars, r||s format)
   ///
   /// Returns AuthenticationResult with success/failure information.
-  _i2.Future<_i6.AuthenticationResult> authenticateDevice(
+  _i2.Future<_i7.AuthenticationResult> authenticateDevice(
     String challenge,
     String signature,
-  ) => caller.callServerEndpoint<_i6.AuthenticationResult>(
+  ) => caller.callServerEndpoint<_i7.AuthenticationResult>(
     'anonaccount.device',
     'authenticateDevice',
     {
@@ -170,8 +215,8 @@ class EndpointDevice extends _i1.EndpointRef {
   ///
   /// Returns list of AccountDevice objects with metadata.
   /// Returns empty list if no devices are registered.
-  _i2.Future<List<_i5.AccountDevice>> listDevices() =>
-      caller.callServerEndpoint<List<_i5.AccountDevice>>(
+  _i2.Future<List<_i6.AccountDevice>> listDevices() =>
+      caller.callServerEndpoint<List<_i6.AccountDevice>>(
         'anonaccount.device',
         'listDevices',
         {},
@@ -184,12 +229,12 @@ class EndpointDevice extends _i1.EndpointRef {
   ///
   /// Parameters:
   /// - [signingKeyHex]: Device B's ECDSA P-256 signing public key (128 hex)
-  _i2.Stream<_i7.DevicePairingEvent> monitorRegistration(
+  _i2.Stream<_i8.DevicePairingEvent> monitorRegistration(
     String signingKeyHex,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i7.DevicePairingEvent>,
-        _i7.DevicePairingEvent
+        _i2.Stream<_i8.DevicePairingEvent>,
+        _i8.DevicePairingEvent
       >(
         'anonaccount.device',
         'monitorRegistration',
@@ -217,11 +262,11 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - Caller's device not found
   /// - New device public key format is invalid
   /// - New device public key already registered
-  _i2.Future<_i5.AccountDevice> registerDeviceForAccount(
+  _i2.Future<_i6.AccountDevice> registerDeviceForAccount(
     String newDeviceSigningPublicKeyHex,
     String newDeviceEncryptedDataKey,
     String label,
-  ) => caller.callServerEndpoint<_i5.AccountDevice>(
+  ) => caller.callServerEndpoint<_i6.AccountDevice>(
     'anonaccount.device',
     'registerDeviceForAccount',
     {
@@ -245,9 +290,9 @@ class EndpointDevice extends _i1.EndpointRef {
   /// - [signingPublicKeyHex]: Device's ECDSA P-256 signing public key (128 hex)
   ///
   /// Returns DevicePairingInfo if device is registered, null otherwise.
-  _i2.Future<_i8.DevicePairingInfo?> getDeviceBySigningKey(
+  _i2.Future<_i9.DevicePairingInfo?> getDeviceBySigningKey(
     String signingPublicKeyHex,
-  ) => caller.callServerEndpoint<_i8.DevicePairingInfo?>(
+  ) => caller.callServerEndpoint<_i9.DevicePairingInfo?>(
     'anonaccount.device',
     'getDeviceBySigningKey',
     {'signingPublicKeyHex': signingPublicKeyHex},
@@ -256,13 +301,17 @@ class EndpointDevice extends _i1.EndpointRef {
 
 class Caller extends _i1.ModuleEndpointCaller {
   Caller(_i1.ServerpodClientShared client) : super(client) {
+    account = EndpointAccount(this);
     device = EndpointDevice(this);
   }
+
+  late final EndpointAccount account;
 
   late final EndpointDevice device;
 
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
+    'anonaccount.account': account,
     'anonaccount.device': device,
   };
 }

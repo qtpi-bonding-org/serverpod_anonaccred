@@ -22,7 +22,10 @@ export 'src/challenge_storage.dart';
 export 'src/exception_factory.dart';
 // Account query service (not an endpoint — consuming projects decide how to expose)
 export 'src/account_query_service.dart';
-// Endpoints (abstract — consuming projects must subclass)
+// PoW spam prevention services
+export 'src/services/public_challenge_service.dart';
+export 'src/services/rate_limit_service.dart';
+// Endpoints (concrete with built-in PoW spam prevention)
 export 'src/endpoints/account_endpoint.dart';
 // Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';
