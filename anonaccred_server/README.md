@@ -91,7 +91,7 @@ final device = await DeviceEndpoint().registerDevice(
 );
 
 // Generate authentication challenge
-final challenge = await DeviceEndpoint().generateAuthChallenge(session);
+final challenge = await DeviceEndpoint().getSignableNonce(session);
 
 // Authenticate device with challenge-response
 final authResult = await DeviceEndpoint().authenticateDevice(

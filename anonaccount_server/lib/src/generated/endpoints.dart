@@ -251,8 +251,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     label: params['label'],
                   ),
         ),
-        'generateAuthChallenge': _i1.MethodConnector(
-          name: 'generateAuthChallenge',
+        'getSignableNonce': _i1.MethodConnector(
+          name: 'getSignableNonce',
           params: {
             'challenge': _i1.ParameterDescription(
               name: 'challenge',
@@ -279,8 +279,8 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i3.DeviceEndpoint)
-                  .generateAuthChallenge(
+              ) async =>
+                  (endpoints['device'] as _i3.DeviceEndpoint).getSignableNonce(
                     session,
                     challenge: params['challenge'],
                     proofOfWork: params['proofOfWork'],

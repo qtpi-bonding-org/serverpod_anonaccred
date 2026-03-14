@@ -196,19 +196,19 @@ class EndpointDevice extends EndpointPowProtected {
     },
   );
 
-  /// Generate authentication challenge (PoW-protected).
+  /// Get signable nonce (PoW-protected).
   ///
   /// Creates a cryptographically secure challenge string for client use.
   /// The challenge should be signed by the client's private key and returned
   /// for verification via authenticateDevice.
-  _i2.Future<String> generateAuthChallenge({
+  _i2.Future<String> getSignableNonce({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String devicePublicKey,
   }) => caller.callServerEndpoint<String>(
     'anonaccount.device',
-    'generateAuthChallenge',
+    'getSignableNonce',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,

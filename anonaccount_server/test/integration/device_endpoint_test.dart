@@ -194,7 +194,7 @@ void main() {
       },
     );
 
-    test('generateAuthChallenge - should generate unique challenges', () async {
+    test('getSignableNonce - should generate unique challenges', () async {
       // Create account and device with real keypairs
       final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
 
@@ -235,10 +235,10 @@ void main() {
         authChallenge1.challenge,
         difficulty: authChallenge1.difficulty,
       );
-      final authPayload1 = '${authChallenge1.challenge}:generateAuthChallenge:$devicePubKey';
+      final authPayload1 = '${authChallenge1.challenge}:getSignableNonce:$devicePubKey';
       final authSignature1 = SigningTestHelper.signWith(authPayload1, devicePrivKey);
 
-      final challenge1 = await endpoints.device.generateAuthChallenge(
+      final challenge1 = await endpoints.device.getSignableNonce(
         sessionBuilder,
         challenge: authChallenge1.challenge,
         proofOfWork: authPow1,
@@ -251,10 +251,10 @@ void main() {
         authChallenge2.challenge,
         difficulty: authChallenge2.difficulty,
       );
-      final authPayload2 = '${authChallenge2.challenge}:generateAuthChallenge:$devicePubKey';
+      final authPayload2 = '${authChallenge2.challenge}:getSignableNonce:$devicePubKey';
       final authSignature2 = SigningTestHelper.signWith(authPayload2, devicePrivKey);
 
-      final challenge2 = await endpoints.device.generateAuthChallenge(
+      final challenge2 = await endpoints.device.getSignableNonce(
         sessionBuilder,
         challenge: authChallenge2.challenge,
         proofOfWork: authPow2,

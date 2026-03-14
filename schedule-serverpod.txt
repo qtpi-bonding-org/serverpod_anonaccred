@@ -1,0 +1,274 @@
+Setup
+Serverpod supports scheduling future work with the future call feature. Future calls are calls that will be invoked at a later time. An example is if you want to send a drip-email campaign after a user signs up. You can schedule a future call for a day, a week, a month, or a recurring interval. The calls are stored in the database, so they will persist even if the server is restarted.
+
+A future call is guaranteed to only execute once across all your instances that are running, but execution failures are not handled automatically. It is your responsibility to schedule a new future call if the work was not able to complete.
+
+To create future calls, extend the FutureCall class and define the methods you wish to invoke at a later time.
+
+import 'package:serverpod/serverpod.dart';
+
+class ExampleFutureCall extends FutureCall {
+  Future<void> doWork(Session session, String data) async {
+    // Do something interesting in the future here.
+  }
+
+  Future<void> doOtherWork(Session session, String data) async {
+    // Do something interesting in the future here.
+  }
+}
+
+info
+For a method to be recognized by Serverpod as a future call, it must return a Future<void> and take at least two parameters. The first parameter must be a Session object. You can pass any serializable types as other parameters, and even use List, Map, Set or Dart records as long as they are typed. Streaming parameters are not supported.
+
+warning
+It is not valid to override the invoke method of the FutureCall class. This method is reserved for the execution of the future call.
+
+Next, you need to generate the code for your future calls:
+
+$ serverpod generate
+
+Calling serverpod generate will create a type-safe interface for invoking the future calls in the server's generated/future_calls.dart file. This interface can be accessed from the Serverpod object.
+
+The future calls you create are registered by Serverpod after the server starts.
+
+import 'package:serverpod/serverpod.dart';
+import 'package:serverpod_auth_idp_server/core.dart';
+
+import 'src/generated/protocol.dart';
+import 'src/generated/endpoints.dart';
+
+void run(List<String> args) async {
+  final pod = Serverpod(
+    args,
+    Protocol(),
+    Endpoints(),
+  );
+
+  await pod.start();
+}
+
+You are now able to schedule future calls to be invoked in the future by calling either callWithDelay or callAtTime depending on your needs.
+
+note
+The futureCalls getter is only available if at least one future call has been defined.
+
+warning
+Scheduling a future call before the server starts will lead to exceptions.
+
+Invoke a future call 1 hour from now by calling callWithDelay.
+
+await pod.futureCalls
+    .callWithDelay(const Duration(hours: 1))
+    .example
+    .doWork('1');
+
+Invoke a future call at a specific time and/or date in the future by calling callAtTime.
+
+await pod.futureCalls
+    .callAtTime(DateTime(2026, 1, 1))
+    .example
+    .doOtherWork('2');
+
+info
+Scheduling a future call at a specific time/date will always resolve the DateTime to UTC.
+
+When scheduling a future call, it is also possible to give it an identifier so that it can be referenced later. The same identifier can be applied to multiple future calls.
+
+await pod.futureCalls
+    .callWithDelay(
+      const Duration(hours: 1),
+      identifier: 'an-identifying-string',
+    )
+    .example
+    .doWork('1');
+
+This identifier can then be used to cancel all future calls scheduled with said identifier.
+
+await pod.futureCalls.cancel('an-identifying-string');
+
+
+
+
+Recurring Task
+The recommended way to achieve cron-like scheduling is by scheduling a future call inside another. To set this up, extend the FutureCall class and define two methods.
+
+import 'package:serverpod/serverpod.dart';
+
+class ExampleFutureCall extends FutureCall {
+  Future<void> doWork(Session session, int input) async {
+    await _doWork(session, input);
+  }
+
+  Future<void> _doWork(Session session, int input) async {
+    session.log('Working with input $input');
+  }
+}
+
+Next, generate the code for your future call:
+
+$ serverpod generate
+
+info
+Code is only generated for the public method while the private method contains the logic to be invoked as a recurring task.
+
+Next, import the generated endpoints.dart file and schedule the recurring future call using the generated code:
+
+import 'package:serverpod/serverpod.dart';
+import 'generated/endpoints.dart';
+
+class ExampleFutureCall extends FutureCall {
+  Future<void> doWork(Session session, int input) async {
+    await session.serverpod.futureCalls
+        .callWithDelay(const Duration(minutes: 20))
+        .example
+        .doWork(input + 1);
+
+    await _doWork(session, input);
+  }
+
+  Future<void> _doWork(Session session, int input) async {
+    session.log('Working with input $input');
+  }
+}
+
+Now when you schedule the doWork future call, it will continously invoke _doWork at an interval of 20 minutes.
+
+import 'package:serverpod/serverpod.dart'; 
+import 'package:serverpod_auth_idp_server/core.dart'; 
+  
+import 'src/generated/protocol.dart'; 
+import 'src/generated/endpoints.dart'; 
+  
+void run(List<String> args) async { 
+  final pod = Serverpod( 
+    args, 
+    Protocol(), 
+    Endpoints(), 
+  ); 
+ 
+  await pod.start(); 
+  await pod.futureCalls.callWithDelay(Duration(minutes: 20)).example.doWork(2);
+}
+
+Edit this page
+
+
+
+Inheritance
+Inheritance gives you the possibility to modify the behavior of FutureCall classes defined in other Serverpod modules. If the parent FutureCall class was marked as abstract, no code is generated for it.
+
+Currently, there are the following possibilities to extend another FutureCall class:
+
+Inheriting from a FutureCall class
+Given an existing FutureCall class, it is possible to extend or modify its behavior while retaining the already exposed methods.
+
+import 'package:serverpod/serverpod.dart';
+
+class Greeter extends FutureCall {
+  Future<void> hello(Session session, String name) async {
+    session.log('Hello $name');
+  }
+}
+
+class MyGreeter extends Greeter {
+  Future<void> bye(Session session, String name) async {
+    session.log('Bye $name');
+  }
+}
+
+The generated server code will now be able to access both Greeter and MyGreeter. Whereas the Greeter only exposes the original hello method, MyGreeter now exposes both the inherited hello and its own bye methods.
+
+Inheriting from a FutureCall class marked abstract
+Future calls marked as abstract are not added to the server. But if they are subclassed, their methods will be exposed through the subclass.
+
+import 'package:serverpod/serverpod.dart';
+
+abstract class Greeter extends FutureCall {
+  Future<void> hello(Session session, String name) async {
+    session.log('Hello $name');
+  }
+}
+
+class MyGreeter extends Greeter {}
+
+Since Greeter is abstract, it will not be added to the server. However, MyGreeter will expose a single hello method.
+
+info
+Serverpod modules can expose future calls to users with abstract FutureCall. Code is only generated on the current project that extends the abstract future call.
+
+Extending an abstract FutureCall class
+In the above example, the MyGreeter only exposed the inherited hello method. It can be further extended with custom methods like this:
+
+import 'package:serverpod/serverpod.dart';
+
+class MyGreeter extends Greeter {
+  Future<void> bye(Session session, String name) async {
+    session.log('Bye $name');
+  }
+}
+
+In this case, it will expose both a hello and a bye method.
+
+Overriding future call methods
+It is possible to override methods of the superclass. This can be useful when you want to modify the behavior of specific methods but preserve the rest.
+
+import 'package:serverpod/serverpod.dart';
+
+abstract class Greeter extends FutureCall {
+  Future<void> hello(Session session, String name) async {
+    session.log('Hello $name');
+  }
+}
+
+class ExcitedGreeter extends Greeter {
+  @override
+  Future<void> hello(Session session, String name) async {
+    session.log('Hello $name!!!');
+  }
+}
+
+Since Greeter is abstract, it will not be exposed on the server. The ExcitedGreeter will expose a single hello method, and its implementation will augment the superclass's one by adding !!! to the output.
+
+This way, you can modify the behavior of future call methods while still sharing the implementation through calls to super. Be aware that the method signature has to be compatible with the base class per Dart's rules, meaning you can add optional parameters, but can not add required parameters or change the return type.
+
+Edit this page
+
+
+
+Configuration
+Future calls can be configured using options defined in the configuration files or environment variables. For a detailed list of configuration options, refer to the Configuration page.
+
+Below is an example of how you can configure future calls in a YAML file:
+
+futureCallExecutionEnabled: true
+
+futureCall:
+  concurrencyLimit: 5
+  scanInterval: 2000
+
+Enable or disable future call execution
+This option allows you to enable or disable the execution of future calls. By default, it is set to true. You might want to disable future call execution in environments where you don't want background tasks to run, such as during testing or in a staging environment where you want to focus on API behavior without triggering scheduled tasks.
+
+Example configuration:
+
+futureCallExecutionEnabled: false
+
+Concurrency limit
+This option sets the maximum number of future calls that can run concurrently. By default, it is set to 1. Configuring this is useful if you have resource-intensive tasks and want to avoid overloading your server. For example, in a production environment, you might want to tune this value to ensure that not all of the server's resources are allocated to future calls, leaving room for other critical tasks.
+
+Setting this value to a negative number or null removes the limitation, allowing an unlimited number of concurrent future calls. However, this should be used with caution as it can lead to resource exhaustion.
+
+Example configuration:
+
+futureCall:
+  concurrencyLimit: 5  # Adjust this value based on your server's capacity
+
+Scan interval
+This option determines how often the system scans for future calls to execute, in milliseconds. The default value is 5000 (5 seconds). Adjusting this interval can help balance responsiveness and resource usage. For example, reducing the interval can make future calls execute closer to their scheduled time, while increasing it can reduce database load in environments with limited resources.
+
+Example configuration:
+
+futureCall:
+  scanInterval: 2000  # Adjust this value based on your server's responsiveness needs
+
+Edit this page

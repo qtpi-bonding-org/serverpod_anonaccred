@@ -5,7 +5,7 @@ account:
   - verifyPow:
 device:
   - registerDevice:
-  - generateAuthChallenge:
+  - getSignableNonce:
   - getDeviceBySigningKey:
   - monitorRegistration:
   - getChallenge:

@@ -1,0 +1,842 @@
+Web Service
+App Store Server Notifications
+Monitor In-App Purchase events in real time and learn of unreported external purchase tokens, with server notifications from the App Store.
+App Store Server Notifications 1.0+
+Overview
+App Store Server Notifications is a server-to-server service that sends real-time notifications for In-App Purchase events, and notifications for unreported external purchase tokens. Use the data in the notifications to update your user-account database, and to monitor and respond to in-app purchase refunds. For notifications related to the External Purchase API, see externalPurchaseToken.
+
+Important
+
+The App Store Server Notifications V1 endpoint and version 1 notifications, notification_type, are deprecated. Implement the App Store Server Notifications V2 endpoint on your server to receive version 2 notifications instead.
+
+To receive server notifications from the App Store, provide your server’s HTTPS URL in App Store Connect. Opt in to receive notifications for the production environment and the sandbox environment. For more information, see Enabling App Store Server Notifications.
+
+Your server is responsible for parsing, interpreting, and responding to all server-to-server notification posts. For more information, see Receiving App Store Server Notifications and Responding to App Store Server Notifications.
+
+Process in-app purchase notifications
+Notifications cover events in the in-app purchase life cycle, including purchases, subscription renewals, offer redemptions, refunds, and more. For a complete list of notification types, see notificationType for App Store Server Notifications V2.
+
+Use the notification type, along with the transaction and subscription renewal information, to update a customer’s service or to present promotional offers according to your business logic.
+
+Process external purchase token notifications
+A notificationType of EXTERNAL_PURCHASE_TOKEN with an UNREPORTED subtype indicates that Apple generated an external purchase token for your app but hasn’t received a report for the token. The notification includes the token in the externalPurchaseToken field of the responseBodyV2DecodedPayload. Use the token information to report it to Apple, including if you don’t recognize the token in your system. To report tokens, with or without associated transactions, call the External Purchase Server API’s Send External Purchase Report endpoint.
+
+For more information about token reporting requirements, see Using alternative payment options on the App Store in the European Union.
+
+Test your server setup
+To determine whether your server is receiving notifications, call the Request a Test Notification endpoint in the App Store Server API to ask the App Store server to send a notification with the notificationType TEST. Use the testNotificationToken you receive to call the Get Test Notification Status endpoint to learn how your server responds to the test notification.
+
+The App Store server sends the TEST notification in the version 2 notification format, however, it sends it to your server regardless of whether you configure a version 1 or version 2 notification URL in App Store Connect. For more information about configuring your URL in App Store Connect, see Enter a URL for App Store server notifications.
+
+Topics
+Essentials
+Enabling App Store Server Notifications
+Configure your server and provide an HTTPS URL to receive notifications about in-app purchase events and unreported external purchase tokens.
+Receiving App Store Server Notifications
+Implement server-side code to receive and parse notification posts.
+Responding to App Store Server Notifications
+Send HTTP status codes to indicate the success of a notification post.
+App Store Server Notifications changelog
+Learn about changes to the App Store Server Notifications service.
+Server notifications version 2
+App Store Server Notifications V2
+Specify your secure server’s URL in App Store Connect to receive version 2 notifications.
+object responseBodyV2
+The response body the App Store sends in a version 2 server notification.
+object responseBodyV2DecodedPayload
+A decoded payload that contains the version 2 notification data.
+type notificationType
+The type that describes the In-App Purchase or external purchase event for which the App Store sends the version 2 notification.
+type subtype
+A string that provides details about select notification types in version 2.
+Deprecated
+App Store Server Notifications Version 1
+Receive, parse, and interpret App Store Server Notifications version 1.
+See Also
+Related Documentation
+In-App Purchase
+Offer content and services in your app across Apple platforms using a Swift-based interface.
+App Store Server API
+Manage your customers’ App Store transactions from your server.
+App Store Receipts
+Validate app and In-App Purchase receipts with the App Store.
+
+
+
+App Store Server Notifications
+App Store Server Notifications V2
+Web Service Endpoint
+App Store Server Notifications V2
+Specify your secure server’s URL in App Store Connect to receive version 2 notifications.
+App Store Server Notifications 2.0+
+URL
+POST https://example.com/v2
+Response Codes
+200
+responseBodyV2
+OK
+The response body for a version 2 notification.
+
+Content-Type: application/json
+Mentioned in
+App Store Server Notifications changelog
+Enabling App Store Server Notifications
+Receiving App Store Server Notifications
+Responding to App Store Server Notifications
+Discussion
+To receive server notifications from the App Store, provide your secure server’s HTTPS URL in App Store Connect. For more information, see Enabling App Store Server Notifications. To secure your server and receive notifications, your server must support the Transport Layer Security (TLS) protocol version 1.2 or later.
+
+Upon receiving a server notification, respond to the App Store with an HTTP status code of 200-206 if the post was successful. If the post was unsuccessful, send HTTP 50x or 40x to have the App Store retry the notification. For more information, see Responding to App Store Server Notifications.
+
+See Also
+Server notifications version 2
+object responseBodyV2
+The response body the App Store sends in a version 2 server notification.
+object responseBodyV2DecodedPayload
+A decoded payload that contains the version 2 notification data.
+type notificationType
+The type that describes the In-App Purchase or external purchase event for which the App Store sends the version 2 notification.
+type subtype
+A string that provides details about select notification types in version 2.
+
+
+
+App Store Server Notifications
+responseBodyV2
+Object
+responseBodyV2
+The response body the App Store sends in a version 2 server notification.
+App Store Server Notifications 2.0+
+object responseBodyV2
+Properties
+signedPayload
+signedPayload
+The payload in JSON Web Signature (JWS) format, signed by the App Store.
+Mentioned in
+Receiving App Store Server Notifications
+App Store Server Notifications changelog
+Discussion
+The signedPayload object is a JWS representation. To get the transaction and subscription renewal details from the notification payload, process the signedPayload as follows:
+
+Parse signedPayload to identify the JWS header, payload, and signature representations.
+
+Base64URL-decode the payload to get the responseBodyV2DecodedPayload. The decoded payload contains details of the notification such as the notification type and data.
+
+The data object contains a signedTransactionInfo (JWSTransaction) and based on the notification type, a signedRenewalInfo (JWSRenewalInfo). Parse and Base64URL-decode these signed JWS representations to get transaction and subscription renewal details.
+
+Each of the signed JWS representations, signedPayload, signedTransactionInfo, and signedRenewalInfo, have a JWS signature that you can validate on your server. Use the algorithm specified in the header’s alg parameter to validate the signature. For more information about validating signatures, see the JSON Web Signature (JWS) IETF RFC 7515 specification.
+
+Topics
+Response body payload
+type signedPayload
+A cryptographically signed payload, in JSON Web Signature (JWS) format, that contains the response body for a version 2 notification.
+See Also
+Server notifications version 2
+App Store Server Notifications V2
+Specify your secure server’s URL in App Store Connect to receive version 2 notifications.
+object responseBodyV2DecodedPayload
+A decoded payload that contains the version 2 notification data.
+type notificationType
+The type that describes the In-App Purchase or external purchase event for which the App Store sends the version 2 notification.
+type subtype
+A string that provides details about select notification types in version 2.
+
+
+App Store Server Notifications
+signedPayload
+Type
+signedPayload
+A cryptographically signed payload, in JSON Web Signature (JWS) format, that contains the response body for a version 2 notification.
+App Store Server Notifications 2.0+
+string signedPayload
+Mentioned in
+Receiving App Store Server Notifications
+Discussion
+The signedPayload is a string of three Base64URL-encoded components, separated by a period. The string contains a JWS representation of the notification response body, signed by the App Store according to the JSON Web Signature (JWS) IETF RFC 7515 specification.
+
+The three components of the string are a header, a payload, and a signature, in that order.
+
+To read the notification response body, Base64URL-decode the payload. Use a responseBodyV2DecodedPayload object to read the payload information.
+
+To read the header, Base64URL-decode it and use a JWSDecodedHeader object to access the information. Use the information in the decoded header to verify the signature.
+
+
+
+App Store Server Notifications
+responseBodyV2DecodedPayload
+Object
+responseBodyV2DecodedPayload
+A decoded payload that contains the version 2 notification data.
+App Store Server Notifications 2.0+
+object responseBodyV2DecodedPayload
+Properties
+notificationType
+notificationType
+The in-app purchase event for which the App Store sends this version 2 notification.
+subtype
+subtype
+Additional information that identifies the notification event. The subtype field is present only for specific version 2 notifications.
+data
+data
+The object that contains the app metadata and signed renewal and transaction information.
+The data, appData, summary, and externalPurchaseToken fields are mutually exclusive. The payload contains only one of these fields.
+
+summary
+summary
+The summary data that appears when the App Store server completes your request to extend a subscription renewal date for eligible subscribers. For more information, see Extend Subscription Renewal Dates for All Active Subscribers.
+The data, appData, summary, and externalPurchaseToken fields are mutually exclusive. The payload contains only one of these fields.
+
+externalPurchaseToken
+externalPurchaseToken
+This field appears when the notificationType is EXTERNAL_PURCHASE_TOKEN.
+The data, appData, summary, and externalPurchaseToken fields are mutually exclusive. The payload contains only one of these fields.
+
+appData
+appData
+The object that contains the app metadata and signed app transaction information. This field appears when the notificationType is RESCIND_CONSENT.
+The data, appData, summary, and externalPurchaseToken fields are mutually exclusive. The payload contains only one of these fields.
+
+version
+version
+The App Store Server Notification version number, "2.0".
+signedDate
+signedDate
+The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature data.
+notificationUUID
+notificationUUID
+A unique identifier for the notification. Use this value to identify a duplicate notification.
+Mentioned in
+App Store Server Notifications changelog
+Discussion
+The responseBodyV2DecodedPayload is the Base64URL-decoded notification information from the JWS payload portion of the signedPayload. Use the notificationType and subtype to understand the event that led to this notification.
+
+The payload can contain only one of the following four fields:
+
+A data object, which contains details including the environment, the app metadata, and the signed transaction and subscription renewal information.
+
+An appData object, which contains details including the environment, the app metadata, and the signed app transaction information.
+
+A summary object, which contains information only when the notification is a RENEWAL_EXTENSION with a SUMMARY subtype. For more information, see Extend Subscription Renewal Dates for All Active Subscribers.
+
+An externalPurchaseToken object, which contains an external purchase token only when the notification is EXTERNAL_PURCHASE_TOKEN. For more information about this notification, see externalPurchaseToken.
+
+Topics
+Response objects for in-app purchases
+object summary
+The payload data for a subscription-renewal-date extension notification.
+object data
+The payload data that contains app metadata and the signed renewal and transaction information.
+object appData
+The object that contains the app metadata and signed app transaction information.
+Response object for an external purchase
+object externalPurchaseToken
+The payload data that contains an external purchase token.
+Response types
+type notificationType
+The type that describes the In-App Purchase or external purchase event for which the App Store sends the version 2 notification.
+type subtype
+A string that provides details about select notification types in version 2.
+type version
+A string that indicates the notification’s App Store Server Notifications version number.
+type signedDate
+The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature data.
+type notificationUUID
+A unique identifier for the notification.
+JWS header and payload data types
+object JWSTransactionDecodedPayload
+A decoded payload that contains transaction information.
+object JWSRenewalInfoDecodedPayload
+A decoded payload containing subscription renewal information for an auto-renewable subscription.
+object JWSDecodedHeader
+A decoded JSON Web Signature header containing transaction or renewal information.
+Transaction data types
+Refer to these data types for decoded transaction and renewal information payloads.
+See Also
+Server notifications version 2
+App Store Server Notifications V2
+Specify your secure server’s URL in App Store Connect to receive version 2 notifications.
+object responseBodyV2
+The response body the App Store sends in a version 2 server notification.
+type notificationType
+The type that describes the In-App Purchase or external purchase event for which the App Store sends the version 2 notification.
+type subtype
+A string that provides details about select notification types in version 2.
+
+
+
+App Store Server Notifications
+summary
+Object
+summary
+The payload data for a subscription-renewal-date extension notification.
+App Store Server Notifications 2.7+
+object summary
+Properties
+requestIdentifier
+requestIdentifier
+The UUID that represents a specific request to extend a subscription renewal date. This value matches the value you initially specify in the requestIdentifier when you call Extend Subscription Renewal Dates for All Active Subscribers in the App Store Server API.
+environment
+environment
+The server environment that the notification applies to, either sandbox or production.
+appAppleId
+appAppleId
+The unique identifier of the app that the notification applies to. This property is available for apps that users download from the App Store. It isn’t present in the sandbox environment.
+bundleId
+bundleId
+The bundle identifier of the app.
+productId
+productId
+The product identifier of the auto-renewable subscription that the subscription-renewal-date extension applies to.
+storefrontCountryCodes
+storefrontCountryCodes
+A list of country codes that limits the App Store’s attempt to apply the subscription-renewal-date extension. If this list isn’t present, the subscription-renewal-date extension applies to all storefronts.
+failedCount
+failedCount
+The final count of subscriptions that fail to receive a subscription-renewal-date extension.
+succeededCount
+succeededCount
+The final count of subscriptions that successfully receive a subscription-renewal-date extension.
+Mentioned in
+App Store Server Notifications changelog
+Discussion
+The summary object appears in the responseBodyV2DecodedPayload when the notificationType is RENEWAL_EXTENSION and the subtype is SUMMARY. This notification occurs when the App Store completes your request to extend the subscription renewal date for eligible subscribers. For more information about this request, see Extend Subscription Renewal Dates for All Active Subscribers in the App Store Server API.
+
+Topics
+Data types
+type requestIdentifier
+A string that contains a unique identifier for a subscription-renewal-date extension request.
+type environment
+The server environment, either sandbox or production.
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleId
+The bundle identifier of an app.
+type productId
+The product identifier of the In-App Purchase.
+type storefrontCountryCodes
+A list of storefront country codes for limiting the storefronts for a subscription-renewal-date extension.
+type storefrontCountryCode
+The three-letter code that represents the country or region associated with the App Store storefront.
+type failedCount
+The count of subscriptions that fail to receive a subscription-renewal-date extension.
+type succeededCount
+The count of subscriptions that successfully receive a subscription-renewal-date extension.
+See Also
+Response objects for in-app purchases
+object data
+The payload data that contains app metadata and the signed renewal and transaction information.
+object appData
+The object that contains the app metadata and signed app transaction information.
+
+
+
+App Store Server Notifications
+requestIdentifier
+Type
+requestIdentifier
+A string that contains a unique identifier for a subscription-renewal-date extension request.
+App Store Server Notifications 2.7+
+uuid requestIdentifier
+Discussion
+You originally specify the requestIdentifier when you call Extend Subscription Renewal Dates for All Active Subscribers in the App Store Server API.
+
+See Also
+Data types
+type environment
+The server environment, either sandbox or production.
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleId
+The bundle identifier of an app.
+type productId
+The product identifier of the In-App Purchase.
+type storefrontCountryCodes
+A list of storefront country codes for limiting the storefronts for a subscription-renewal-date extension.
+type storefrontCountryCode
+The three-letter code that represents the country or region associated with the App Store storefront.
+type failedCount
+The count of subscriptions that fail to receive a subscription-renewal-date extension.
+type succeededCount
+The count of subscriptions that successfully receive a subscription-renewal-date extension.
+
+
+App Store Server Notifications
+environment
+Type
+environment
+The server environment, either sandbox or production.
+App Store Server Notifications 2.0+
+string environment
+Possible Values
+Sandbox
+Indicates that the notification applies to testing in the sandbox environment.
+
+Production
+Indicates that the notification applies to the production environment.
+
+Discussion
+You receive notifications in the sandbox environment when you opt in to receive notifications in the sandbox environment and test your app in the sandbox environment. TestFlight also uses the sandbox environment to send notifications. To opt in to receive notifications, see Enter a URL for App Store Server Notifications. For more information about testing, see Testing at all stages of development with Xcode and the sandbox, and Beta Testing Made Simple with TestFlight.
+
+See Also
+App metadata and environment
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleId
+The bundle identifier of an app.
+type bundleVersion
+The version of the build that identifies an iteration of the bundle.
+type status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+
+
+App Store Server Notifications
+appAppleId
+Type
+appAppleId
+The unique identifier of an app in the App Store.
+App Store Server Notifications 2.0+
+int64 appAppleId
+See Also
+App metadata and environment
+type bundleId
+The bundle identifier of an app.
+type bundleVersion
+The version of the build that identifies an iteration of the bundle.
+type environment
+The server environment, either sandbox or production.
+type status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+
+
+
+Type
+bundleId
+The bundle identifier of an app.
+App Store Server Notifications 2.0+
+string bundleId
+See Also
+App metadata and environment
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleVersion
+The version of the build that identifies an iteration of the bundle.
+type environment
+The server environment, either sandbox or production.
+type status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+
+
+
+App Store Server Notifications
+succeededCount
+Type
+succeededCount
+The count of subscriptions that successfully receive a subscription-renewal-date extension.
+App Store Server Notifications 2.7+
+int64 succeededCount
+See Also
+Data types
+type requestIdentifier
+A string that contains a unique identifier for a subscription-renewal-date extension request.
+type environment
+The server environment, either sandbox or production.
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleId
+The bundle identifier of an app.
+type productId
+The product identifier of the In-App Purchase.
+type storefrontCountryCodes
+A list of storefront country codes for limiting the storefronts for a subscription-renewal-date extension.
+type storefrontCountryCode
+The three-letter code that represents the country or region associated with the App Store storefront.
+type failedCount
+The count of subscriptions that fail to receive a subscription-renewal-date extension.
+
+
+
+Object
+data
+The payload data that contains app metadata and the signed renewal and transaction information.
+App Store Server Notifications 2.0+
+object data
+Properties
+appAppleId
+appAppleId
+The unique identifier of the app that the notification applies to. This property is available for apps that users download from the App Store. It isn’t present in the sandbox environment.
+bundleId
+bundleId
+The bundle identifier of the app.
+bundleVersion
+bundleVersion
+The version of the build that identifies an iteration of the bundle.
+consumptionRequestReason
+consumptionRequestReason
+The reason the customer requested the refund. This field appears only for CONSUMPTION_REQUEST notifications, which the server sends when a customer initiates a refund request for a consumable in-app purchase or auto-renewable subscription.
+environment
+environment
+The server environment that the notification applies to, either sandbox or production.
+signedRenewalInfo
+JWSRenewalInfo
+Subscription renewal information signed by the App Store, in JSON Web Signature (JWS) format. This field appears only for notifications that apply to auto-renewable subscriptions.
+signedTransactionInfo
+JWSTransaction
+Transaction information signed by the App Store, in JSON Web Signature (JWS) format.
+status
+status
+The status of an auto-renewable subscription as of the signedDate in the responseBodyV2DecodedPayload. This field appears only for notifications sent for auto-renewable subscriptions.
+Mentioned in
+App Store Server Notifications changelog
+Receiving App Store Server Notifications
+Discussion
+The data object is part of the responseBodyV2DecodedPayload. It’s present in the payload for notificationType values related to in-app purchases, except for the RENEWAL_EXTENSION notification type with a SUMMARY subtype, and the EXTERNAL_PURCHASE_TOKEN notification type.
+
+Use the notification type along with the transaction and subscription renewal information in the data object to update a user’s service or present promotional offers according to your business logic.
+
+Topics
+App metadata and environment
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleId
+The bundle identifier of an app.
+type bundleVersion
+The version of the build that identifies an iteration of the bundle.
+type environment
+The server environment, either sandbox or production.
+type status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+JWS transaction and renewal info
+type JWSRenewalInfo
+Subscription renewal information signed by the App Store, in JSON Web Signature (JWS) format.
+object JWSRenewalInfoDecodedPayload
+A decoded payload containing subscription renewal information for an auto-renewable subscription.
+type JWSTransaction
+Transaction information signed by the App Store, in JSON Web Signature (JWS) Compact Serialization format.
+object JWSTransactionDecodedPayload
+A decoded payload that contains transaction information.
+Consumption request info
+type consumptionRequestReason
+The customer-provided reason for a refund request.
+See Also
+Response objects for in-app purchases
+object summary
+The payload data for a subscription-renewal-date extension notification.
+object appData
+The object that contains the app metadata and signed app transaction information.
+
+
+Type
+appAppleId
+The unique identifier of an app in the App Store.
+App Store Server Notifications 2.0+
+int64 appAppleId
+See Also
+App metadata and environment
+type bundleId
+The bundle identifier of an app.
+type bundleVersion
+The version of the build that identifies an iteration of the bundle.
+type environment
+The server environment, either sandbox or production.
+type status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+
+
+Type
+bundleId
+The bundle identifier of an app.
+App Store Server Notifications 2.0+
+string bundleId
+See Also
+App metadata and environment
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleVersion
+The version of the build that identifies an iteration of the bundle.
+type environment
+The server environment, either sandbox or production.
+type status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+
+
+
+Type
+bundleVersion
+The version of the build that identifies an iteration of the bundle.
+App Store Server Notifications 2.0+
+string bundleVersion
+See Also
+App metadata and environment
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleId
+The bundle identifier of an app.
+type environment
+The server environment, either sandbox or production.
+type status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+
+
+Type
+environment
+The server environment, either sandbox or production.
+App Store Server Notifications 2.0+
+string environment
+Possible Values
+Sandbox
+Indicates that the notification applies to testing in the sandbox environment.
+
+Production
+Indicates that the notification applies to the production environment.
+
+Discussion
+You receive notifications in the sandbox environment when you opt in to receive notifications in the sandbox environment and test your app in the sandbox environment. TestFlight also uses the sandbox environment to send notifications. To opt in to receive notifications, see Enter a URL for App Store Server Notifications. For more information about testing, see Testing at all stages of development with Xcode and the sandbox, and Beta Testing Made Simple with TestFlight.
+
+See Also
+App metadata and environment
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleId
+The bundle identifier of an app.
+type bundleVersion
+The version of the build that identifies an iteration of the bundle.
+type status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+
+
+Type
+status
+The status of an auto-renewable subscription at the time the App Store signs the notification.
+App Store Server Notifications 2.8+
+int32 status
+Possible Values
+1
+The auto-renewable subscription is active.
+
+2
+The auto-renewable subscription is expired.
+
+3
+The auto-renewable subscription is in a billing retry period.
+
+4
+The auto-renewable subscription is in a Billing Grace Period.
+
+5
+The auto-renewable subscription is revoked. The App Store refunded the transaction or revoked it from Family Sharing.
+
+Mentioned in
+App Store Server Notifications changelog
+Discussion
+This status value is current as of the signedDate in the decoded payload, responseBodyV2DecodedPayload.
+
+See Also
+App metadata and environment
+type appAppleId
+The unique identifier of an app in the App Store.
+type bundleId
+The bundle identifier of an app.
+type bundleVersion
+The version of the build that identifies an iteration of the bundle.
+type environment
+The server environment, either sandbox or production.
+
+
+JWSRenewalInfo
+Subscription renewal information signed by the App Store, in JSON Web Signature (JWS) format.
+App Store Server Notifications 2.0+
+string JWSRenewalInfo
+Discussion
+The JWSRenewalInfo type is a string of three Base64 URL-encoded components, separated by a period. The string contains the JWS representation of the subscription renewal information, signed by the App Store according to the JSON Web Signature (JWS) IETF RFC 7515 specification.
+
+The three components in the string are a header, a payload, and a signature, in that order.
+
+To read the subscription renewal information, Base64 URL-decode the payload. Use a JWSRenewalInfoDecodedPayload object to read the payload information.
+
+To read the header, Base64 URL-decode it and use a JWSDecodedHeader object to access the information. Use the information in the header to verify the signature.
+
+See Also
+JWS transaction and renewal info
+object JWSRenewalInfoDecodedPayload
+A decoded payload containing subscription renewal information for an auto-renewable subscription.
+type JWSTransaction
+Transaction information signed by the App Store, in JSON Web Signature (JWS) Compact Serialization format.
+object JWSTransactionDecodedPayload
+A decoded payload that contains transaction information.
+
+
+
+
+Object
+JWSRenewalInfoDecodedPayload
+A decoded payload containing subscription renewal information for an auto-renewable subscription.
+App Store Server Notifications 2.0+
+object JWSRenewalInfoDecodedPayload
+Properties
+appAccountToken
+appAccountToken
+A UUID you create at the time of purchase that associates the transaction with a customer on your own service. This is the token that applies to the upcoming renewal transaction. If your app doesn’t provide an appAccountToken, this field is omitted. For more information, see appAccountToken(_:).
+appTransactionId
+appTransactionId
+The unique identifier of the app download transaction.
+autoRenewProductId
+autoRenewProductId
+The product identifier of the product that renews at the next billing period.
+autoRenewStatus
+autoRenewStatus
+The renewal status of the auto-renewable subscription.
+currency
+currency
+The currency code for the renewalPrice of the subscription.
+eligibleWinBackOfferIds
+eligibleWinBackOfferIds
+The list of win-back offer IDs that the customer is eligible for.
+environment
+environment
+The server environment, either sandbox or production.
+expirationIntent
+expirationIntent
+The reason the subscription expired.
+gracePeriodExpiresDate
+gracePeriodExpiresDate
+The time when the Billing Grace Period for subscription renewals expires.
+isInBillingRetryPeriod
+isInBillingRetryPeriod
+The Boolean value that indicates whether the App Store is attempting to automatically renew the expired subscription.
+offerDiscountType
+offerDiscountType
+The payment mode of the discount offer.
+offerIdentifier
+offerIdentifier
+The offer code or the promotional offer identifier.
+offerPeriod
+offerPeriod
+The duration of the offer.
+offerType
+offerType
+The type of offer.
+originalTransactionId
+originalTransactionId
+The transaction identifier of the original purchase associated with this transaction.
+priceIncreaseStatus
+priceIncreaseStatus
+The status that indicates whether the auto-renewable subscription is subject to a price increase.
+productId
+productId
+The product identifier of the In-App Purchase.
+recentSubscriptionStartDate
+recentSubscriptionStartDate
+The earliest start date of the auto-renewable subscription in a series of subscription purchases that ignores all lapses of paid service that are 60 days or fewer.
+renewalDate
+renewalDate
+The UNIX time, in milliseconds, when the most recent auto-renewable subscription purchase expires.
+renewalPrice
+renewalPrice
+The renewal price, in milliunits, of the auto-renewable subscription that renews at the next billing period.
+signedDate
+signedDate
+The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature (JWS) data.
+advancedCommerceInfo
+advancedCommerceRenewalInfo
+Renewal information that is present only for Advanced Commerce API SKUs.
+Mentioned in
+App Store Server Notifications changelog
+Topics
+Data types
+Transaction data types
+Refer to these data types for decoded transaction and renewal information payloads.
+See Also
+JWS header and payload data types
+object JWSTransactionDecodedPayload
+A decoded payload that contains transaction information.
+object JWSDecodedHeader
+A decoded JSON Web Signature header containing transaction or renewal information.
+Transaction data types
+Refer to these data types for decoded transaction and renewal information payloads.
+
+
+JWSRenewalInfoDecodedPayload
+A decoded payload containing subscription renewal information for an auto-renewable subscription.
+App Store Server Notifications 2.0+
+object JWSRenewalInfoDecodedPayload
+Properties
+appAccountToken
+appAccountToken
+A UUID you create at the time of purchase that associates the transaction with a customer on your own service. This is the token that applies to the upcoming renewal transaction. If your app doesn’t provide an appAccountToken, this field is omitted. For more information, see appAccountToken(_:).
+appTransactionId
+appTransactionId
+The unique identifier of the app download transaction.
+autoRenewProductId
+autoRenewProductId
+The product identifier of the product that renews at the next billing period.
+autoRenewStatus
+autoRenewStatus
+The renewal status of the auto-renewable subscription.
+currency
+currency
+The currency code for the renewalPrice of the subscription.
+eligibleWinBackOfferIds
+eligibleWinBackOfferIds
+The list of win-back offer IDs that the customer is eligible for.
+environment
+environment
+The server environment, either sandbox or production.
+expirationIntent
+expirationIntent
+The reason the subscription expired.
+gracePeriodExpiresDate
+gracePeriodExpiresDate
+The time when the Billing Grace Period for subscription renewals expires.
+isInBillingRetryPeriod
+isInBillingRetryPeriod
+The Boolean value that indicates whether the App Store is attempting to automatically renew the expired subscription.
+offerDiscountType
+offerDiscountType
+The payment mode of the discount offer.
+offerIdentifier
+offerIdentifier
+The offer code or the promotional offer identifier.
+offerPeriod
+offerPeriod
+The duration of the offer.
+offerType
+offerType
+The type of offer.
+originalTransactionId
+originalTransactionId
+The transaction identifier of the original purchase associated with this transaction.
+priceIncreaseStatus
+priceIncreaseStatus
+The status that indicates whether the auto-renewable subscription is subject to a price increase.
+productId
+productId
+The product identifier of the In-App Purchase.
+recentSubscriptionStartDate
+recentSubscriptionStartDate
+The earliest start date of the auto-renewable subscription in a series of subscription purchases that ignores all lapses of paid service that are 60 days or fewer.
+renewalDate
+renewalDate
+The UNIX time, in milliseconds, when the most recent auto-renewable subscription purchase expires.
+renewalPrice
+renewalPrice
+The renewal price, in milliunits, of the auto-renewable subscription that renews at the next billing period.
+signedDate
+signedDate
+The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature (JWS) data.
+advancedCommerceInfo
+advancedCommerceRenewalInfo
+Renewal information that is present only for Advanced Commerce API SKUs.
+Mentioned in
+App Store Server Notifications changelog
+Topics
+Data types
+Transaction data types
+Refer to these data types for decoded transaction and renewal information payloads.
+See Also
+JWS header and payload data types
+object JWSTransactionDecodedPayload
+A decoded payload that contains transaction information.
+object JWSDecodedHeader
+A decoded JSON Web Signature header containing transaction or renewal information.
+Transaction data types
+Refer to these data types for decoded transaction and renewal information payloads.

@@ -135,12 +135,12 @@ class DeviceEndpoint extends PowProtectedEndpoint {
     }
   }
 
-  /// Generate authentication challenge (PoW-protected).
+  /// Get signable nonce (PoW-protected).
   ///
   /// Creates a cryptographically secure challenge string for client use.
   /// The challenge should be signed by the client's private key and returned
   /// for verification via authenticateDevice.
-  Future<String> generateAuthChallenge(
+  Future<String> getSignableNonce(
     Session session, {
     required String challenge,
     required String proofOfWork,
@@ -150,7 +150,7 @@ class DeviceEndpoint extends PowProtectedEndpoint {
     try {
       // Verify PoW + signature + rate limit
       final payload =
-          '$challenge:generateAuthChallenge:$devicePublicKey';
+          '$challenge:getSignableNonce:$devicePublicKey';
 
       await verifyPow(
         session,
@@ -171,7 +171,7 @@ class DeviceEndpoint extends PowProtectedEndpoint {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authDeviceNotFound,
           message: 'Device not found',
-          operation: 'generateAuthChallenge',
+          operation: 'getSignableNonce',
           details: {'devicePublicKey': devicePublicKey},
         );
       }
@@ -182,7 +182,7 @@ class DeviceEndpoint extends PowProtectedEndpoint {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authDeviceRevoked,
           message: 'Device has been revoked',
-          operation: 'generateAuthChallenge',
+          operation: 'getSignableNonce',
           details: {'deviceId': deviceIdStr},
         );
       }
@@ -197,7 +197,7 @@ class DeviceEndpoint extends PowProtectedEndpoint {
       throw AnonAccountExceptionFactory.createAuthenticationException(
         code: AnonAccountErrorCodes.databaseError,
         message: 'Failed to generate auth challenge: ${e.toString()}',
-        operation: 'generateAuthChallenge',
+        operation: 'getSignableNonce',
         details: {'error': e.toString()},
       );
     }

@@ -383,7 +383,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<String> generateAuthChallenge(
+  _i3.Future<String> getSignableNonce(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -394,13 +394,13 @@ class _DeviceEndpoint {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
-            method: 'generateAuthChallenge',
+            method: 'getSignableNonce',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
-          methodName: 'generateAuthChallenge',
+          methodName: 'getSignableNonce',
           parameters: _i1.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,

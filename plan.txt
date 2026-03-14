@@ -1,0 +1,18 @@
+Revised Workflow (The "Lean" version)
+Step 1: The App pays Apple/Google.
+(No server call needed yet. The server stays blind.)
+
+Step 2: Verification & Creation (The only server call)
+The App sends its Receipt to the server.
+
+Action: 
+
+validateAppleTransaction(String transactionId, String productId, ...)
+Server Logic:
+Is this a duplicate? Check ProcessedTransactionHash. If yes, exit.
+Is the money real? Call Apple/Google API.
+Record the Money: Create a TransactionPayment row.
+paymentRef = transactionId (Plain text).
+externalId = (Optional client string OR we generate one).
+Credit the User: Increment AccountInventory.
+Audit: Create the EphemeralAuditLog.

@@ -107,10 +107,10 @@ void main() {
           authChallenge.challenge,
           difficulty: authChallenge.difficulty,
         );
-        final authPayload = '${authChallenge.challenge}:generateAuthChallenge:$devicePubKey';
+        final authPayload = '${authChallenge.challenge}:getSignableNonce:$devicePubKey';
         final authSignature = SigningTestHelper.signWith(authPayload, devicePrivKey);
 
-        final challenge = await endpoints.device.generateAuthChallenge(
+        final challenge = await endpoints.device.getSignableNonce(
           sessionBuilder,
           challenge: authChallenge.challenge,
           proofOfWork: authPow,
