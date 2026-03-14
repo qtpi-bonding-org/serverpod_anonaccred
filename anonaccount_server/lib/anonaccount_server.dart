@@ -25,6 +25,9 @@ export 'src/account_query_service.dart';
 // PoW spam prevention services
 export 'src/services/public_challenge_service.dart';
 export 'src/services/rate_limit_service.dart';
+// Abstract base classes for consuming projects
+export 'src/endpoints/pow_protected_endpoint.dart';
+export 'src/endpoints/authenticated_endpoint.dart';
 // Endpoints (concrete with built-in PoW spam prevention)
 export 'src/endpoints/account_endpoint.dart';
 // Generated Serverpod protocol classes and endpoints
