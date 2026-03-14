@@ -1,6 +1,7 @@
 import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:anonaccred_server/src/entitlement_manager.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
@@ -13,9 +14,8 @@ void main() {
     // Test constants
     const validPublicKey =
         '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-    const validSignature =
-        'valid_signature_placeholder_64_chars_1234567890abcdef1234567890ab';
     late int testAccountId;
+    late TestSessionBuilder authenticatedSessionBuilder;
 
     setUp(() async {
       // Find or create a test account (handles stale data from previous runs)
@@ -31,8 +31,7 @@ void main() {
       ));
       testAccountId = account.id!;
 
-      // Ensure a device exists for this account with the validPublicKey so that
-      // AnonAccountHelpers.resolveAccountId can find it.
+      // Ensure a device exists for this account with the validPublicKey
       var device = await AccountDevice.db.findFirstRow(
         session,
         where: (t) => t.deviceSigningPublicKeyHex.equals(validPublicKey),
@@ -44,6 +43,15 @@ void main() {
           deviceSigningPublicKeyHex: validPublicKey,
           encryptedDataKey: 'device_encrypted_key_commerce_test',
           label: 'Test Device',
+        ),
+      );
+
+      // Create authenticated session builder with device scope
+      authenticatedSessionBuilder = sessionBuilder.copyWith(
+        authentication: AuthenticationOverride.authenticationInfo(
+          testAccountId.toString(),
+          {Scope('device:$validPublicKey')},
+          authId: validPublicKey,
         ),
       );
 
@@ -59,43 +67,17 @@ void main() {
         'returns empty entitlements for account with no inventory',
         () async {
           final entitlements = await endpoints.commerce.getEntitlements(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
+            authenticatedSessionBuilder,
           );
 
           expect(entitlements, isEmpty);
         },
       );
 
-      test('fails with empty public key', () async {
+      test('fails without authentication', () async {
         expect(
           () => endpoints.commerce.getEntitlements(
             sessionBuilder,
-            '', // empty public key
-            validSignature,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('fails with invalid public key format', () async {
-        expect(
-          () => endpoints.commerce.getEntitlements(
-            sessionBuilder,
-            'invalid_key',
-            validSignature,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('fails with empty signature', () async {
-        expect(
-          () => endpoints.commerce.getEntitlements(
-            sessionBuilder,
-            validPublicKey,
-            '', // empty signature
           ),
           throwsA(isA<Exception>()),
         );
@@ -105,45 +87,17 @@ void main() {
     group('getEntitlementBalance endpoint', () {
       test('returns zero balance for non-existent consumable', () async {
         final balance = await endpoints.commerce.getEntitlementBalance(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           'non_existent_item',
         );
 
         expect(balance, equals(0.0));
       });
 
-      test('fails with empty public key', () async {
+      test('fails without authentication', () async {
         expect(
           () => endpoints.commerce.getEntitlementBalance(
             sessionBuilder,
-            '', // empty public key
-            validSignature,
-            'test_item',
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('fails with invalid public key format', () async {
-        expect(
-          () => endpoints.commerce.getEntitlementBalance(
-            sessionBuilder,
-            'invalid_key',
-            validSignature,
-            'test_item',
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('fails with empty signature', () async {
-        expect(
-          () => endpoints.commerce.getEntitlementBalance(
-            sessionBuilder,
-            validPublicKey,
-            '', // empty signature
             'test_item',
           ),
           throwsA(isA<Exception>()),
@@ -153,9 +107,7 @@ void main() {
       test('fails with empty tag', () async {
         // Empty tag returns 0.0 balance (no entitlement found)
         final result = await endpoints.commerce.getEntitlementBalance(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           '', // empty tag
         );
         expect(result, equals(0.0));
@@ -196,9 +148,7 @@ void main() {
 
       test('successful consumption with sufficient balance', () async {
         final result = await endpoints.commerce.consumeEntitlement(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           'api_calls',
           25.0,
         );
@@ -210,9 +160,7 @@ void main() {
 
       test('fails with insufficient balance', () async {
         final result = await endpoints.commerce.consumeEntitlement(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           'api_calls',
           150.0, // More than available
         );
@@ -221,38 +169,10 @@ void main() {
         expect(result.errorMessage, contains('Insufficient balance'));
       });
 
-      test('fails with empty public key', () async {
+      test('fails without authentication', () async {
         expect(
           () => endpoints.commerce.consumeEntitlement(
             sessionBuilder,
-            '', // empty public key
-            validSignature,
-            'api_calls',
-            10.0,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('fails with invalid public key format', () async {
-        expect(
-          () => endpoints.commerce.consumeEntitlement(
-            sessionBuilder,
-            'invalid_key',
-            validSignature,
-            'api_calls',
-            10.0,
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
-
-      test('fails with empty signature', () async {
-        expect(
-          () => endpoints.commerce.consumeEntitlement(
-            sessionBuilder,
-            validPublicKey,
-            '', // empty signature
             'api_calls',
             10.0,
           ),
@@ -262,9 +182,7 @@ void main() {
 
       test('fails with empty consumable type', () async {
         final result = await endpoints.commerce.consumeEntitlement(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           '', // empty consumable type
           10.0,
         );
@@ -274,9 +192,7 @@ void main() {
 
       test('fails with negative quantity', () async {
         final result = await endpoints.commerce.consumeEntitlement(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           'test_consumable',
           -5.0, // negative quantity
         );
@@ -286,9 +202,7 @@ void main() {
 
       test('fails with zero quantity', () async {
         final result = await endpoints.commerce.consumeEntitlement(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           'test_consumable',
           0.0, // zero quantity
         );
@@ -301,9 +215,7 @@ void main() {
         () async {
           // First consumption should succeed
           final result1 = await endpoints.commerce.consumeEntitlement(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
+            authenticatedSessionBuilder,
             'api_calls',
             50.0,
           );
@@ -313,9 +225,7 @@ void main() {
 
           // Second consumption should also succeed
           final result2 = await endpoints.commerce.consumeEntitlement(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
+            authenticatedSessionBuilder,
             'api_calls',
             50.0,
           );
@@ -325,9 +235,7 @@ void main() {
 
           // Third consumption should fail due to insufficient balance
           final result3 = await endpoints.commerce.consumeEntitlement(
-            sessionBuilder,
-            validPublicKey,
-            validSignature,
+            authenticatedSessionBuilder,
             'api_calls',
             1.0,
           );
@@ -340,9 +248,7 @@ void main() {
 
       test('consumption from non-existent consumable type', () async {
         final result = await endpoints.commerce.consumeEntitlement(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           'non_existent_consumable',
           10.0,
         );
@@ -354,9 +260,7 @@ void main() {
 
       test('consumption with fractional quantities', () async {
         final result = await endpoints.commerce.consumeEntitlement(
-          sessionBuilder,
-          validPublicKey,
-          validSignature,
+          authenticatedSessionBuilder,
           'api_calls',
           25.5, // fractional quantity
         );

@@ -10,63 +10,48 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'dart:async' as _i2;
-import 'package:anonaccred_client/src/protocol/account_entitlement.dart' as _i3;
-import 'package:anonaccred_client/src/protocol/consume_result.dart' as _i4;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _i2;
+import 'dart:async' as _i3;
+import 'package:anonaccred_client/src/protocol/account_entitlement.dart' as _i4;
+import 'package:anonaccred_client/src/protocol/consume_result.dart' as _i5;
 import 'package:anonaccred_client/src/protocol/iap_validation_response.dart'
-    as _i5;
+    as _i6;
 
 /// Commerce endpoints for entitlement queries and consumption.
 ///
-/// Provides authenticated access to entitlement balances and consumption.
+/// Requires device-key authentication via [AuthenticatedEndpoint].
 /// {@category Endpoint}
-class EndpointCommerce extends _i1.EndpointRef {
-  EndpointCommerce(_i1.EndpointCaller caller) : super(caller);
+class EndpointCommerce extends _i1.EndpointAuthenticated {
+  EndpointCommerce(_i2.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'anonaccred.commerce';
 
   /// Get entitlements for an account
-  _i2.Future<List<_i3.AccountEntitlement>> getEntitlements(
-    String publicKey,
-    String signature,
-  ) => caller.callServerEndpoint<List<_i3.AccountEntitlement>>(
-    'anonaccred.commerce',
-    'getEntitlements',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-    },
-  );
+  _i3.Future<List<_i4.AccountEntitlement>> getEntitlements() =>
+      caller.callServerEndpoint<List<_i4.AccountEntitlement>>(
+        'anonaccred.commerce',
+        'getEntitlements',
+        {},
+      );
 
   /// Get balance for a specific entitlement tag
-  _i2.Future<double> getEntitlementBalance(
-    String publicKey,
-    String signature,
-    String tag,
-  ) => caller.callServerEndpoint<double>(
-    'anonaccred.commerce',
-    'getEntitlementBalance',
-    {
-      'publicKey': publicKey,
-      'signature': signature,
-      'tag': tag,
-    },
-  );
+  _i3.Future<double> getEntitlementBalance(String tag) =>
+      caller.callServerEndpoint<double>(
+        'anonaccred.commerce',
+        'getEntitlementBalance',
+        {'tag': tag},
+      );
 
   /// Consume entitlement using atomic utilities
-  _i2.Future<_i4.ConsumeResult> consumeEntitlement(
-    String publicKey,
-    String signature,
+  _i3.Future<_i5.ConsumeResult> consumeEntitlement(
     String tag,
     double quantity,
-  ) => caller.callServerEndpoint<_i4.ConsumeResult>(
+  ) => caller.callServerEndpoint<_i5.ConsumeResult>(
     'anonaccred.commerce',
     'consumeEntitlement',
     {
-      'publicKey': publicKey,
-      'signature': signature,
       'tag': tag,
       'quantity': quantity,
     },
@@ -75,13 +60,15 @@ class EndpointCommerce extends _i1.EndpointRef {
 
 /// In-App Purchase endpoint for Apple and Google IAP validation.
 ///
+/// Requires device-key authentication via [AuthenticatedEndpoint].
+///
 /// Implements a "Reactive & Anonymous" fulfillment flow.
 /// 1. Identity-Linked Inventory: Adds coins directly to the account balance.
 /// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountId.
 /// 3. The Bridge: EphemeralAuditLog links the two for 7 days, then breaks.
 /// {@category Endpoint}
-class EndpointIAP extends _i1.EndpointRef {
-  EndpointIAP(_i1.EndpointCaller caller) : super(caller);
+class EndpointIAP extends _i1.EndpointAuthenticated {
+  EndpointIAP(_i2.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'anonaccred.iAP';
@@ -92,23 +79,17 @@ class EndpointIAP extends _i1.EndpointRef {
   /// record on-the-fly from the verified receipt.
   ///
   /// Parameters:
-  /// - [publicKey]: ECDSA P-256 public key for authentication
-  /// - [signature]: Signature of the request data
   /// - [transactionId]: Apple transaction ID from the app
   /// - [productId]: Apple product ID (SKU)
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
-  _i2.Future<_i5.IapValidationResponse> validateAppleTransaction(
-    String publicKey,
-    String signature,
+  _i3.Future<_i6.IapValidationResponse> validateAppleTransaction(
     String transactionId,
     String productId, {
     String? internalTransactionId,
-  }) => caller.callServerEndpoint<_i5.IapValidationResponse>(
+  }) => caller.callServerEndpoint<_i6.IapValidationResponse>(
     'anonaccred.iAP',
     'validateAppleTransaction',
     {
-      'publicKey': publicKey,
-      'signature': signature,
       'transactionId': transactionId,
       'productId': productId,
       'internalTransactionId': internalTransactionId,
@@ -121,25 +102,19 @@ class EndpointIAP extends _i1.EndpointRef {
   /// record on-the-fly from the verified purchase token.
   ///
   /// Parameters:
-  /// - [publicKey]: ECDSA P-256 public key for authentication
-  /// - [signature]: Signature of the request data
   /// - [packageName]: Android app package name
   /// - [productId]: Google product ID (SKU)
   /// - [purchaseToken]: Google purchase token
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
-  _i2.Future<_i5.IapValidationResponse> validateGooglePurchase(
-    String publicKey,
-    String signature,
+  _i3.Future<_i6.IapValidationResponse> validateGooglePurchase(
     String packageName,
     String productId,
     String purchaseToken, {
     String? internalTransactionId,
-  }) => caller.callServerEndpoint<_i5.IapValidationResponse>(
+  }) => caller.callServerEndpoint<_i6.IapValidationResponse>(
     'anonaccred.iAP',
     'validateGooglePurchase',
     {
-      'publicKey': publicKey,
-      'signature': signature,
       'packageName': packageName,
       'productId': productId,
       'purchaseToken': purchaseToken,
@@ -148,19 +123,51 @@ class EndpointIAP extends _i1.EndpointRef {
   );
 }
 
-class Caller extends _i1.ModuleEndpointCaller {
-  Caller(_i1.ServerpodClientShared client) : super(client) {
+/// IAP webhook endpoint for Apple and Google notifications.
+///
+/// Uses PaymentManager.getRail() to get initialized rail instances,
+/// injects the session into callbackData so rails can access the database.
+/// {@category Endpoint}
+class EndpointIAPWebhook extends _i2.EndpointRef {
+  EndpointIAPWebhook(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccred.iAPWebhook';
+
+  /// Handle Apple App Store Server Notifications
+  _i3.Future<String> handleAppleWebhook(String webhookDataJson) =>
+      caller.callServerEndpoint<String>(
+        'anonaccred.iAPWebhook',
+        'handleAppleWebhook',
+        {'webhookDataJson': webhookDataJson},
+      );
+
+  /// Handle Google Play Real-time Developer Notifications
+  _i3.Future<String> handleGoogleWebhook(String webhookDataJson) =>
+      caller.callServerEndpoint<String>(
+        'anonaccred.iAPWebhook',
+        'handleGoogleWebhook',
+        {'webhookDataJson': webhookDataJson},
+      );
+}
+
+class Caller extends _i2.ModuleEndpointCaller {
+  Caller(_i2.ServerpodClientShared client) : super(client) {
     commerce = EndpointCommerce(this);
     iAP = EndpointIAP(this);
+    iAPWebhook = EndpointIAPWebhook(this);
   }
 
   late final EndpointCommerce commerce;
 
   late final EndpointIAP iAP;
 
+  late final EndpointIAPWebhook iAPWebhook;
+
   @override
-  Map<String, _i1.EndpointRef> get endpointRefLookup => {
+  Map<String, _i2.EndpointRef> get endpointRefLookup => {
     'anonaccred.commerce': commerce,
     'anonaccred.iAP': iAP,
+    'anonaccred.iAPWebhook': iAPWebhook,
   };
 }

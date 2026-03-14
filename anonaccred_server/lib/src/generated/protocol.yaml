@@ -5,3 +5,6 @@ commerce:
 iAP:
   - validateAppleTransaction:
   - validateGooglePurchase:
+iAPWebhook:
+  - handleAppleWebhook:
+  - handleGoogleWebhook:

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:anonaccred_server/anonaccred_server.dart';
-import 'package:anonaccred_server/src/endpoints/iap_endpoint.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
 import 'package:anonaccred_server/src/payments/mock_app_store_server_client.dart';
@@ -21,13 +20,11 @@ import 'test_tools/serverpod_test_tools.dart';
 /// Focuses on essential integration scenarios during development phase.
 void main() {
   withServerpod('IAP Endpoint Integration Tests', (sessionBuilder, endpoints) {
-    late IAPEndpoint iapEndpoint;
     late TestSessionBuilder authenticatedSessionBuilder;
     late AnonAccount testAccount;
     late AccountDevice testDevice;
 
     setUp(() async {
-      iapEndpoint = IAPEndpoint();
       // Register payment rails with mock clients for testing
       PaymentManager.clearRails();
       PaymentManager.registerRail(AppleIAPRail(client: MockAppStoreServerClient()));
@@ -66,35 +63,24 @@ void main() {
     tearDown(PaymentManager.clearRails);
 
     group('Apple IAP Endpoint Integration', () {
-      test('validateAppleReceipt handles authentication validation', () async {
-        // Test that endpoint validates authentication parameters
-        final session = sessionBuilder.build();
-
-        try {
-          await iapEndpoint.validateAppleTransaction(
-            session,
-            '', // Empty public key should trigger authentication error
-            'test_signature',
+      test('validateAppleTransaction fails without authentication', () async {
+        expect(
+          () => endpoints.iAP.validateAppleTransaction(
+            sessionBuilder,
             'mock_transaction_id',
             'mock_product_id',
             internalTransactionId: 'test_order_123',
-          );
-          fail('Should have thrown authentication exception');
-        } on Exception catch (e) {
-          expect(e, isA<AuthenticationException>());
-          expect(e.toString(), contains('Public key'));
-        }
+          ),
+          throwsA(isA<Exception>()),
+        );
       });
 
       test(
-        'validateAppleReceipt throws PaymentException for empty receipt data',
+        'validateAppleTransaction throws PaymentException for empty receipt data',
         () async {
-          // Test business logic validation with authenticated session
           try {
             await endpoints.iAP.validateAppleTransaction(
               authenticatedSessionBuilder,
-              testDevice.deviceSigningPublicKeyHex,
-              'valid_signature_format',
               '', // Empty transaction ID
               '', // Empty product ID
               internalTransactionId: 'test_order_123',
@@ -111,15 +97,11 @@ void main() {
       );
 
       test(
-        'validateAppleReceipt throws InventoryException for empty consumable type',
+        'validateAppleTransaction handles Apple configuration gracefully',
         () async {
-          // Test inventory validation with authenticated session
-          // Note: Without Apple credentials configured, this will fail with configuration error
           try {
             await endpoints.iAP.validateAppleTransaction(
               authenticatedSessionBuilder,
-              testDevice.deviceSigningPublicKeyHex,
-              'valid_signature_format',
               'mock_transaction_id',
               'mock_product_id',
               internalTransactionId: 'test_order_123',
@@ -135,94 +117,28 @@ void main() {
           }
         },
       );
-
-      test(
-        'validateAppleReceipt throws InventoryException for invalid quantity',
-        () async {
-          // Test quantity validation with authenticated session
-          // Note: Without Apple credentials configured, this will fail with configuration error
-          try {
-            await endpoints.iAP.validateAppleTransaction(
-              authenticatedSessionBuilder,
-              testDevice.deviceSigningPublicKeyHex,
-              'valid_signature_format',
-              'mock_transaction_id',
-              'mock_product_id',
-              internalTransactionId: 'test_order_123',
-            );
-            // If no error, the test passes (Apple not configured)
-          } on Exception catch (e) {
-            // Any exception is acceptable when Apple is not configured
-            expect(e.toString(), anyOf(
-              contains('configuration'),
-              contains('credentials'),
-              contains('Apple'),
-            ));
-          }
-        },
-      );
-
-      test('validateAppleReceipt requires valid device authentication', () async {
-        // Test that endpoint requires valid device in database
-        final session = sessionBuilder.build();
-
-        try {
-          await iapEndpoint.validateAppleTransaction(
-            session,
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
-                'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid format but not in DB
-            'test_signature',
-            'mock_transaction_id',
-            'mock_product_id',
-            internalTransactionId: 'test_order_123',
-          );
-          // If no error, the test passes (Apple not configured)
-        } on Exception catch (e) {
-          // Any exception is acceptable when Apple is not configured
-          expect(e.toString(), anyOf(
-            contains('configuration'),
-            contains('credentials'),
-            contains('Apple'),
-            contains('Public key'),
-          ));
-        }
-      });
     });
 
     group('Google IAP Endpoint Integration', () {
-      test(
-        'validateGooglePurchase handles authentication validation',
-        () async {
-          // Test that endpoint validates authentication parameters
-          final session = sessionBuilder.build();
-
-          try {
-            await iapEndpoint.validateGooglePurchase(
-              session,
-              '', // Empty public key should trigger authentication error
-              'test_signature',
-              'com.example.app',
-              'com.example.premium',
-              'mock_purchase_token',
-              internalTransactionId: 'test_order_456',
-            );
-            fail('Should have thrown authentication exception');
-          } on Exception catch (e) {
-            expect(e, isA<AuthenticationException>());
-            expect(e.toString(), contains('Public key'));
-          }
-        },
-      );
+      test('validateGooglePurchase fails without authentication', () async {
+        expect(
+          () => endpoints.iAP.validateGooglePurchase(
+            sessionBuilder,
+            'com.example.app',
+            'com.example.premium',
+            'mock_purchase_token',
+            internalTransactionId: 'test_order_456',
+          ),
+          throwsA(isA<Exception>()),
+        );
+      });
 
       test(
         'validateGooglePurchase throws PaymentException for empty purchase data',
         () async {
-          // Test business logic validation with authenticated session
           try {
             await endpoints.iAP.validateGooglePurchase(
               authenticatedSessionBuilder,
-              testDevice.deviceSigningPublicKeyHex,
-              'valid_signature_format',
               '', // Empty package name
               'com.example.premium',
               'mock_purchase_token',
@@ -242,15 +158,11 @@ void main() {
       );
 
       test(
-        'validateGooglePurchase throws InventoryException for empty consumable type',
+        'validateGooglePurchase handles Google configuration gracefully',
         () async {
-          // Test inventory validation with authenticated session
-          // Note: Without Google credentials configured, this will fail with configuration error
           try {
             await endpoints.iAP.validateGooglePurchase(
               authenticatedSessionBuilder,
-              testDevice.deviceSigningPublicKeyHex,
-              'valid_signature_format',
               'com.example.app',
               'com.example.premium',
               'mock_purchase_token',
@@ -267,66 +179,10 @@ void main() {
           }
         },
       );
-
-      test(
-        'validateGooglePurchase throws InventoryException for invalid quantity',
-        () async {
-          // Test quantity validation with authenticated session
-          // Note: Without Google credentials configured, this will fail with configuration error
-          // The test verifies the endpoint handles the error gracefully
-          try {
-            await endpoints.iAP.validateGooglePurchase(
-              authenticatedSessionBuilder,
-              testDevice.deviceSigningPublicKeyHex,
-              'valid_signature_format',
-              'com.example.app',
-              'com.example.premium',
-              'mock_purchase_token',
-              internalTransactionId: 'test_order_456',
-            );
-            // If no error, the test passes (Google not configured)
-          } on Exception catch (e) {
-            // Any exception is acceptable when Google is not configured
-            expect(e.toString(), anyOf(
-              contains('configuration'),
-              contains('credentials'),
-              contains('Google'),
-            ));
-          }
-        },
-      );
-
-      test('validateGooglePurchase requires valid device authentication', () async {
-        // Test that endpoint requires valid device in database
-        final session = sessionBuilder.build();
-
-        try {
-          await iapEndpoint.validateGooglePurchase(
-            session,
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
-                'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid format but not in DB
-            'test_signature',
-            'com.example.app',
-            'com.example.premium',
-            'mock_purchase_token',
-            internalTransactionId: 'test_order_456',
-          );
-          // If no error, the test passes (Google not configured)
-        } on Exception catch (e) {
-          // Any exception is acceptable when Google is not configured
-          expect(e.toString(), anyOf(
-            contains('configuration'),
-            contains('credentials'),
-            contains('Google'),
-            contains('Public key'),
-          ));
-        }
-      });
     });
 
     group('IAP Payment Rail Integration', () {
       test('Payment Manager can create Apple IAP payments', () async {
-        // Test that Payment Manager routes Apple IAP requests correctly
         final paymentRequest = await PaymentManager.createPayment(
           railType: PaymentRail.apple_iap,
           amountUSD: 9.99,
@@ -341,7 +197,6 @@ void main() {
       });
 
       test('Payment Manager can create Google IAP payments', () async {
-        // Test that Payment Manager routes Google IAP requests correctly
         final paymentRequest = await PaymentManager.createPayment(
           railType: PaymentRail.google_iap,
           amountUSD: 4.99,
@@ -356,7 +211,6 @@ void main() {
       });
 
       test('Payment Manager initialization registers IAP rails', () async {
-        // Test that initialization properly registers IAP rails
         PaymentManager.clearRails();
         expect(PaymentManager.isRailRegistered(PaymentRail.apple_iap), isFalse);
         expect(
@@ -365,14 +219,6 @@ void main() {
         );
 
         await PaymentManager.initializeAllRails();
-
-        // Note: In test environment without credentials, they might not register
-        // But for integration tests of THE MANAGER itself, we want them there.
-        // If they didn't register due to missing config, we can manually register them for the test
-        if (!PaymentManager.isRailRegistered(PaymentRail.apple_iap)) {
-          // Should have registered but might fail if config is missing
-          // We just want to see if it ATTEMPTED to register
-        }
 
         // Ensure X402 is always there as it doesn't need config
         final registeredTypes = PaymentManager.getRegisteredRailTypes();

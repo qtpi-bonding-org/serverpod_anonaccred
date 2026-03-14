@@ -9,38 +9,30 @@ import '../payments/rails/google_iap_rail.dart';
 
 /// In-App Purchase endpoint for Apple and Google IAP validation.
 ///
+/// Requires device-key authentication via [AuthenticatedEndpoint].
+///
 /// Implements a "Reactive & Anonymous" fulfillment flow.
 /// 1. Identity-Linked Inventory: Adds coins directly to the account balance.
 /// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountId.
 /// 3. The Bridge: EphemeralAuditLog links the two for 7 days, then breaks.
-class IAPEndpoint extends Endpoint {
+class IAPEndpoint extends AuthenticatedEndpoint {
   /// Validate Apple App Store transaction and fulfill purchase.
   ///
   /// This endpoint is reactive: if no order exists, it creates the financial
   /// record on-the-fly from the verified receipt.
   ///
   /// Parameters:
-  /// - [publicKey]: ECDSA P-256 public key for authentication
-  /// - [signature]: Signature of the request data
   /// - [transactionId]: Apple transaction ID from the app
   /// - [productId]: Apple product ID (SKU)
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
   Future<IapValidationResponse> validateAppleTransaction(
     Session session,
-    String publicKey,
-    String signature,
     String transactionId,
     String productId, {
     String? internalTransactionId,
   }) async {
     try {
-      // Validate authentication
-      await _validateAuthentication(
-        session,
-        publicKey,
-        signature,
-        'validateAppleTransaction',
-      );
+      final accountId = getAccountId(session);
 
       // Validate parameters
       if (transactionId.isEmpty || productId.isEmpty) {
@@ -54,11 +46,6 @@ class IAPEndpoint extends Endpoint {
           },
         );
       }
-
-      // Resolve accountId from device public key
-      final accountId = await AnonAccountHelpers.resolveAccountId(
-        session, publicKey, 'validateAppleTransaction',
-      );
 
       // Create Apple IAP rail and validate transaction
       final appleRail = await AppleIAPRail.create();
@@ -113,29 +100,19 @@ class IAPEndpoint extends Endpoint {
   /// record on-the-fly from the verified purchase token.
   ///
   /// Parameters:
-  /// - [publicKey]: ECDSA P-256 public key for authentication
-  /// - [signature]: Signature of the request data
   /// - [packageName]: Android app package name
   /// - [productId]: Google product ID (SKU)
   /// - [purchaseToken]: Google purchase token
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
   Future<IapValidationResponse> validateGooglePurchase(
     Session session,
-    String publicKey,
-    String signature,
     String packageName,
     String productId,
     String purchaseToken, {
     String? internalTransactionId,
   }) async {
     try {
-      // Validate authentication
-      await _validateAuthentication(
-        session,
-        publicKey,
-        signature,
-        'validateGooglePurchase',
-      );
+      final accountId = getAccountId(session);
 
       // Validate parameters
       if (packageName.isEmpty || productId.isEmpty || purchaseToken.isEmpty) {
@@ -145,11 +122,6 @@ class IAPEndpoint extends Endpoint {
           internalTransactionId: internalTransactionId,
         );
       }
-
-      // Resolve accountId from device public key
-      final accountId = await AnonAccountHelpers.resolveAccountId(
-        session, publicKey, 'validateGooglePurchase',
-      );
 
       // Create Google IAP rail and validate purchase
       final googleRail = await GoogleIAPRail.create();
@@ -194,38 +166,6 @@ class IAPEndpoint extends Endpoint {
           'error': e.toString(),
           'productId': productId,
         },
-      );
-    }
-  }
-
-  /// Validates authentication using ECDSA P-256 signature verification.
-  Future<void> _validateAuthentication(
-    Session session,
-    String publicKey,
-    String signature,
-    String operation,
-  ) async {
-    if (publicKey.isEmpty) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.authMissingKey,
-        message: 'Public key required',
-        operation: operation,
-      );
-    }
-
-    if (!CryptoAuth.isValidPublicKey(publicKey)) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
-        message: 'Invalid public key',
-        operation: operation,
-      );
-    }
-
-    if (signature.isEmpty) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.authInvalidSignature,
-        message: 'Signature required',
-        operation: operation,
       );
     }
   }
