@@ -97,19 +97,18 @@ void main() {
     });
 
     test('getAccountForRecovery with valid PoW succeeds', () async {
-      // Create an account to recover
-      final (privKey, pubKey) = SigningTestHelper.generateKeypair();
-      const ultimatePublicKey =
-          'e123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-          'e123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      // Create an account to recover — use a generated keypair for the
+      // ultimate key so we can sign the recovery payload with its private key
+      final (signingPrivKey, signingPubKey) = SigningTestHelper.generateKeypair();
+      final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
 
       await createTestAccount(
         sessionBuilder,
-        ultimateSigningPublicKeyHex: pubKey,
-        ultimatePublicKey: ultimatePublicKey,
+        ultimateSigningPublicKeyHex: signingPubKey,
+        ultimatePublicKey: ultimatePubKey,
       );
 
-      // Now recover via PoW
+      // Recover via PoW — signature verified against ultimatePublicKey
       final challengeResponse =
           await endpoints.account.getChallenge(sessionBuilder);
       final proofOfWork = await PowTestHelper.mint(
@@ -117,30 +116,29 @@ void main() {
         difficulty: challengeResponse.difficulty,
       );
       final payload =
-          '${challengeResponse.challenge}:getAccountForRecovery:$ultimatePublicKey';
-      final signature = SigningTestHelper.signWith(payload, privKey);
+          '${challengeResponse.challenge}:getAccountForRecovery:$ultimatePubKey';
+      final signature = SigningTestHelper.signWith(payload, ultimatePrivKey);
 
       final recovered = await endpoints.account.getAccountForRecovery(
         sessionBuilder,
         challenge: challengeResponse.challenge,
         proofOfWork: proofOfWork,
-        ultimatePublicKey: ultimatePublicKey,
+        ultimatePublicKey: ultimatePubKey,
         signature: signature,
       );
 
       expect(recovered, isNotNull);
       expect(
         recovered!.ultimateSigningPublicKeyHex,
-        equals(pubKey),
+        equals(signingPubKey),
       );
     });
 
     test('getAccountForRecovery returns null for non-existent account',
         () async {
-      final (privKey, _) = SigningTestHelper.generateKeypair();
-      const nonExistentUltimateKey =
-          'ff23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-          'ff23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      // Generate a keypair to use as the ultimate key — must sign with
+      // matching private key since signature is verified against ultimatePublicKey
+      final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
 
       final challengeResponse =
           await endpoints.account.getChallenge(sessionBuilder);
@@ -149,14 +147,14 @@ void main() {
         difficulty: challengeResponse.difficulty,
       );
       final payload =
-          '${challengeResponse.challenge}:getAccountForRecovery:$nonExistentUltimateKey';
-      final signature = SigningTestHelper.signWith(payload, privKey);
+          '${challengeResponse.challenge}:getAccountForRecovery:$ultimatePubKey';
+      final signature = SigningTestHelper.signWith(payload, ultimatePrivKey);
 
       final recovered = await endpoints.account.getAccountForRecovery(
         sessionBuilder,
         challenge: challengeResponse.challenge,
         proofOfWork: proofOfWork,
-        ultimatePublicKey: nonExistentUltimateKey,
+        ultimatePublicKey: ultimatePubKey,
         signature: signature,
       );
 
