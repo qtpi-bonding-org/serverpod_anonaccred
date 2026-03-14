@@ -27,6 +27,7 @@ class AccountEndpoint extends PowProtectedEndpoint {
     required String challenge,
     required String proofOfWork,
     required String signature,
+    required String publicKeyHex,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
@@ -39,7 +40,7 @@ class AccountEndpoint extends PowProtectedEndpoint {
         session,
         challenge,
         proofOfWork,
-        ultimateSigningPublicKeyHex,
+        publicKeyHex,
         signature,
         payload,
       );

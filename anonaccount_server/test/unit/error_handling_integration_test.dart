@@ -41,6 +41,7 @@ void main() {
             challenge: challengeResponse.challenge,
             proofOfWork: proofOfWork,
             signature: wrongSignature,
+            publicKeyHex: publicKey,
             ultimateSigningPublicKeyHex: publicKey,
             encryptedDataKey: 'test_encrypted_data',
             ultimatePublicKey: ultimatePublicKey,

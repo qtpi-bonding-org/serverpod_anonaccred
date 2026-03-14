@@ -60,6 +60,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'publicKeyHex': _i1.ParameterDescription(
+              name: 'publicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
             'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
               name: 'ultimateSigningPublicKeyHex',
               type: _i1.getType<String>(),
@@ -86,6 +91,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     challenge: params['challenge'],
                     proofOfWork: params['proofOfWork'],
                     signature: params['signature'],
+                    publicKeyHex: params['publicKeyHex'],
                     ultimateSigningPublicKeyHex:
                         params['ultimateSigningPublicKeyHex'],
                     encryptedDataKey: params['encryptedDataKey'],

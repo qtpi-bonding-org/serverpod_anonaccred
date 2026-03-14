@@ -45,6 +45,7 @@ void main() {
         challenge: challengeResponse.challenge,
         proofOfWork: proofOfWork,
         signature: signature,
+        publicKeyHex: pubKey,
         ultimateSigningPublicKeyHex: pubKey,
         encryptedDataKey: 'test-encrypted-data-key',
         ultimatePublicKey: ultimatePublicKey,
@@ -88,6 +89,7 @@ void main() {
           challenge: challengeResponse.challenge,
           proofOfWork: proofOfWork,
           signature: signature,
+          publicKeyHex: pubKey,
           ultimateSigningPublicKeyHex: pubKey,
           encryptedDataKey: 'test-encrypted-data-key-2',
           ultimatePublicKey:
