@@ -80,8 +80,10 @@ class PublicChallengeService {
     String proofOfWork,
     String publicKeyHex,
     String signature,
-    String payload,
-  ) async {
+    String payload, {
+    String endpointType = 'account',
+    int? rateLimitPerHour,
+  }) async {
     // 0. Validate public key format
     if (publicKeyHex.length != 128 ||
         !RegExp(r'^[0-9a-fA-F]+$').hasMatch(publicKeyHex)) {
@@ -99,7 +101,12 @@ class PublicChallengeService {
     await _verifySignature(publicKeyHex, signature, payload);
 
     // 3. Apply rate limiting
-    await _applyRateLimit(session, publicKeyHex);
+    await _applyRateLimit(
+      session,
+      publicKeyHex,
+      endpointType: endpointType,
+      limit: rateLimitPerHour ?? defaultRateLimit,
+    );
   }
 
   /// Clean up expired challenges from database.
@@ -251,21 +258,24 @@ class PublicChallengeService {
   /// Apply rate limiting by public key.
   static Future<void> _applyRateLimit(
     Session session,
-    String publicKeyHex,
-  ) async {
+    String publicKeyHex, {
+    String endpointType = 'account',
+    int? limit,
+  }) async {
+    final effectiveLimit = limit ?? defaultRateLimit;
     final allowed = await RateLimitService.checkAndIncrement(
       session,
-      'account',
+      endpointType,
       publicKeyHex,
-      defaultRateLimit,
+      effectiveLimit,
     );
 
     if (!allowed) {
       final status = await RateLimitService.getStatus(
         session,
-        'account',
+        endpointType,
         publicKeyHex,
-        defaultRateLimit,
+        effectiveLimit,
       );
 
       throw AnonAccountExceptionFactory.createAuthenticationException(

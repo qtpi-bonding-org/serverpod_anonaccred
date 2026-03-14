@@ -8,10 +8,17 @@ import '../services/public_challenge_service.dart';
 /// Subclasses get:
 /// - `getChallenge()` endpoint method (auto-registered by Serverpod)
 /// - `verifyPow()` helper to call at the top of each endpoint method
+/// - Configurable rate limiting via `endpointType` and `rateLimitPerHour`
 ///
 /// Usage in consuming projects:
 /// ```dart
 /// class MyPublicEndpoint extends PowProtectedEndpoint {
+///   @override
+///   String get endpointType => 'my_endpoint';
+///
+///   @override
+///   int get rateLimitPerHour => 20;
+///
 ///   Future<MyResponse> submitThing(
 ///     Session session, {
 ///     required String challenge,
@@ -29,6 +36,18 @@ import '../services/public_challenge_service.dart';
 abstract class PowProtectedEndpoint extends Endpoint {
   @override
   bool get requireLogin => false;
+
+  /// Endpoint type for rate limiting bucketing (e.g., 'error_report', 'feedback').
+  ///
+  /// Override in subclasses to separate rate limit counters per endpoint.
+  /// Defaults to `'default'`.
+  String get endpointType => 'default';
+
+  /// Maximum requests allowed per hour per public key.
+  ///
+  /// Override in subclasses to set custom rate limits.
+  /// Defaults to 10.
+  int get rateLimitPerHour => 10;
 
   /// Get challenge for proof-of-work.
   ///
@@ -63,6 +82,8 @@ abstract class PowProtectedEndpoint extends Endpoint {
       publicKeyHex,
       signature,
       payload,
+      endpointType: endpointType,
+      rateLimitPerHour: rateLimitPerHour,
     );
   }
 }
