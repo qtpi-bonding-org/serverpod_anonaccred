@@ -12,11 +12,11 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
-import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
-    as _i3;
 import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
-    as _i4;
-import 'package:anonaccount_client/src/protocol/account.dart' as _i5;
+    as _i3;
+import 'package:anonaccount_client/src/protocol/account.dart' as _i4;
+import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
+    as _i5;
 import 'package:anonaccount_client/src/protocol/account_device.dart' as _i6;
 import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
     as _i7;
@@ -27,6 +27,8 @@ import 'package:anonaccount_client/src/protocol/authentication_result.dart'
 
 /// Concrete account endpoint with built-in hashcash PoW spam prevention.
 ///
+/// Extends [PowProtectedEndpoint] to inherit `getChallenge()` and `verifyPow()`.
+///
 /// Provides account creation and recovery with:
 /// - Hashcash proof-of-work for spam prevention
 /// - ECDSA P-256 signature verification
@@ -35,35 +37,23 @@ import 'package:anonaccount_client/src/protocol/authentication_result.dart'
 /// Server-only query methods (getAccountById, getAccountByPublicKey) live
 /// in [AccountQueryService] — not exposed to clients.
 /// {@category Endpoint}
-class EndpointAccount extends _i1.EndpointRef {
+class EndpointAccount extends EndpointPowProtected {
   EndpointAccount(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'anonaccount.account';
 
-  /// Get challenge for proof-of-work.
-  ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// The client must solve the hashcash puzzle before calling
-  /// [createAccount] or [getAccountForRecovery].
-  _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i3.PublicChallengeResponse>(
-        'anonaccount.account',
-        'getChallenge',
-        {},
-      );
-
   /// Create new anonymous account with PoW verification.
   ///
   /// Returns [AccountCreationResponse] — no internal int id exposed to client.
-  _i2.Future<_i4.AccountCreationResponse> createAccount({
+  _i2.Future<_i3.AccountCreationResponse> createAccount({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
-  }) => caller.callServerEndpoint<_i4.AccountCreationResponse>(
+  }) => caller.callServerEndpoint<_i3.AccountCreationResponse>(
     'anonaccount.account',
     'createAccount',
     {
@@ -80,12 +70,12 @@ class EndpointAccount extends _i1.EndpointRef {
   ///
   /// Requires PoW to prevent brute-force probing of public keys.
   /// Returns [AnonAccount] if found, or `null` if no account matches.
-  _i2.Future<_i5.AnonAccount?> getAccountForRecovery({
+  _i2.Future<_i4.AnonAccount?> getAccountForRecovery({
     required String challenge,
     required String proofOfWork,
     required String ultimatePublicKey,
     required String signature,
-  }) => caller.callServerEndpoint<_i5.AnonAccount?>(
+  }) => caller.callServerEndpoint<_i4.AnonAccount?>(
     'anonaccount.account',
     'getAccountForRecovery',
     {
@@ -95,15 +85,84 @@ class EndpointAccount extends _i1.EndpointRef {
       'signature': signature,
     },
   );
+
+  /// Get challenge for proof-of-work.
+  ///
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  @override
+  _i2.Future<_i5.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i5.PublicChallengeResponse>(
+        'anonaccount.account',
+        'getChallenge',
+        {},
+      );
+
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
+  ///
+  /// Call this at the top of each PoW-protected endpoint method.
+  ///
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
+  @override
+  _i2.Future<void> verifyPow(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'anonaccount.account',
+    'verifyPow',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
+    },
+  );
 }
 
-/// Device management endpoints for ECDSA P-256 device registration and authentication.
+/// Abstract base class for endpoints requiring device-key authentication.
 ///
-/// Security model: every method is protected by either:
-/// - **Session auth** (authenticated device key) — for operations on own account
-/// - **PoW + rate limit** — for unauthenticated public operations
+/// Subclasses get:
+/// - `requireLogin => true` (Serverpod enforces authentication)
+/// - `getDevicePublicKey()` to extract the authenticated device's public key
+/// - `getAccountId()` to extract the authenticated account's ID
+///
+/// Usage in consuming projects:
+/// ```dart
+/// class MyProtectedEndpoint extends AuthenticatedEndpoint {
+///   Future<MyData> getData(Session session) async {
+///     final deviceKey = getDevicePublicKey(session);
+///     final accountId = getAccountId(session);
+///     // ... business logic using authenticated identity
+///   }
+/// }
+/// ```
 /// {@category Endpoint}
-class EndpointDevice extends _i1.EndpointRef {
+abstract class EndpointAuthenticated extends _i1.EndpointRef {
+  EndpointAuthenticated(_i1.EndpointCaller caller) : super(caller);
+}
+
+/// Public device endpoints protected by hashcash proof-of-work.
+///
+/// Extends [PowProtectedEndpoint] to inherit `getChallenge()` and `verifyPow()`.
+///
+/// Handles unauthenticated device operations:
+/// - Device registration
+/// - Auth challenge generation
+/// - Device pairing lookup and monitoring
+///
+/// Authenticated device operations (revoke, list, QR pairing) are in
+/// [DeviceManagementEndpoint].
+/// {@category Endpoint}
+class EndpointDevice extends EndpointPowProtected {
   EndpointDevice(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -201,23 +260,68 @@ class EndpointDevice extends _i1.EndpointRef {
         {},
       );
 
-  /// Get challenge for proof-of-work (shared by all public device methods).
-  _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i3.PublicChallengeResponse>(
+  /// Get challenge for proof-of-work.
+  ///
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  @override
+  _i2.Future<_i5.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i5.PublicChallengeResponse>(
         'anonaccount.device',
         'getChallenge',
         {},
       );
 
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
+  ///
+  /// Call this at the top of each PoW-protected endpoint method.
+  ///
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
+  @override
+  _i2.Future<void> verifyPow(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'anonaccount.device',
+    'verifyPow',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
+    },
+  );
+}
+
+/// Authenticated device management endpoints.
+///
+/// All methods require session authentication (device key).
+/// Handles device authentication, revocation, listing, and QR pairing.
+/// {@category Endpoint}
+class EndpointDeviceManagement extends EndpointAuthenticated {
+  EndpointDeviceManagement(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccount.deviceManagement';
+
   /// Authenticate device with challenge-response.
   ///
-  /// Requires session auth. Performs ECDSA P-256 signature verification.
+  /// Performs ECDSA P-256 signature verification.
   /// Updates the device's last active timestamp on success.
   _i2.Future<_i9.AuthenticationResult> authenticateDevice(
     String challenge,
     String signature,
   ) => caller.callServerEndpoint<_i9.AuthenticationResult>(
-    'anonaccount.device',
+    'anonaccount.deviceManagement',
     'authenticateDevice',
     {
       'challenge': challenge,
@@ -225,23 +329,23 @@ class EndpointDevice extends _i1.EndpointRef {
     },
   );
 
-  /// Revoke device access (session auth required).
+  /// Revoke device access.
   _i2.Future<bool> revokeDevice(int deviceId) =>
       caller.callServerEndpoint<bool>(
-        'anonaccount.device',
+        'anonaccount.deviceManagement',
         'revokeDevice',
         {'deviceId': deviceId},
       );
 
-  /// List account devices (session auth required).
+  /// List account devices.
   _i2.Future<List<_i6.AccountDevice>> listDevices() =>
       caller.callServerEndpoint<List<_i6.AccountDevice>>(
-        'anonaccount.device',
+        'anonaccount.deviceManagement',
         'listDevices',
         {},
       );
 
-  /// Register a new device for the caller's account (session auth required).
+  /// Register a new device for the caller's account.
   ///
   /// QR code pairing flow: Device A (authenticated) registers Device B.
   _i2.Future<_i6.AccountDevice> registerDeviceForAccount(
@@ -249,7 +353,7 @@ class EndpointDevice extends _i1.EndpointRef {
     String newDeviceEncryptedDataKey,
     String label,
   ) => caller.callServerEndpoint<_i6.AccountDevice>(
-    'anonaccount.device',
+    'anonaccount.deviceManagement',
     'registerDeviceForAccount',
     {
       'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex,
@@ -259,19 +363,83 @@ class EndpointDevice extends _i1.EndpointRef {
   );
 }
 
+/// Abstract base class for unauthenticated endpoints protected by
+/// hashcash proof-of-work + ECDSA signature + rate limiting.
+///
+/// Subclasses get:
+/// - `getChallenge()` endpoint method (auto-registered by Serverpod)
+/// - `verifyPow()` helper to call at the top of each endpoint method
+/// - Configurable rate limiting via `endpointType` and `rateLimitPerHour`
+///
+/// Usage in consuming projects:
+/// ```dart
+/// class MyPublicEndpoint extends PowProtectedEndpoint {
+///   @override
+///   String get endpointType => 'my_endpoint';
+///
+///   @override
+///   int get rateLimitPerHour => 20;
+///
+///   Future<MyResponse> submitThing(
+///     Session session, {
+///     required String challenge,
+///     required String proofOfWork,
+///     required String signature,
+///     required String publicKeyHex,
+///     required String data,
+///   }) async {
+///     await verifyPow(session, challenge, proofOfWork, publicKeyHex,
+///         signature, '$challenge:submitThing:$publicKeyHex');
+///     // ... business logic
+///   }
+/// }
+/// ```
+/// {@category Endpoint}
+abstract class EndpointPowProtected extends _i1.EndpointRef {
+  EndpointPowProtected(_i1.EndpointCaller caller) : super(caller);
+
+  /// Get challenge for proof-of-work.
+  ///
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  _i2.Future<_i5.PublicChallengeResponse> getChallenge();
+
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
+  ///
+  /// Call this at the top of each PoW-protected endpoint method.
+  ///
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
+  _i2.Future<void> verifyPow(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  );
+}
+
 class Caller extends _i1.ModuleEndpointCaller {
   Caller(_i1.ServerpodClientShared client) : super(client) {
     account = EndpointAccount(this);
     device = EndpointDevice(this);
+    deviceManagement = EndpointDeviceManagement(this);
   }
 
   late final EndpointAccount account;
 
   late final EndpointDevice device;
 
+  late final EndpointDeviceManagement deviceManagement;
+
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'anonaccount.account': account,
     'anonaccount.device': device,
+    'anonaccount.deviceManagement': deviceManagement,
   };
 }

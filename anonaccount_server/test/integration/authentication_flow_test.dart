@@ -202,7 +202,7 @@ void main() {
           ),
         );
 
-        await endpoints.device.revokeDevice(
+        await endpoints.deviceManagement.revokeDevice(
           authenticatedSessionBuilder,
           device.id!,
         );

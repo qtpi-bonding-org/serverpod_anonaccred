@@ -2,9 +2,11 @@ import 'package:serverpod/serverpod.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import '../services/public_challenge_service.dart';
+import 'pow_protected_endpoint.dart';
 
 /// Concrete account endpoint with built-in hashcash PoW spam prevention.
+///
+/// Extends [PowProtectedEndpoint] to inherit `getChallenge()` and `verifyPow()`.
 ///
 /// Provides account creation and recovery with:
 /// - Hashcash proof-of-work for spam prevention
@@ -13,18 +15,9 @@ import '../services/public_challenge_service.dart';
 ///
 /// Server-only query methods (getAccountById, getAccountByPublicKey) live
 /// in [AccountQueryService] — not exposed to clients.
-class AccountEndpoint extends Endpoint {
+class AccountEndpoint extends PowProtectedEndpoint {
   @override
-  bool get requireLogin => false;
-
-  /// Get challenge for proof-of-work.
-  ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// The client must solve the hashcash puzzle before calling
-  /// [createAccount] or [getAccountForRecovery].
-  Future<PublicChallengeResponse> getChallenge(Session session) async {
-    return await PublicChallengeService.generateChallenge(session);
-  }
+  String get endpointType => 'account';
 
   /// Create new anonymous account with PoW verification.
   ///
@@ -42,7 +35,7 @@ class AccountEndpoint extends Endpoint {
       final payload =
           '$challenge:createAccount:$ultimateSigningPublicKeyHex';
 
-      await PublicChallengeService.verifyAndRateLimit(
+      await verifyPow(
         session,
         challenge,
         proofOfWork,
@@ -146,7 +139,7 @@ class AccountEndpoint extends Endpoint {
       final payload =
           '$challenge:getAccountForRecovery:$ultimatePublicKey';
 
-      await PublicChallengeService.verifyAndRateLimit(
+      await verifyPow(
         session,
         challenge,
         proofOfWork,

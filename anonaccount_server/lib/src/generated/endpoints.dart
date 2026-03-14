@@ -13,6 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/account_endpoint.dart' as _i2;
 import '../endpoints/device_endpoint.dart' as _i3;
+import '../endpoints/device_management_endpoint.dart' as _i4;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -30,21 +31,17 @@ class Endpoints extends _i1.EndpointDispatch {
           'device',
           'anonaccount',
         ),
+      'deviceManagement': _i4.DeviceManagementEndpoint()
+        ..initialize(
+          server,
+          'deviceManagement',
+          'anonaccount',
+        ),
     };
     connectors['account'] = _i1.EndpointConnector(
       name: 'account',
       endpoint: endpoints['account']!,
       methodConnectors: {
-        'getChallenge': _i1.MethodConnector(
-          name: 'getChallenge',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['account'] as _i2.AccountEndpoint)
-                  .getChallenge(session),
-        ),
         'createAccount': _i1.MethodConnector(
           name: 'createAccount',
           params: {
@@ -130,6 +127,59 @@ class Endpoints extends _i1.EndpointDispatch {
                     proofOfWork: params['proofOfWork'],
                     ultimatePublicKey: params['ultimatePublicKey'],
                     signature: params['signature'],
+                  ),
+        ),
+        'getChallenge': _i1.MethodConnector(
+          name: 'getChallenge',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['account'] as _i2.AccountEndpoint)
+                  .getChallenge(session),
+        ),
+        'verifyPow': _i1.MethodConnector(
+          name: 'verifyPow',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'publicKeyHex': _i1.ParameterDescription(
+              name: 'publicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'payload': _i1.ParameterDescription(
+              name: 'payload',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['account'] as _i2.AccountEndpoint).verifyPow(
+                    session,
+                    params['challenge'],
+                    params['proofOfWork'],
+                    params['publicKeyHex'],
+                    params['signature'],
+                    params['payload'],
                   ),
         ),
       },
@@ -279,11 +329,21 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['device'] as _i3.DeviceEndpoint)
                   .getChallenge(session),
         ),
-        'authenticateDevice': _i1.MethodConnector(
-          name: 'authenticateDevice',
+        'verifyPow': _i1.MethodConnector(
+          name: 'verifyPow',
           params: {
             'challenge': _i1.ParameterDescription(
               name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'publicKeyHex': _i1.ParameterDescription(
+              name: 'publicKeyHex',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -292,62 +352,8 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i3.DeviceEndpoint)
-                  .authenticateDevice(
-                    session,
-                    params['challenge'],
-                    params['signature'],
-                  ),
-        ),
-        'revokeDevice': _i1.MethodConnector(
-          name: 'revokeDevice',
-          params: {
-            'deviceId': _i1.ParameterDescription(
-              name: 'deviceId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['device'] as _i3.DeviceEndpoint).revokeDevice(
-                    session,
-                    params['deviceId'],
-                  ),
-        ),
-        'listDevices': _i1.MethodConnector(
-          name: 'listDevices',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i3.DeviceEndpoint)
-                  .listDevices(session),
-        ),
-        'registerDeviceForAccount': _i1.MethodConnector(
-          name: 'registerDeviceForAccount',
-          params: {
-            'newDeviceSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'newDeviceSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'newDeviceEncryptedDataKey': _i1.ParameterDescription(
-              name: 'newDeviceEncryptedDataKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'label': _i1.ParameterDescription(
-              name: 'label',
+            'payload': _i1.ParameterDescription(
+              name: 'payload',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -356,13 +362,14 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i3.DeviceEndpoint)
-                  .registerDeviceForAccount(
-                    session,
-                    params['newDeviceSigningPublicKeyHex'],
-                    params['newDeviceEncryptedDataKey'],
-                    params['label'],
-                  ),
+              ) async => (endpoints['device'] as _i3.DeviceEndpoint).verifyPow(
+                session,
+                params['challenge'],
+                params['proofOfWork'],
+                params['publicKeyHex'],
+                params['signature'],
+                params['payload'],
+              ),
         ),
         'monitorRegistration': _i1.MethodStreamConnector(
           name: 'monitorRegistration',
@@ -403,6 +410,105 @@ class Endpoints extends _i1.EndpointDispatch {
                     signature: params['signature'],
                     signingKeyHex: params['signingKeyHex'],
                   ),
+        ),
+      },
+    );
+    connectors['deviceManagement'] = _i1.EndpointConnector(
+      name: 'deviceManagement',
+      endpoint: endpoints['deviceManagement']!,
+      methodConnectors: {
+        'authenticateDevice': _i1.MethodConnector(
+          name: 'authenticateDevice',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['deviceManagement']
+                          as _i4.DeviceManagementEndpoint)
+                      .authenticateDevice(
+                        session,
+                        params['challenge'],
+                        params['signature'],
+                      ),
+        ),
+        'revokeDevice': _i1.MethodConnector(
+          name: 'revokeDevice',
+          params: {
+            'deviceId': _i1.ParameterDescription(
+              name: 'deviceId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['deviceManagement']
+                          as _i4.DeviceManagementEndpoint)
+                      .revokeDevice(
+                        session,
+                        params['deviceId'],
+                      ),
+        ),
+        'listDevices': _i1.MethodConnector(
+          name: 'listDevices',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['deviceManagement']
+                          as _i4.DeviceManagementEndpoint)
+                      .listDevices(session),
+        ),
+        'registerDeviceForAccount': _i1.MethodConnector(
+          name: 'registerDeviceForAccount',
+          params: {
+            'newDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'newDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'newDeviceEncryptedDataKey': _i1.ParameterDescription(
+              name: 'newDeviceEncryptedDataKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'label': _i1.ParameterDescription(
+              name: 'label',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['deviceManagement']
+                          as _i4.DeviceManagementEndpoint)
+                      .registerDeviceForAccount(
+                        session,
+                        params['newDeviceSigningPublicKeyHex'],
+                        params['newDeviceEncryptedDataKey'],
+                        params['label'],
+                      ),
         ),
       },
     );

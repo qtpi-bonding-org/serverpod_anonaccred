@@ -14,11 +14,11 @@
 import 'package:serverpod_test/serverpod_test.dart' as _i1;
 import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
-import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
-    as _i4;
 import 'package:anonaccount_server/src/generated/account_creation_response.dart'
-    as _i5;
-import 'package:anonaccount_server/src/generated/account.dart' as _i6;
+    as _i4;
+import 'package:anonaccount_server/src/generated/account.dart' as _i5;
+import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
+    as _i6;
 import 'package:anonaccount_server/src/generated/account_device.dart' as _i7;
 import 'package:anonaccount_server/src/generated/device_pairing_info.dart'
     as _i8;
@@ -136,6 +136,8 @@ class TestEndpoints {
   late final _AccountEndpoint account;
 
   late final _DeviceEndpoint device;
+
+  late final _DeviceManagementEndpoint deviceManagement;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -153,6 +155,10 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+    deviceManagement = _DeviceManagementEndpoint(
+      endpoints,
+      serializationManager,
+    );
   }
 }
 
@@ -166,37 +172,7 @@ class _AccountEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i4.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'account',
-            method: 'getChallenge',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'account',
-          methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i4.PublicChallengeResponse>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<_i5.AccountCreationResponse> createAccount(
+  _i3.Future<_i4.AccountCreationResponse> createAccount(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -231,7 +207,7 @@ class _AccountEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.AccountCreationResponse>);
+                as _i3.Future<_i4.AccountCreationResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -239,7 +215,7 @@ class _AccountEndpoint {
     });
   }
 
-  _i3.Future<_i6.AnonAccount?> getAccountForRecovery(
+  _i3.Future<_i5.AnonAccount?> getAccountForRecovery(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -270,7 +246,78 @@ class _AccountEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.AnonAccount?>);
+                as _i3.Future<_i5.AnonAccount?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'account',
+            method: 'getChallenge',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'account',
+          methodName: 'getChallenge',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.PublicChallengeResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> verifyPow(
+    _i1.TestSessionBuilder sessionBuilder,
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'account',
+            method: 'verifyPow',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'account',
+          methodName: 'verifyPow',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'publicKeyHex': publicKeyHex,
+            'signature': signature,
+            'payload': payload,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -453,7 +500,7 @@ class _DeviceEndpoint {
     return _localTestStreamManager.outputStreamController.stream;
   }
 
-  _i3.Future<_i4.PublicChallengeResponse> getChallenge(
+  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -475,13 +522,65 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i4.PublicChallengeResponse>);
+                as _i3.Future<_i6.PublicChallengeResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
       }
     });
   }
+
+  _i3.Future<void> verifyPow(
+    _i1.TestSessionBuilder sessionBuilder,
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'device',
+            method: 'verifyPow',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'device',
+          methodName: 'verifyPow',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'publicKeyHex': publicKeyHex,
+            'signature': signature,
+            'payload': payload,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _DeviceManagementEndpoint {
+  _DeviceManagementEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
 
   _i3.Future<_i10.AuthenticationResult> authenticateDevice(
     _i1.TestSessionBuilder sessionBuilder,
@@ -491,13 +590,13 @@ class _DeviceEndpoint {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
+            endpoint: 'deviceManagement',
             method: 'authenticateDevice',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
+          endpointPath: 'deviceManagement',
           methodName: 'authenticateDevice',
           parameters: _i1.testObjectToJson({
             'challenge': challenge,
@@ -525,13 +624,13 @@ class _DeviceEndpoint {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
+            endpoint: 'deviceManagement',
             method: 'revokeDevice',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
+          endpointPath: 'deviceManagement',
           methodName: 'revokeDevice',
           parameters: _i1.testObjectToJson({'deviceId': deviceId}),
           serializationManager: _serializationManager,
@@ -555,13 +654,13 @@ class _DeviceEndpoint {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
+            endpoint: 'deviceManagement',
             method: 'listDevices',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
+          endpointPath: 'deviceManagement',
           methodName: 'listDevices',
           parameters: _i1.testObjectToJson({}),
           serializationManager: _serializationManager,
@@ -588,13 +687,13 @@ class _DeviceEndpoint {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
+            endpoint: 'deviceManagement',
             method: 'registerDeviceForAccount',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
+          endpointPath: 'deviceManagement',
           methodName: 'registerDeviceForAccount',
           parameters: _i1.testObjectToJson({
             'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex,

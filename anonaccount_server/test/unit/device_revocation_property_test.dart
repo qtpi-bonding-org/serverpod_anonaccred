@@ -1,4 +1,5 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
 import '../integration/test_tools/auth_test_helper.dart';
@@ -64,26 +65,28 @@ void main() {
         expect(device.deviceSigningPublicKeyHex, equals(devicePubKey));
 
         // Test that session-auth endpoints require authentication
+        // DeviceManagementEndpoint requires login — Serverpod enforces this
+        // at the framework level before endpoint code runs.
         expect(
-          () => endpoints.device.authenticateDevice(
+          () => endpoints.deviceManagement.authenticateDevice(
             sessionBuilder,
             'test_challenge',
             AuthTestHelper.generateValidSignature(),
           ),
-          throwsA(isA<AuthenticationException>()),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
 
         expect(
-          () => endpoints.device.revokeDevice(
+          () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,
             device.id!,
           ),
-          throwsA(isA<AuthenticationException>()),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
 
         expect(
-          () => endpoints.device.listDevices(sessionBuilder),
-          throwsA(isA<AuthenticationException>()),
+          () => endpoints.deviceManagement.listDevices(sessionBuilder),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
 
         // Verify device registration still works (PoW-protected, not session-auth)

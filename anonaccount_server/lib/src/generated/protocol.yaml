@@ -1,13 +1,16 @@
 account:
-  - getChallenge:
   - createAccount:
   - getAccountForRecovery:
+  - getChallenge:
+  - verifyPow:
 device:
   - registerDevice:
   - generateAuthChallenge:
   - getDeviceBySigningKey:
   - monitorRegistration:
   - getChallenge:
+  - verifyPow:
+deviceManagement:
   - authenticateDevice:
   - revokeDevice:
   - listDevices:

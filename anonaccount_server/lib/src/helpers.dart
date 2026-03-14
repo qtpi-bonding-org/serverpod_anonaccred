@@ -110,6 +110,15 @@ class AnonAccountHelpers {
     {'deviceSigningPublicKeyHex': publicKey},
   );
 
+  // === TIME HELPERS ===
+
+  /// Round DateTime to the nearest minute for privacy hardening.
+  ///
+  /// Strips seconds and milliseconds from timestamps to reduce
+  /// timing-based fingerprinting of device activity.
+  static DateTime roundToMinute(DateTime dt) =>
+      DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
+
   /// Require active device (exists and not revoked)
   static AccountDevice requireActiveDevice(
     AccountDevice? device,

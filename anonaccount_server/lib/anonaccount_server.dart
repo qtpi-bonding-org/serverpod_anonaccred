@@ -30,6 +30,8 @@ export 'src/endpoints/pow_protected_endpoint.dart';
 export 'src/endpoints/authenticated_endpoint.dart';
 // Endpoints (concrete with built-in PoW spam prevention)
 export 'src/endpoints/account_endpoint.dart';
+export 'src/endpoints/device_endpoint.dart';
+export 'src/endpoints/device_management_endpoint.dart';
 // Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';

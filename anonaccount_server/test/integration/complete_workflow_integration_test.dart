@@ -120,9 +120,11 @@ void main() {
         expect(challenge.length, greaterThan(10));
 
         // Step 6: Protected endpoints require authentication
+        // DeviceManagementEndpoint requires login — Serverpod enforces this
+        // at the framework level before endpoint code runs.
         expect(
-          () => endpoints.device.listDevices(sessionBuilder),
-          throwsA(isA<AuthenticationException>()),
+          () => endpoints.deviceManagement.listDevices(sessionBuilder),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
 
@@ -172,23 +174,25 @@ void main() {
       });
 
       test('authentication failure scenarios', () async {
+        // DeviceManagementEndpoint requires login — Serverpod enforces this
+        // at the framework level before endpoint code runs.
         expect(
-          () => endpoints.device.listDevices(sessionBuilder),
-          throwsA(isA<AuthenticationException>()),
+          () => endpoints.deviceManagement.listDevices(sessionBuilder),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
 
         expect(
-          () => endpoints.device.revokeDevice(sessionBuilder, 123),
-          throwsA(isA<AuthenticationException>()),
+          () => endpoints.deviceManagement.revokeDevice(sessionBuilder, 123),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
 
         expect(
-          () => endpoints.device.authenticateDevice(
+          () => endpoints.deviceManagement.authenticateDevice(
             sessionBuilder,
             'test_challenge',
             AuthTestHelper.generateValidSignature(),
           ),
-          throwsA(isA<AuthenticationException>()),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
 

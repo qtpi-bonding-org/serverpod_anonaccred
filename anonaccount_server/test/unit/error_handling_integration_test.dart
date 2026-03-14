@@ -1,4 +1,5 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 import '../integration/test_tools/auth_test_helper.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
@@ -48,58 +49,33 @@ void main() {
         );
       });
 
-      test('should return structured error for device authentication without auth',
+      test('should reject unauthenticated device authentication',
           () async {
+        // DeviceManagementEndpoint requires login — Serverpod enforces this
+        // at the framework level before endpoint code runs.
         expect(
-          () => endpoints.device.authenticateDevice(
+          () => endpoints.deviceManagement.authenticateDevice(
             sessionBuilder,
             'test_challenge',
             AuthTestHelper.generateValidSignature(),
           ),
-          throwsA(
-            allOf(
-              isA<AuthenticationException>(),
-              predicate<AuthenticationException>(
-                (e) =>
-                    e.toString().contains('AUTH_MISSING_KEY') &&
-                    e.toString().contains('Authentication required'),
-              ),
-            ),
-          ),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
 
-      test('should return structured error for device revocation without auth',
+      test('should reject unauthenticated device revocation',
           () async {
         expect(
-          () => endpoints.device.revokeDevice(sessionBuilder, 123),
-          throwsA(
-            allOf(
-              isA<AuthenticationException>(),
-              predicate<AuthenticationException>(
-                (e) =>
-                    e.toString().contains('AUTH_MISSING_KEY') &&
-                    e.toString().contains('Authentication required'),
-              ),
-            ),
-          ),
+          () => endpoints.deviceManagement.revokeDevice(sessionBuilder, 123),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
 
-      test('should return structured error for device listing without auth',
+      test('should reject unauthenticated device listing',
           () async {
         expect(
-          () => endpoints.device.listDevices(sessionBuilder),
-          throwsA(
-            allOf(
-              isA<AuthenticationException>(),
-              predicate<AuthenticationException>(
-                (e) =>
-                    e.toString().contains('AUTH_MISSING_KEY') &&
-                    e.toString().contains('Authentication required'),
-              ),
-            ),
-          ),
+          () => endpoints.deviceManagement.listDevices(sessionBuilder),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
     });

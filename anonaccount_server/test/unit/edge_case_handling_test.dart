@@ -1,4 +1,5 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
 import '../integration/test_tools/auth_test_helper.dart';
@@ -86,35 +87,39 @@ void main() {
         const challenge = 'test_challenge_12345';
         final signature = AuthTestHelper.generateValidSignature();
 
+        // DeviceManagementEndpoint requires login — Serverpod enforces this
+        // at the framework level before endpoint code runs.
         expect(
-          () => endpoints.device.authenticateDevice(
+          () => endpoints.deviceManagement.authenticateDevice(
             sessionBuilder,
             challenge,
             signature,
           ),
-          throwsA(isA<AuthenticationException>()),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
 
       test('authenticateDevice - should fail with empty challenge', () async {
+        // Unauthenticated — Serverpod rejects before endpoint code runs.
         expect(
-          () => endpoints.device.authenticateDevice(
+          () => endpoints.deviceManagement.authenticateDevice(
             sessionBuilder,
             '', // Empty challenge
             AuthTestHelper.generateValidSignature(),
           ),
-          throwsA(isA<AuthenticationException>()),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
 
       test('authenticateDevice - should fail with empty signature', () async {
+        // Unauthenticated — Serverpod rejects before endpoint code runs.
         expect(
-          () => endpoints.device.authenticateDevice(
+          () => endpoints.deviceManagement.authenticateDevice(
             sessionBuilder,
             'test_challenge',
             '', // Empty signature
           ),
-          throwsA(isA<AuthenticationException>()),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
     });
@@ -122,21 +127,21 @@ void main() {
     group('Device Revocation Edge Cases', () {
       test('revokeDevice - should fail without authentication', () async {
         expect(
-          () => endpoints.device.revokeDevice(
+          () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,
             123, // Any device ID
           ),
-          throwsA(isA<AuthenticationException>()),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
 
       test('revokeDevice - should fail with invalid device ID', () async {
         expect(
-          () => endpoints.device.revokeDevice(
+          () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,
             -1, // Invalid device ID
           ),
-          throwsA(isA<AuthenticationException>()),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
     });
@@ -144,8 +149,8 @@ void main() {
     group('Device Listing Edge Cases', () {
       test('listDevices - should fail without authentication', () async {
         expect(
-          () => endpoints.device.listDevices(sessionBuilder),
-          throwsA(isA<AuthenticationException>()),
+          () => endpoints.deviceManagement.listDevices(sessionBuilder),
+          throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
     });
