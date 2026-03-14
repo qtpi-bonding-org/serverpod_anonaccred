@@ -73,3 +73,6 @@ export 'src/price_registry.dart';
 // Refund system
 export 'src/refund_event.dart';
 export 'src/refund_manager.dart';
+// Webhook routes for Apple and Google server-to-server notifications
+export 'src/webhooks/apple_webhook_route.dart';
+export 'src/webhooks/google_webhook_route.dart';

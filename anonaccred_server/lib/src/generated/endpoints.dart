@@ -13,8 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/commerce_endpoint.dart' as _i2;
 import '../endpoints/iap_endpoint.dart' as _i3;
-import '../endpoints/iap_webhook_endpoint.dart' as _i4;
-import 'package:anonaccount_server/anonaccount_server.dart' as _i5;
+import 'package:anonaccount_server/anonaccount_server.dart' as _i4;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -30,12 +29,6 @@ class Endpoints extends _i1.EndpointDispatch {
         ..initialize(
           server,
           'iAP',
-          'anonaccred',
-        ),
-      'iAPWebhook': _i4.IAPWebhookEndpoint()
-        ..initialize(
-          server,
-          'iAPWebhook',
           'anonaccred',
         ),
     };
@@ -173,50 +166,6 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    connectors['iAPWebhook'] = _i1.EndpointConnector(
-      name: 'iAPWebhook',
-      endpoint: endpoints['iAPWebhook']!,
-      methodConnectors: {
-        'handleAppleWebhook': _i1.MethodConnector(
-          name: 'handleAppleWebhook',
-          params: {
-            'webhookDataJson': _i1.ParameterDescription(
-              name: 'webhookDataJson',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['iAPWebhook'] as _i4.IAPWebhookEndpoint)
-                  .handleAppleWebhook(
-                    session,
-                    params['webhookDataJson'],
-                  ),
-        ),
-        'handleGoogleWebhook': _i1.MethodConnector(
-          name: 'handleGoogleWebhook',
-          params: {
-            'webhookDataJson': _i1.ParameterDescription(
-              name: 'webhookDataJson',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['iAPWebhook'] as _i4.IAPWebhookEndpoint)
-                  .handleGoogleWebhook(
-                    session,
-                    params['webhookDataJson'],
-                  ),
-        ),
-      },
-    );
-    modules['anonaccount'] = _i5.Endpoints()..initializeEndpoints(server);
+    modules['anonaccount'] = _i4.Endpoints()..initializeEndpoints(server);
   }
 }

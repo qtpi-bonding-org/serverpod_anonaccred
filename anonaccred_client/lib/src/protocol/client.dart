@@ -123,51 +123,19 @@ class EndpointIAP extends _i1.EndpointAuthenticated {
   );
 }
 
-/// IAP webhook endpoint for Apple and Google notifications.
-///
-/// Uses PaymentManager.getRail() to get initialized rail instances,
-/// injects the session into callbackData so rails can access the database.
-/// {@category Endpoint}
-class EndpointIAPWebhook extends _i2.EndpointRef {
-  EndpointIAPWebhook(_i2.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'anonaccred.iAPWebhook';
-
-  /// Handle Apple App Store Server Notifications
-  _i3.Future<String> handleAppleWebhook(String webhookDataJson) =>
-      caller.callServerEndpoint<String>(
-        'anonaccred.iAPWebhook',
-        'handleAppleWebhook',
-        {'webhookDataJson': webhookDataJson},
-      );
-
-  /// Handle Google Play Real-time Developer Notifications
-  _i3.Future<String> handleGoogleWebhook(String webhookDataJson) =>
-      caller.callServerEndpoint<String>(
-        'anonaccred.iAPWebhook',
-        'handleGoogleWebhook',
-        {'webhookDataJson': webhookDataJson},
-      );
-}
-
 class Caller extends _i2.ModuleEndpointCaller {
   Caller(_i2.ServerpodClientShared client) : super(client) {
     commerce = EndpointCommerce(this);
     iAP = EndpointIAP(this);
-    iAPWebhook = EndpointIAPWebhook(this);
   }
 
   late final EndpointCommerce commerce;
 
   late final EndpointIAP iAP;
 
-  late final EndpointIAPWebhook iAPWebhook;
-
   @override
   Map<String, _i2.EndpointRef> get endpointRefLookup => {
     'anonaccred.commerce': commerce,
     'anonaccred.iAP': iAP,
-    'anonaccred.iAPWebhook': iAPWebhook,
   };
 }
