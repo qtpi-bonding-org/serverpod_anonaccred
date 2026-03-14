@@ -198,11 +198,11 @@ void main() {
 
       final result = await googleRail.processCallback(mockCallbackData);
 
-      // Should return failure since we don't have configuration in test
+      // Should return failure since no signature/payload/session provided
       expect(result.success, isFalse);
       expect(
         result.errorMessage,
-        contains('Google IAP callback processing failed'),
+        contains('Missing webhook signature, payload, or session'),
       );
     });
 
@@ -211,7 +211,7 @@ void main() {
       final mockCallbackData = {
         'package_name': 'com.example.app',
         'product_id': 'com.example.premium',
-        // Missing purchase_token and order_id
+        // Missing signature, payload, and session
       };
 
       final result = await googleRail.processCallback(mockCallbackData);
@@ -219,7 +219,7 @@ void main() {
       expect(result.success, isFalse);
       expect(
         result.errorMessage,
-        equals('Missing required fields in Google IAP callback'),
+        equals('Missing webhook signature, payload, or session'),
       );
     });
 
@@ -482,7 +482,8 @@ void main() {
       RefundManager.resetHandler();
     });
 
-    test('processCallback for refund notification calls RefundManager',
+    test(
+        'processCallback rejects refund notification without webhook signature',
         () async {
       final session = sessionBuilder.build();
       const token = 'token_refund_callback';
@@ -495,14 +496,7 @@ void main() {
         ReceiptHash(hash: hash, paymentRail: PaymentRail.google_iap),
       );
 
-      // Register hook to verify RefundManager receives the event
-      var hookCalled = false;
-      RefundManager.onRefund((s, event, context) async {
-        hookCalled = true;
-        expect(event.paymentRef, equals(orderId));
-        return RefundAction.ignore;
-      });
-
+      // Without signature/payload, the callback should be rejected
       final result = await googleRail.processCallback({
         'notification_type': 'refund',
         'purchase_token': token,
@@ -510,8 +504,11 @@ void main() {
         'session': session,
       });
 
-      expect(result.success, isTrue);
-      expect(hookCalled, isTrue);
+      expect(result.success, isFalse);
+      expect(
+        result.errorMessage,
+        equals('Missing webhook signature, payload, or session'),
+      );
     });
   });
 }

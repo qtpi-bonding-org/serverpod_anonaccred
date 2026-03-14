@@ -103,24 +103,28 @@ class GoogleIAPRail implements PaymentRailInterface {
       final payload = callbackData['payload'] as String?;
       final session = callbackData['session'] as Session?;
 
-      // Validate webhook signature if present
-      if (signature != null && payload != null && session != null) {
-        try {
-          WebhookSignatureValidator.validateSignatureOrThrow(
-            session: session,
-            payload: payload,
-            signature: signature,
+      // Validate webhook signature — reject unsigned or unverifiable requests
+      if (signature == null || payload == null || session == null) {
+        return PaymentResult(
+          success: false,
+          errorMessage: 'Missing webhook signature, payload, or session',
+        );
+      }
+
+      try {
+        WebhookSignatureValidator.validateSignatureOrThrow(
+          session: session,
+          payload: payload,
+          signature: signature,
+        );
+      } on AnonAccountException catch (e) {
+        if (e.code == AnonAccountErrorCodes.authInvalidSignature) {
+          return PaymentResult(
+            success: false,
+            errorMessage: 'Invalid webhook signature',
           );
-        } on AnonAccountException catch (e) {
-          // Invalid signature - return HTTP 401
-          if (e.code == AnonAccountErrorCodes.authInvalidSignature) {
-            return PaymentResult(
-              success: false,
-              errorMessage: 'Invalid webhook signature',
-            );
-          }
-          rethrow;
         }
+        rethrow;
       }
 
       // Handle refund notifications
