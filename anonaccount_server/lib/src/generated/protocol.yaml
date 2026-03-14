@@ -1,17 +1,18 @@
 account:
   - createAccount:
   - getAccountForRecovery:
+  - verifySignedPow:
   - getChallenge:
-  - verifyPow:
+  - verifyHashcash:
 device:
   - registerDevice:
-  - getSignableNonce:
+  - signIn:
   - getDeviceBySigningKey:
   - monitorRegistration:
+  - verifySignedPow:
   - getChallenge:
-  - verifyPow:
+  - verifyHashcash:
 deviceManagement:
-  - authenticateDevice:
   - revokeDevice:
   - listDevices:
   - registerDeviceForAccount:

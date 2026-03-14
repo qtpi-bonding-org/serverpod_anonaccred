@@ -20,11 +20,11 @@ import 'package:anonaccount_server/src/generated/account.dart' as _i5;
 import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
     as _i6;
 import 'package:anonaccount_server/src/generated/account_device.dart' as _i7;
-import 'package:anonaccount_server/src/generated/device_pairing_info.dart'
-    as _i8;
-import 'package:anonaccount_server/src/generated/device_pairing_event.dart'
-    as _i9;
 import 'package:anonaccount_server/src/generated/authentication_result.dart'
+    as _i8;
+import 'package:anonaccount_server/src/generated/device_pairing_info.dart'
+    as _i9;
+import 'package:anonaccount_server/src/generated/device_pairing_event.dart'
     as _i10;
 import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/generated/endpoints.dart';
@@ -256,6 +256,47 @@ class _AccountEndpoint {
     });
   }
 
+  _i3.Future<void> verifySignedPow(
+    _i1.TestSessionBuilder sessionBuilder,
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'account',
+            method: 'verifySignedPow',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'account',
+          methodName: 'verifySignedPow',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'publicKeyHex': publicKeyHex,
+            'signature': signature,
+            'payload': payload,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<_i6.PublicChallengeResponse> getChallenge(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
@@ -286,31 +327,25 @@ class _AccountEndpoint {
     });
   }
 
-  _i3.Future<void> verifyPow(
+  _i3.Future<void> verifyHashcash(
     _i1.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
-    String publicKeyHex,
-    String signature,
-    String payload,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'account',
-            method: 'verifyPow',
+            method: 'verifyHashcash',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'account',
-          methodName: 'verifyPow',
+          methodName: 'verifyHashcash',
           parameters: _i1.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
-            'publicKeyHex': publicKeyHex,
-            'signature': signature,
-            'payload': payload,
           }),
           serializationManager: _serializationManager,
         );
@@ -383,29 +418,29 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<String> getSignableNonce(
+  _i3.Future<_i8.AuthenticationResult> signIn(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
-    required String devicePublicKey,
+    required String devicePublicKeyHex,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
-            method: 'getSignableNonce',
+            method: 'signIn',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
-          methodName: 'getSignableNonce',
+          methodName: 'signIn',
           parameters: _i1.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
-            'devicePublicKey': devicePublicKey,
+            'devicePublicKeyHex': devicePublicKeyHex,
           }),
           serializationManager: _serializationManager,
         );
@@ -414,7 +449,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<String>);
+                as _i3.Future<_i8.AuthenticationResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -422,7 +457,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<_i8.DevicePairingInfo?> getDeviceBySigningKey(
+  _i3.Future<_i9.DevicePairingInfo?> getDeviceBySigningKey(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -453,7 +488,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.DevicePairingInfo?>);
+                as _i3.Future<_i9.DevicePairingInfo?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -461,7 +496,7 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Stream<_i9.DevicePairingEvent> monitorRegistration(
+  _i3.Stream<_i10.DevicePairingEvent> monitorRegistration(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -469,7 +504,7 @@ class _DeviceEndpoint {
     required String signingKeyHex,
   }) {
     var _localTestStreamManager =
-        _i1.TestStreamManager<_i9.DevicePairingEvent>();
+        _i1.TestStreamManager<_i10.DevicePairingEvent>();
     _i1.callStreamFunctionAndHandleExceptions(
       () async {
         var _localUniqueSession =
@@ -502,6 +537,47 @@ class _DeviceEndpoint {
     return _localTestStreamManager.outputStreamController.stream;
   }
 
+  _i3.Future<void> verifySignedPow(
+    _i1.TestSessionBuilder sessionBuilder,
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'device',
+            method: 'verifySignedPow',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'device',
+          methodName: 'verifySignedPow',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'publicKeyHex': publicKeyHex,
+            'signature': signature,
+            'payload': payload,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<_i6.PublicChallengeResponse> getChallenge(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
@@ -532,31 +608,25 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<void> verifyPow(
+  _i3.Future<void> verifyHashcash(
     _i1.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
-    String publicKeyHex,
-    String signature,
-    String payload,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
-            method: 'verifyPow',
+            method: 'verifyHashcash',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
-          methodName: 'verifyPow',
+          methodName: 'verifyHashcash',
           parameters: _i1.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
-            'publicKeyHex': publicKeyHex,
-            'signature': signature,
-            'payload': payload,
           }),
           serializationManager: _serializationManager,
         );
@@ -583,41 +653,6 @@ class _DeviceManagementEndpoint {
   final _i2.EndpointDispatch _endpointDispatch;
 
   final _i2.SerializationManager _serializationManager;
-
-  _i3.Future<_i10.AuthenticationResult> authenticateDevice(
-    _i1.TestSessionBuilder sessionBuilder,
-    String challenge,
-    String signature,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'deviceManagement',
-            method: 'authenticateDevice',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'deviceManagement',
-          methodName: 'authenticateDevice',
-          parameters: _i1.testObjectToJson({
-            'challenge': challenge,
-            'signature': signature,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i10.AuthenticationResult>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
 
   _i3.Future<bool> revokeDevice(
     _i1.TestSessionBuilder sessionBuilder,

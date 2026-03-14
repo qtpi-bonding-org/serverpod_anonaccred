@@ -2,11 +2,11 @@ import 'package:serverpod/serverpod.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import 'pow_protected_endpoint.dart';
+import 'signed_pow_endpoint.dart';
 
-/// Concrete account endpoint with built-in hashcash PoW spam prevention.
+/// Account endpoint with PoW + signature protection.
 ///
-/// Extends [PowProtectedEndpoint] to inherit `getChallenge()` and `verifyPow()`.
+/// Extends [SignedPowEndpoint] to inherit `getChallenge()` and `verifySignedPow()`.
 ///
 /// Provides account creation and recovery with:
 /// - Hashcash proof-of-work for spam prevention
@@ -15,7 +15,7 @@ import 'pow_protected_endpoint.dart';
 ///
 /// Server-only query methods (getAccountById, getAccountByPublicKey) live
 /// in [AccountQueryService] — not exposed to clients.
-class AccountEndpoint extends PowProtectedEndpoint {
+class AccountEndpoint extends SignedPowEndpoint {
   @override
   String get endpointType => 'account';
 
@@ -36,7 +36,7 @@ class AccountEndpoint extends PowProtectedEndpoint {
       final payload =
           '$challenge:createAccount:$ultimateSigningPublicKeyHex';
 
-      await verifyPow(
+      await verifySignedPow(
         session,
         challenge,
         proofOfWork,
@@ -140,7 +140,7 @@ class AccountEndpoint extends PowProtectedEndpoint {
       final payload =
           '$challenge:getAccountForRecovery:$ultimatePublicKey';
 
-      await verifyPow(
+      await verifySignedPow(
         session,
         challenge,
         proofOfWork,

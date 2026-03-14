@@ -1,8 +1,6 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
-import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
-import '../integration/test_tools/auth_test_helper.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
@@ -82,42 +80,28 @@ void main() {
       });
     });
 
-    group('Device Authentication Edge Cases', () {
-      test('authenticateDevice - should fail without authentication', () async {
-        const challenge = 'test_challenge_12345';
-        final signature = AuthTestHelper.generateValidSignature();
-
+    group('Device Management Session-Auth Edge Cases', () {
+      test('revokeDevice - should fail without authentication', () async {
         // DeviceManagementEndpoint requires login — Serverpod enforces this
         // at the framework level before endpoint code runs.
         expect(
-          () => endpoints.deviceManagement.authenticateDevice(
+          () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,
-            challenge,
-            signature,
+            1,
           ),
           throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });
 
-      test('authenticateDevice - should fail with empty challenge', () async {
+      test('registerDeviceForAccount - should fail without authentication',
+          () async {
         // Unauthenticated — Serverpod rejects before endpoint code runs.
         expect(
-          () => endpoints.deviceManagement.authenticateDevice(
+          () => endpoints.deviceManagement.registerDeviceForAccount(
             sessionBuilder,
-            '', // Empty challenge
-            AuthTestHelper.generateValidSignature(),
-          ),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
-        );
-      });
-
-      test('authenticateDevice - should fail with empty signature', () async {
-        // Unauthenticated — Serverpod rejects before endpoint code runs.
-        expect(
-          () => endpoints.deviceManagement.authenticateDevice(
-            sessionBuilder,
-            'test_challenge',
-            '', // Empty signature
+            'device_pub_key_hex',
+            'encrypted_data_key',
+            'Test Device',
           ),
           throwsA(isA<ServerpodUnauthenticatedException>()),
         );

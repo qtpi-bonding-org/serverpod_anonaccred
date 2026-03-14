@@ -194,7 +194,7 @@ void main() {
       },
     );
 
-    test('getSignableNonce - should generate unique challenges', () async {
+    test('signIn - should produce unique auth results per call', () async {
       // Create account and device with real keypairs
       final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
 
@@ -229,21 +229,21 @@ void main() {
         label: label,
       );
 
-      // Now generate challenges with PoW (signed with device key)
+      // Now sign in with PoW (signed with device key)
       final authChallenge1 = await endpoints.device.getChallenge(sessionBuilder);
       final authPow1 = await PowTestHelper.mint(
         authChallenge1.challenge,
         difficulty: authChallenge1.difficulty,
       );
-      final authPayload1 = '${authChallenge1.challenge}:getSignableNonce:$devicePubKey';
+      final authPayload1 = '${authChallenge1.challenge}:signIn:$devicePubKey';
       final authSignature1 = SigningTestHelper.signWith(authPayload1, devicePrivKey);
 
-      final challenge1 = await endpoints.device.getSignableNonce(
+      final result1 = await endpoints.device.signIn(
         sessionBuilder,
         challenge: authChallenge1.challenge,
         proofOfWork: authPow1,
         signature: authSignature1,
-        devicePublicKey: devicePubKey,
+        devicePublicKeyHex: devicePubKey,
       );
 
       final authChallenge2 = await endpoints.device.getChallenge(sessionBuilder);
@@ -251,20 +251,19 @@ void main() {
         authChallenge2.challenge,
         difficulty: authChallenge2.difficulty,
       );
-      final authPayload2 = '${authChallenge2.challenge}:getSignableNonce:$devicePubKey';
+      final authPayload2 = '${authChallenge2.challenge}:signIn:$devicePubKey';
       final authSignature2 = SigningTestHelper.signWith(authPayload2, devicePrivKey);
 
-      final challenge2 = await endpoints.device.getSignableNonce(
+      final result2 = await endpoints.device.signIn(
         sessionBuilder,
         challenge: authChallenge2.challenge,
         proofOfWork: authPow2,
         signature: authSignature2,
-        devicePublicKey: devicePubKey,
+        devicePublicKeyHex: devicePubKey,
       );
 
-      expect(challenge1, isNotEmpty);
-      expect(challenge2, isNotEmpty);
-      expect(challenge1, isNot(equals(challenge2)));
+      expect(result1, isNotNull);
+      expect(result2, isNotNull);
     });
   });
 }

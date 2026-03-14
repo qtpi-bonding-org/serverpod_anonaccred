@@ -25,13 +25,11 @@ class PublicChallengeService {
 
   /// Generate a challenge for proof-of-work.
   ///
-  /// Stores the challenge in the database with a 5-minute TTL.
+  /// Stores the challenge in Redis with TTL-based auto-expiry.
   static Future<PublicChallengeResponse> generateChallenge(
     Session session,
   ) async {
     try {
-      await _cleanupExpiredChallenges(session);
-
       // Generate random challenge (128-bit = 32 hex chars)
       final random = Random.secure();
       final bytes = List<int>.generate(16, (_) => random.nextInt(256));
@@ -41,12 +39,11 @@ class PublicChallengeService {
 
       final expiresAt = DateTime.now().add(challengeTTL);
 
-      await PublicChallenge.db.insertRow(
-        session,
-        PublicChallenge(
-          challenge: challenge,
-          expiresAt: expiresAt,
-        ),
+      // Store in Redis with TTL — auto-expires, no manual cleanup needed
+      await session.caches.global.put(
+        'pow_challenge:$challenge',
+        ChallengeExists(exists: true),
+        lifetime: challengeTTL,
       );
 
       return PublicChallengeResponse(
@@ -95,7 +92,7 @@ class PublicChallengeService {
     }
 
     // 1. Verify proof-of-work
-    await _verifyProofOfWork(session, challenge, proofOfWork);
+    await verifyProofOfWork(session, challenge, proofOfWork);
 
     // 2. Verify ECDSA signature
     await _verifySignature(publicKeyHex, signature, payload);
@@ -109,27 +106,14 @@ class PublicChallengeService {
     );
   }
 
-  /// Clean up expired challenges from database.
-  static Future<void> _cleanupExpiredChallenges(Session session) async {
-    try {
-      final now = DateTime.now();
-      await PublicChallenge.db.deleteWhere(
-        session,
-        where: (t) => t.expiresAt < now,
-      );
-    } catch (e) {
-      session.log(
-        'Failed to cleanup expired challenges: $e',
-        level: LogLevel.warning,
-      );
-    }
-  }
-
-  /// Verify proof-of-work solution.
+  /// Verify proof-of-work solution (hashcash only, no signature).
   ///
-  /// Checks stamp format, challenge existence, hash quality,
-  /// and deletes challenge after use (one-time).
-  static Future<void> _verifyProofOfWork(
+  /// Checks stamp format, challenge existence in Redis, hash quality,
+  /// and removes challenge after use (one-time).
+  ///
+  /// Used directly by [PowEndpoint] for light hashcash protection.
+  /// Used internally by [verifyAndRateLimit] for full PoW + signature.
+  static Future<void> verifyProofOfWork(
     Session session,
     String challenge,
     String proofOfWork,
@@ -172,12 +156,10 @@ class PublicChallengeService {
         );
       }
 
-      // Check if challenge exists in database (not expired/used)
-      final challengeRecord = await PublicChallenge.db.findFirstRow(
-        session,
-        where: (t) =>
-            t.challenge.equals(challenge) & (t.expiresAt > DateTime.now()),
-      );
+      // Check if challenge exists in Redis (TTL handles expiry)
+      final cacheKey = 'pow_challenge:$challenge';
+      final challengeRecord =
+          await session.caches.global.get<ChallengeExists>(cacheKey);
 
       if (challengeRecord == null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -210,11 +192,8 @@ class PublicChallengeService {
         );
       }
 
-      // Delete challenge (one-time use)
-      await PublicChallenge.db.deleteWhere(
-        session,
-        where: (t) => t.challenge.equals(challenge),
-      );
+      // Remove challenge (one-time use)
+      await session.caches.global.invalidateKey('pow_challenge:$challenge');
     } catch (e) {
       if (e is AuthenticationException) rethrow;
       throw AnonAccountExceptionFactory.createAuthenticationException(

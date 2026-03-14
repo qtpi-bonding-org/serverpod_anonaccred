@@ -11,6 +11,8 @@ library;
 
 // Authentication handler for Serverpod integration
 export 'src/auth_handler.dart';
+// Token issuer callback for host-configured JWT/token issuance
+export 'src/token_issuer.dart';
 // Configuration system
 export 'src/config/header_config.dart';
 // Core cryptographic utilities
@@ -26,6 +28,10 @@ export 'src/account_query_service.dart';
 export 'src/services/public_challenge_service.dart';
 export 'src/services/rate_limit_service.dart';
 // Abstract base classes for consuming projects
+export 'src/endpoints/pow_endpoint.dart';
+export 'src/endpoints/signed_pow_endpoint.dart';
+export 'src/endpoints/jwt_endpoint.dart';
+// Legacy exports (deprecated, use PowEndpoint/SignedPowEndpoint/JwtEndpoint)
 export 'src/endpoints/pow_protected_endpoint.dart';
 export 'src/endpoints/authenticated_endpoint.dart';
 // Endpoints (concrete with built-in PoW spam prevention)

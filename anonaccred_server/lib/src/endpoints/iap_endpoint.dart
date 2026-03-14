@@ -7,15 +7,13 @@ import '../generated/protocol.dart';
 import '../payments/rails/apple_iap_rail.dart';
 import '../payments/rails/google_iap_rail.dart';
 
-/// In-App Purchase endpoint for Apple and Google IAP validation.
-///
-/// Requires device-key authentication via [AuthenticatedEndpoint].
+/// JWT-protected In-App Purchase endpoint for Apple and Google IAP validation.
 ///
 /// Implements a "Reactive & Anonymous" fulfillment flow.
 /// 1. Identity-Linked Inventory: Adds coins directly to the account balance.
 /// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountId.
 /// 3. The Bridge: EphemeralAuditLog links the two for 7 days, then breaks.
-class IAPEndpoint extends AuthenticatedEndpoint {
+class IAPEndpoint extends JwtEndpoint {
   /// Validate Apple App Store transaction and fulfill purchase.
   ///
   /// This endpoint is reactive: if no order exists, it creates the financial

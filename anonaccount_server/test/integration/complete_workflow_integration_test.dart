@@ -6,7 +6,6 @@ import 'package:test/test.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
-import 'test_tools/auth_test_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
@@ -101,24 +100,23 @@ void main() {
         expect(device.deviceSigningPublicKeyHex, equals(devicePubKey));
         expect(device.isRevoked, isFalse);
 
-        // Step 5: Test challenge generation for device auth (PoW-protected)
+        // Step 5: Test sign-in for device auth (PoW-protected)
         final authChallenge = await endpoints.device.getChallenge(sessionBuilder);
         final authPow = await PowTestHelper.mint(
           authChallenge.challenge,
           difficulty: authChallenge.difficulty,
         );
-        final authPayload = '${authChallenge.challenge}:getSignableNonce:$devicePubKey';
+        final authPayload = '${authChallenge.challenge}:signIn:$devicePubKey';
         final authSignature = SigningTestHelper.signWith(authPayload, devicePrivKey);
 
-        final challenge = await endpoints.device.getSignableNonce(
+        final authResult = await endpoints.device.signIn(
           sessionBuilder,
           challenge: authChallenge.challenge,
           proofOfWork: authPow,
           signature: authSignature,
-          devicePublicKey: devicePubKey,
+          devicePublicKeyHex: devicePubKey,
         );
-        expect(challenge, isNotEmpty);
-        expect(challenge.length, greaterThan(10));
+        expect(authResult, isNotNull);
 
         // Step 6: Protected endpoints require authentication
         // DeviceManagementEndpoint requires login — Serverpod enforces this
@@ -187,12 +185,10 @@ void main() {
           throwsA(isA<ServerpodUnauthenticatedException>()),
         );
 
+        // authenticateDevice was removed — signIn is now on DeviceEndpoint (PoW-protected, not session-auth).
+        // Verify revokeDevice still requires authentication as a proxy for session-auth enforcement.
         expect(
-          () => endpoints.deviceManagement.authenticateDevice(
-            sessionBuilder,
-            'test_challenge',
-            AuthTestHelper.generateValidSignature(),
-          ),
+          () => endpoints.deviceManagement.revokeDevice(sessionBuilder, 123),
           throwsA(isA<ServerpodUnauthenticatedException>()),
         );
       });

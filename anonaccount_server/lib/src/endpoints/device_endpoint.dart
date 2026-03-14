@@ -1,13 +1,14 @@
 import 'package:serverpod/serverpod.dart';
-import '../challenge_storage.dart';
+import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import 'pow_protected_endpoint.dart';
+import '../token_issuer.dart';
+import 'signed_pow_endpoint.dart';
 
 /// Public device endpoints protected by hashcash proof-of-work.
 ///
-/// Extends [PowProtectedEndpoint] to inherit `getChallenge()` and `verifyPow()`.
+/// Extends [SignedPowEndpoint] to inherit `getChallenge()` and `verifySignedPow()`.
 ///
 /// Handles unauthenticated device operations:
 /// - Device registration
@@ -16,7 +17,7 @@ import 'pow_protected_endpoint.dart';
 ///
 /// Authenticated device operations (revoke, list, QR pairing) are in
 /// [DeviceManagementEndpoint].
-class DeviceEndpoint extends PowProtectedEndpoint {
+class DeviceEndpoint extends SignedPowEndpoint {
   @override
   String get endpointType => 'device';
 
@@ -39,7 +40,7 @@ class DeviceEndpoint extends PowProtectedEndpoint {
       final payload =
           '$challenge:registerDevice:$deviceSigningPublicKeyHex';
 
-      await verifyPow(
+      await verifySignedPow(
         session,
         challenge,
         proofOfWork,
@@ -135,69 +136,80 @@ class DeviceEndpoint extends PowProtectedEndpoint {
     }
   }
 
-  /// Get signable nonce (PoW-protected).
+  /// Sign in with a registered device (PoW-protected).
   ///
-  /// Creates a cryptographically secure challenge string for client use.
-  /// The challenge should be signed by the client's private key and returned
-  /// for verification via authenticateDevice.
-  Future<String> getSignableNonce(
+  /// Verifies PoW + ECDSA signature, looks up the device, and issues
+  /// an authentication token via the host-configured token issuer.
+  ///
+  /// Returns an [AuthenticationResult] containing the token on success.
+  Future<AuthenticationResult> signIn(
     Session session, {
     required String challenge,
     required String proofOfWork,
     required String signature,
-    required String devicePublicKey,
+    required String devicePublicKeyHex,
   }) async {
     try {
       // Verify PoW + signature + rate limit
-      final payload =
-          '$challenge:getSignableNonce:$devicePublicKey';
+      final payload = '$challenge:signIn:$devicePublicKeyHex';
 
-      await verifyPow(
+      await verifySignedPow(
         session,
         challenge,
         proofOfWork,
-        devicePublicKey,
+        devicePublicKeyHex,
         signature,
         payload,
       );
 
-      // Validate device exists and is active
+      // Look up device and verify it's active
       final device = await AccountDevice.db.findFirstRow(
         session,
-        where: (t) => t.deviceSigningPublicKeyHex.equals(devicePublicKey),
+        where: (t) =>
+            t.deviceSigningPublicKeyHex.equals(devicePublicKeyHex),
       );
 
-      if (device == null) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authDeviceNotFound,
-          message: 'Device not found',
-          operation: 'getSignableNonce',
-          details: {'devicePublicKey': devicePublicKey},
-        );
-      }
+      final activeDevice = AnonAccountHelpers.requireActiveDevice(
+        device,
+        devicePublicKeyHex,
+        'signIn',
+      );
 
-      if (device.isRevoked) {
-        final deviceIdStr =
-            device.id != null ? device.id.toString() : 'unknown';
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authDeviceRevoked,
-          message: 'Device has been revoked',
-          operation: 'getSignableNonce',
-          details: {'deviceId': deviceIdStr},
-        );
-      }
+      // Update last active timestamp
+      await AccountDevice.db.updateRow(
+        session,
+        activeDevice.copyWith(
+          lastActive: AnonAccountHelpers.roundToMinute(DateTime.now()),
+        ),
+      );
 
-      // Generate and store challenge in Redis with 5-minute TTL
-      final challengeStorage = DeviceChallengeStorage(session);
-      return await challengeStorage
-          .generateAndStoreChallenge(devicePublicKey);
+      // Issue token via host-configured callback
+      final tokenResult = await AnonAccountTokenIssuer.issueToken(
+        session,
+        accountId: activeDevice.accountId,
+        devicePublicKeyHex: devicePublicKeyHex,
+      );
+
+      return AuthenticationResultFactory.success(
+        deviceId: activeDevice.id,
+        details: {
+          'accessToken': tokenResult.accessToken,
+          if (tokenResult.refreshToken != null)
+            'refreshToken': tokenResult.refreshToken!,
+          'deviceSigningPublicKeyHex': devicePublicKeyHex,
+        },
+      );
     } on AuthenticationException {
       rethrow;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      session.log(
+        'DeviceEndpoint: signIn error: $e\n$stackTrace',
+        level: LogLevel.error,
+      );
       throw AnonAccountExceptionFactory.createAuthenticationException(
         code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to generate auth challenge: ${e.toString()}',
-        operation: 'getSignableNonce',
+        message: 'Sign in failed: ${e.toString()}',
+        operation: 'signIn',
         details: {'error': e.toString()},
       );
     }
@@ -219,7 +231,7 @@ class DeviceEndpoint extends PowProtectedEndpoint {
       final payload =
           '$challenge:getDeviceBySigningKey:$signingPublicKeyHex';
 
-      await verifyPow(
+      await verifySignedPow(
         session,
         challenge,
         proofOfWork,
@@ -269,7 +281,7 @@ class DeviceEndpoint extends PowProtectedEndpoint {
     final payload =
         '$challenge:monitorRegistration:$signingKeyHex';
 
-    await verifyPow(
+    await verifySignedPow(
       session,
       challenge,
       proofOfWork,

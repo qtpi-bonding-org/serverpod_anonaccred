@@ -1,8 +1,5 @@
-import 'package:anonaccount_server/anonaccount_server.dart';
-import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
-import '../integration/test_tools/auth_test_helper.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
@@ -67,15 +64,6 @@ void main() {
         // Test that session-auth endpoints require authentication
         // DeviceManagementEndpoint requires login — Serverpod enforces this
         // at the framework level before endpoint code runs.
-        expect(
-          () => endpoints.deviceManagement.authenticateDevice(
-            sessionBuilder,
-            'test_challenge',
-            AuthTestHelper.generateValidSignature(),
-          ),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
-        );
-
         expect(
           () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,

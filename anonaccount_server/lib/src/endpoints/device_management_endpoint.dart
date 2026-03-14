@@ -1,102 +1,14 @@
 import 'package:serverpod/serverpod.dart';
-import '../challenge_storage.dart';
-import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import 'authenticated_endpoint.dart';
+import 'jwt_endpoint.dart';
 
-/// Authenticated device management endpoints.
+/// JWT-protected device management endpoints.
 ///
-/// All methods require session authentication (device key).
-/// Handles device authentication, revocation, listing, and QR pairing.
-class DeviceManagementEndpoint extends AuthenticatedEndpoint {
-  /// Authenticate device with challenge-response.
-  ///
-  /// Performs ECDSA P-256 signature verification.
-  /// Updates the device's last active timestamp on success.
-  Future<AuthenticationResult> authenticateDevice(
-    Session session,
-    String challenge,
-    String signature,
-  ) async {
-    try {
-      final publicKey = getDevicePublicKey(session);
-
-      AnonAccountHelpers.validateNonEmpty(
-        challenge,
-        'challenge',
-        'authenticateDevice',
-      );
-      AnonAccountHelpers.validateNonEmpty(
-        signature,
-        'signature',
-        'authenticateDevice',
-      );
-
-      final device = await AccountDevice.db.findFirstRow(
-        session,
-        where: (t) => t.deviceSigningPublicKeyHex.equals(publicKey),
-      );
-
-      final activeDevice = AnonAccountHelpers.requireActiveDevice(
-        device,
-        publicKey,
-        'authenticateDevice',
-      );
-
-      final challengeStorage = DeviceChallengeStorage(session);
-      final challengeValid = await challengeStorage.verifyAndConsume(
-        publicKey,
-        challenge,
-      );
-
-      if (!challengeValid) {
-        return AuthenticationResultFactory.failure(
-          errorCode: AnonAccountErrorCodes.authChallengeExpired,
-          errorMessage: 'Invalid or expired challenge',
-          details: {'challenge': challenge},
-        );
-      }
-
-      final verificationResult =
-          await CryptoAuth.verifyChallengeResponse(
-        publicKey,
-        challenge,
-        signature,
-        skipTimestampValidation: true,
-      );
-
-      if (verificationResult.success) {
-        final updatedDevice = await AccountDevice.db.updateRow(
-          session,
-          activeDevice.copyWith(
-            lastActive: AnonAccountHelpers.roundToMinute(DateTime.now()),
-          ),
-        );
-
-        return AuthenticationResultFactory.success(
-          deviceId: activeDevice.id,
-          details: {
-            'deviceSigningPublicKeyHex': publicKey,
-            'lastActive': updatedDevice.lastActive.toIso8601String(),
-          },
-        );
-      } else {
-        return verificationResult;
-      }
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Authentication failed: ${e.toString()}',
-        operation: 'authenticateDevice',
-        details: {'error': e.toString()},
-      );
-    }
-  }
-
+/// All methods require a valid JWT (obtained via [DeviceEndpoint.signIn]).
+/// Handles device revocation, listing, and QR pairing.
+class DeviceManagementEndpoint extends JwtEndpoint {
   /// Revoke device access.
   Future<bool> revokeDevice(Session session, int deviceId) async {
     try {

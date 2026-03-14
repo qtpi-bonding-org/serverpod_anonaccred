@@ -6,10 +6,8 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 
 import '../generated/protocol.dart';
 
-/// Commerce endpoints for entitlement queries and consumption.
-///
-/// Requires device-key authentication via [AuthenticatedEndpoint].
-class CommerceEndpoint extends AuthenticatedEndpoint {
+/// JWT-protected commerce endpoints for entitlement queries and consumption.
+class CommerceEndpoint extends JwtEndpoint {
   /// Get entitlements for an account
   Future<List<AccountEntitlement>> getEntitlements(
     Session session,
