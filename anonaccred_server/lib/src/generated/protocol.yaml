@@ -1,28 +1,7 @@
 commerce:
-  - registerProducts:
-  - initiatePayment:
-  - getActiveStoreProductIds:
-  - getProductCatalog:
   - getEntitlements:
   - getEntitlementBalance:
   - consumeEntitlement:
-  - getProductCatalogWithX402:
-  - getEntitlementBalanceWithX402:
 iAP:
   - validateAppleTransaction:
   - validateGooglePurchase:
-iAPWebhook:
-  - handleAppleWebhook:
-  - handleGoogleWebhook:
-module:
-  - hello:
-  - authenticateUser:
-  - processPayment:
-  - manageEntitlements:
-payment:
-  - checkPaymentStatus:
-  - processMoneroWebhook:
-  - processX402Webhook:
-x402:
-  - requestPaidResource:
-  - requestConsumableAccess:
