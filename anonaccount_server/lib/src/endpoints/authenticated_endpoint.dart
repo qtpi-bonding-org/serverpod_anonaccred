@@ -27,6 +27,7 @@ abstract class AuthenticatedEndpoint extends Endpoint {
   ///
   /// Returns the 128-char hex public key set by [AnonAccountAuthHandler].
   /// Throws [AuthenticationException] if no device key is found.
+  @doNotGenerate
   String getDevicePublicKey(Session session) {
     final key = AnonAccountAuthHandler.getDevicePublicKey(session);
     if (key.isEmpty) {
@@ -43,6 +44,7 @@ abstract class AuthenticatedEndpoint extends Endpoint {
   ///
   /// Returns the integer account ID set by [AnonAccountAuthHandler].
   /// Throws [AuthenticationException] if parsing fails.
+  @doNotGenerate
   int getAccountId(Session session) {
     final idStr = session.authenticated?.userIdentifier;
     if (idStr == null) {
