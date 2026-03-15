@@ -17,13 +17,15 @@ import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
 import 'package:anonaccount_client/src/protocol/account.dart' as _i4;
 import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
     as _i5;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i6;
+import 'package:anonaccount_client/src/protocol/encrypted_data_key_response.dart'
+    as _i6;
+import 'package:anonaccount_client/src/protocol/account_device.dart' as _i7;
 import 'package:anonaccount_client/src/protocol/authentication_result.dart'
-    as _i7;
-import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
     as _i8;
-import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
+import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
     as _i9;
+import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
+    as _i10;
 
 /// Account endpoint with PoW + signature protection.
 ///
@@ -169,6 +171,117 @@ abstract class EndpointAuthenticated extends _i1.EndpointRef {
   EndpointAuthenticated(_i1.EndpointCaller caller) : super(caller);
 }
 
+/// PoW-protected endpoint for fetching a device's encrypted data key.
+///
+/// Two paths:
+/// - [retrieveEncryptedDataKey]: device proves ownership → returns
+///   [AccountDevice.encryptedDataKey]. Fails if device is revoked.
+/// - [recoverEncryptedDataKey]: ultimate key proves ownership → returns
+///   [AnonAccount.encryptedDataKey]. Used for account recovery when all
+///   devices are lost.
+///
+/// `signIn` intentionally does NOT return the key — this endpoint is called
+/// only when the in-memory key is unavailable (fresh install, memory cleared).
+/// {@category Endpoint}
+class EndpointDataKey extends EndpointSignedPow {
+  EndpointDataKey(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccount.dataKey';
+
+  /// Retrieve encrypted data key for a registered, non-revoked device.
+  _i2.Future<_i6.EncryptedDataKeyResponse> retrieveEncryptedDataKey({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String deviceSigningPublicKeyHex,
+  }) => caller.callServerEndpoint<_i6.EncryptedDataKeyResponse>(
+    'anonaccount.dataKey',
+    'retrieveEncryptedDataKey',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+    },
+  );
+
+  /// Recover encrypted data key using the account's ultimate signing key.
+  _i2.Future<_i6.EncryptedDataKeyResponse> recoverEncryptedDataKey({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String ultimateSigningPublicKeyHex,
+  }) => caller.callServerEndpoint<_i6.EncryptedDataKeyResponse>(
+    'anonaccount.dataKey',
+    'recoverEncryptedDataKey',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+    },
+  );
+
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
+  ///
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
+  @override
+  _i2.Future<_i5.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i5.PublicChallengeResponse>(
+        'anonaccount.dataKey',
+        'getChallenge',
+        {},
+      );
+
+  /// Verify PoW + ECDSA signature + rate limit.
+  ///
+  /// Call this at the top of each protected endpoint method.
+  ///
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
+  @override
+  _i2.Future<void> verifySignedPow(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'anonaccount.dataKey',
+    'verifySignedPow',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
+    },
+  );
+
+  /// Verify hashcash proof-of-work only (no signature, no rate limit).
+  ///
+  /// Checks stamp format, challenge existence, and hash quality.
+  /// Consumes the challenge (one-time use).
+  @override
+  _i2.Future<void> verifyHashcash(
+    String challenge,
+    String proofOfWork,
+  ) => caller.callServerEndpoint<void>(
+    'anonaccount.dataKey',
+    'verifyHashcash',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+    },
+  );
+}
+
 /// Public device endpoints protected by hashcash proof-of-work.
 ///
 /// Extends [SignedPowEndpoint] to inherit `getChallenge()` and `verifySignedPow()`.
@@ -191,7 +304,7 @@ class EndpointDevice extends EndpointSignedPow {
   ///
   /// Creates a new device registration associated with an account.
   /// The account is resolved from the ultimate signing public key.
-  _i2.Future<_i6.AccountDevice> registerDevice({
+  _i2.Future<_i7.AccountDevice> registerDevice({
     required String challenge,
     required String proofOfWork,
     required String signature,
@@ -199,7 +312,7 @@ class EndpointDevice extends EndpointSignedPow {
     required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
-  }) => caller.callServerEndpoint<_i6.AccountDevice>(
+  }) => caller.callServerEndpoint<_i7.AccountDevice>(
     'anonaccount.device',
     'registerDevice',
     {
@@ -219,12 +332,12 @@ class EndpointDevice extends EndpointSignedPow {
   /// an authentication token via the host-configured token issuer.
   ///
   /// Returns an [AuthenticationResult] containing the token on success.
-  _i2.Future<_i7.AuthenticationResult> signIn({
+  _i2.Future<_i8.AuthenticationResult> signIn({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String devicePublicKeyHex,
-  }) => caller.callServerEndpoint<_i7.AuthenticationResult>(
+  }) => caller.callServerEndpoint<_i8.AuthenticationResult>(
     'anonaccount.device',
     'signIn',
     {
@@ -239,12 +352,12 @@ class EndpointDevice extends EndpointSignedPow {
   ///
   /// Used by Device B during pairing to get its encrypted data key.
   /// Only returns the encrypted blob (useless without Device B's private key).
-  _i2.Future<_i8.DevicePairingInfo?> getDeviceBySigningKey({
+  _i2.Future<_i9.DevicePairingInfo?> getDeviceBySigningKey({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String signingPublicKeyHex,
-  }) => caller.callServerEndpoint<_i8.DevicePairingInfo?>(
+  }) => caller.callServerEndpoint<_i9.DevicePairingInfo?>(
     'anonaccount.device',
     'getDeviceBySigningKey',
     {
@@ -259,15 +372,15 @@ class EndpointDevice extends EndpointSignedPow {
   ///
   /// Device B (unauthenticated) calls this to wait for Device A to complete
   /// the registration. PoW is verified before opening the stream.
-  _i2.Stream<_i9.DevicePairingEvent> monitorRegistration({
+  _i2.Stream<_i10.DevicePairingEvent> monitorRegistration({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String signingKeyHex,
   }) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i9.DevicePairingEvent>,
-        _i9.DevicePairingEvent
+        _i2.Stream<_i10.DevicePairingEvent>,
+        _i10.DevicePairingEvent
       >(
         'anonaccount.device',
         'monitorRegistration',
@@ -359,8 +472,8 @@ class EndpointDeviceManagement extends EndpointJwt {
       );
 
   /// List account devices.
-  _i2.Future<List<_i6.AccountDevice>> listDevices() =>
-      caller.callServerEndpoint<List<_i6.AccountDevice>>(
+  _i2.Future<List<_i7.AccountDevice>> listDevices() =>
+      caller.callServerEndpoint<List<_i7.AccountDevice>>(
         'anonaccount.deviceManagement',
         'listDevices',
         {},
@@ -369,11 +482,11 @@ class EndpointDeviceManagement extends EndpointJwt {
   /// Register a new device for the caller's account.
   ///
   /// QR code pairing flow: Device A (authenticated) registers Device B.
-  _i2.Future<_i6.AccountDevice> registerDeviceForAccount(
+  _i2.Future<_i7.AccountDevice> registerDeviceForAccount(
     String newDeviceSigningPublicKeyHex,
     String newDeviceEncryptedDataKey,
     String label,
-  ) => caller.callServerEndpoint<_i6.AccountDevice>(
+  ) => caller.callServerEndpoint<_i7.AccountDevice>(
     'anonaccount.deviceManagement',
     'registerDeviceForAccount',
     {
@@ -589,12 +702,15 @@ abstract class EndpointSignedPow extends EndpointPow {
 class Caller extends _i1.ModuleEndpointCaller {
   Caller(_i1.ServerpodClientShared client) : super(client) {
     account = EndpointAccount(this);
+    dataKey = EndpointDataKey(this);
     device = EndpointDevice(this);
     deviceManagement = EndpointDeviceManagement(this);
     entrypoint = EndpointEntrypoint(this);
   }
 
   late final EndpointAccount account;
+
+  late final EndpointDataKey dataKey;
 
   late final EndpointDevice device;
 
@@ -605,6 +721,7 @@ class Caller extends _i1.ModuleEndpointCaller {
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'anonaccount.account': account,
+    'anonaccount.dataKey': dataKey,
     'anonaccount.device': device,
     'anonaccount.deviceManagement': deviceManagement,
     'anonaccount.entrypoint': entrypoint,

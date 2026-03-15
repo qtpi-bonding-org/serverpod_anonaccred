@@ -1,0 +1,7 @@
+### Response model for encrypted data key retrieval.
+###
+### Contains only the encrypted blob — callers must decrypt with their private key.
+### Used by both retrieveEncryptedDataKey (device path) and recoverEncryptedDataKey (ultimate path).
+class: EncryptedDataKeyResponse
+fields:
+  encryptedDataKey: String

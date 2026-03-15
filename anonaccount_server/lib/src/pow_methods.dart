@@ -15,3 +15,8 @@ abstract final class DeviceMethods {
   static const getDeviceBySigningKey = 'getDeviceBySigningKey';
   static const monitorRegistration = 'monitorRegistration';
 }
+
+abstract final class DataKeyMethods {
+  static const retrieveEncryptedDataKey = 'retrieveEncryptedDataKey';
+  static const recoverEncryptedDataKey = 'recoverEncryptedDataKey';
+}

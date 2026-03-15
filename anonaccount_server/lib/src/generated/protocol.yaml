@@ -4,6 +4,12 @@ account:
   - getChallenge:
   - verifySignedPow:
   - verifyHashcash:
+dataKey:
+  - retrieveEncryptedDataKey:
+  - recoverEncryptedDataKey:
+  - getChallenge:
+  - verifySignedPow:
+  - verifyHashcash:
 device:
   - registerDevice:
   - signIn:

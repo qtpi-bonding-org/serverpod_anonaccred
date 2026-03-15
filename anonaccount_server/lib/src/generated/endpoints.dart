@@ -12,9 +12,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/account_endpoint.dart' as _i2;
-import '../endpoints/device_endpoint.dart' as _i3;
-import '../endpoints/device_management_endpoint.dart' as _i4;
-import '../endpoints/entrypoint_endpoint.dart' as _i5;
+import '../endpoints/data_key_endpoint.dart' as _i3;
+import '../endpoints/device_endpoint.dart' as _i4;
+import '../endpoints/device_management_endpoint.dart' as _i5;
+import '../endpoints/entrypoint_endpoint.dart' as _i6;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -26,19 +27,25 @@ class Endpoints extends _i1.EndpointDispatch {
           'account',
           'anonaccount',
         ),
-      'device': _i3.DeviceEndpoint()
+      'dataKey': _i3.DataKeyEndpoint()
+        ..initialize(
+          server,
+          'dataKey',
+          'anonaccount',
+        ),
+      'device': _i4.DeviceEndpoint()
         ..initialize(
           server,
           'device',
           'anonaccount',
         ),
-      'deviceManagement': _i4.DeviceManagementEndpoint()
+      'deviceManagement': _i5.DeviceManagementEndpoint()
         ..initialize(
           server,
           'deviceManagement',
           'anonaccount',
         ),
-      'entrypoint': _i5.EntrypointEndpoint()
+      'entrypoint': _i6.EntrypointEndpoint()
         ..initialize(
           server,
           'entrypoint',
@@ -222,6 +229,166 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['dataKey'] = _i1.EndpointConnector(
+      name: 'dataKey',
+      endpoint: endpoints['dataKey']!,
+      methodConnectors: {
+        'retrieveEncryptedDataKey': _i1.MethodConnector(
+          name: 'retrieveEncryptedDataKey',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'deviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dataKey'] as _i3.DataKeyEndpoint)
+                  .retrieveEncryptedDataKey(
+                    session,
+                    challenge: params['challenge'],
+                    proofOfWork: params['proofOfWork'],
+                    signature: params['signature'],
+                    deviceSigningPublicKeyHex:
+                        params['deviceSigningPublicKeyHex'],
+                  ),
+        ),
+        'recoverEncryptedDataKey': _i1.MethodConnector(
+          name: 'recoverEncryptedDataKey',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'ultimateSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dataKey'] as _i3.DataKeyEndpoint)
+                  .recoverEncryptedDataKey(
+                    session,
+                    challenge: params['challenge'],
+                    proofOfWork: params['proofOfWork'],
+                    signature: params['signature'],
+                    ultimateSigningPublicKeyHex:
+                        params['ultimateSigningPublicKeyHex'],
+                  ),
+        ),
+        'getChallenge': _i1.MethodConnector(
+          name: 'getChallenge',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dataKey'] as _i3.DataKeyEndpoint)
+                  .getChallenge(session),
+        ),
+        'verifySignedPow': _i1.MethodConnector(
+          name: 'verifySignedPow',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'publicKeyHex': _i1.ParameterDescription(
+              name: 'publicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'payload': _i1.ParameterDescription(
+              name: 'payload',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['dataKey'] as _i3.DataKeyEndpoint).verifySignedPow(
+                    session,
+                    params['challenge'],
+                    params['proofOfWork'],
+                    params['publicKeyHex'],
+                    params['signature'],
+                    params['payload'],
+                  ),
+        ),
+        'verifyHashcash': _i1.MethodConnector(
+          name: 'verifyHashcash',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['dataKey'] as _i3.DataKeyEndpoint).verifyHashcash(
+                    session,
+                    params['challenge'],
+                    params['proofOfWork'],
+                  ),
+        ),
+      },
+    );
     connectors['device'] = _i1.EndpointConnector(
       name: 'device',
       endpoint: endpoints['device']!,
@@ -270,7 +437,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['device'] as _i3.DeviceEndpoint).registerDevice(
+                  (endpoints['device'] as _i4.DeviceEndpoint).registerDevice(
                     session,
                     challenge: params['challenge'],
                     proofOfWork: params['proofOfWork'],
@@ -311,7 +478,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i3.DeviceEndpoint).signIn(
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint).signIn(
                 session,
                 challenge: params['challenge'],
                 proofOfWork: params['proofOfWork'],
@@ -347,7 +514,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i3.DeviceEndpoint)
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
                   .getDeviceBySigningKey(
                     session,
                     challenge: params['challenge'],
@@ -363,7 +530,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i3.DeviceEndpoint)
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
                   .getChallenge(session),
         ),
         'verifySignedPow': _i1.MethodConnector(
@@ -400,7 +567,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['device'] as _i3.DeviceEndpoint).verifySignedPow(
+                  (endpoints['device'] as _i4.DeviceEndpoint).verifySignedPow(
                     session,
                     params['challenge'],
                     params['proofOfWork'],
@@ -428,7 +595,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['device'] as _i3.DeviceEndpoint).verifyHashcash(
+                  (endpoints['device'] as _i4.DeviceEndpoint).verifyHashcash(
                     session,
                     params['challenge'],
                     params['proofOfWork'],
@@ -465,7 +632,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
-              ) => (endpoints['device'] as _i3.DeviceEndpoint)
+              ) => (endpoints['device'] as _i4.DeviceEndpoint)
                   .monitorRegistration(
                     session,
                     challenge: params['challenge'],
@@ -495,7 +662,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['deviceManagement']
-                          as _i4.DeviceManagementEndpoint)
+                          as _i5.DeviceManagementEndpoint)
                       .revokeDevice(
                         session,
                         params['deviceId'],
@@ -510,7 +677,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['deviceManagement']
-                          as _i4.DeviceManagementEndpoint)
+                          as _i5.DeviceManagementEndpoint)
                       .listDevices(session),
         ),
         'registerDeviceForAccount': _i1.MethodConnector(
@@ -538,7 +705,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['deviceManagement']
-                          as _i4.DeviceManagementEndpoint)
+                          as _i5.DeviceManagementEndpoint)
                       .registerDeviceForAccount(
                         session,
                         params['newDeviceSigningPublicKeyHex'],
@@ -559,7 +726,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['entrypoint'] as _i5.EntrypointEndpoint)
+              ) async => (endpoints['entrypoint'] as _i6.EntrypointEndpoint)
                   .getChallenge(session),
         ),
         'verifyHashcash': _i1.MethodConnector(
@@ -580,7 +747,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['entrypoint'] as _i5.EntrypointEndpoint)
+              ) async => (endpoints['entrypoint'] as _i6.EntrypointEndpoint)
                   .verifyHashcash(
                     session,
                     params['challenge'],

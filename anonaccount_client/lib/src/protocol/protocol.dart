@@ -19,10 +19,11 @@ import 'authentication_exception.dart' as _i6;
 import 'authentication_result.dart' as _i7;
 import 'device_pairing_event.dart' as _i8;
 import 'device_pairing_info.dart' as _i9;
-import 'public_challenge.dart' as _i10;
-import 'public_challenge_response.dart' as _i11;
-import 'rate_limit_counter.dart' as _i12;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i13;
+import 'encrypted_data_key_response.dart' as _i10;
+import 'public_challenge.dart' as _i11;
+import 'public_challenge_response.dart' as _i12;
+import 'rate_limit_counter.dart' as _i13;
+import 'package:anonaccount_client/src/protocol/account_device.dart' as _i14;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -31,6 +32,7 @@ export 'authentication_exception.dart';
 export 'authentication_result.dart';
 export 'device_pairing_event.dart';
 export 'device_pairing_info.dart';
+export 'encrypted_data_key_response.dart';
 export 'public_challenge.dart';
 export 'public_challenge_response.dart';
 export 'rate_limit_counter.dart';
@@ -96,14 +98,17 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i9.DevicePairingInfo) {
       return _i9.DevicePairingInfo.fromJson(data) as T;
     }
-    if (t == _i10.PublicChallenge) {
-      return _i10.PublicChallenge.fromJson(data) as T;
+    if (t == _i10.EncryptedDataKeyResponse) {
+      return _i10.EncryptedDataKeyResponse.fromJson(data) as T;
     }
-    if (t == _i11.PublicChallengeResponse) {
-      return _i11.PublicChallengeResponse.fromJson(data) as T;
+    if (t == _i11.PublicChallenge) {
+      return _i11.PublicChallenge.fromJson(data) as T;
     }
-    if (t == _i12.RateLimitCounter) {
-      return _i12.RateLimitCounter.fromJson(data) as T;
+    if (t == _i12.PublicChallengeResponse) {
+      return _i12.PublicChallengeResponse.fromJson(data) as T;
+    }
+    if (t == _i13.RateLimitCounter) {
+      return _i13.RateLimitCounter.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AnonAccount?>()) {
       return (data != null ? _i2.AnonAccount.fromJson(data) : null) as T;
@@ -133,15 +138,21 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i9.DevicePairingInfo?>()) {
       return (data != null ? _i9.DevicePairingInfo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i10.PublicChallenge?>()) {
-      return (data != null ? _i10.PublicChallenge.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i11.PublicChallengeResponse?>()) {
-      return (data != null ? _i11.PublicChallengeResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i10.EncryptedDataKeyResponse?>()) {
+      return (data != null
+              ? _i10.EncryptedDataKeyResponse.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i12.RateLimitCounter?>()) {
-      return (data != null ? _i12.RateLimitCounter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.PublicChallenge?>()) {
+      return (data != null ? _i11.PublicChallenge.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i12.PublicChallengeResponse?>()) {
+      return (data != null ? _i12.PublicChallengeResponse.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i13.RateLimitCounter?>()) {
+      return (data != null ? _i13.RateLimitCounter.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -158,9 +169,9 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i13.AccountDevice>) {
+    if (t == List<_i14.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i13.AccountDevice>(e))
+              .map((e) => deserialize<_i14.AccountDevice>(e))
               .toList()
           as T;
     }
@@ -177,9 +188,10 @@ class Protocol extends _i1.SerializationManager {
       _i7.AuthenticationResult => 'AuthenticationResult',
       _i8.DevicePairingEvent => 'DevicePairingEvent',
       _i9.DevicePairingInfo => 'DevicePairingInfo',
-      _i10.PublicChallenge => 'PublicChallenge',
-      _i11.PublicChallengeResponse => 'PublicChallengeResponse',
-      _i12.RateLimitCounter => 'RateLimitCounter',
+      _i10.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
+      _i11.PublicChallenge => 'PublicChallenge',
+      _i12.PublicChallengeResponse => 'PublicChallengeResponse',
+      _i13.RateLimitCounter => 'RateLimitCounter',
       _ => null,
     };
   }
@@ -210,11 +222,13 @@ class Protocol extends _i1.SerializationManager {
         return 'DevicePairingEvent';
       case _i9.DevicePairingInfo():
         return 'DevicePairingInfo';
-      case _i10.PublicChallenge():
+      case _i10.EncryptedDataKeyResponse():
+        return 'EncryptedDataKeyResponse';
+      case _i11.PublicChallenge():
         return 'PublicChallenge';
-      case _i11.PublicChallengeResponse():
+      case _i12.PublicChallengeResponse():
         return 'PublicChallengeResponse';
-      case _i12.RateLimitCounter():
+      case _i13.RateLimitCounter():
         return 'RateLimitCounter';
     }
     return null;
@@ -250,14 +264,17 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'DevicePairingInfo') {
       return deserialize<_i9.DevicePairingInfo>(data['data']);
     }
+    if (dataClassName == 'EncryptedDataKeyResponse') {
+      return deserialize<_i10.EncryptedDataKeyResponse>(data['data']);
+    }
     if (dataClassName == 'PublicChallenge') {
-      return deserialize<_i10.PublicChallenge>(data['data']);
+      return deserialize<_i11.PublicChallenge>(data['data']);
     }
     if (dataClassName == 'PublicChallengeResponse') {
-      return deserialize<_i11.PublicChallengeResponse>(data['data']);
+      return deserialize<_i12.PublicChallengeResponse>(data['data']);
     }
     if (dataClassName == 'RateLimitCounter') {
-      return deserialize<_i12.RateLimitCounter>(data['data']);
+      return deserialize<_i13.RateLimitCounter>(data['data']);
     }
     return super.deserializeByClassName(data);
   }
