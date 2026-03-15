@@ -59,28 +59,4 @@ class AccountQueryService {
     }
   }
 
-  /// Get account for recovery by ultimate public key.
-  static Future<AnonAccount?> getAccountForRecovery(
-    Session session,
-    String ultimatePublicKey,
-  ) async {
-    try {
-      AnonAccountHelpers.validatePublicKey(
-        ultimatePublicKey,
-        'getAccountForRecovery',
-      );
-      return await AnonAccount.db.findFirstRow(
-        session,
-        where: (t) => t.ultimatePublicKey.equals(ultimatePublicKey),
-      );
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Unexpected error during recovery lookup: ${e.toString()}',
-        details: {'error': e.toString()},
-      );
-    }
-  }
 }
