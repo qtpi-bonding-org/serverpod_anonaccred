@@ -1,3 +1,4 @@
+import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:test/test.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
@@ -32,7 +33,7 @@ void main() {
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
         final device = await endpoints.device.registerDevice(
@@ -82,7 +83,7 @@ void main() {
           regChallenge1.challenge,
           difficulty: regChallenge1.difficulty,
         );
-        final regPayload1 = '${regChallenge1.challenge}:registerDevice:$ultimatePubKey';
+        final regPayload1 = '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature1 = SigningTestHelper.signWith(regPayload1, ultimatePrivKey);
 
         await endpoints.device.registerDevice(
@@ -102,7 +103,7 @@ void main() {
           regChallenge2.challenge,
           difficulty: regChallenge2.difficulty,
         );
-        final regPayload2 = '${regChallenge2.challenge}:registerDevice:$ultimatePubKey';
+        final regPayload2 = '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature2 = SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
 
         expect(
@@ -142,7 +143,7 @@ void main() {
         regChallenge.challenge,
         difficulty: regChallenge.difficulty,
       );
-      final regPayload = '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+      final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
       final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
       expect(
@@ -175,7 +176,7 @@ void main() {
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:registerDevice:$nonExistPubKey';
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$nonExistPubKey';
         final regSignature = SigningTestHelper.signWith(regPayload, nonExistPrivKey);
 
         expect(
@@ -215,7 +216,7 @@ void main() {
         regChallenge.challenge,
         difficulty: regChallenge.difficulty,
       );
-      final regPayload = '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+      final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
       final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
       await endpoints.device.registerDevice(
@@ -235,7 +236,7 @@ void main() {
         authChallenge1.challenge,
         difficulty: authChallenge1.difficulty,
       );
-      final authPayload1 = '${authChallenge1.challenge}:signIn:$devicePubKey';
+      final authPayload1 = '${authChallenge1.challenge}:${DeviceMethods.signIn}:$devicePubKey';
       final authSignature1 = SigningTestHelper.signWith(authPayload1, devicePrivKey);
 
       final result1 = await endpoints.device.signIn(
@@ -251,7 +252,7 @@ void main() {
         authChallenge2.challenge,
         difficulty: authChallenge2.difficulty,
       );
-      final authPayload2 = '${authChallenge2.challenge}:signIn:$devicePubKey';
+      final authPayload2 = '${authChallenge2.challenge}:${DeviceMethods.signIn}:$devicePubKey';
       final authSignature2 = SigningTestHelper.signWith(authPayload2, devicePrivKey);
 
       final result2 = await endpoints.device.signIn(

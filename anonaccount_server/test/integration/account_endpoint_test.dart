@@ -33,7 +33,7 @@ void main() {
       );
 
       final payload =
-          '${challengeResponse.challenge}:createAccount:$pubKey';
+          '${challengeResponse.challenge}:${AccountMethods.createAccount}:$pubKey';
       final signature = SigningTestHelper.signWith(payload, privKey);
 
       const ultimatePublicKey =
@@ -80,7 +80,7 @@ void main() {
         difficulty: challengeResponse.difficulty,
       );
       final payload =
-          '${challengeResponse.challenge}:createAccount:$pubKey';
+          '${challengeResponse.challenge}:${AccountMethods.createAccount}:$pubKey';
       final signature = SigningTestHelper.signWith(payload, privKey);
 
       expect(
@@ -120,7 +120,7 @@ void main() {
         difficulty: challengeResponse.difficulty,
       );
       final payload =
-          '${challengeResponse.challenge}:getAccountForRecovery:$ultimatePubKey';
+          '${challengeResponse.challenge}:${AccountMethods.getAccountForRecovery}:$ultimatePubKey';
       final signature = SigningTestHelper.signWith(payload, ultimatePrivKey);
 
       final recovered = await endpoints.account.getAccountForRecovery(
@@ -151,7 +151,7 @@ void main() {
         difficulty: challengeResponse.difficulty,
       );
       final payload =
-          '${challengeResponse.challenge}:getAccountForRecovery:$ultimatePubKey';
+          '${challengeResponse.challenge}:${AccountMethods.getAccountForRecovery}:$ultimatePubKey';
       final signature = SigningTestHelper.signWith(payload, ultimatePrivKey);
 
       final recovered = await endpoints.account.getAccountForRecovery(

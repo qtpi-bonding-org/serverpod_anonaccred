@@ -1,3 +1,4 @@
+import '../pow_methods.dart';
 import 'package:serverpod/serverpod.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
@@ -34,7 +35,7 @@ class AccountEndpoint extends SignedPowEndpoint {
   }) async {
     try {
       final payload =
-          '$challenge:createAccount:$ultimateSigningPublicKeyHex';
+          '$challenge:${AccountMethods.createAccount}:$ultimateSigningPublicKeyHex';
 
       await verifySignedPow(
         session,
@@ -138,7 +139,7 @@ class AccountEndpoint extends SignedPowEndpoint {
   }) async {
     try {
       final payload =
-          '$challenge:getAccountForRecovery:$ultimatePublicKey';
+          '$challenge:${AccountMethods.getAccountForRecovery}:$ultimatePublicKey';
 
       await verifySignedPow(
         session,

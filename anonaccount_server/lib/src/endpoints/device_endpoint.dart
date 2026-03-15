@@ -1,3 +1,4 @@
+import '../pow_methods.dart';
 import 'package:serverpod/serverpod.dart';
 import '../crypto_auth.dart';
 import '../exception_factory.dart';
@@ -38,7 +39,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
     try {
       // Verify PoW + signature + rate limit (device key signs the challenge)
       final payload =
-          '$challenge:registerDevice:$deviceSigningPublicKeyHex';
+          '$challenge:${DeviceMethods.registerDevice}:$deviceSigningPublicKeyHex';
 
       await verifySignedPow(
         session,
@@ -151,7 +152,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
   }) async {
     try {
       // Verify PoW + signature + rate limit
-      final payload = '$challenge:signIn:$devicePublicKeyHex';
+      final payload = '$challenge:${DeviceMethods.signIn}:$devicePublicKeyHex';
 
       await verifySignedPow(
         session,
@@ -229,7 +230,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
     try {
       // Verify PoW + signature + rate limit
       final payload =
-          '$challenge:getDeviceBySigningKey:$signingPublicKeyHex';
+          '$challenge:${DeviceMethods.getDeviceBySigningKey}:$signingPublicKeyHex';
 
       await verifySignedPow(
         session,
@@ -279,7 +280,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
   }) async* {
     // Verify PoW + signature + rate limit before opening stream
     final payload =
-        '$challenge:monitorRegistration:$signingKeyHex';
+        '$challenge:${DeviceMethods.monitorRegistration}:$signingKeyHex';
 
     await verifySignedPow(
       session,

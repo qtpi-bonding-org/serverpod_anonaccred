@@ -44,3 +44,5 @@ export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';
 // Helper utilities
 export 'src/helpers.dart';
+// PoW method name constants (shared between server and client)
+export 'src/pow_methods.dart';

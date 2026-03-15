@@ -97,7 +97,7 @@ void main() {
           difficulty: regChallenge.difficulty,
         );
         final regPayload =
-            '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature =
             SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
@@ -144,7 +144,7 @@ void main() {
           difficulty: regChallenge.difficulty,
         );
         final regPayload =
-            '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature =
             SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
@@ -194,7 +194,7 @@ void main() {
           difficulty: regChallenge1.difficulty,
         );
         final regPayload1 =
-            '${regChallenge1.challenge}:registerDevice:$ultimatePubKey';
+            '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature1 =
             SigningTestHelper.signWith(regPayload1, ultimatePrivKey);
 
@@ -218,7 +218,7 @@ void main() {
           difficulty: regChallenge2.difficulty,
         );
         final regPayload2 =
-            '${regChallenge2.challenge}:registerDevice:$ultimatePubKey';
+            '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature2 =
             SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
 

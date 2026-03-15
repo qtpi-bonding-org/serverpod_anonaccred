@@ -26,7 +26,7 @@ void main() {
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
         expect(
@@ -61,7 +61,7 @@ void main() {
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
         expect(

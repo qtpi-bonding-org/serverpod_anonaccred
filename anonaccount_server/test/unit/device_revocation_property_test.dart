@@ -1,3 +1,4 @@
+import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:test/test.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
@@ -40,7 +41,7 @@ void main() {
           difficulty: regChallenge.difficulty,
         );
         final regPayload =
-            '${regChallenge.challenge}:registerDevice:$ultimatePubKey';
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature =
             SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
@@ -87,7 +88,7 @@ void main() {
           difficulty: regChallenge2.difficulty,
         );
         final regPayload2 =
-            '${regChallenge2.challenge}:registerDevice:$ultimatePubKey';
+            '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
         final regSignature2 =
             SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
 
