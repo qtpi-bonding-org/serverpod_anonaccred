@@ -126,47 +126,4 @@ class AccountEndpoint extends SignedPowEndpoint {
     }
   }
 
-  /// Look up account for recovery with PoW verification.
-  ///
-  /// Requires PoW to prevent brute-force probing of public keys.
-  /// Returns [AnonAccount] if found, or `null` if no account matches.
-  Future<AnonAccount?> getAccountForRecovery(
-    Session session, {
-    required String challenge,
-    required String proofOfWork,
-    required String ultimatePublicKey,
-    required String signature,
-  }) async {
-    try {
-      final payload =
-          '$challenge:${AccountMethods.getAccountForRecovery}:$ultimatePublicKey';
-
-      await verifySignedPow(
-        session,
-        challenge,
-        proofOfWork,
-        ultimatePublicKey,
-        signature,
-        payload,
-      );
-
-      AnonAccountHelpers.validatePublicKey(
-        ultimatePublicKey,
-        'getAccountForRecovery',
-      );
-      return await AnonAccount.db.findFirstRow(
-        session,
-        where: (t) => t.ultimatePublicKey.equals(ultimatePublicKey),
-      );
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message:
-            'Unexpected error during recovery lookup: ${e.toString()}',
-        details: {'error': e.toString()},
-      );
-    }
-  }
 }

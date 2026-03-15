@@ -14,18 +14,15 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     as _i3;
-import 'package:anonaccount_client/src/protocol/account.dart' as _i4;
 import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
-    as _i5;
+    as _i4;
 import 'package:anonaccount_client/src/protocol/encrypted_data_key_response.dart'
-    as _i6;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i7;
+    as _i5;
+import 'package:anonaccount_client/src/protocol/account_device.dart' as _i6;
 import 'package:anonaccount_client/src/protocol/authentication_result.dart'
-    as _i8;
-import 'package:anonaccount_client/src/protocol/device_pairing_info.dart'
-    as _i9;
+    as _i7;
 import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
-    as _i10;
+    as _i8;
 
 /// Account endpoint with PoW + signature protection.
 ///
@@ -70,33 +67,13 @@ class EndpointAccount extends EndpointSignedPow {
     },
   );
 
-  /// Look up account for recovery with PoW verification.
-  ///
-  /// Requires PoW to prevent brute-force probing of public keys.
-  /// Returns [AnonAccount] if found, or `null` if no account matches.
-  _i2.Future<_i4.AnonAccount?> getAccountForRecovery({
-    required String challenge,
-    required String proofOfWork,
-    required String ultimatePublicKey,
-    required String signature,
-  }) => caller.callServerEndpoint<_i4.AnonAccount?>(
-    'anonaccount.account',
-    'getAccountForRecovery',
-    {
-      'challenge': challenge,
-      'proofOfWork': proofOfWork,
-      'ultimatePublicKey': ultimatePublicKey,
-      'signature': signature,
-    },
-  );
-
   /// Throws — use [EntrypointEndpoint.getChallenge] instead.
   ///
   /// Overridden without `@doNotGenerate` so the generated client class gets a
   /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
-  _i2.Future<_i5.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i5.PublicChallengeResponse>(
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
         'anonaccount.account',
         'getChallenge',
         {},
@@ -190,12 +167,12 @@ class EndpointDataKey extends EndpointSignedPow {
   String get name => 'anonaccount.dataKey';
 
   /// Retrieve encrypted data key for a registered, non-revoked device.
-  _i2.Future<_i6.EncryptedDataKeyResponse> retrieveEncryptedDataKey({
+  _i2.Future<_i5.EncryptedDataKeyResponse> retrieveEncryptedDataKey({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String deviceSigningPublicKeyHex,
-  }) => caller.callServerEndpoint<_i6.EncryptedDataKeyResponse>(
+  }) => caller.callServerEndpoint<_i5.EncryptedDataKeyResponse>(
     'anonaccount.dataKey',
     'retrieveEncryptedDataKey',
     {
@@ -207,12 +184,12 @@ class EndpointDataKey extends EndpointSignedPow {
   );
 
   /// Recover encrypted data key using the account's ultimate signing key.
-  _i2.Future<_i6.EncryptedDataKeyResponse> recoverEncryptedDataKey({
+  _i2.Future<_i5.EncryptedDataKeyResponse> recoverEncryptedDataKey({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String ultimateSigningPublicKeyHex,
-  }) => caller.callServerEndpoint<_i6.EncryptedDataKeyResponse>(
+  }) => caller.callServerEndpoint<_i5.EncryptedDataKeyResponse>(
     'anonaccount.dataKey',
     'recoverEncryptedDataKey',
     {
@@ -228,8 +205,8 @@ class EndpointDataKey extends EndpointSignedPow {
   /// Overridden without `@doNotGenerate` so the generated client class gets a
   /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
-  _i2.Future<_i5.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i5.PublicChallengeResponse>(
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
         'anonaccount.dataKey',
         'getChallenge',
         {},
@@ -304,7 +281,7 @@ class EndpointDevice extends EndpointSignedPow {
   ///
   /// Creates a new device registration associated with an account.
   /// The account is resolved from the ultimate signing public key.
-  _i2.Future<_i7.AccountDevice> registerDevice({
+  _i2.Future<_i6.AccountDevice> registerDevice({
     required String challenge,
     required String proofOfWork,
     required String signature,
@@ -312,7 +289,7 @@ class EndpointDevice extends EndpointSignedPow {
     required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
-  }) => caller.callServerEndpoint<_i7.AccountDevice>(
+  }) => caller.callServerEndpoint<_i6.AccountDevice>(
     'anonaccount.device',
     'registerDevice',
     {
@@ -332,12 +309,12 @@ class EndpointDevice extends EndpointSignedPow {
   /// an authentication token via the host-configured token issuer.
   ///
   /// Returns an [AuthenticationResult] containing the token on success.
-  _i2.Future<_i8.AuthenticationResult> signIn({
+  _i2.Future<_i7.AuthenticationResult> signIn({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String devicePublicKeyHex,
-  }) => caller.callServerEndpoint<_i8.AuthenticationResult>(
+  }) => caller.callServerEndpoint<_i7.AuthenticationResult>(
     'anonaccount.device',
     'signIn',
     {
@@ -348,39 +325,19 @@ class EndpointDevice extends EndpointSignedPow {
     },
   );
 
-  /// Get device info by signing public key (PoW-protected).
-  ///
-  /// Used by Device B during pairing to get its encrypted data key.
-  /// Only returns the encrypted blob (useless without Device B's private key).
-  _i2.Future<_i9.DevicePairingInfo?> getDeviceBySigningKey({
-    required String challenge,
-    required String proofOfWork,
-    required String signature,
-    required String signingPublicKeyHex,
-  }) => caller.callServerEndpoint<_i9.DevicePairingInfo?>(
-    'anonaccount.device',
-    'getDeviceBySigningKey',
-    {
-      'challenge': challenge,
-      'proofOfWork': proofOfWork,
-      'signature': signature,
-      'signingPublicKeyHex': signingPublicKeyHex,
-    },
-  );
-
   /// Monitor registration status for a specific signing key (PoW-protected).
   ///
   /// Device B (unauthenticated) calls this to wait for Device A to complete
   /// the registration. PoW is verified before opening the stream.
-  _i2.Stream<_i10.DevicePairingEvent> monitorRegistration({
+  _i2.Stream<_i8.DevicePairingEvent> monitorRegistration({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String signingKeyHex,
   }) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i10.DevicePairingEvent>,
-        _i10.DevicePairingEvent
+        _i2.Stream<_i8.DevicePairingEvent>,
+        _i8.DevicePairingEvent
       >(
         'anonaccount.device',
         'monitorRegistration',
@@ -398,8 +355,8 @@ class EndpointDevice extends EndpointSignedPow {
   /// Overridden without `@doNotGenerate` so the generated client class gets a
   /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
-  _i2.Future<_i5.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i5.PublicChallengeResponse>(
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
         'anonaccount.device',
         'getChallenge',
         {},
@@ -472,8 +429,8 @@ class EndpointDeviceManagement extends EndpointJwt {
       );
 
   /// List account devices.
-  _i2.Future<List<_i7.AccountDevice>> listDevices() =>
-      caller.callServerEndpoint<List<_i7.AccountDevice>>(
+  _i2.Future<List<_i6.AccountDevice>> listDevices() =>
+      caller.callServerEndpoint<List<_i6.AccountDevice>>(
         'anonaccount.deviceManagement',
         'listDevices',
         {},
@@ -482,11 +439,11 @@ class EndpointDeviceManagement extends EndpointJwt {
   /// Register a new device for the caller's account.
   ///
   /// QR code pairing flow: Device A (authenticated) registers Device B.
-  _i2.Future<_i7.AccountDevice> registerDeviceForAccount(
+  _i2.Future<_i6.AccountDevice> registerDeviceForAccount(
     String newDeviceSigningPublicKeyHex,
     String newDeviceEncryptedDataKey,
     String label,
-  ) => caller.callServerEndpoint<_i7.AccountDevice>(
+  ) => caller.callServerEndpoint<_i6.AccountDevice>(
     'anonaccount.deviceManagement',
     'registerDeviceForAccount',
     {
@@ -513,8 +470,8 @@ class EndpointEntrypoint extends EndpointPow {
   /// Returns a challenge string, difficulty, and expiration timestamp.
   /// Clients must solve the hashcash puzzle before calling protected methods.
   @override
-  _i2.Future<_i5.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i5.PublicChallengeResponse>(
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
         'anonaccount.entrypoint',
         'getChallenge',
         {},
@@ -577,7 +534,7 @@ abstract class EndpointPow extends _i1.EndpointRef {
   ///
   /// Returns a challenge string, difficulty, and expiration timestamp.
   /// Clients must solve the hashcash puzzle before calling protected methods.
-  _i2.Future<_i5.PublicChallengeResponse> getChallenge();
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge();
 
   /// Verify hashcash proof-of-work only (no signature, no rate limit).
   ///
@@ -628,7 +585,7 @@ abstract class EndpointPowProtected extends _i1.EndpointRef {
   ///
   /// Returns a challenge string, difficulty, and expiration timestamp.
   /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
-  _i2.Future<_i5.PublicChallengeResponse> getChallenge();
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge();
 
   /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
   ///
@@ -668,7 +625,7 @@ abstract class EndpointSignedPow extends EndpointPow {
   /// Overridden without `@doNotGenerate` so the generated client class gets a
   /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
-  _i2.Future<_i5.PublicChallengeResponse> getChallenge();
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge();
 
   /// Verify PoW + ECDSA signature + rate limit.
   ///

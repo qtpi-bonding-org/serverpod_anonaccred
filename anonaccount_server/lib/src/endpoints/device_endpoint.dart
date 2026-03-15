@@ -216,57 +216,6 @@ class DeviceEndpoint extends SignedPowEndpoint {
     }
   }
 
-  /// Get device info by signing public key (PoW-protected).
-  ///
-  /// Used by Device B during pairing to get its encrypted data key.
-  /// Only returns the encrypted blob (useless without Device B's private key).
-  Future<DevicePairingInfo?> getDeviceBySigningKey(
-    Session session, {
-    required String challenge,
-    required String proofOfWork,
-    required String signature,
-    required String signingPublicKeyHex,
-  }) async {
-    try {
-      // Verify PoW + signature + rate limit
-      final payload =
-          '$challenge:${DeviceMethods.getDeviceBySigningKey}:$signingPublicKeyHex';
-
-      await verifySignedPow(
-        session,
-        challenge,
-        proofOfWork,
-        signingPublicKeyHex,
-        signature,
-        payload,
-      );
-
-      AnonAccountHelpers.validatePublicKey(
-        signingPublicKeyHex,
-        'getDeviceBySigningKey',
-      );
-
-      final device = await AccountDevice.db.findFirstRow(
-        session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(signingPublicKeyHex),
-      );
-
-      if (device == null) return null;
-
-      return DevicePairingInfo(encryptedDataKey: device.encryptedDataKey);
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to get device by signing key: ${e.toString()}',
-        operation: 'getDeviceBySigningKey',
-        details: {'error': e.toString()},
-      );
-    }
-  }
-
   /// Monitor registration status for a specific signing key (PoW-protected).
   ///
   /// Device B (unauthenticated) calls this to wait for Device A to complete
