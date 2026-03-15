@@ -94,11 +94,6 @@ class DataKeyEndpoint extends SignedPowEndpoint {
         payload,
       );
 
-      AnonAccountHelpers.validatePublicKey(
-        ultimateSigningPublicKeyHex,
-        'recoverEncryptedDataKey',
-      );
-
       final account = await AnonAccount.db.findFirstRow(
         session,
         where: (t) => t.ultimateSigningPublicKeyHex

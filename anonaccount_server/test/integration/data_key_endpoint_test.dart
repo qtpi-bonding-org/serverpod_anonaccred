@@ -82,7 +82,7 @@ void main() {
       });
 
       test('throws for revoked device', () async {
-        final (ultimatePrivKey, ultimatePubKey) =
+        final (_, ultimatePubKey) =
             SigningTestHelper.generateKeypair();
         final account = await createTestAccount(
           sessionBuilder,
@@ -108,7 +108,7 @@ void main() {
             '${challenge.challenge}:${DataKeyMethods.retrieveEncryptedDataKey}:$devicePubKey';
         final signature = SigningTestHelper.signWith(payload, devicePrivKey);
 
-        expect(
+        await expectLater(
           () => endpoints.dataKey.retrieveEncryptedDataKey(
             sessionBuilder,
             challenge: challenge.challenge,
@@ -116,7 +116,7 @@ void main() {
             signature: signature,
             deviceSigningPublicKeyHex: devicePubKey,
           ),
-          throwsA(isA<Exception>()),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
@@ -134,7 +134,7 @@ void main() {
             '${challenge.challenge}:${DataKeyMethods.retrieveEncryptedDataKey}:$devicePubKey';
         final signature = SigningTestHelper.signWith(payload, devicePrivKey);
 
-        expect(
+        await expectLater(
           () => endpoints.dataKey.retrieveEncryptedDataKey(
             sessionBuilder,
             challenge: challenge.challenge,
@@ -142,7 +142,7 @@ void main() {
             signature: signature,
             deviceSigningPublicKeyHex: devicePubKey,
           ),
-          throwsA(isA<Exception>()),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
@@ -196,7 +196,7 @@ void main() {
           final signature =
               SigningTestHelper.signWith(payload, ultimatePrivKey);
 
-          expect(
+          await expectLater(
             () => endpoints.dataKey.recoverEncryptedDataKey(
               sessionBuilder,
               challenge: challenge.challenge,
@@ -204,7 +204,7 @@ void main() {
               signature: signature,
               ultimateSigningPublicKeyHex: ultimatePubKey,
             ),
-            throwsA(isA<Exception>()),
+            throwsA(isA<AuthenticationException>()),
           );
         });
       });
