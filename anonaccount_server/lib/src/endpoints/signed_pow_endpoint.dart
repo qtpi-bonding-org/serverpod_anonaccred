@@ -11,14 +11,16 @@ import 'pow_endpoint.dart';
 ///
 /// Subclasses call [verifySignedPow] at the top of each endpoint method.
 ///
-/// Note: [getChallenge] is hidden via `@doNotGenerate` — clients use
-/// [EntrypointEndpoint.getChallenge] instead of per-endpoint challenges.
+/// Note: [getChallenge] throws — clients use [EntrypointEndpoint.getChallenge]
+/// instead of per-endpoint challenges.
 abstract class SignedPowEndpoint extends PowEndpoint {
-  /// Hidden from client generation — use [EntrypointEndpoint.getChallenge].
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
+  ///
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
-  @doNotGenerate
   Future<PublicChallengeResponse> getChallenge(Session session) async {
-    throw UnimplementedError();
+    throw UnsupportedError('Use EntrypointEndpoint.getChallenge() instead');
   }
   /// Endpoint type for rate limiting bucketing.
   ///

@@ -142,6 +142,16 @@ class Endpoints extends _i1.EndpointDispatch {
                     signature: params['signature'],
                   ),
         ),
+        'getChallenge': _i1.MethodConnector(
+          name: 'getChallenge',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['account'] as _i2.AccountEndpoint)
+                  .getChallenge(session),
+        ),
         'verifySignedPow': _i1.MethodConnector(
           name: 'verifySignedPow',
           params: {
@@ -345,6 +355,16 @@ class Endpoints extends _i1.EndpointDispatch {
                     signature: params['signature'],
                     signingPublicKeyHex: params['signingPublicKeyHex'],
                   ),
+        ),
+        'getChallenge': _i1.MethodConnector(
+          name: 'getChallenge',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['device'] as _i3.DeviceEndpoint)
+                  .getChallenge(session),
         ),
         'verifySignedPow': _i1.MethodConnector(
           name: 'verifySignedPow',

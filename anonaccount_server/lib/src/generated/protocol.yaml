@@ -1,6 +1,7 @@
 account:
   - createAccount:
   - getAccountForRecovery:
+  - getChallenge:
   - verifySignedPow:
   - verifyHashcash:
 device:
@@ -8,6 +9,7 @@ device:
   - signIn:
   - getDeviceBySigningKey:
   - monitorRegistration:
+  - getChallenge:
   - verifySignedPow:
   - verifyHashcash:
 deviceManagement:
