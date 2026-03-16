@@ -1,5 +1,7 @@
 import 'package:anonaccount_server/src/generated/protocol.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:serverpod_test/serverpod_test.dart';
+import 'package:uuid/uuid.dart';
 
 /// Helper to create test accounts via direct DB insert.
 ///
@@ -18,6 +20,7 @@ Future<AnonAccount> createTestAccount(
   );
   try {
     final account = AnonAccount(
+      accountUuid: UuidValue.fromString(const Uuid().v4()),
       ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey,
       ultimatePublicKey: ultimatePublicKey ?? ultimateSigningPublicKeyHex,

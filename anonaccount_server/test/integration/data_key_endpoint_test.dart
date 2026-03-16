@@ -1,5 +1,6 @@
 import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/pow_methods.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 import '../test_helpers/pow_test_helper.dart';
@@ -10,7 +11,7 @@ import 'test_tools/serverpod_test_tools.dart';
 /// Helper: insert AccountDevice directly (bypasses PoW).
 Future<AccountDevice> createTestDevice(
   TestSessionBuilder sessionBuilder, {
-  required int accountId,
+  required UuidValue accountUuid,
   required String deviceSigningPublicKeyHex,
   String encryptedDataKey = 'test-device-encrypted-data-key',
   String label = 'Test Device',
@@ -23,7 +24,7 @@ Future<AccountDevice> createTestDevice(
   );
   try {
     final device = AccountDevice(
-      accountId: accountId,
+      accountUuid: accountUuid,
       deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey,
       label: label,
@@ -55,7 +56,7 @@ void main() {
         const expectedKey = 'device-encrypted-key-abc';
         await createTestDevice(
           sessionBuilder,
-          accountId: account.id!,
+          accountUuid: account.accountUuid,
           deviceSigningPublicKeyHex: devicePubKey,
           encryptedDataKey: expectedKey,
         );
@@ -93,7 +94,7 @@ void main() {
             SigningTestHelper.generateKeypair();
         await createTestDevice(
           sessionBuilder,
-          accountId: account.id!,
+          accountUuid: account.accountUuid,
           deviceSigningPublicKeyHex: devicePubKey,
           isRevoked: true,
         );

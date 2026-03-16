@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
 
 void main() {
@@ -167,18 +168,19 @@ void main() {
       test('should return account when not null', () {
         final account = AnonAccount(
           id: 1,
+          accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           ultimateSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           ultimatePublicKey: 'b' * 128,
         );
 
-        final result = AnonAccountHelpers.requireAccount(account, 1, 'testOp');
+        final result = AnonAccountHelpers.requireAccount(account, '1', 'testOp');
         expect(result, equals(account));
       });
 
       test('should throw when account is null', () {
         expect(
-          () => AnonAccountHelpers.requireAccount(null, 1, 'testOp'),
+          () => AnonAccountHelpers.requireAccount(null, '1', 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
@@ -188,14 +190,15 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final account = AnonAccount(
             id: random.nextInt(1000) + 1,
+            accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             ultimateSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             ultimatePublicKey: _generateFakePublicKeyString(random),
           );
-          final accountId = random.nextInt(1000) + 1;
+          final accountIdentifier = 'account-${random.nextInt(1000) + 1}';
           final operation = 'op${random.nextInt(100)}';
 
-          final result = AnonAccountHelpers.requireAccount(account, accountId, operation);
+          final result = AnonAccountHelpers.requireAccount(account, accountIdentifier, operation);
           expect(result, equals(account));
         }
       });
@@ -205,7 +208,7 @@ void main() {
       test('should return device when not null', () {
         final device = AccountDevice(
           id: 1,
-          accountId: 1,
+          accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
@@ -227,7 +230,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
-            accountId: random.nextInt(1000) + 1,
+            accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
@@ -245,7 +248,7 @@ void main() {
       test('should return device when not null and not revoked', () {
         final device = AccountDevice(
           id: 1,
-          accountId: 1,
+          accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
@@ -266,7 +269,7 @@ void main() {
       test('should throw when device is revoked', () {
         final device = AccountDevice(
           id: 1,
-          accountId: 1,
+          accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
@@ -284,7 +287,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
-            accountId: random.nextInt(1000) + 1,
+            accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
@@ -303,7 +306,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
-            accountId: random.nextInt(1000) + 1,
+            accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',

@@ -1,4 +1,5 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
 
 void main() {
@@ -26,19 +27,14 @@ void main() {
 
     test('database helpers work with existing models', () {
       final account = AnonAccount(
+        accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
         ultimateSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
         encryptedDataKey: 'encrypted',
         ultimatePublicKey: 'b' * 128,
       );
 
-      final result = AnonAccountHelpers.requireAccount(account, 1, 'testOp');
+      final result = AnonAccountHelpers.requireAccount(account, 'test-identifier', 'testOp');
       expect(result, equals(account));
-    });
-
-    test('auth handler can be imported from main library', () {
-      // Test that auth handler is accessible through main library export
-      expect(AnonAccountAuthHandler.handleAuthentication, isA<Function>());
-      expect(AnonAccountAuthHandler.getDevicePublicKey, isA<Function>());
     });
   });
 }

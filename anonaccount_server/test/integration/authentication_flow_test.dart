@@ -1,5 +1,4 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
-import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
 import '../test_helpers/pow_test_helper.dart';
@@ -9,30 +8,6 @@ import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
   group('Authentication Flow Integration Tests', () {
-    test('authentication handler integrates with Serverpod constructor', () {
-      // Test that we can create a Serverpod instance with our authentication handler
-      // This verifies the function signature is correct
-      expect(
-        () {
-          // This would normally start a server, but we're just testing the constructor
-          final _ = Serverpod(
-            ['--mode', 'test'],
-            Protocol(),
-            Endpoints(),
-            authenticationHandler: AnonAccountAuthHandler.handleAuthentication,
-          );
-        },
-        returnsNormally,
-      );
-    });
-
-    test('authentication handler has correct signature for Serverpod', () {
-      // Test that the handler function signature matches what Serverpod expects
-      // This is a compile-time check - if the signature is wrong, this won't compile
-      const handler = AnonAccountAuthHandler.handleAuthentication;
-      expect(handler, isA<Function>());
-    });
-
     withServerpod('Given authentication flow integration', (sessionBuilder, endpoints) {
       test('successful authentication with valid device key and database lookup', () async {
         // Step 1: Create account and device in database
@@ -98,7 +73,7 @@ void main() {
         );
 
         expect(foundDevice, isNotNull);
-        expect(foundDevice!.accountId, equals(account.id));
+        expect(foundDevice!.accountUuid, equals(account.accountUuid));
         expect(foundDevice.id, equals(device.id));
       });
 
@@ -364,7 +339,7 @@ void main() {
           );
 
           expect(foundDevice, isNotNull);
-          expect(foundDevice!.accountId, equals(account.id));
+          expect(foundDevice!.accountUuid, equals(account.accountUuid));
           expect(foundDevice.id, equals(device.id));
         }
       });
