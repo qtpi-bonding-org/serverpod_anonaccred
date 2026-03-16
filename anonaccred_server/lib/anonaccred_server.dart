@@ -27,7 +27,7 @@
 ///   session,
 ///   publicKey: publicKey,
 ///   signature: signature,
-///   accountId: accountId,
+///   accountUuid: accountUuid,
 ///   rail: PaymentRail.monero,
 ///   storeProductId: 'api_credits',
 /// );
@@ -35,14 +35,14 @@
 /// // Query entitlements
 /// final balance = await EntitlementManager.getEntitlementBalance(
 ///   session,
-///   accountId: accountId,
+///   accountUuid: accountUuid,
 ///   tag: 'api_credits',
 /// );
 ///
 /// // Consume entitlement atomically
 /// final consumeResult = await EntitlementManager.consumeEntitlement(
 ///   session,
-///   accountId: accountId,
+///   accountUuid: accountUuid,
 ///   tag: 'api_credits',
 ///   quantity: 10.0,
 /// );

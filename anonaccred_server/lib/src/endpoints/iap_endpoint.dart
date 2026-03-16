@@ -11,7 +11,7 @@ import '../payments/rails/google_iap_rail.dart';
 ///
 /// Implements a "Reactive & Anonymous" fulfillment flow.
 /// 1. Identity-Linked Inventory: Adds coins directly to the account balance.
-/// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountId.
+/// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountUuid.
 /// 3. The Bridge: EphemeralAuditLog links the two for 7 days, then breaks.
 class IAPEndpoint extends JwtEndpoint {
   /// Validate Apple App Store transaction and fulfill purchase.
@@ -30,7 +30,7 @@ class IAPEndpoint extends JwtEndpoint {
     String? internalTransactionId,
   }) async {
     try {
-      final accountId = getAccountId(session);
+      final accountUuid = getAccountUuid(session);
 
       // Validate parameters
       if (transactionId.isEmpty || productId.isEmpty) {
@@ -51,7 +51,7 @@ class IAPEndpoint extends JwtEndpoint {
         session: session,
         transactionId: transactionId,
         productId: productId,
-        accountId: accountId,
+        accountUuid: accountUuid,
         internalTransactionId: internalTransactionId,
       );
 
@@ -110,7 +110,7 @@ class IAPEndpoint extends JwtEndpoint {
     String? internalTransactionId,
   }) async {
     try {
-      final accountId = getAccountId(session);
+      final accountUuid = getAccountUuid(session);
 
       // Validate parameters
       if (packageName.isEmpty || productId.isEmpty || purchaseToken.isEmpty) {
@@ -128,7 +128,7 @@ class IAPEndpoint extends JwtEndpoint {
         packageName: packageName,
         productId: productId,
         purchaseToken: purchaseToken,
-        accountId: accountId,
+        accountUuid: accountUuid,
         internalTransactionId: internalTransactionId,
       );
 

@@ -13,12 +13,12 @@ class CommerceEndpoint extends JwtEndpoint {
     Session session,
   ) async {
     try {
-      final accountId = getAccountId(session);
+      final accountUuid = getAccountUuid(session);
 
       // Get entitlements using EntitlementManager
       final entitlements = await EntitlementManager.getAccountEntitlements(
         session,
-        accountId: accountId,
+        accountUuid: accountUuid,
       );
 
       return entitlements;
@@ -40,12 +40,12 @@ class CommerceEndpoint extends JwtEndpoint {
     String tag,
   ) async {
     try {
-      final accountId = getAccountId(session);
+      final accountUuid = getAccountUuid(session);
 
       // Get balance using EntitlementManager
       final balance = await EntitlementManager.getEntitlementBalance(
         session,
-        accountId: accountId,
+        accountUuid: accountUuid,
         tag: tag,
       );
 
@@ -69,12 +69,12 @@ class CommerceEndpoint extends JwtEndpoint {
     double quantity,
   ) async {
     try {
-      final accountId = getAccountId(session);
+      final accountUuid = getAccountUuid(session);
 
       // Attempt consumption using EntitlementUtils
       final result = await EntitlementUtils.tryConsume(
         session,
-        accountId: accountId,
+        accountUuid: accountUuid,
         tag: tag,
         quantity: quantity,
       );
