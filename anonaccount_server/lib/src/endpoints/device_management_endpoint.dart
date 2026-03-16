@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:serverpod_auth_idp_server/core.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
@@ -43,7 +44,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         '$challenge:revokeDevice:$publicKeyHex',
       );
 
-      final accountId = await AnonAccountHelpers.resolveAccountId(
+      final accountUuid = await AnonAccountHelpers.resolveAccountUuid(
         session,
         publicKeyHex,
         'revokeDevice',
@@ -52,7 +53,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
       final device = await AccountDevice.db.findFirstRow(
         session,
         where: (t) =>
-            t.id.equals(deviceId) & t.accountId.equals(accountId),
+            t.id.equals(deviceId) & t.accountUuid.equals(accountUuid),
       );
 
       final foundDevice = AnonAccountHelpers.requireDevice(
@@ -64,6 +65,12 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
       await AccountDevice.db.updateRow(
         session,
         foundDevice.copyWith(isRevoked: true),
+      );
+
+      // Revoke any JWTs for this account (security: revoked device can't use existing tokens)
+      await AuthServices.instance.tokenManager.revokeAllTokens(
+        session,
+        authUserId: accountUuid,
       );
 
       return true;
@@ -100,7 +107,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         '$challenge:listDevices:$publicKeyHex',
       );
 
-      final accountId = await AnonAccountHelpers.resolveAccountId(
+      final accountUuid = await AnonAccountHelpers.resolveAccountUuid(
         session,
         publicKeyHex,
         'listDevices',
@@ -108,7 +115,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
 
       final devices = await AccountDevice.db.find(
         session,
-        where: (t) => t.accountId.equals(accountId),
+        where: (t) => t.accountUuid.equals(accountUuid),
         orderBy: (t) => t.lastActive,
         orderDescending: true,
       );
@@ -176,7 +183,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
       }
 
       session.log(
-        'DeviceManagementEndpoint: Registering new device for account ID: ${callerDevice.accountId}',
+        'DeviceManagementEndpoint: Registering new device for account UUID: ${callerDevice.accountUuid}',
         level: LogLevel.info,
       );
 
@@ -212,7 +219,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
       }
 
       final newDevice = AccountDevice(
-        accountId: callerDevice.accountId,
+        accountUuid: callerDevice.accountUuid,
         deviceSigningPublicKeyHex: newDeviceSigningPublicKeyHex,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,
