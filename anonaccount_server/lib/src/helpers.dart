@@ -32,6 +32,33 @@ class AnonAccountHelpers {
     return device.anonAccountId;
   }
 
+  /// Resolve the account UUID from the ultimate signing public key.
+  ///
+  /// Looks up the account directly by its ultimate signing key.
+  /// Used by owner-level endpoints (revokeDevice, listDevices).
+  static Future<UuidValue> resolveAccountUuidByUltimateKey(
+    Session session,
+    String ultimateSigningPublicKeyHex,
+    String operation,
+  ) async {
+    final account = await AnonAccount.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
+    );
+    if (account == null) {
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.authAccountNotFound,
+        message: 'Account not found for ultimate key',
+        operation: operation,
+        details: {
+          'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+        },
+      );
+    }
+    return account.id!;
+  }
+
 
   // === VALIDATION HELPERS ===
 

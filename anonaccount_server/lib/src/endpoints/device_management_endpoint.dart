@@ -44,7 +44,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         '$challenge:revokeDevice:$publicKeyHex',
       );
 
-      final accountUuid = await AnonAccountHelpers.resolveAccountUuid(
+      final accountUuid = await AnonAccountHelpers.resolveAccountUuidByUltimateKey(
         session,
         publicKeyHex,
         'revokeDevice',
@@ -67,11 +67,18 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         foundDevice.copyWith(isRevoked: true),
       );
 
-      // Revoke any JWTs for this account (security: revoked device can't use existing tokens)
-      await AuthServices.instance.tokenManager.revokeAllTokens(
-        session,
-        authUserId: accountUuid,
-      );
+      // Best-effort: revoke any JWTs for this account
+      try {
+        await AuthServices.instance.tokenManager.revokeAllTokens(
+          session,
+          authUserId: accountUuid,
+        );
+      } catch (e) {
+        session.log(
+          'Warning: could not revoke tokens after device revocation: $e',
+          level: LogLevel.warning,
+        );
+      }
 
       return true;
     } on AuthenticationException {
@@ -107,7 +114,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         '$challenge:listDevices:$publicKeyHex',
       );
 
-      final accountUuid = await AnonAccountHelpers.resolveAccountUuid(
+      final accountUuid = await AnonAccountHelpers.resolveAccountUuidByUltimateKey(
         session,
         publicKeyHex,
         'listDevices',
