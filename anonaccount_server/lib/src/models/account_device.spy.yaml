@@ -6,9 +6,12 @@ indexes:
   auth_lookup_idx:
     fields: deviceSigningPublicKeyHex, isRevoked
     unique: false
+  account_devices_idx:
+    fields: accountUuid
+    unique: false
 fields:
-  # Foreign key to parent account
-  accountId: int, relation(parent=anon_account, onDelete=Cascade)
+  # Account UUID linking this device to its parent account
+  accountUuid: UuidValue
 
   # Device ECDSA P-256 signing public key (128 hex chars, x||y coordinates)
   # Used for device authentication - matches Flutter client naming
