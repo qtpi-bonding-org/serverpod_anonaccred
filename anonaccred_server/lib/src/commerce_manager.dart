@@ -75,7 +75,7 @@ class CommerceManager {
     // 4. Create EphemeralAccreditation (The identity link bridge)
     await EphemeralAccreditation.db.insertRow(
       session,
-      EphemeralAccreditation(accountUuid: accountUuid, transactionTimestamp: now),
+      EphemeralAccreditation(anonAccountId: accountUuid, transactionTimestamp: now),
       transaction: transaction,
     );
 
@@ -177,7 +177,7 @@ class CommerceManager {
         final existingRecord = await AccountEntitlement.db.findFirstRow(
           session,
           where: (t) =>
-              t.accountUuid.equals(bridge.accountUuid) &
+              t.anonAccountId.equals(bridge.anonAccountId) &
               t.entitlementId.equals(grant.entitlementId),
           transaction: transaction,
         );
@@ -194,7 +194,7 @@ class CommerceManager {
           await AccountEntitlement.db.insertRow(
             session,
             AccountEntitlement(
-              accountUuid: bridge.accountUuid,
+              anonAccountId: bridge.anonAccountId,
               entitlementId: grant.entitlementId,
               balance: grant.quantity,
             ),
@@ -217,7 +217,7 @@ class CommerceManager {
         await _postFulfillmentHook!(
           session,
           PostFulfillmentContext(
-            accountUuid: bridge.accountUuid,
+            accountUuid: bridge.anonAccountId,
             grantsApplied: grants,
             payment: payment,
             storeProductId: railProduct?.storeProductId ?? '',
@@ -237,7 +237,7 @@ class CommerceManager {
       await EphemeralAccreditation.db.insertRow(
         session,
         EphemeralAccreditation(
-          accountUuid: accountUuid,
+          anonAccountId: accountUuid,
           transactionTimestamp: transactionTimestamp,
         ),
       );
