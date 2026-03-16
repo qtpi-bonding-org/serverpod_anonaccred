@@ -2,15 +2,28 @@ import 'package:serverpod/serverpod.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import 'jwt_endpoint.dart';
+import 'signed_pow_endpoint.dart';
 
-/// JWT-protected device management endpoints.
+/// SignedPoW-protected device management endpoints.
 ///
-/// All methods require a valid JWT (obtained via [DeviceEndpoint.signIn]).
+/// All methods require hashcash PoW + ECDSA signature + rate limiting.
 /// Handles device revocation, listing, and QR pairing.
-class DeviceManagementEndpoint extends JwtEndpoint {
+class DeviceManagementEndpoint extends SignedPowEndpoint {
+  @override
+  String get endpointType => 'device_management';
+
+  @override
+  int get rateLimitPerHour => 20;
+
   /// Revoke device access.
-  Future<bool> revokeDevice(Session session, int deviceId) async {
+  Future<bool> revokeDevice(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+    required int deviceId,
+  }) async {
     try {
       if (deviceId <= 0) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -21,7 +34,20 @@ class DeviceManagementEndpoint extends JwtEndpoint {
         );
       }
 
-      final accountId = getAccountId(session);
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        publicKeyHex,
+        signature,
+        '$challenge:revokeDevice:$publicKeyHex',
+      );
+
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session,
+        publicKeyHex,
+        'revokeDevice',
+      );
 
       final device = await AccountDevice.db.findFirstRow(
         session,
@@ -57,9 +83,28 @@ class DeviceManagementEndpoint extends JwtEndpoint {
   }
 
   /// List account devices.
-  Future<List<AccountDevice>> listDevices(Session session) async {
+  Future<List<AccountDevice>> listDevices(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+  }) async {
     try {
-      final accountId = getAccountId(session);
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        publicKeyHex,
+        signature,
+        '$challenge:listDevices:$publicKeyHex',
+      );
+
+      final accountId = await AnonAccountHelpers.resolveAccountId(
+        session,
+        publicKeyHex,
+        'listDevices',
+      );
 
       final devices = await AccountDevice.db.find(
         session,
@@ -83,26 +128,38 @@ class DeviceManagementEndpoint extends JwtEndpoint {
   ///
   /// QR code pairing flow: Device A (authenticated) registers Device B.
   Future<AccountDevice> registerDeviceForAccount(
-    Session session,
-    String newDeviceSigningPublicKeyHex,
-    String newDeviceEncryptedDataKey,
-    String label,
-  ) async {
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+    required String newDeviceSigningPublicKeyHex,
+    required String newDeviceEncryptedDataKey,
+    required String label,
+  }) async {
     session.log(
       'DeviceManagementEndpoint: registerDeviceForAccount called',
       level: LogLevel.info,
     );
     try {
-      final callerDeviceKey = getDevicePublicKey(session);
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        publicKeyHex,
+        signature,
+        '$challenge:registerDeviceForAccount:$publicKeyHex',
+      );
+
       session.log(
-        'DeviceManagementEndpoint: Caller device key: ${callerDeviceKey.substring(0, 10)}...',
+        'DeviceManagementEndpoint: Caller device key: ${publicKeyHex.substring(0, 10)}...',
         level: LogLevel.info,
       );
 
       final callerDevice = await AccountDevice.db.findFirstRow(
         session,
         where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(callerDeviceKey),
+            t.deviceSigningPublicKeyHex.equals(publicKeyHex),
       );
 
       if (callerDevice == null) {
@@ -114,7 +171,7 @@ class DeviceManagementEndpoint extends JwtEndpoint {
           code: AnonAccountErrorCodes.authDeviceNotFound,
           message: 'Caller device not found',
           operation: 'registerDeviceForAccount',
-          details: {'callerDeviceKey': callerDeviceKey},
+          details: {'callerDeviceKey': publicKeyHex},
         );
       }
 

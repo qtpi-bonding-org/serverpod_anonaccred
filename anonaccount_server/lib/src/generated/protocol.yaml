@@ -20,6 +20,9 @@ deviceManagement:
   - revokeDevice:
   - listDevices:
   - registerDeviceForAccount:
+  - getChallenge:
+  - verifySignedPow:
+  - verifyHashcash:
 entrypoint:
   - getChallenge:
   - verifyHashcash:

@@ -31,9 +31,6 @@ export 'src/services/rate_limit_service.dart';
 export 'src/endpoints/pow_endpoint.dart';
 export 'src/endpoints/signed_pow_endpoint.dart';
 export 'src/endpoints/jwt_endpoint.dart';
-// Legacy exports (deprecated, use PowEndpoint/SignedPowEndpoint/JwtEndpoint)
-export 'src/endpoints/pow_protected_endpoint.dart';
-export 'src/endpoints/authenticated_endpoint.dart';
 // Endpoints (concrete with built-in PoW spam prevention)
 export 'src/endpoints/entrypoint_endpoint.dart';
 export 'src/endpoints/account_endpoint.dart';

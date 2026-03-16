@@ -118,12 +118,17 @@ void main() {
         );
         expect(authResult, isNotNull);
 
-        // Step 6: Protected endpoints require authentication
-        // DeviceManagementEndpoint requires login — Serverpod enforces this
-        // at the framework level before endpoint code runs.
+        // Step 6: Protected endpoints require valid SignedPoW credentials
+        // DeviceManagementEndpoint requires PoW + ECDSA signature verification.
         expect(
-          () => endpoints.deviceManagement.listDevices(sessionBuilder),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          () => endpoints.deviceManagement.listDevices(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
@@ -173,23 +178,43 @@ void main() {
       });
 
       test('authentication failure scenarios', () async {
-        // DeviceManagementEndpoint requires login — Serverpod enforces this
-        // at the framework level before endpoint code runs.
+        // DeviceManagementEndpoint requires valid SignedPoW credentials.
+        // Invalid PoW/signature should cause AuthenticationException.
         expect(
-          () => endpoints.deviceManagement.listDevices(sessionBuilder),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          () => endpoints.deviceManagement.listDevices(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
 
         expect(
-          () => endpoints.deviceManagement.revokeDevice(sessionBuilder, 123),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          () => endpoints.deviceManagement.revokeDevice(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            deviceId: 123,
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
 
         // authenticateDevice was removed — signIn is now on DeviceEndpoint (PoW-protected, not session-auth).
-        // Verify revokeDevice still requires authentication as a proxy for session-auth enforcement.
+        // Verify revokeDevice still rejects invalid credentials.
         expect(
-          () => endpoints.deviceManagement.revokeDevice(sessionBuilder, 123),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          () => endpoints.deviceManagement.revokeDevice(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            deviceId: 123,
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 

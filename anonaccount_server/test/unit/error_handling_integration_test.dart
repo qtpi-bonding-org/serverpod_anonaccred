@@ -48,34 +48,50 @@ void main() {
         );
       });
 
-      test('should reject unauthenticated device management',
+      test('should reject invalid PoW for device management',
           () async {
-        // DeviceManagementEndpoint requires login — Serverpod enforces this
-        // at the framework level before endpoint code runs.
+        // DeviceManagementEndpoint requires SignedPoW verification.
         expect(
           () => endpoints.deviceManagement.registerDeviceForAccount(
             sessionBuilder,
-            'device_pub_key_hex',
-            'encrypted_data_key',
-            'Test Device',
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            newDeviceSigningPublicKeyHex: 'device_pub_key_hex',
+            newDeviceEncryptedDataKey: 'encrypted_data_key',
+            label: 'Test Device',
           ),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
-      test('should reject unauthenticated device revocation',
+      test('should reject invalid PoW for device revocation',
           () async {
         expect(
-          () => endpoints.deviceManagement.revokeDevice(sessionBuilder, 123),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          () => endpoints.deviceManagement.revokeDevice(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            deviceId: 123,
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
-      test('should reject unauthenticated device listing',
+      test('should reject invalid PoW for device listing',
           () async {
         expect(
-          () => endpoints.deviceManagement.listDevices(sessionBuilder),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          () => endpoints.deviceManagement.listDevices(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
       });
     });

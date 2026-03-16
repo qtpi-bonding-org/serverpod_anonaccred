@@ -126,28 +126,6 @@ class EndpointAccount extends EndpointSignedPow {
   );
 }
 
-/// Abstract base class for endpoints requiring device-key authentication.
-///
-/// Subclasses get:
-/// - `requireLogin => true` (Serverpod enforces authentication)
-/// - `getDevicePublicKey()` to extract the authenticated device's public key
-/// - `getAccountId()` to extract the authenticated account's ID
-///
-/// Usage in consuming projects:
-/// ```dart
-/// class MyProtectedEndpoint extends AuthenticatedEndpoint {
-///   Future<MyData> getData(Session session) async {
-///     final deviceKey = getDevicePublicKey(session);
-///     final accountId = getAccountId(session);
-///     // ... business logic using authenticated identity
-///   }
-/// }
-/// ```
-/// {@category Endpoint}
-abstract class EndpointAuthenticated extends _i1.EndpointRef {
-  EndpointAuthenticated(_i1.EndpointCaller caller) : super(caller);
-}
-
 /// PoW-protected endpoint for fetching a device's encrypted data key.
 ///
 /// Two paths:
@@ -409,47 +387,133 @@ class EndpointDevice extends EndpointSignedPow {
   );
 }
 
-/// JWT-protected device management endpoints.
+/// SignedPoW-protected device management endpoints.
 ///
-/// All methods require a valid JWT (obtained via [DeviceEndpoint.signIn]).
+/// All methods require hashcash PoW + ECDSA signature + rate limiting.
 /// Handles device revocation, listing, and QR pairing.
 /// {@category Endpoint}
-class EndpointDeviceManagement extends EndpointJwt {
+class EndpointDeviceManagement extends EndpointSignedPow {
   EndpointDeviceManagement(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'anonaccount.deviceManagement';
 
   /// Revoke device access.
-  _i2.Future<bool> revokeDevice(int deviceId) =>
-      caller.callServerEndpoint<bool>(
-        'anonaccount.deviceManagement',
-        'revokeDevice',
-        {'deviceId': deviceId},
-      );
+  _i2.Future<bool> revokeDevice({
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+    required int deviceId,
+  }) => caller.callServerEndpoint<bool>(
+    'anonaccount.deviceManagement',
+    'revokeDevice',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'deviceId': deviceId,
+    },
+  );
 
   /// List account devices.
-  _i2.Future<List<_i6.AccountDevice>> listDevices() =>
-      caller.callServerEndpoint<List<_i6.AccountDevice>>(
-        'anonaccount.deviceManagement',
-        'listDevices',
-        {},
-      );
+  _i2.Future<List<_i6.AccountDevice>> listDevices({
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+  }) => caller.callServerEndpoint<List<_i6.AccountDevice>>(
+    'anonaccount.deviceManagement',
+    'listDevices',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+    },
+  );
 
   /// Register a new device for the caller's account.
   ///
   /// QR code pairing flow: Device A (authenticated) registers Device B.
-  _i2.Future<_i6.AccountDevice> registerDeviceForAccount(
-    String newDeviceSigningPublicKeyHex,
-    String newDeviceEncryptedDataKey,
-    String label,
-  ) => caller.callServerEndpoint<_i6.AccountDevice>(
+  _i2.Future<_i6.AccountDevice> registerDeviceForAccount({
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+    required String newDeviceSigningPublicKeyHex,
+    required String newDeviceEncryptedDataKey,
+    required String label,
+  }) => caller.callServerEndpoint<_i6.AccountDevice>(
     'anonaccount.deviceManagement',
     'registerDeviceForAccount',
     {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
       'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex,
       'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
       'label': label,
+    },
+  );
+
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
+  ///
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
+  @override
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
+        'anonaccount.deviceManagement',
+        'getChallenge',
+        {},
+      );
+
+  /// Verify PoW + ECDSA signature + rate limit.
+  ///
+  /// Call this at the top of each protected endpoint method.
+  ///
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
+  @override
+  _i2.Future<void> verifySignedPow(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'anonaccount.deviceManagement',
+    'verifySignedPow',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
+    },
+  );
+
+  /// Verify hashcash proof-of-work only (no signature, no rate limit).
+  ///
+  /// Checks stamp format, challenge existence, and hash quality.
+  /// Consumes the challenge (one-time use).
+  @override
+  _i2.Future<void> verifyHashcash(
+    String challenge,
+    String proofOfWork,
+  ) => caller.callServerEndpoint<void>(
+    'anonaccount.deviceManagement',
+    'verifyHashcash',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
     },
   );
 }
@@ -543,66 +607,6 @@ abstract class EndpointPow extends _i1.EndpointRef {
   _i2.Future<void> verifyHashcash(
     String challenge,
     String proofOfWork,
-  );
-}
-
-/// Abstract base class for unauthenticated endpoints protected by
-/// hashcash proof-of-work + ECDSA signature + rate limiting.
-///
-/// Subclasses get:
-/// - `getChallenge()` endpoint method (auto-registered by Serverpod)
-/// - `verifyPow()` helper to call at the top of each endpoint method
-/// - Configurable rate limiting via `endpointType` and `rateLimitPerHour`
-///
-/// Usage in consuming projects:
-/// ```dart
-/// class MyPublicEndpoint extends PowProtectedEndpoint {
-///   @override
-///   String get endpointType => 'my_endpoint';
-///
-///   @override
-///   int get rateLimitPerHour => 20;
-///
-///   Future<MyResponse> submitThing(
-///     Session session, {
-///     required String challenge,
-///     required String proofOfWork,
-///     required String signature,
-///     required String publicKeyHex,
-///     required String data,
-///   }) async {
-///     await verifyPow(session, challenge, proofOfWork, publicKeyHex,
-///         signature, '$challenge:submitThing:$publicKeyHex');
-///     // ... business logic
-///   }
-/// }
-/// ```
-/// {@category Endpoint}
-abstract class EndpointPowProtected extends _i1.EndpointRef {
-  EndpointPowProtected(_i1.EndpointCaller caller) : super(caller);
-
-  /// Get challenge for proof-of-work.
-  ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
-  _i2.Future<_i4.PublicChallengeResponse> getChallenge();
-
-  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
-  ///
-  /// Call this at the top of each PoW-protected endpoint method.
-  ///
-  /// - [session] Serverpod session
-  /// - [challenge] The challenge string from [getChallenge]
-  /// - [proofOfWork] The hashcash stamp mined by the client
-  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
-  /// - [signature] ECDSA signature over [payload]
-  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
-  _i2.Future<void> verifyPow(
-    String challenge,
-    String proofOfWork,
-    String publicKeyHex,
-    String signature,
-    String payload,
   );
 }
 

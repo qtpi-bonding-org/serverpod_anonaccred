@@ -81,41 +81,51 @@ void main() {
     });
 
     group('Device Management Session-Auth Edge Cases', () {
-      test('revokeDevice - should fail without authentication', () async {
-        // DeviceManagementEndpoint requires login — Serverpod enforces this
-        // at the framework level before endpoint code runs.
+      test('revokeDevice - should fail with invalid PoW credentials', () async {
+        // DeviceManagementEndpoint requires PoW + ECDSA signature verification.
         expect(
           () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,
-            1,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            deviceId: 1,
           ),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
-      test('registerDeviceForAccount - should fail without authentication',
+      test('registerDeviceForAccount - should fail with invalid PoW',
           () async {
-        // Unauthenticated — Serverpod rejects before endpoint code runs.
         expect(
           () => endpoints.deviceManagement.registerDeviceForAccount(
             sessionBuilder,
-            'device_pub_key_hex',
-            'encrypted_data_key',
-            'Test Device',
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            newDeviceSigningPublicKeyHex: 'device_pub_key_hex',
+            newDeviceEncryptedDataKey: 'encrypted_data_key',
+            label: 'Test Device',
           ),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          throwsA(isA<AuthenticationException>()),
         );
       });
     });
 
     group('Device Revocation Edge Cases', () {
-      test('revokeDevice - should fail without authentication', () async {
+      test('revokeDevice - should fail with invalid PoW', () async {
         expect(
           () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,
-            123, // Any device ID
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            deviceId: 123,
           ),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          throwsA(isA<AuthenticationException>()),
         );
       });
 
@@ -123,18 +133,28 @@ void main() {
         expect(
           () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,
-            -1, // Invalid device ID
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            deviceId: -1,
           ),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          throwsA(isA<AuthenticationException>()),
         );
       });
     });
 
     group('Device Listing Edge Cases', () {
-      test('listDevices - should fail without authentication', () async {
+      test('listDevices - should fail with invalid PoW', () async {
         expect(
-          () => endpoints.deviceManagement.listDevices(sessionBuilder),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          () => endpoints.deviceManagement.listDevices(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
       });
     });

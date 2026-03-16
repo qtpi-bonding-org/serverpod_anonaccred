@@ -194,17 +194,22 @@ void main() {
           label: deviceLabel,
         );
 
-        // Step 2: Revoke the device (requires authenticated session)
-        final authenticatedSessionBuilder = sessionBuilder.copyWith(
-          authentication: AuthenticationOverride.authenticationInfo(
-            account.id.toString(),
-            <Scope>{},
-          ),
+        // Step 2: Revoke the device via SignedPoW
+        final revokeChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final revokePow = await PowTestHelper.mint(
+          revokeChallenge.challenge,
+          difficulty: revokeChallenge.difficulty,
         );
+        final revokePayload = '${revokeChallenge.challenge}:revokeDevice:$ultimatePubKey';
+        final revokeSignature = SigningTestHelper.signWith(revokePayload, ultimatePrivKey);
 
         await endpoints.deviceManagement.revokeDevice(
-          authenticatedSessionBuilder,
-          device.id!,
+          sessionBuilder,
+          challenge: revokeChallenge.challenge,
+          proofOfWork: revokePow,
+          publicKeyHex: ultimatePubKey,
+          signature: revokeSignature,
+          deviceId: device.id!,
         );
 
         // Step 3: Try to authenticate with revoked device

@@ -1,3 +1,4 @@
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:test/test.dart';
 
@@ -62,20 +63,29 @@ void main() {
         expect(device.isRevoked, isFalse);
         expect(device.deviceSigningPublicKeyHex, equals(devicePubKey));
 
-        // Test that session-auth endpoints require authentication
-        // DeviceManagementEndpoint requires login — Serverpod enforces this
-        // at the framework level before endpoint code runs.
+        // Test that endpoints require valid SignedPoW credentials
+        // DeviceManagementEndpoint requires PoW + ECDSA signature verification.
         expect(
           () => endpoints.deviceManagement.revokeDevice(
             sessionBuilder,
-            device.id!,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            deviceId: device.id!,
           ),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          throwsA(isA<AuthenticationException>()),
         );
 
         expect(
-          () => endpoints.deviceManagement.listDevices(sessionBuilder),
-          throwsA(isA<ServerpodUnauthenticatedException>()),
+          () => endpoints.deviceManagement.listDevices(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+          ),
+          throwsA(isA<AuthenticationException>()),
         );
 
         // Verify device registration still works (PoW-protected, not session-auth)
