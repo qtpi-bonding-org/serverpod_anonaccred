@@ -196,8 +196,12 @@ class DeviceEndpoint extends SignedPowEndpoint {
         deviceId: activeDevice.id,
         details: {
           'token': authSuccess.token,
+          if (authSuccess.tokenExpiresAt != null)
+            'tokenExpiresAt': authSuccess.tokenExpiresAt!.toIso8601String(),
           if (authSuccess.refreshToken != null)
             'refreshToken': authSuccess.refreshToken!,
+          'authUserId': activeDevice.accountUuid.toString(),
+          'authStrategy': authSuccess.authStrategy,
           'deviceSigningPublicKeyHex': devicePublicKeyHex,
         },
       );
