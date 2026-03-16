@@ -81,8 +81,8 @@ void main() {
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:${account.ultimateSigningPublicKeyHex}';
-        final regSignature = SigningTestHelper.signWith(regPayload, privKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
@@ -226,15 +226,15 @@ void main() {
           ultimateSigningPublicKeyHex: ultimatePubKey,
         );
 
-        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
 
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
@@ -252,14 +252,14 @@ void main() {
       });
 
       test('duplicate device registration fails', () async {
-        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+        final (_, ultimatePubKey) = SigningTestHelper.generateKeypair();
 
         await createTestAccount(
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
         );
 
-        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
 
         // Register first
         final regChallenge1 = await endpoints.entrypoint.getChallenge(sessionBuilder);
@@ -267,8 +267,8 @@ void main() {
           regChallenge1.challenge,
           difficulty: regChallenge1.difficulty,
         );
-        final regPayload1 = '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature1 = SigningTestHelper.signWith(regPayload1, ultimatePrivKey);
+        final regPayload1 = '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature1 = SigningTestHelper.signWith(regPayload1, devicePrivKey);
 
         await endpoints.device.registerDevice(
           sessionBuilder,
@@ -287,8 +287,8 @@ void main() {
           regChallenge2.challenge,
           difficulty: regChallenge2.difficulty,
         );
-        final regPayload2 = '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature2 = SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
+        final regPayload2 = '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature2 = SigningTestHelper.signWith(regPayload2, devicePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -306,15 +306,16 @@ void main() {
       });
 
       test('non-existent account registration fails', () async {
-        final (nonExistPrivKey, nonExistPubKey) = SigningTestHelper.generateKeypair();
+        final (_, nonExistPubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
 
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$nonExistPubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, nonExistPrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -323,9 +324,7 @@ void main() {
             proofOfWork: regPow,
             signature: regSignature,
             ultimateSigningPublicKeyHex: nonExistPubKey,
-            deviceSigningPublicKeyHex:
-                'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+            deviceSigningPublicKeyHex: devicePubKey,
             encryptedDataKey: 'encrypted_device_data_key',
             label: 'Test Device',
           ),

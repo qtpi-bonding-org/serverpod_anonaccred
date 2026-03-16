@@ -26,7 +26,7 @@ void main() {
         where: (t) => t.ultimatePublicKey.equals(validPublicKey),
       );
       account ??= await AnonAccount.db.insertRow(session, AnonAccount(
-        id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+        id: UuidValue.fromString('a0000000-0000-4000-8000-000000000001'),
         ultimateSigningPublicKeyHex: validPublicKey,
         encryptedDataKey: 'encrypted_data_key_for_commerce_test',
         ultimatePublicKey: validPublicKey,

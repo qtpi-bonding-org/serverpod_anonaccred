@@ -23,18 +23,18 @@ void main() {
           ultimatePublicKey: ultimatePubKey,
         );
 
-        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
-        // PoW for registerDevice (signed with ultimate key)
+        // PoW for registerDevice (signed with device key — endpoint verifies device key)
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
@@ -73,7 +73,7 @@ void main() {
           ultimatePublicKey: ultimatePubKey,
         );
 
-        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
@@ -83,8 +83,8 @@ void main() {
           regChallenge1.challenge,
           difficulty: regChallenge1.difficulty,
         );
-        final regPayload1 = '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature1 = SigningTestHelper.signWith(regPayload1, ultimatePrivKey);
+        final regPayload1 = '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature1 = SigningTestHelper.signWith(regPayload1, devicePrivKey);
 
         await endpoints.device.registerDevice(
           sessionBuilder,
@@ -103,8 +103,8 @@ void main() {
           regChallenge2.challenge,
           difficulty: regChallenge2.difficulty,
         );
-        final regPayload2 = '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature2 = SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
+        final regPayload2 = '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature2 = SigningTestHelper.signWith(regPayload2, devicePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -137,13 +137,14 @@ void main() {
       const encryptedDataKey = 'device_encrypted_data_key';
       const label = 'Test Device';
 
-      // PoW for registerDevice (signed with ultimate key)
+      // PoW for registerDevice — endpoint verifies with deviceSigningPublicKeyHex,
+      // which is invalid here, so signature verification will fail (expected)
       final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
       final regPow = await PowTestHelper.mint(
         regChallenge.challenge,
         difficulty: regChallenge.difficulty,
       );
-      final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+      final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$invalidDeviceSigningPublicKeyHex';
       final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
       expect(
@@ -164,20 +165,21 @@ void main() {
     test(
       'registerDevice - should reject registration for non-existent account',
       () async {
-        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
-        // Use a real keypair for the non-existent account (so PoW passes)
-        final (nonExistPrivKey, nonExistPubKey) = SigningTestHelper.generateKeypair();
+        // Use a real keypair for the non-existent account
+        final (_, nonExistPubKey) = SigningTestHelper.generateKeypair();
 
+        // PoW signed with device key (endpoint verifies device key)
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$nonExistPubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, nonExistPrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -210,14 +212,14 @@ void main() {
       const encryptedDataKey = 'device_encrypted_data_key_challenge';
       const label = 'Challenge Test Device';
 
-      // Register the device with PoW
+      // Register the device with PoW (signed with device key)
       final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
       final regPow = await PowTestHelper.mint(
         regChallenge.challenge,
         difficulty: regChallenge.difficulty,
       );
-      final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-      final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+      final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+      final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
       await endpoints.device.registerDevice(
         sessionBuilder,

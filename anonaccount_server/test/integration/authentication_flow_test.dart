@@ -1,4 +1,5 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
 import '../test_helpers/pow_test_helper.dart';
@@ -30,14 +31,14 @@ void main() {
         const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
         const deviceLabel = 'Test Device';
 
-        // PoW for registerDevice (signed with ultimate key)
+        // PoW for registerDevice (signed with device key)
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
@@ -96,14 +97,14 @@ void main() {
         const deviceEncryptedDataKey = 'encrypted_device_data_key_invalid';
         const deviceLabel = 'Test Device Invalid';
 
-        // PoW for registerDevice (signed with ultimate key)
+        // PoW for registerDevice (signed with device key)
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         await endpoints.device.registerDevice(
           sessionBuilder,
@@ -149,14 +150,14 @@ void main() {
         const deviceEncryptedDataKey = 'encrypted_device_data_key_revoked';
         const deviceLabel = 'Test Device Revoked';
 
-        // PoW for registerDevice (signed with ultimate key)
+        // PoW for registerDevice (signed with device key)
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
@@ -230,14 +231,14 @@ void main() {
         const deviceEncryptedDataKey = 'encrypted_device_data_key_info';
         const deviceLabel = 'Test Device Info';
 
-        // PoW for registerDevice (signed with ultimate key)
+        // PoW for registerDevice (signed with device key)
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         await endpoints.device.registerDevice(
           sessionBuilder,
@@ -289,14 +290,14 @@ void main() {
           final deviceEncryptedDataKey = 'encrypted_device_data_key_multi_$i';
           final deviceLabel = 'Test Device Multi $i';
 
-          // PoW for registerDevice (signed with ultimate key)
+          // PoW for registerDevice (signed with device key)
           final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
           final regPow = await PowTestHelper.mint(
             regChallenge.challenge,
             difficulty: regChallenge.difficulty,
           );
-          final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-          final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+          final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devPubKey';
+          final regSignature = SigningTestHelper.signWith(regPayload, devPrivKey);
 
           final device = await endpoints.device.registerDevice(
             sessionBuilder,
@@ -363,14 +364,14 @@ void main() {
         const deviceEncryptedDataKey = 'encrypted_device_data_key_extract';
         const deviceLabel = 'Test Device Extract';
 
-        // PoW for registerDevice (signed with ultimate key)
+        // PoW for registerDevice (signed with device key)
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
 
         await endpoints.device.registerDevice(
           sessionBuilder,
