@@ -16,14 +16,14 @@ class EntitlementUtils {
   /// or failure with available balance information.
   ///
   /// [session] - Serverpod session for database operations
-  /// [accountId] - The account to consume inventory from
+  /// [accountUuid] - The account UUID to consume inventory from
   /// [tag] - String identifier for the entitlement (formerly consumableType)
   /// [quantity] - Amount to consume (must be positive)
   ///
   /// Returns [ConsumeResult] with operation outcome and balance information
   static Future<ConsumeResult> tryConsume(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
     required String tag,
     required double quantity,
   }) async {
@@ -40,7 +40,7 @@ class EntitlementUtils {
       // Use EntitlementManager for consumption which handles transactions and logging
       await EntitlementManager.consumeEntitlement(
         session,
-        accountId: accountId,
+        accountUuid: accountUuid,
         tag: tag,
         amount: quantity,
         reason: 'API Consumption (tryConsume)',
@@ -48,7 +48,7 @@ class EntitlementUtils {
 
       final newBalance = await EntitlementManager.getEntitlementBalance(
         session,
-        accountId: accountId,
+        accountUuid: accountUuid,
         tag: tag,
       );
 

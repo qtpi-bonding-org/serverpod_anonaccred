@@ -11,7 +11,7 @@ class EntitlementManager {
   /// caller's transaction so everything commits or rolls back together.
   static Future<void> grantEntitlementById(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
     required int entitlementId,
     required double quantity,
     required Transaction transaction,
@@ -30,7 +30,7 @@ class EntitlementManager {
     final existingRecord = await AccountEntitlement.db.findFirstRow(
       session,
       where: (t) =>
-          t.accountId.equals(accountId) &
+          t.accountUuid.equals(accountUuid) &
           t.entitlementId.equals(entitlementId),
       transaction: transaction,
     );
@@ -45,7 +45,7 @@ class EntitlementManager {
       await AccountEntitlement.db.insertRow(
         session,
         AccountEntitlement(
-          accountId: accountId,
+          accountUuid: accountUuid,
           entitlementId: entitlementId,
           balance: quantity,
         ),
@@ -59,7 +59,7 @@ class EntitlementManager {
   /// Caller must provide a [transaction].
   static Future<void> grantEntitlement(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
     required String tag,
     required double quantity,
     required Transaction transaction,
@@ -80,7 +80,7 @@ class EntitlementManager {
 
     await grantEntitlementById(
       session,
-      accountId: accountId,
+      accountUuid: accountUuid,
       entitlementId: entitlement.id!,
       quantity: quantity,
       transaction: transaction,
@@ -91,7 +91,7 @@ class EntitlementManager {
   /// Deducts from balance and logs the consumption.
   static Future<void> consumeEntitlement(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
     required String tag,
     required double amount,
     required String reason,
@@ -124,7 +124,7 @@ class EntitlementManager {
         final record = await AccountEntitlement.db.findFirstRow(
           session,
           where: (t) =>
-              t.accountId.equals(accountId) &
+              t.accountUuid.equals(accountUuid) &
               t.entitlementId.equals(entitlement.id),
           transaction: transaction,
         );
@@ -152,7 +152,7 @@ class EntitlementManager {
         await ConsumptionLog.db.insertRow(
           session,
           ConsumptionLog(
-            accountId: accountId,
+            accountUuid: accountUuid,
             entitlementId: entitlement.id!,
             amount: amount,
             reason: reason,
@@ -178,7 +178,7 @@ class EntitlementManager {
   /// with the provided reason. No-op if no AccountEntitlement record exists.
   static Future<void> revokeEntitlement(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
     required int entitlementId,
     required double quantity,
     required String reason,
@@ -190,7 +190,7 @@ class EntitlementManager {
         final record = await AccountEntitlement.db.findFirstRow(
           session,
           where: (t) =>
-              t.accountId.equals(accountId) &
+              t.accountUuid.equals(accountUuid) &
               t.entitlementId.equals(entitlementId),
           transaction: transaction,
         );
@@ -209,7 +209,7 @@ class EntitlementManager {
         await ConsumptionLog.db.insertRow(
           session,
           ConsumptionLog(
-            accountId: accountId,
+            accountUuid: accountUuid,
             entitlementId: entitlementId,
             amount: debit,
             reason: reason,
@@ -234,7 +234,7 @@ class EntitlementManager {
   /// Gets the current balance for an entitlement by tag.
   static Future<double> getEntitlementBalance(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
     required String tag,
   }) async {
     try {
@@ -248,7 +248,7 @@ class EntitlementManager {
       final record = await AccountEntitlement.db.findFirstRow(
         session,
         where: (t) =>
-            t.accountId.equals(accountId) &
+            t.accountUuid.equals(accountUuid) &
             t.entitlementId.equals(entitlement.id),
       );
 
@@ -265,12 +265,12 @@ class EntitlementManager {
   /// Gets all entitlement balances for an account.
   static Future<List<AccountEntitlement>> getAccountEntitlements(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
   }) async {
     try {
       return await AccountEntitlement.db.find(
         session,
-        where: (t) => t.accountId.equals(accountId),
+        where: (t) => t.accountUuid.equals(accountUuid),
         include: AccountEntitlement.include(
           entitlement: Entitlement.include(),
         ),
