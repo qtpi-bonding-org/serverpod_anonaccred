@@ -6,7 +6,14 @@ indexes:
   ultimate_key_idx:
     fields: ultimatePublicKey
     unique: true
+  account_uuid_idx:
+    fields: accountUuid
+    unique: true
 fields:
+  # Serverpod AuthUser UUID — the primary account identifier for JWT issuance
+  # Created during account registration via AuthServices.instance.authUsers.create()
+  accountUuid: UuidValue
+
   # Ultimate ECDSA P-256 signing public key (128 hex chars, x||y coordinates)
   # Used as account identifier for authentication - matches Flutter client naming
   ultimateSigningPublicKeyHex: String

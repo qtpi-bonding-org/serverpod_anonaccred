@@ -3,17 +3,17 @@ import '../exception_factory.dart';
 
 /// Abstract base class for JWT-protected endpoints.
 ///
-/// Serverpod validates the JWT before the method runs.
+/// Serverpod validates the JWT before the method runs (via `initializeAuthServices`).
 /// Subclasses get:
 /// - `requireLogin => true` (Serverpod enforces JWT validation)
 /// - `getDevicePublicKey()` to extract the device's public key from JWT scopes
-/// - `getAccountId()` to extract the account ID from JWT claims
+/// - `getAccountUuid()` to extract the account's UUID from JWT claims
 ///
 /// Usage:
 /// ```dart
 /// class MyProtectedEndpoint extends JwtEndpoint {
 ///   Future<MyData> getData(Session session) async {
-///     final accountId = getAccountId(session);
+///     final accountUuid = getAccountUuid(session);
 ///     // ... business logic using authenticated identity
 ///   }
 /// }
@@ -43,20 +43,20 @@ abstract class JwtEndpoint extends Endpoint {
     );
   }
 
-  /// Extract the authenticated account's ID from JWT claims.
+  /// Extract the authenticated account's UUID from JWT claims.
   ///
-  /// Returns the integer account ID from the JWT's `authUserId`.
+  /// Returns the [UuidValue] from the JWT's authenticated user identifier.
   /// Throws [AuthenticationException] if parsing fails.
   @doNotGenerate
-  int getAccountId(Session session) {
+  UuidValue getAccountUuid(Session session) {
     final idStr = session.authenticated?.userIdentifier;
     if (idStr == null) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
         code: AnonAccountErrorCodes.authMissingKey,
-        message: 'No account ID in JWT session',
-        operation: 'getAccountId',
+        message: 'No auth user ID in JWT session',
+        operation: 'getAccountUuid',
       );
     }
-    return int.parse(idStr);
+    return UuidValue.withValidation(idStr);
   }
 }

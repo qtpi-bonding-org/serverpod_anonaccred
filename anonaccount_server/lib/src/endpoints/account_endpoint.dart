@@ -1,5 +1,6 @@
 import '../pow_methods.dart';
 import 'package:serverpod/serverpod.dart';
+import 'package:serverpod_auth_idp_server/core.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
@@ -91,8 +92,12 @@ class AccountEndpoint extends SignedPowEndpoint {
         );
       }
 
+      // Create Serverpod AuthUser (generates UUID for JWT identity)
+      final authUser = await AuthServices.instance.authUsers.create(session);
+
       final now = DateTime.now();
       final newAccount = AnonAccount(
+        accountUuid: authUser.id,
         ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         ultimatePublicKey: ultimatePublicKey,

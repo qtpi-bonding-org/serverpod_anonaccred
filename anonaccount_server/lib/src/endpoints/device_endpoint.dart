@@ -1,10 +1,10 @@
 import '../pow_methods.dart';
 import 'package:serverpod/serverpod.dart';
+import 'package:serverpod_auth_idp_server/core.dart';
 import '../crypto_auth.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import '../token_issuer.dart';
 import 'signed_pow_endpoint.dart';
 
 /// Public device endpoints protected by hashcash proof-of-work.
@@ -184,19 +184,33 @@ class DeviceEndpoint extends SignedPowEndpoint {
         ),
       );
 
-      // Issue token via host-configured callback
-      final tokenResult = await AnonAccountTokenIssuer.issueToken(
+      // Look up account to get the authUserId (UUID) for JWT issuance
+      final account = await AnonAccount.db.findById(
         session,
-        accountId: activeDevice.accountId,
-        devicePublicKeyHex: devicePublicKeyHex,
+        activeDevice.accountId,
+      );
+      if (account == null) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authAccountNotFound,
+          message: 'Account not found for device',
+          operation: 'signIn',
+        );
+      }
+
+      // Issue JWT via Serverpod's built-in token manager
+      final authSuccess = await AuthServices.instance.tokenManager.issueToken(
+        session,
+        authUserId: account.accountUuid,
+        method: 'anonaccount',
+        scopes: {Scope('device:$devicePublicKeyHex')},
       );
 
       return AuthenticationResultFactory.success(
         deviceId: activeDevice.id,
         details: {
-          'accessToken': tokenResult.accessToken,
-          if (tokenResult.refreshToken != null)
-            'refreshToken': tokenResult.refreshToken!,
+          'token': authSuccess.token,
+          if (authSuccess.refreshToken != null)
+            'refreshToken': authSuccess.refreshToken!,
           'deviceSigningPublicKeyHex': devicePublicKeyHex,
         },
       );
