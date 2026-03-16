@@ -9,7 +9,9 @@ import 'package:anonaccred_server/src/payments/mock_app_store_server_client.dart
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
 import 'package:anonaccred_server/src/refund_manager.dart';
 import 'package:app_store_server_sdk/app_store_server_sdk.dart' show ApiException;
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
 
@@ -165,7 +167,7 @@ void main() {
             session: session,
             transactionId: 'unknown_txn_404',
             productId: 'com.quanitya.coins_100',
-            accountId: 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
           throwsA(isA<ApiException>()),
         );
@@ -208,7 +210,7 @@ void main() {
             session: session,
             transactionId: txnId,
             productId: 'com.quanitya.coins_100', // different from what Apple returned
-            accountId: 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
           throwsA(isA<AnonAccountException>()),
         );
@@ -243,7 +245,7 @@ void main() {
             session: session,
             transactionId: txnId,
             productId: productId,
-            accountId: 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
           throwsA(isA<AnonAccountException>()),
         );
@@ -263,7 +265,7 @@ void main() {
             session: session,
             transactionId: txnId,
             productId: 'com.quanitya.coins_100',
-            accountId: 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
           throwsA(isA<PaymentException>()),
         );
@@ -286,7 +288,7 @@ void main() {
           session: session,
           transactionId: txnId,
           productId: 'com.quanitya.coins_100',
-          accountId: 1,
+          accountUuid: UuidValue.fromString(const Uuid().v4()),
         );
 
         expect(result.isValid, isTrue);
@@ -307,7 +309,7 @@ void main() {
           session: session,
           transactionId: txnId,
           productId: 'com.quanitya.coins_100',
-          accountId: 1,
+          accountUuid: UuidValue.fromString(const Uuid().v4()),
         );
 
         expect(mockClient.callLog, isEmpty);

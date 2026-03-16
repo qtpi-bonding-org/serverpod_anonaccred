@@ -14,7 +14,7 @@ void main() {
     // Test constants
     const validPublicKey =
         '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-    late int testAccountId;
+    late AnonAccount testAccount;
     late TestSessionBuilder authenticatedSessionBuilder;
 
     setUp(() async {
@@ -29,7 +29,7 @@ void main() {
         encryptedDataKey: 'encrypted_data_key_for_commerce_test',
         ultimatePublicKey: validPublicKey,
       ));
-      testAccountId = account.id!;
+      testAccount = account;
 
       // Ensure a device exists for this account with the validPublicKey
       var device = await AccountDevice.db.findFirstRow(
@@ -39,7 +39,7 @@ void main() {
       device ??= await AccountDevice.db.insertRow(
         session,
         AccountDevice(
-          accountId: testAccountId,
+          accountUuid: testAccount.accountUuid,
           deviceSigningPublicKeyHex: validPublicKey,
           encryptedDataKey: 'device_encrypted_key_commerce_test',
           label: 'Test Device',
@@ -47,9 +47,10 @@ void main() {
       );
 
       // Create authenticated session builder with device scope
+      // userIdentifier must be the UUID string so getAccountUuid() can parse it
       authenticatedSessionBuilder = sessionBuilder.copyWith(
         authentication: AuthenticationOverride.authenticationInfo(
-          testAccountId.toString(),
+          testAccount.accountUuid.toString(),
           {Scope('device:$validPublicKey')},
           authId: validPublicKey,
         ),
@@ -58,7 +59,7 @@ void main() {
       // Clean up any leftover entitlement balances from prior runs
       await AccountEntitlement.db.deleteWhere(
         session,
-        where: (t) => t.accountId.equals(testAccountId),
+        where: (t) => t.accountUuid.equals(testAccount.accountUuid),
       );
     });
 
@@ -138,7 +139,7 @@ void main() {
         await session.db.transaction((txn) async {
           await EntitlementManager.grantEntitlement(
             session,
-            accountId: testAccountId,
+            accountUuid: testAccount.accountUuid,
             tag: 'api_calls',
             quantity: 100.0,
             transaction: txn,

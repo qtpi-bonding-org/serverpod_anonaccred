@@ -8,7 +8,9 @@ import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dar
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
 import 'package:anonaccred_server/src/refund_manager.dart';
 import 'package:googleapis/androidpublisher/v3.dart' show ProductPurchase;
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
 
@@ -271,7 +273,7 @@ void main() {
             packageName: 'com.quanitya.app',
             productId: 'com.quanitya.coins_100',
             purchaseToken: 'unknown_token_404',
-            accountId: 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
           throwsA(isA<PaymentException>()),
         );
@@ -296,7 +298,7 @@ void main() {
             packageName: 'com.quanitya.app',
             productId: 'com.quanitya.coins_100',
             purchaseToken: token,
-            accountId: 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
           throwsA(isA<PaymentException>()),
         );
@@ -318,7 +320,7 @@ void main() {
             packageName: 'com.quanitya.app',
             productId: 'com.quanitya.coins_100',
             purchaseToken: token,
-            accountId: 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
           throwsA(isA<PaymentException>()),
         );
@@ -342,7 +344,7 @@ void main() {
             packageName: 'com.quanitya.app',
             productId: productId,
             purchaseToken: token,
-            accountId: 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
           throwsA(isA<AnonAccountException>()),
         );
@@ -366,7 +368,7 @@ void main() {
           packageName: 'com.quanitya.app',
           productId: 'com.quanitya.coins_100',
           purchaseToken: token,
-          accountId: 1,
+          accountUuid: UuidValue.fromString(const Uuid().v4()),
         );
 
         expect(result.isValid, isTrue);
@@ -389,7 +391,7 @@ void main() {
           packageName: 'com.quanitya.app',
           productId: 'com.quanitya.coins_100',
           purchaseToken: token,
-          accountId: 1,
+          accountUuid: UuidValue.fromString(const Uuid().v4()),
         );
 
         expect(mockClient.callLog, isEmpty);

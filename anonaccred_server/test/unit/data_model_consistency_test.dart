@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 /// **Feature: anonaccred-phase1, Property 1: Account creation privacy preservation**
 /// **Feature: anonaccred-phase1, Property 2: Device registration privacy preservation**
@@ -62,7 +64,7 @@ void main() {
         // Run 5 iterations during development
         for (var i = 0; i < 5; i++) {
           // Generate random device data
-          final accountId = _generateRandomAccountId();
+          final accountUuid = _generateRandomAccountUuid();
           final deviceSigningPublicKeyHex = _generateRandomEcdsaP256PublicKey();
           final encryptedDataKey = _generateRandomEncryptedData();
           final label = _generateRandomDeviceLabel();
@@ -71,7 +73,7 @@ void main() {
 
           // Create device model
           final device = AccountDevice(
-            accountId: accountId,
+            accountUuid: accountUuid,
             deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
             label: label,
@@ -80,7 +82,7 @@ void main() {
           );
 
           // Verify privacy preservation - only public key and encrypted data stored
-          expect(device.accountId, equals(accountId));
+          expect(device.accountUuid, equals(accountUuid));
           expect(
             device.deviceSigningPublicKeyHex,
             equals(deviceSigningPublicKeyHex),
@@ -124,11 +126,10 @@ void main() {
             'mixedCaseProduct123',
           ];
 
-          final accountId = _generateRandomAccountId();
+          final accountUuid = _generateRandomAccountUuid();
           final consumableType =
               consumableTypes[random.nextInt(consumableTypes.length)];
           final quantity = _generateRandomQuantity();
-          final lastUpdated = DateTime.now();
 
           // Create entitlement registry entry (the flexible part)
           final entitlement = Entitlement(
@@ -140,13 +141,13 @@ void main() {
 
           // Create account entitlement (the wallet part)
           final accountEntitlement = AccountEntitlement(
-            accountId: accountId,
+            accountUuid: accountUuid,
             entitlementId: 100 + i, // Simulated ID
             balance: quantity,
           );
 
           // Verify entitlement balance
-          expect(accountEntitlement.accountId, equals(accountId));
+          expect(accountEntitlement.accountUuid, equals(accountUuid));
           expect(accountEntitlement.balance, equals(quantity));
 
           // Verify no validation restrictions on entitlement tag
@@ -167,7 +168,6 @@ void main() {
         for (var i = 0; i < 5; i++) {
           // Generate random transaction data
           final internalTransactionId = _generateRandomTransactionId();
-          final accountId = _generateRandomAccountId();
           final priceCurrency = _generateRandomCurrency();
           final price = _generateRandomPrice();
           final paymentRail = _generateRandomPaymentRail();
@@ -247,7 +247,8 @@ String _generateRandomEncryptedData() {
   ).join();
 }
 
-int _generateRandomAccountId() => Random().nextInt(10000) + 1;
+UuidValue _generateRandomAccountUuid() =>
+    UuidValue.fromString(const Uuid().v4());
 
 String _generateRandomDeviceLabel() {
   final labels = [

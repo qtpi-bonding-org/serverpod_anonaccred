@@ -70,7 +70,7 @@ void main() {
             encryptedDataKey: 'encrypted_data_key_test_$i',
             ultimatePublicKey: _generateRandomPublicKey(),
           ));
-          final accountId = account.id!;
+          final accountUuid = account.accountUuid;
 
           // 2. Setup random RailProduct
           final storeProductId = 'com.test.product_$i';
@@ -89,7 +89,7 @@ void main() {
           // 3. Initiate payment (Requirement 2.1, 2.4)
           final payment = await CommerceManager.initiateTransactionPayment(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             rail: rail,
             storeProductId: storeProductId,
             clientReference: 'client_ref_$i',
@@ -111,13 +111,13 @@ void main() {
                 t.transactionTimestamp.equals(payment.transactionTimestamp),
           );
           expect(bridge, isNotNull);
-          expect(bridge!.accountId, equals(accountId));
+          expect(bridge!.accountUuid, equals(accountUuid));
 
           // 4. Verify uniqueness (Requirement 2.4)
           final secondPayment =
               await CommerceManager.initiateTransactionPayment(
                 session,
-                accountId: accountId,
+                accountUuid: accountUuid,
                 rail: rail,
                 storeProductId: storeProductId,
                 customPrice: price,
@@ -151,13 +151,13 @@ void main() {
             ultimatePublicKey: _generateRandomPublicKey(),
           ),
         );
-        final accountId = account.id!;
+        final accountUuid = account.accountUuid;
 
         // 1. Test non-existent SKU
         try {
           await CommerceManager.initiateTransactionPayment(
             session1,
-            accountId: accountId,
+            accountUuid: accountUuid,
             rail: PaymentRail.google_iap,
             storeProductId: 'non_existent_sku',
           );
@@ -180,7 +180,7 @@ void main() {
         try {
           await CommerceManager.initiateTransactionPayment(
             session1,
-            accountId: accountId,
+            accountUuid: accountUuid,
             rail: PaymentRail.monero,
             storeProductId: 'inactive_sku',
           );
@@ -206,7 +206,7 @@ void main() {
             encryptedDataKey: 'encrypted_data_key_full_$i',
             ultimatePublicKey: _generateRandomPublicKey(),
           ));
-          final accountId = account.id!;
+          final accountUuid = account.accountUuid;
 
           // 2. Entitlements and RailProduct
           final tag = 'credits_$i';
@@ -242,7 +242,7 @@ void main() {
           // 4. Exercise Payment and Fulfillment
           final payment = await CommerceManager.initiateTransactionPayment(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             rail: PaymentRail.stripe,
             storeProductId: 'stripe_prod_$i',
             customPrice: 10.0,
@@ -256,7 +256,7 @@ void main() {
           // 5. Verify Entitlement Balance
           final balance = await EntitlementManager.getEntitlementBalance(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: tag,
           );
           expect(balance, equals(quantity));
@@ -273,7 +273,7 @@ void main() {
           await _cleanupTransactionData(session, payment.internalTransactionId);
           await AccountEntitlement.db.deleteWhere(
             session,
-            where: (t) => t.accountId.equals(accountId),
+            where: (t) => t.accountUuid.equals(accountUuid),
           );
           await RailProductGrant.db.deleteRow(session, grant);
           await RailProduct.db.deleteRow(session, railProduct);

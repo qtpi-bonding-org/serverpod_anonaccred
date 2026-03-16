@@ -32,7 +32,7 @@ Future<_SeedResult> _seedBridgeChain(
       ultimatePublicKey: 'test_pubkey_$paymentRef',
     ),
   );
-  final accountId = account.id!;
+  final accountUuid = account.accountUuid;
 
   // 2. ReceiptHash
   await ReceiptHash.db.insertRow(
@@ -87,17 +87,17 @@ Future<_SeedResult> _seedBridgeChain(
     ),
   );
 
-  // 7. EphemeralAccreditation (bridge — requires AnonAccount FK)
+  // 7. EphemeralAccreditation (bridge)
   await EphemeralAccreditation.db.insertRow(
     session,
-    EphemeralAccreditation(accountId: accountId, transactionTimestamp: ts),
+    EphemeralAccreditation(accountUuid: accountUuid, transactionTimestamp: ts),
   );
 
-  // 8. AccountEntitlement (grant the entitlement — requires AnonAccount FK)
+  // 8. AccountEntitlement (grant the entitlement)
   await AccountEntitlement.db.insertRow(
     session,
     AccountEntitlement(
-      accountId: accountId,
+      accountUuid: accountUuid,
       entitlementId: entitlement.id!,
       balance: grantQuantity,
     ),
@@ -112,7 +112,7 @@ Future<_SeedResult> _seedBridgeChain(
   return _SeedResult(
     event: event,
     entitlementId: entitlement.id!,
-    accountId: account.id!,
+    accountUuid: accountUuid,
   );
 }
 
@@ -120,11 +120,11 @@ class _SeedResult {
   _SeedResult({
     required this.event,
     required this.entitlementId,
-    required this.accountId,
+    required this.accountUuid,
   });
   final RefundEvent event;
   final int entitlementId;
-  final int accountId;
+  final UuidValue accountUuid;
 }
 
 void main() {
@@ -150,7 +150,7 @@ void main() {
         // Verify entitlement balance is 0
         final balance = await EntitlementManager.getEntitlementBalance(
           session,
-          accountId: seed.accountId,
+          accountUuid: seed.accountUuid,
           tag: 'coins',
         );
         expect(balance, equals(0.0));
@@ -158,7 +158,7 @@ void main() {
         // Verify ConsumptionLog entry exists with REFUND reason
         final logs = await ConsumptionLog.db.find(
           session,
-          where: (t) => t.accountId.equals(seed.accountId),
+          where: (t) => t.accountUuid.equals(seed.accountUuid),
         );
         expect(logs, isNotEmpty);
         expect(logs.first.reason, startsWith('REFUND:'));
@@ -249,7 +249,7 @@ void main() {
         // Should still have 0 balance (not -100)
         final balance = await EntitlementManager.getEntitlementBalance(
           session,
-          accountId: seed.accountId,
+          accountUuid: seed.accountUuid,
           tag: 'coins',
         );
         expect(balance, equals(0.0));
@@ -258,7 +258,7 @@ void main() {
         final logs = await ConsumptionLog.db.find(
           session,
           where: (t) =>
-              t.accountId.equals(seed.accountId) &
+              t.accountUuid.equals(seed.accountUuid) &
               t.reason.like('REFUND:%'),
         );
         expect(logs, hasLength(1));
@@ -305,7 +305,7 @@ void main() {
 
         final balance = await EntitlementManager.getEntitlementBalance(
           session,
-          accountId: seed.accountId,
+          accountUuid: seed.accountUuid,
           tag: 'coins',
         );
         expect(balance, equals(0.0));
@@ -339,7 +339,7 @@ void main() {
         // Entitlement balance should be UNCHANGED (100)
         final balance = await EntitlementManager.getEntitlementBalance(
           session,
-          accountId: seed.accountId,
+          accountUuid: seed.accountUuid,
           tag: 'coins',
         );
         expect(balance, equals(100.0));
@@ -374,7 +374,7 @@ void main() {
         // Entitlement balance unchanged
         final balance = await EntitlementManager.getEntitlementBalance(
           session,
-          accountId: seed.accountId,
+          accountUuid: seed.accountUuid,
           tag: 'coins',
         );
         expect(balance, equals(100.0));
@@ -405,7 +405,7 @@ void main() {
         // Consume 80
         await EntitlementManager.consumeEntitlement(
           session,
-          accountId: seed.accountId,
+          accountUuid: seed.accountUuid,
           tag: 'coins',
           amount: 80.0,
           reason: 'usage',
@@ -414,7 +414,7 @@ void main() {
         // Now revoke the full 100 (only 20 remains)
         await EntitlementManager.revokeEntitlement(
           session,
-          accountId: seed.accountId,
+          accountUuid: seed.accountUuid,
           entitlementId: seed.entitlementId,
           quantity: 100.0,
           reason: 'REFUND:test',
@@ -422,7 +422,7 @@ void main() {
 
         final balance = await EntitlementManager.getEntitlementBalance(
           session,
-          accountId: seed.accountId,
+          accountUuid: seed.accountUuid,
           tag: 'coins',
         );
         expect(balance, equals(0.0));

@@ -34,7 +34,7 @@ void main() {
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: publicKey, // ultimatePublicKey - using same key for testing
           ));
-          final accountId = account.id!;
+          final accountUuid = account.accountUuid;
 
           // REQUIREMENT: Must create the Entitlement record first for EntitlementManager to work
           final createdEntitlement = await Entitlement.db.insertRow(
@@ -50,7 +50,7 @@ void main() {
           // Test initial state - should have zero balance
           final initialBalance = await EntitlementManager.getEntitlementBalance(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: tag,
           );
           expect(initialBalance, equals(0.0));
@@ -59,7 +59,7 @@ void main() {
           final initialEntitlements =
               await EntitlementManager.getAccountEntitlements(
                 session,
-                accountId: accountId,
+                accountUuid: accountUuid,
               );
           final initialRecord = initialEntitlements
               .where((e) => e.entitlementId == entitlementId)
@@ -70,7 +70,7 @@ void main() {
           await session.db.transaction((txn) async {
             await EntitlementManager.grantEntitlement(
               session,
-              accountId: accountId,
+              accountUuid: accountUuid,
               tag: tag,
               quantity: quantity,
               transaction: txn,
@@ -80,7 +80,7 @@ void main() {
           // Verify balance was incremented correctly
           final newBalance = await EntitlementManager.getEntitlementBalance(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: tag,
           );
           expect(newBalance, equals(quantity));
@@ -89,13 +89,13 @@ void main() {
           final newEntitlements =
               await EntitlementManager.getAccountEntitlements(
                 session,
-                accountId: accountId,
+                accountUuid: accountUuid,
               );
           final newRecord = newEntitlements
               .where((e) => e.entitlementId == entitlementId)
               .first;
 
-          expect(newRecord.accountId, equals(accountId));
+          expect(newRecord.accountUuid, equals(accountUuid));
           expect(newRecord.entitlementId, equals(entitlementId));
           expect(newRecord.balance, equals(quantity));
 
@@ -105,7 +105,7 @@ void main() {
           await session.db.transaction((txn) async {
             await EntitlementManager.grantEntitlement(
               session,
-              accountId: accountId,
+              accountUuid: accountUuid,
               tag: tag,
               quantity: additionalQuantity,
               transaction: txn,
@@ -115,7 +115,7 @@ void main() {
           // Verify balance was incremented correctly
           final finalBalance = await EntitlementManager.getEntitlementBalance(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: tag,
           );
           expect(finalBalance, equals(quantity + additionalQuantity));
@@ -124,7 +124,7 @@ void main() {
           final finalEntitlements =
               await EntitlementManager.getAccountEntitlements(
                 session,
-                accountId: accountId,
+                accountUuid: accountUuid,
               );
           final finalRecord = finalEntitlements
               .where((e) => e.entitlementId == entitlementId)
@@ -148,7 +148,7 @@ void main() {
           await session.db.transaction((txn) async {
             await EntitlementManager.grantEntitlement(
               session,
-              accountId: accountId,
+              accountUuid: accountUuid,
               tag: secondTag,
               quantity: secondQuantity,
               transaction: txn,
@@ -158,12 +158,12 @@ void main() {
           // Verify both entitlements exist independently
           final b1 = await EntitlementManager.getEntitlementBalance(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: tag,
           );
           final b2 = await EntitlementManager.getEntitlementBalance(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: secondTag,
           );
 
@@ -173,7 +173,7 @@ void main() {
           // Verify account entitlements contains both records
           final multiEnt = await EntitlementManager.getAccountEntitlements(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
           );
           expect(multiEnt.length, greaterThanOrEqualTo(2));
 
@@ -188,7 +188,7 @@ void main() {
           expect(rec2.balance, equals(secondQuantity));
 
           // Clean up for next iteration
-          await _cleanupTestData(session, accountId);
+          await _cleanupTestData(session, accountUuid);
         }
       },
     );
@@ -204,7 +204,7 @@ void main() {
         encryptedDataKey: encryptedDataKey,
         ultimatePublicKey: publicKey,
       ));
-      final accountId = account.id!;
+      final accountUuid = account.accountUuid;
 
       await Entitlement.db.insertRow(
         session,
@@ -220,7 +220,7 @@ void main() {
         session.db.transaction((txn) async {
           await EntitlementManager.grantEntitlement(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: tag,
             quantity: 0.0,
             transaction: txn,
@@ -234,7 +234,7 @@ void main() {
         session.db.transaction((txn) async {
           await EntitlementManager.grantEntitlement(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: tag,
             quantity: -1.0,
             transaction: txn,
@@ -246,7 +246,7 @@ void main() {
       // Verify no entitlement balance created
       final balance = await EntitlementManager.getEntitlementBalance(
         session,
-        accountId: accountId,
+        accountUuid: accountUuid,
         tag: tag,
       );
       expect(balance, equals(0.0));
@@ -265,19 +265,19 @@ void main() {
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: publicKey,
           ));
-          final accountId = account.id!;
+          final accountUuid = account.accountUuid;
 
           // Empty state
           final empty = await EntitlementManager.getAccountEntitlements(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
           );
           expect(empty, isEmpty);
 
           final nonTag = _generateRandomTag();
           final zero = await EntitlementManager.getEntitlementBalance(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: nonTag,
           );
           expect(zero, equals(0.0));
@@ -308,7 +308,7 @@ void main() {
             await session.db.transaction((txn) async {
               await EntitlementManager.grantEntitlement(
                 session,
-                accountId: accountId,
+                accountUuid: accountUuid,
                 tag: tag,
                 quantity: quantity,
                 transaction: txn,
@@ -318,7 +318,7 @@ void main() {
 
           final full = await EntitlementManager.getAccountEntitlements(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
           );
           expect(full.length, equals(numItems));
 
@@ -332,7 +332,7 @@ void main() {
 
             final b = await EntitlementManager.getEntitlementBalance(
               session,
-              accountId: accountId,
+              accountUuid: accountUuid,
               tag: expectedTag,
             );
             expect(b, equals(expectedQuantity));
@@ -341,24 +341,24 @@ void main() {
           // Queries don't change state
           final before = await EntitlementManager.getAccountEntitlements(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
           );
           for (var j = 0; j < 3; j++) {
             await EntitlementManager.getAccountEntitlements(
               session,
-              accountId: accountId,
+              accountUuid: accountUuid,
             );
             for (final tag in tags) {
               await EntitlementManager.getEntitlementBalance(
                 session,
-                accountId: accountId,
+                accountUuid: accountUuid,
                 tag: tag,
               );
             }
           }
           final after = await EntitlementManager.getAccountEntitlements(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
           );
           expect(after.length, equals(before.length));
 
@@ -366,7 +366,7 @@ void main() {
             expect(after[j].balance, equals(before[j].balance));
           }
 
-          await _cleanupTestData(session, accountId);
+          await _cleanupTestData(session, accountUuid);
         }
       },
     );
@@ -382,18 +382,18 @@ void main() {
             encryptedDataKey: 'test_empty_$i',
             ultimatePublicKey: publicKey,
           ));
-          final accountId = account.id!;
+          final accountUuid = account.accountUuid;
 
           final ents = await EntitlementManager.getAccountEntitlements(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
           );
           expect(ents, isEmpty);
 
           final tag = _generateRandomTag();
           final b = await EntitlementManager.getEntitlementBalance(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             tag: tag,
           );
           expect(b, equals(0.0));
@@ -425,11 +425,11 @@ double _generateRandomQuantity() {
   return (random.nextDouble() * 999.98) + 0.01;
 }
 
-Future<void> _cleanupTestData(Session session, int accountId) async {
+Future<void> _cleanupTestData(Session session, UuidValue accountUuid) async {
   try {
     await AccountEntitlement.db.deleteWhere(
       session,
-      where: (t) => t.accountId.equals(accountId),
+      where: (t) => t.accountUuid.equals(accountUuid),
     );
   } catch (e) {
     // Ignore cleanup errors

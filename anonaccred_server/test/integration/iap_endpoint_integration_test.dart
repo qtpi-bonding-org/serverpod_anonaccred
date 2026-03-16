@@ -42,7 +42,7 @@ void main() {
       ));
 
       testDevice = await AccountDevice.db.insertRow(sessionBuilder.build(), AccountDevice(
-        accountId: testAccount.id!,
+        accountUuid: testAccount.accountUuid,
         deviceSigningPublicKeyHex:
             'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
             'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
@@ -51,9 +51,10 @@ void main() {
       ));
 
       // Create authenticated session builder with device scope
+      // userIdentifier must be the UUID string so getAccountUuid() can parse it
       authenticatedSessionBuilder = sessionBuilder.copyWith(
         authentication: AuthenticationOverride.authenticationInfo(
-          testAccount.id!.toString(),
+          testAccount.accountUuid.toString(),
           {Scope('device:${testDevice.deviceSigningPublicKeyHex}')},
           authId: testDevice.deviceSigningPublicKeyHex,
         ),

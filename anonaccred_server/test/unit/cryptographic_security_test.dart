@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 /// **Feature: anonaccred-phase1, Property 5: Cryptographic data isolation**
 /// **Feature: anonaccred-phase1, Property 6: Encryption separation**
@@ -34,7 +36,7 @@ void main() {
 
           // Create device with cryptographic data
           final device = AccountDevice(
-            accountId: random.nextInt(10000) + 1,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             deviceSigningPublicKeyHex: publicSubKey,
             encryptedDataKey: encryptedDeviceDataKey,
             label: 'Test Device',
@@ -106,7 +108,7 @@ void main() {
 
           for (var j = 0; j < deviceCount; j++) {
             final device = AccountDevice(
-              accountId: random.nextInt(10000) + 1,
+              accountUuid: UuidValue.fromString(const Uuid().v4()),
               deviceSigningPublicKeyHex: _generateFakePublicKeyString(),
               encryptedDataKey: _generateRandomEncryptedData(),
               label: 'Device $j',
