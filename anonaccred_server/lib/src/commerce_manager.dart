@@ -15,7 +15,7 @@ typedef PostFulfillmentHook = Future<void> Function(
 /// Service for managing commerce operations (payments, fulfillment, and accreditation)
 ///
 /// Implements the "Destructible Bridge" pattern:
-/// 1. TransactionPayment is identity-free (linked to railProductId, no accountId).
+/// 1. TransactionPayment is identity-free (linked to railProductId, no accountUuid).
 /// 2. EphemeralAccreditation links the account to a timestamp for 7 days.
 /// 3. After 7 days, the bridge record is deleted, leaving the financials anonymous.
 class CommerceManager {
@@ -35,13 +35,13 @@ class CommerceManager {
   ///
   /// Parameters:
   /// - [session]: Serverpod session
-  /// - [accountId]: The initiating account ID (stored in EphemeralAccreditation)
+  /// - [accountUuid]: The initiating account UUID (stored in EphemeralAccreditation)
   /// - [rail]: The payment rail being used
   /// - [storeProductId]: The SKU from the vendor (e.g., 'com.app.pro_monthly')
   /// - [clientReference]: Optional client-side UUID or order number
   static Future<TransactionPayment> initiateTransactionPayment(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
     required PaymentRail rail,
     required String storeProductId,
     String? clientReference,
@@ -75,7 +75,7 @@ class CommerceManager {
     // 4. Create EphemeralAccreditation (The identity link bridge)
     await EphemeralAccreditation.db.insertRow(
       session,
-      EphemeralAccreditation(accountId: accountId, transactionTimestamp: now),
+      EphemeralAccreditation(accountUuid: accountUuid, transactionTimestamp: now),
       transaction: transaction,
     );
 
@@ -177,7 +177,7 @@ class CommerceManager {
         final existingRecord = await AccountEntitlement.db.findFirstRow(
           session,
           where: (t) =>
-              t.accountId.equals(bridge.accountId) &
+              t.accountUuid.equals(bridge.accountUuid) &
               t.entitlementId.equals(grant.entitlementId),
           transaction: transaction,
         );
@@ -194,7 +194,7 @@ class CommerceManager {
           await AccountEntitlement.db.insertRow(
             session,
             AccountEntitlement(
-              accountId: bridge.accountId,
+              accountUuid: bridge.accountUuid,
               entitlementId: grant.entitlementId,
               balance: grant.quantity,
             ),
@@ -217,7 +217,7 @@ class CommerceManager {
         await _postFulfillmentHook!(
           session,
           PostFulfillmentContext(
-            accountId: bridge.accountId,
+            accountUuid: bridge.accountUuid,
             grantsApplied: grants,
             payment: payment,
             storeProductId: railProduct?.storeProductId ?? '',
@@ -230,14 +230,14 @@ class CommerceManager {
   /// Manually links an account to a transaction via timestamp (for reactive rails like IAPs).
   static Future<void> accreditTransaction(
     Session session, {
-    required int accountId,
+    required UuidValue accountUuid,
     required DateTime transactionTimestamp,
   }) async {
     try {
       await EphemeralAccreditation.db.insertRow(
         session,
         EphemeralAccreditation(
-          accountId: accountId,
+          accountUuid: accountUuid,
           transactionTimestamp: transactionTimestamp,
         ),
       );

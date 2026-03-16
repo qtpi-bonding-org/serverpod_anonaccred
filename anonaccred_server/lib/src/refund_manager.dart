@@ -21,7 +21,7 @@ class RefundContext {
   RefundContext({
     this.receiptHash,
     this.payment,
-    this.accountId,
+    this.accountUuid,
     this.grants = const [],
     this.bridgeExpired = false,
   });
@@ -32,13 +32,13 @@ class RefundContext {
   /// The financial record for this transaction.
   final TransactionPayment? payment;
 
-  /// Account ID resolved via EphemeralAccreditation bridge. Null if expired.
-  final int? accountId;
+  /// Account UUID resolved via EphemeralAccreditation bridge. Null if expired.
+  final UuidValue? accountUuid;
 
   /// What entitlement grants were associated with this product.
   final List<RailProductGrant> grants;
 
-  /// True if accountId couldn't be resolved (bridge TTL expired or ambiguous).
+  /// True if accountUuid couldn't be resolved (bridge TTL expired or ambiguous).
   final bool bridgeExpired;
 }
 
@@ -165,13 +165,13 @@ class RefundManager {
       );
     }
 
-    // Determine accountId
-    int? accountId;
+    // Determine accountUuid
+    UuidValue? accountUuid;
     bool bridgeExpired = false;
 
     if (accreditations.length == 1) {
       // Unambiguous
-      accountId = accreditations.first.accountId;
+      accountUuid = accreditations.first.accountUuid;
     } else {
       // Multiple EAs at same timestamp — but only 1 TransactionPayment at (T, R).
       // Different rails purchased at same instant. We can still resolve:
@@ -179,7 +179,7 @@ class RefundManager {
       // Since we have only 1 payment at (T, R), the EA is the one matching.
       // We just use the first one since we can't disambiguate further without
       // a direct FK. This is the "best effort" case.
-      accountId = accreditations.first.accountId;
+      accountUuid = accreditations.first.accountUuid;
     }
 
     // 4. Get grants for the rail product
@@ -191,7 +191,7 @@ class RefundManager {
     return RefundContext(
       receiptHash: hashRecord,
       payment: payment,
-      accountId: accountId,
+      accountUuid: accountUuid,
       grants: grants,
       bridgeExpired: bridgeExpired,
     );
@@ -214,12 +214,12 @@ class RefundManager {
 
       case RefundAction.revokeAll:
         // Revoke entitlements if we have an account, then mark refunded.
-        if (context.accountId != null && context.grants.isNotEmpty) {
+        if (context.accountUuid != null && context.grants.isNotEmpty) {
           final reason = 'REFUND:${event.rail.name}:${event.paymentRef}';
           for (final grant in context.grants) {
             await EntitlementManager.revokeEntitlement(
               session,
-              accountId: context.accountId!,
+              accountUuid: context.accountUuid!,
               entitlementId: grant.entitlementId,
               quantity: grant.quantity,
               reason: reason,
