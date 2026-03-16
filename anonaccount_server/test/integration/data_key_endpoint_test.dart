@@ -3,6 +3,7 @@ import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
+import '../test_helpers/auth_services_test_helper.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
@@ -38,6 +39,8 @@ Future<AccountDevice> createTestDevice(
 }
 
 void main() {
+  setUpAll(initializeTestAuthServices);
+
   withServerpod('DataKeyEndpoint Integration Tests', (
     sessionBuilder,
     endpoints,

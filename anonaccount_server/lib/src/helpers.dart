@@ -59,6 +59,40 @@ class AnonAccountHelpers {
     return account.id!;
   }
 
+  /// Resolve the account UUID from either a device key or ultimate key.
+  ///
+  /// Tries device key first, then ultimate key. Useful for endpoints
+  /// that should accept either (e.g., listDevices).
+  static Future<UuidValue> resolveAccountUuidByAnyKey(
+    Session session,
+    String publicKeyHex,
+    String operation,
+  ) async {
+    // Try device key first
+    final device = await AccountDevice.db.findFirstRow(
+      session,
+      where: (t) => t.deviceSigningPublicKeyHex.equals(publicKeyHex),
+    );
+    if (device != null) {
+      return device.anonAccountId;
+    }
+
+    // Try ultimate key
+    final account = await AnonAccount.db.findFirstRow(
+      session,
+      where: (t) => t.ultimateSigningPublicKeyHex.equals(publicKeyHex),
+    );
+    if (account != null) {
+      return account.id!;
+    }
+
+    throw AnonAccountExceptionFactory.createAuthenticationException(
+      code: AnonAccountErrorCodes.authAccountNotFound,
+      message: 'No account found for public key',
+      operation: operation,
+      details: {'publicKeyHex': publicKeyHex},
+    );
+  }
 
   // === VALIDATION HELPERS ===
 

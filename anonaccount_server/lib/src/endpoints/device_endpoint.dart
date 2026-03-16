@@ -37,7 +37,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
     required String label,
   }) async {
     try {
-      // Verify PoW + signature + rate limit (device key signs the challenge)
+      // Verify PoW + signature + rate limit (ultimate key authorizes device registration)
       final payload =
           '$challenge:${DeviceMethods.registerDevice}:$deviceSigningPublicKeyHex';
 
@@ -45,7 +45,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
         session,
         challenge,
         proofOfWork,
-        deviceSigningPublicKeyHex,
+        ultimateSigningPublicKeyHex,
         signature,
         payload,
       );

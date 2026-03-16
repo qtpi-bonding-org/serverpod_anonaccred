@@ -114,7 +114,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         '$challenge:listDevices:$publicKeyHex',
       );
 
-      final accountUuid = await AnonAccountHelpers.resolveAccountUuidByUltimateKey(
+      final accountUuid = await AnonAccountHelpers.resolveAccountUuidByAnyKey(
         session,
         publicKeyHex,
         'listDevices',

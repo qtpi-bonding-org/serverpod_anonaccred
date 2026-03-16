@@ -1,12 +1,15 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:test/test.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/auth_services_test_helper.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
 
 /// Test error handling and privacy logging integration
 void main() {
+  setUpAll(initializeTestAuthServices);
+
   withServerpod('Error Handling Integration Tests', (
     sessionBuilder,
     endpoints,
@@ -106,6 +109,8 @@ void main() {
           ultimateSigningPublicKeyHex: ultimatePubKey,
         );
 
+        // Payload must match what the endpoint constructs (device key in payload)
+        const emptyDeviceKey = '';
         final regChallenge =
             await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
@@ -113,7 +118,7 @@ void main() {
           difficulty: regChallenge.difficulty,
         );
         final regPayload =
-            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$emptyDeviceKey';
         final regSignature =
             SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
@@ -125,7 +130,7 @@ void main() {
             signature: regSignature,
             ultimateSigningPublicKeyHex:
                 testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: '',
+            deviceSigningPublicKeyHex: emptyDeviceKey,
             encryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
@@ -153,6 +158,8 @@ void main() {
           ultimateSigningPublicKeyHex: ultimatePubKey,
         );
 
+        // Payload must match what the endpoint constructs (device key in payload)
+        const invalidDeviceKey = 'invalid_format';
         final regChallenge =
             await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
@@ -160,7 +167,7 @@ void main() {
           difficulty: regChallenge.difficulty,
         );
         final regPayload =
-            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$invalidDeviceKey';
         final regSignature =
             SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
@@ -172,7 +179,7 @@ void main() {
             signature: regSignature,
             ultimateSigningPublicKeyHex:
                 testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: 'invalid_format',
+            deviceSigningPublicKeyHex: invalidDeviceKey,
             encryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
@@ -202,7 +209,7 @@ void main() {
 
         final (_, validDevicePubKey) = SigningTestHelper.generateKeypair();
 
-        // Register first time
+        // Register first time — payload must use device key (matches endpoint)
         final regChallenge1 =
             await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow1 = await PowTestHelper.mint(
@@ -210,7 +217,7 @@ void main() {
           difficulty: regChallenge1.difficulty,
         );
         final regPayload1 =
-            '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+            '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$validDevicePubKey';
         final regSignature1 =
             SigningTestHelper.signWith(regPayload1, ultimatePrivKey);
 
@@ -234,7 +241,7 @@ void main() {
           difficulty: regChallenge2.difficulty,
         );
         final regPayload2 =
-            '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+            '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$validDevicePubKey';
         final regSignature2 =
             SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
 

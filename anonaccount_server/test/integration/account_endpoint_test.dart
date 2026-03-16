@@ -2,12 +2,15 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
+import '../test_helpers/auth_services_test_helper.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
+  setUpAll(initializeTestAuthServices);
+
   withServerpod('AccountEndpoint Integration Tests', (
     sessionBuilder,
     endpoints,

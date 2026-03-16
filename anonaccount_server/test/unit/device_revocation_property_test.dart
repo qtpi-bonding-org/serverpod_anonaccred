@@ -3,6 +3,7 @@ import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:test/test.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/auth_services_test_helper.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
@@ -11,6 +12,8 @@ import '../test_helpers/test_account_helper.dart';
 /// **Validates: Requirements 3.5, 4.2**
 
 void main() {
+  setUpAll(initializeTestAuthServices);
+
   withServerpod('Device Revocation Property Tests', (
     sessionBuilder,
     endpoints,
@@ -42,7 +45,7 @@ void main() {
           difficulty: regChallenge.difficulty,
         );
         final regPayload =
-            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
         final regSignature =
             SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
@@ -98,7 +101,7 @@ void main() {
           difficulty: regChallenge2.difficulty,
         );
         final regPayload2 =
-            '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+            '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$devicePubKey2';
         final regSignature2 =
             SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
 

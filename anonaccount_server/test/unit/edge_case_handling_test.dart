@@ -2,11 +2,14 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:test/test.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/auth_services_test_helper.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
 
 void main() {
+  setUpAll(initializeTestAuthServices);
+
   withServerpod('Edge Case Handling Tests', (sessionBuilder, endpoints) {
     group('Device Registration Edge Cases', () {
       test('registerDevice - should reject empty public subkey', () async {
@@ -20,13 +23,14 @@ void main() {
           ultimatePublicKey: ultimatePubKey,
         );
 
-        // PoW for registerDevice (signed with ultimate key)
+        // Payload must match endpoint: uses deviceSigningPublicKeyHex (empty here)
+        const emptyDeviceKey = '';
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$emptyDeviceKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
         expect(
@@ -36,7 +40,7 @@ void main() {
             proofOfWork: regPow,
             signature: regSignature,
             ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: '', // Empty public subkey
+            deviceSigningPublicKeyHex: emptyDeviceKey,
             encryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
@@ -55,13 +59,14 @@ void main() {
           ultimatePublicKey: ultimatePubKey,
         );
 
-        // PoW for registerDevice (signed with ultimate key)
+        // Payload must match endpoint: uses deviceSigningPublicKeyHex (invalid here)
+        const invalidDeviceKey = 'invalid_key_format';
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$ultimatePubKey';
+        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$invalidDeviceKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
 
         expect(
@@ -71,7 +76,7 @@ void main() {
             proofOfWork: regPow,
             signature: regSignature,
             ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: 'invalid_key_format', // Invalid format
+            deviceSigningPublicKeyHex: invalidDeviceKey,
             encryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
