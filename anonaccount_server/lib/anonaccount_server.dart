@@ -9,10 +9,6 @@
 /// - Zero-PII architecture with encrypted data storage (never decrypted server-side)
 library;
 
-// Authentication handler for Serverpod integration
-export 'src/auth_handler.dart';
-// Token issuer callback for host-configured JWT/token issuance
-export 'src/token_issuer.dart';
 // Configuration system
 export 'src/config/header_config.dart';
 // Core cryptographic utilities
