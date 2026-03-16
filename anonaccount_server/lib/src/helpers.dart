@@ -29,7 +29,7 @@ class AnonAccountHelpers {
         details: {'deviceSigningPublicKeyHex': identifier},
       );
     }
-    return device.accountUuid;
+    return device.anonAccountId;
   }
 
 

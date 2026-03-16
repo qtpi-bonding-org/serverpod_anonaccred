@@ -104,7 +104,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
 
       // Create new device
       final device = AccountDevice(
-        accountUuid: account.accountUuid,
+        anonAccountId: account.id,
         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         label: label,
@@ -187,7 +187,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
       // Issue JWT via Serverpod's built-in token manager
       final authSuccess = await AuthServices.instance.tokenManager.issueToken(
         session,
-        authUserId: activeDevice.accountUuid,
+        authUserId: activeDevice.anonAccountId,
         method: 'anonaccount',
         scopes: {Scope('device:$devicePublicKeyHex')},
       );
@@ -200,7 +200,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
             'tokenExpiresAt': authSuccess.tokenExpiresAt!.toIso8601String(),
           if (authSuccess.refreshToken != null)
             'refreshToken': authSuccess.refreshToken!,
-          'authUserId': activeDevice.accountUuid.toString(),
+          'authUserId': activeDevice.anonAccountId.toString(),
           'authStrategy': authSuccess.authStrategy,
           'deviceSigningPublicKeyHex': devicePublicKeyHex,
         },

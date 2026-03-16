@@ -53,7 +53,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
       final device = await AccountDevice.db.findFirstRow(
         session,
         where: (t) =>
-            t.id.equals(deviceId) & t.accountUuid.equals(accountUuid),
+            t.id.equals(deviceId) & t.anonAccountId.equals(accountUuid),
       );
 
       final foundDevice = AnonAccountHelpers.requireDevice(
@@ -115,7 +115,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
 
       final devices = await AccountDevice.db.find(
         session,
-        where: (t) => t.accountUuid.equals(accountUuid),
+        where: (t) => t.anonAccountId.equals(accountUuid),
         orderBy: (t) => t.lastActive,
         orderDescending: true,
       );
@@ -183,7 +183,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
       }
 
       session.log(
-        'DeviceManagementEndpoint: Registering new device for account UUID: ${callerDevice.accountUuid}',
+        'DeviceManagementEndpoint: Registering new device for account UUID: ${callerDevice.anonAccountId}',
         level: LogLevel.info,
       );
 
@@ -219,7 +219,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
       }
 
       final newDevice = AccountDevice(
-        accountUuid: callerDevice.accountUuid,
+        anonAccountId: callerDevice.anonAccountId,
         deviceSigningPublicKeyHex: newDeviceSigningPublicKeyHex,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,

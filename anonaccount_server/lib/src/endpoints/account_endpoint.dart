@@ -97,7 +97,7 @@ class AccountEndpoint extends SignedPowEndpoint {
 
       final now = DateTime.now();
       final newAccount = AnonAccount(
-        accountUuid: authUser.id,
+        id: authUser.id,
         ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         ultimatePublicKey: ultimatePublicKey,
