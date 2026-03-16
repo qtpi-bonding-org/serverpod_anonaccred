@@ -1,10 +1,10 @@
 class: AccountEntitlement
 table: account_entitlement
 fields:
-  accountUuid: UuidValue
+  anonAccount: AnonAccount?, relation(onDelete=Cascade)
   entitlement: Entitlement?, relation
   balance: double # Current running total
 indexes:
   account_entitlement_idx:
-    fields: accountUuid, entitlementId
+    fields: anonAccountId, entitlementId
     unique: true

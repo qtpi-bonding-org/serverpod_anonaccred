@@ -1,14 +1,14 @@
 class: ConsumptionLog
 table: consumption_log
 fields:
-  accountUuid: UuidValue
+  anonAccount: AnonAccount?, relation(onDelete=Cascade)
   entitlementId: int, relation(parent=entitlement)
   amount: double # Always Positive: The quantity consumed
   reason: String # e.g. 'AI_IMAGE_GEN', 'PRO_DAY_DECAY'
   timestamp: DateTime, default=now
 indexes:
   account_idx:
-    fields: accountUuid
+    fields: anonAccountId
     unique: false
   entitlement_idx:
     fields: entitlementId
