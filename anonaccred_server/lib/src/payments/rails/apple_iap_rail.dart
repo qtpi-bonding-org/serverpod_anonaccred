@@ -182,7 +182,7 @@ class AppleIAPRail implements PaymentRailInterface {
   /// [session] - The database session
   /// [transactionId] - The Apple transaction ID
   /// [productId] - The product ID to validate
-  /// [accountId] - The account ID to deliver to
+  /// [accountUuid] - The account UUID to deliver to
   ///
   /// Returns [AppleTransactionValidationResult] with validation details.
   ///
@@ -191,7 +191,7 @@ class AppleIAPRail implements PaymentRailInterface {
     required Session session,
     required String transactionId,
     required String productId,
-    required int accountId,
+    required UuidValue accountUuid,
     String?
     internalTransactionId, // Optional internal reference if provided by client
   }) async {
@@ -299,7 +299,7 @@ class AppleIAPRail implements PaymentRailInterface {
       await EphemeralAccreditation.db.insertRow(
         session,
         EphemeralAccreditation(
-          accountId: accountId,
+          accountUuid: accountUuid,
           transactionTimestamp: purchaseDate,
         ),
         transaction: dbTransaction,
@@ -336,7 +336,7 @@ class AppleIAPRail implements PaymentRailInterface {
       for (final grant in grants) {
         await EntitlementManager.grantEntitlementById(
           session,
-          accountId: accountId,
+          accountUuid: accountUuid,
           entitlementId: grant.entitlementId,
           quantity: grant.quantity,
           transaction: dbTransaction,

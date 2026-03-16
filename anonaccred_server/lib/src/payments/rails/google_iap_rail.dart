@@ -147,7 +147,7 @@ class GoogleIAPRail implements PaymentRailInterface {
         );
       }
 
-      // Note: Full purchase validation with delivery tracking requires session and accountId
+      // Note: Full purchase validation with delivery tracking requires session and accountUuid
       // This is handled by the validatePurchase() method which is GoogleIAPRail-specific
       // For processCallback, we just validate the purchase exists and is in valid state
       final purchase = await _publisherClient.getPurchase(
@@ -223,7 +223,7 @@ class GoogleIAPRail implements PaymentRailInterface {
   /// - [packageName]: Android app package name
   /// - [productId]: In-app product ID (SKU)
   /// - [purchaseToken]: Purchase token from Android app
-  /// - [accountId]: Account to deliver consumables to
+  /// - [accountUuid]: Account UUID to deliver consumables to
   ///
   /// Returns: [GooglePurchaseValidationResult] with validation status and delivery details
   ///
@@ -233,7 +233,7 @@ class GoogleIAPRail implements PaymentRailInterface {
     required String packageName,
     required String productId,
     required String purchaseToken,
-    required int accountId,
+    required UuidValue accountUuid,
     String? internalTransactionId,
   }) async {
     try {
@@ -309,7 +309,7 @@ class GoogleIAPRail implements PaymentRailInterface {
         await EphemeralAccreditation.db.insertRow(
           session,
           EphemeralAccreditation(
-            accountId: accountId,
+            accountUuid: accountUuid,
             transactionTimestamp: purchaseTime,
           ),
           transaction: dbTransaction,
@@ -346,7 +346,7 @@ class GoogleIAPRail implements PaymentRailInterface {
         for (final grant in grants) {
           await EntitlementManager.grantEntitlementById(
             session,
-            accountId: accountId,
+            accountUuid: accountUuid,
             entitlementId: grant.entitlementId,
             quantity: grant.quantity,
             transaction: dbTransaction,
