@@ -7,11 +7,11 @@ indexes:
     fields: deviceSigningPublicKeyHex, isRevoked
     unique: false
   account_devices_idx:
-    fields: accountUuid
+    fields: anonAccountId
     unique: false
 fields:
-  # Account UUID linking this device to its parent account
-  accountUuid: UuidValue
+  # FK to AnonAccount — Serverpod auto-generates anonAccountId: UuidValue
+  anonAccount: AnonAccount?, relation(onDelete=Cascade)
 
   # Device ECDSA P-256 signing public key (128 hex chars, x||y coordinates)
   # Used for device authentication - matches Flutter client naming
