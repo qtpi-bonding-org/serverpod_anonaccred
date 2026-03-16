@@ -11,11 +11,14 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'account.dart' as _i2;
+import 'package:anonaccount_client/src/protocol/protocol.dart' as _i3;
 
 abstract class AccountDevice implements _i1.SerializableModel {
   AccountDevice._({
     this.id,
-    required this.accountUuid,
+    required this.anonAccountId,
+    this.anonAccount,
     required this.deviceSigningPublicKeyHex,
     required this.encryptedDataKey,
     required this.label,
@@ -26,7 +29,8 @@ abstract class AccountDevice implements _i1.SerializableModel {
 
   factory AccountDevice({
     int? id,
-    required _i1.UuidValue accountUuid,
+    required _i1.UuidValue anonAccountId,
+    _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
@@ -37,9 +41,14 @@ abstract class AccountDevice implements _i1.SerializableModel {
   factory AccountDevice.fromJson(Map<String, dynamic> jsonSerialization) {
     return AccountDevice(
       id: jsonSerialization['id'] as int?,
-      accountUuid: _i1.UuidValueJsonExtension.fromJson(
-        jsonSerialization['accountUuid'],
+      anonAccountId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['anonAccountId'],
       ),
+      anonAccount: jsonSerialization['anonAccount'] == null
+          ? null
+          : _i3.Protocol().deserialize<_i2.AnonAccount>(
+              jsonSerialization['anonAccount'],
+            ),
       deviceSigningPublicKeyHex:
           jsonSerialization['deviceSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
@@ -58,7 +67,9 @@ abstract class AccountDevice implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  _i1.UuidValue accountUuid;
+  _i1.UuidValue anonAccountId;
+
+  _i2.AnonAccount? anonAccount;
 
   String deviceSigningPublicKeyHex;
 
@@ -75,7 +86,8 @@ abstract class AccountDevice implements _i1.SerializableModel {
   @_i1.useResult
   AccountDevice copyWith({
     int? id,
-    _i1.UuidValue? accountUuid,
+    _i1.UuidValue? anonAccountId,
+    _i2.AnonAccount? anonAccount,
     String? deviceSigningPublicKeyHex,
     String? encryptedDataKey,
     String? label,
@@ -87,7 +99,8 @@ abstract class AccountDevice implements _i1.SerializableModel {
     return {
       '__className__': 'anonaccount.AccountDevice',
       if (id != null) 'id': id,
-      'accountUuid': accountUuid.toJson(),
+      'anonAccountId': anonAccountId.toJson(),
+      if (anonAccount != null) 'anonAccount': anonAccount?.toJson(),
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
@@ -107,7 +120,8 @@ class _Undefined {}
 class _AccountDeviceImpl extends AccountDevice {
   _AccountDeviceImpl({
     int? id,
-    required _i1.UuidValue accountUuid,
+    required _i1.UuidValue anonAccountId,
+    _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
@@ -115,7 +129,8 @@ class _AccountDeviceImpl extends AccountDevice {
     bool? isRevoked,
   }) : super._(
          id: id,
-         accountUuid: accountUuid,
+         anonAccountId: anonAccountId,
+         anonAccount: anonAccount,
          deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          label: label,
@@ -129,7 +144,8 @@ class _AccountDeviceImpl extends AccountDevice {
   @override
   AccountDevice copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? accountUuid,
+    _i1.UuidValue? anonAccountId,
+    Object? anonAccount = _Undefined,
     String? deviceSigningPublicKeyHex,
     String? encryptedDataKey,
     String? label,
@@ -138,7 +154,10 @@ class _AccountDeviceImpl extends AccountDevice {
   }) {
     return AccountDevice(
       id: id is int? ? id : this.id,
-      accountUuid: accountUuid ?? this.accountUuid,
+      anonAccountId: anonAccountId ?? this.anonAccountId,
+      anonAccount: anonAccount is _i2.AnonAccount?
+          ? anonAccount
+          : this.anonAccount?.copyWith(),
       deviceSigningPublicKeyHex:
           deviceSigningPublicKeyHex ?? this.deviceSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,

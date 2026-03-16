@@ -167,8 +167,7 @@ void main() {
     group('requireAccount', () {
       test('should return account when not null', () {
         final account = AnonAccount(
-          id: 1,
-          accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+          id: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           ultimateSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           ultimatePublicKey: 'b' * 128,
@@ -189,8 +188,7 @@ void main() {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
           final account = AnonAccount(
-            id: random.nextInt(1000) + 1,
-            accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+            id: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             ultimateSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             ultimatePublicKey: _generateFakePublicKeyString(random),
@@ -208,7 +206,7 @@ void main() {
       test('should return device when not null', () {
         final device = AccountDevice(
           id: 1,
-          accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+          anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
@@ -230,7 +228,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
-            accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+            anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
@@ -248,7 +246,7 @@ void main() {
       test('should return device when not null and not revoked', () {
         final device = AccountDevice(
           id: 1,
-          accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+          anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
@@ -269,7 +267,7 @@ void main() {
       test('should throw when device is revoked', () {
         final device = AccountDevice(
           id: 1,
-          accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+          anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
           label: 'test device',
@@ -287,7 +285,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
-            accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+            anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
@@ -306,7 +304,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
             id: random.nextInt(1000) + 1,
-            accountUuid: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+            anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',

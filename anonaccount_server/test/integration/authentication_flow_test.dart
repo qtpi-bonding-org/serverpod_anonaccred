@@ -73,7 +73,7 @@ void main() {
         );
 
         expect(foundDevice, isNotNull);
-        expect(foundDevice!.accountUuid, equals(account.accountUuid));
+        expect(foundDevice!.anonAccountId, equals(account.id));
         expect(foundDevice.id, equals(device.id));
       });
 
@@ -339,7 +339,7 @@ void main() {
           );
 
           expect(foundDevice, isNotNull);
-          expect(foundDevice!.accountUuid, equals(account.accountUuid));
+          expect(foundDevice!.anonAccountId, equals(account.id));
           expect(foundDevice.id, equals(device.id));
         }
       });

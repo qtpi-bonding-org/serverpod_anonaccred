@@ -66,7 +66,7 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'nextval(\'account_device_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
-          name: 'accountUuid',
+          name: 'anonAccountId',
           columnType: _i2.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
@@ -104,7 +104,18 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'false',
         ),
       ],
-      foreignKeys: [],
+      foreignKeys: [
+        _i2.ForeignKeyDefinition(
+          constraintName: 'account_device_fk_0',
+          columns: ['anonAccountId'],
+          referenceTable: 'anon_account',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
       indexes: [
         _i2.IndexDefinition(
           indexName: 'account_device_pkey',
@@ -142,7 +153,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountUuid',
+              definition: 'anonAccountId',
             ),
           ],
           type: 'btree',
@@ -160,16 +171,10 @@ class Protocol extends _i1.SerializationManagerServer {
       columns: [
         _i2.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int?',
-          columnDefault: 'nextval(\'anon_account_id_seq\'::regclass)',
-        ),
-        _i2.ColumnDefinition(
-          name: 'accountUuid',
           columnType: _i2.ColumnType.uuid,
           isNullable: false,
-          dartType: 'UuidValue',
+          dartType: 'UuidValue?',
+          columnDefault: 'gen_random_uuid()',
         ),
         _i2.ColumnDefinition(
           name: 'ultimateSigningPublicKeyHex',
@@ -219,19 +224,6 @@ class Protocol extends _i1.SerializationManagerServer {
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'ultimatePublicKey',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: false,
-        ),
-        _i2.IndexDefinition(
-          indexName: 'account_uuid_idx',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountUuid',
             ),
           ],
           type: 'btree',

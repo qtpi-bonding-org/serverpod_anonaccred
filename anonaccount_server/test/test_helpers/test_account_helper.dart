@@ -20,7 +20,7 @@ Future<AnonAccount> createTestAccount(
   );
   try {
     final account = AnonAccount(
-      accountUuid: UuidValue.fromString(const Uuid().v4()),
+      id: UuidValue.fromString(const Uuid().v4()),
       ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey,
       ultimatePublicKey: ultimatePublicKey ?? ultimateSigningPublicKeyHex,

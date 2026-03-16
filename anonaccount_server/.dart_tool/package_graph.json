@@ -491,6 +491,45 @@
       ]
     },
     {
+      "name": "googleapis_auth",
+      "version": "2.0.0",
+      "dependencies": [
+        "args",
+        "crypto",
+        "google_identity_services_web",
+        "http",
+        "http_parser"
+      ]
+    },
+    {
+      "name": "googleapis",
+      "version": "16.0.0",
+      "dependencies": [
+        "_discoveryapis_commons",
+        "http"
+      ]
+    },
+    {
+      "name": "email_validator",
+      "version": "3.0.0",
+      "dependencies": []
+    },
+    {
+      "name": "dart_jsonwebtoken",
+      "version": "3.3.2",
+      "dependencies": [
+        "clock",
+        "convert",
+        "ed25519_edwards",
+        "pointycastle"
+      ]
+    },
+    {
+      "name": "clock",
+      "version": "1.1.2",
+      "dependencies": []
+    },
+    {
       "name": "web_socket",
       "version": "1.0.1",
       "dependencies": [
@@ -592,16 +631,6 @@
       "dependencies": []
     },
     {
-      "name": "http_parser",
-      "version": "4.1.2",
-      "dependencies": [
-        "collection",
-        "source_span",
-        "string_scanner",
-        "typed_data"
-      ]
-    },
-    {
       "name": "string_scanner",
       "version": "1.4.1",
       "dependencies": [
@@ -664,6 +693,16 @@
       "dependencies": []
     },
     {
+      "name": "http_parser",
+      "version": "4.1.2",
+      "dependencies": [
+        "collection",
+        "source_span",
+        "string_scanner",
+        "typed_data"
+      ]
+    },
+    {
       "name": "cli_config",
       "version": "0.2.0",
       "dependencies": [
@@ -707,9 +746,57 @@
       "dependencies": []
     },
     {
+      "name": "image",
+      "version": "4.8.0",
+      "dependencies": [
+        "archive",
+        "meta",
+        "xml"
+      ]
+    },
+    {
+      "name": "cbor",
+      "version": "6.5.1",
+      "dependencies": [
+        "characters",
+        "collection",
+        "convert",
+        "hex",
+        "meta",
+        "typed_data"
+      ]
+    },
+    {
       "name": "asn1lib",
       "version": "1.6.5",
       "dependencies": []
+    },
+    {
+      "name": "google_identity_services_web",
+      "version": "0.3.3+1",
+      "dependencies": [
+        "meta",
+        "web"
+      ]
+    },
+    {
+      "name": "_discoveryapis_commons",
+      "version": "1.0.7",
+      "dependencies": [
+        "http",
+        "http_parser",
+        "meta"
+      ]
+    },
+    {
+      "name": "ed25519_edwards",
+      "version": "0.3.1",
+      "dependencies": [
+        "adaptive_number",
+        "collection",
+        "convert",
+        "crypto"
+      ]
     },
     {
       "name": "fixnum",
@@ -767,102 +854,12 @@
       ]
     },
     {
-      "name": "email_validator",
-      "version": "3.0.0",
-      "dependencies": []
-    },
-    {
-      "name": "clock",
-      "version": "1.1.2",
-      "dependencies": []
-    },
-    {
-      "name": "googleapis_auth",
-      "version": "2.0.0",
+      "name": "xml",
+      "version": "6.6.1",
       "dependencies": [
-        "args",
-        "crypto",
-        "google_identity_services_web",
-        "http",
-        "http_parser"
-      ]
-    },
-    {
-      "name": "google_identity_services_web",
-      "version": "0.3.3+1",
-      "dependencies": [
-        "meta",
-        "web"
-      ]
-    },
-    {
-      "name": "dart_jsonwebtoken",
-      "version": "3.3.2",
-      "dependencies": [
-        "clock",
-        "convert",
-        "ed25519_edwards",
-        "pointycastle"
-      ]
-    },
-    {
-      "name": "ed25519_edwards",
-      "version": "0.3.1",
-      "dependencies": [
-        "adaptive_number",
         "collection",
-        "convert",
-        "crypto"
-      ]
-    },
-    {
-      "name": "adaptive_number",
-      "version": "1.0.0",
-      "dependencies": [
-        "fixnum"
-      ]
-    },
-    {
-      "name": "cbor",
-      "version": "6.5.1",
-      "dependencies": [
-        "characters",
-        "collection",
-        "convert",
-        "hex",
         "meta",
-        "typed_data"
-      ]
-    },
-    {
-      "name": "hex",
-      "version": "0.2.0",
-      "dependencies": []
-    },
-    {
-      "name": "googleapis",
-      "version": "16.0.0",
-      "dependencies": [
-        "_discoveryapis_commons",
-        "http"
-      ]
-    },
-    {
-      "name": "_discoveryapis_commons",
-      "version": "1.0.7",
-      "dependencies": [
-        "http",
-        "http_parser",
-        "meta"
-      ]
-    },
-    {
-      "name": "image",
-      "version": "4.8.0",
-      "dependencies": [
-        "archive",
-        "meta",
-        "xml"
+        "petitparser"
       ]
     },
     {
@@ -874,21 +871,15 @@
       ]
     },
     {
-      "name": "posix",
-      "version": "6.5.0",
-      "dependencies": [
-        "ffi",
-        "meta",
-        "path"
-      ]
+      "name": "hex",
+      "version": "0.2.0",
+      "dependencies": []
     },
     {
-      "name": "xml",
-      "version": "6.6.1",
+      "name": "adaptive_number",
+      "version": "1.0.0",
       "dependencies": [
-        "collection",
-        "meta",
-        "petitparser"
+        "fixnum"
       ]
     },
     {
@@ -897,6 +888,15 @@
       "dependencies": [
         "collection",
         "meta"
+      ]
+    },
+    {
+      "name": "posix",
+      "version": "6.5.0",
+      "dependencies": [
+        "ffi",
+        "meta",
+        "path"
       ]
     }
   ],

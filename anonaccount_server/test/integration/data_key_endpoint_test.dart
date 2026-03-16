@@ -11,7 +11,7 @@ import 'test_tools/serverpod_test_tools.dart';
 /// Helper: insert AccountDevice directly (bypasses PoW).
 Future<AccountDevice> createTestDevice(
   TestSessionBuilder sessionBuilder, {
-  required UuidValue accountUuid,
+  required UuidValue anonAccountId,
   required String deviceSigningPublicKeyHex,
   String encryptedDataKey = 'test-device-encrypted-data-key',
   String label = 'Test Device',
@@ -24,7 +24,7 @@ Future<AccountDevice> createTestDevice(
   );
   try {
     final device = AccountDevice(
-      accountUuid: accountUuid,
+      anonAccountId: anonAccountId,
       deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey,
       label: label,
@@ -56,7 +56,7 @@ void main() {
         const expectedKey = 'device-encrypted-key-abc';
         await createTestDevice(
           sessionBuilder,
-          accountUuid: account.accountUuid,
+          anonAccountId: account.id!,
           deviceSigningPublicKeyHex: devicePubKey,
           encryptedDataKey: expectedKey,
         );
@@ -94,7 +94,7 @@ void main() {
             SigningTestHelper.generateKeypair();
         await createTestDevice(
           sessionBuilder,
-          accountUuid: account.accountUuid,
+          anonAccountId: account.id!,
           deviceSigningPublicKeyHex: devicePubKey,
           isRevoked: true,
         );

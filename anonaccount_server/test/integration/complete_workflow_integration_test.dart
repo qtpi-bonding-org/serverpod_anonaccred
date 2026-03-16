@@ -96,7 +96,7 @@ void main() {
         );
 
         expect(device.id, isNotNull);
-        expect(device.accountUuid, equals(account.accountUuid));
+        expect(device.anonAccountId, equals(account.id));
         expect(device.deviceSigningPublicKeyHex, equals(devicePubKey));
         expect(device.isRevoked, isFalse);
 

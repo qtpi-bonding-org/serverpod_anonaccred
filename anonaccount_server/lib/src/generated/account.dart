@@ -13,10 +13,9 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class AnonAccount
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   AnonAccount._({
     this.id,
-    required this.accountUuid,
     required this.ultimateSigningPublicKeyHex,
     required this.encryptedDataKey,
     required this.ultimatePublicKey,
@@ -24,8 +23,7 @@ abstract class AnonAccount
   }) : createdAt = createdAt ?? DateTime.now();
 
   factory AnonAccount({
-    int? id,
-    required _i1.UuidValue accountUuid,
+    _i1.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
@@ -34,10 +32,9 @@ abstract class AnonAccount
 
   factory AnonAccount.fromJson(Map<String, dynamic> jsonSerialization) {
     return AnonAccount(
-      id: jsonSerialization['id'] as int?,
-      accountUuid: _i1.UuidValueJsonExtension.fromJson(
-        jsonSerialization['accountUuid'],
-      ),
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       ultimateSigningPublicKeyHex:
           jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
@@ -53,9 +50,7 @@ abstract class AnonAccount
   static const db = AnonAccountRepository._();
 
   @override
-  int? id;
-
-  _i1.UuidValue accountUuid;
+  _i1.UuidValue? id;
 
   String ultimateSigningPublicKeyHex;
 
@@ -66,14 +61,13 @@ abstract class AnonAccount
   DateTime createdAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [AnonAccount]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   AnonAccount copyWith({
-    int? id,
-    _i1.UuidValue? accountUuid,
+    _i1.UuidValue? id,
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimatePublicKey,
@@ -83,8 +77,7 @@ abstract class AnonAccount
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'anonaccount.AnonAccount',
-      if (id != null) 'id': id,
-      'accountUuid': accountUuid.toJson(),
+      if (id != null) 'id': id?.toJson(),
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
@@ -96,8 +89,7 @@ abstract class AnonAccount
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'anonaccount.AnonAccount',
-      if (id != null) 'id': id,
-      'accountUuid': accountUuid.toJson(),
+      if (id != null) 'id': id?.toJson(),
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
@@ -139,15 +131,13 @@ class _Undefined {}
 
 class _AnonAccountImpl extends AnonAccount {
   _AnonAccountImpl({
-    int? id,
-    required _i1.UuidValue accountUuid,
+    _i1.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
     DateTime? createdAt,
   }) : super._(
          id: id,
-         accountUuid: accountUuid,
          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          ultimatePublicKey: ultimatePublicKey,
@@ -160,15 +150,13 @@ class _AnonAccountImpl extends AnonAccount {
   @override
   AnonAccount copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? accountUuid,
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimatePublicKey,
     DateTime? createdAt,
   }) {
     return AnonAccount(
-      id: id is int? ? id : this.id,
-      accountUuid: accountUuid ?? this.accountUuid,
+      id: id is _i1.UuidValue? ? id : this.id,
       ultimateSigningPublicKeyHex:
           ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
@@ -180,13 +168,6 @@ class _AnonAccountImpl extends AnonAccount {
 
 class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
   AnonAccountUpdateTable(super.table);
-
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> accountUuid(
-    _i1.UuidValue value,
-  ) => _i1.ColumnValue(
-    table.accountUuid,
-    value,
-  );
 
   _i1.ColumnValue<String, String> ultimateSigningPublicKeyHex(String value) =>
       _i1.ColumnValue(
@@ -213,13 +194,9 @@ class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
       );
 }
 
-class AnonAccountTable extends _i1.Table<int?> {
+class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
   AnonAccountTable({super.tableRelation}) : super(tableName: 'anon_account') {
     updateTable = AnonAccountUpdateTable(this);
-    accountUuid = _i1.ColumnUuid(
-      'accountUuid',
-      this,
-    );
     ultimateSigningPublicKeyHex = _i1.ColumnString(
       'ultimateSigningPublicKeyHex',
       this,
@@ -241,8 +218,6 @@ class AnonAccountTable extends _i1.Table<int?> {
 
   late final AnonAccountUpdateTable updateTable;
 
-  late final _i1.ColumnUuid accountUuid;
-
   late final _i1.ColumnString ultimateSigningPublicKeyHex;
 
   late final _i1.ColumnString encryptedDataKey;
@@ -254,7 +229,6 @@ class AnonAccountTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    accountUuid,
     ultimateSigningPublicKeyHex,
     encryptedDataKey,
     ultimatePublicKey,
@@ -269,7 +243,7 @@ class AnonAccountInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => AnonAccount.t;
+  _i1.Table<_i1.UuidValue?> get table => AnonAccount.t;
 }
 
 class AnonAccountIncludeList extends _i1.IncludeList {
@@ -289,7 +263,7 @@ class AnonAccountIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => AnonAccount.t;
+  _i1.Table<_i1.UuidValue?> get table => AnonAccount.t;
 }
 
 class AnonAccountRepository {
@@ -385,7 +359,7 @@ class AnonAccountRepository {
   /// Finds a single [AnonAccount] by its [id] or null if no such row exists.
   Future<AnonAccount?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
     _i1.LockMode? lockMode,
     _i1.LockBehavior? lockBehavior,
@@ -473,7 +447,7 @@ class AnonAccountRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<AnonAccount?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<AnonAccountUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

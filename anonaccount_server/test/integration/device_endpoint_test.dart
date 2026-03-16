@@ -48,7 +48,7 @@ void main() {
         );
 
         expect(device.id, isNotNull);
-        expect(device.accountUuid, equals(testAccount.accountUuid));
+        expect(device.anonAccountId, equals(testAccount.id));
         expect(
           device.deviceSigningPublicKeyHex,
           equals(devicePubKey),

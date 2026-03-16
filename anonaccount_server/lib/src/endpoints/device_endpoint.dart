@@ -104,7 +104,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
 
       // Create new device
       final device = AccountDevice(
-        anonAccountId: account.id,
+        anonAccountId: account.id!,
         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         label: label,

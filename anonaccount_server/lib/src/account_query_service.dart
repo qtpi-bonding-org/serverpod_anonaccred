@@ -13,13 +13,13 @@ class AccountQueryService {
   /// Throws [AuthenticationException] if not found.
   static Future<AnonAccount> getAccountById(
     Session session,
-    int accountId,
+    UuidValue accountId,
   ) async {
     try {
       final account = await AnonAccount.db.findById(session, accountId);
       return AnonAccountHelpers.requireAccount(
         account,
-        accountId,
+        accountId.toString(),
         'getAccountById',
       );
     } on AuthenticationException {
