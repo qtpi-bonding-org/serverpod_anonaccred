@@ -60,7 +60,7 @@ class EndpointCommerce extends _i1.EndpointJwt {
 ///
 /// Implements a "Reactive & Anonymous" fulfillment flow.
 /// 1. Identity-Linked Inventory: Adds coins directly to the account balance.
-/// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountId.
+/// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountUuid.
 /// 3. The Bridge: EphemeralAuditLog links the two for 7 days, then breaks.
 /// {@category Endpoint}
 class EndpointIAP extends _i1.EndpointJwt {

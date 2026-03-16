@@ -34,6 +34,10 @@ import 'transaction_payment.dart' as _i21;
 import 'package:anonaccred_client/src/protocol/account_entitlement.dart'
     as _i22;
 import 'package:anonaccount_client/anonaccount_client.dart' as _i23;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i24;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i25;
 export 'account_entitlement.dart';
 export 'api_response.dart';
 export 'consume_result.dart';
@@ -225,6 +229,12 @@ class Protocol extends _i1.SerializationManager {
     try {
       return _i23.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i24.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i25.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
 
@@ -309,6 +319,14 @@ class Protocol extends _i1.SerializationManager {
     if (className != null) {
       return 'anonaccount.$className';
     }
+    className = _i24.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return 'serverpod_auth_idp.$className';
+    }
+    className = _i25.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return 'serverpod_auth_core.$className';
+    }
     return null;
   }
 
@@ -382,6 +400,14 @@ class Protocol extends _i1.SerializationManager {
       data['className'] = dataClassName.substring(12);
       return _i23.Protocol().deserializeByClassName(data);
     }
+    if (dataClassName.startsWith('serverpod_auth_idp.')) {
+      data['className'] = dataClassName.substring(19);
+      return _i24.Protocol().deserializeByClassName(data);
+    }
+    if (dataClassName.startsWith('serverpod_auth_core.')) {
+      data['className'] = dataClassName.substring(20);
+      return _i25.Protocol().deserializeByClassName(data);
+    }
     return super.deserializeByClassName(data);
   }
 
@@ -396,6 +422,12 @@ class Protocol extends _i1.SerializationManager {
     }
     try {
       return _i23.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i24.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i25.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

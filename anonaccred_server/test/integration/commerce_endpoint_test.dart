@@ -3,6 +3,7 @@ import 'package:anonaccred_server/src/entitlement_manager.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 
@@ -25,6 +26,7 @@ void main() {
         where: (t) => t.ultimatePublicKey.equals(validPublicKey),
       );
       account ??= await AnonAccount.db.insertRow(session, AnonAccount(
+        accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
         ultimateSigningPublicKeyHex: validPublicKey,
         encryptedDataKey: 'encrypted_data_key_for_commerce_test',
         ultimatePublicKey: validPublicKey,

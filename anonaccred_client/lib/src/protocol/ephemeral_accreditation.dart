@@ -15,13 +15,13 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class EphemeralAccreditation implements _i1.SerializableModel {
   EphemeralAccreditation._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.transactionTimestamp,
   });
 
   factory EphemeralAccreditation({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required DateTime transactionTimestamp,
   }) = _EphemeralAccreditationImpl;
 
@@ -30,7 +30,9 @@ abstract class EphemeralAccreditation implements _i1.SerializableModel {
   ) {
     return EphemeralAccreditation(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['accountUuid'],
+      ),
       transactionTimestamp: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['transactionTimestamp'],
       ),
@@ -42,7 +44,7 @@ abstract class EphemeralAccreditation implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  int accountId;
+  _i1.UuidValue accountUuid;
 
   DateTime transactionTimestamp;
 
@@ -51,7 +53,7 @@ abstract class EphemeralAccreditation implements _i1.SerializableModel {
   @_i1.useResult
   EphemeralAccreditation copyWith({
     int? id,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     DateTime? transactionTimestamp,
   });
   @override
@@ -59,7 +61,7 @@ abstract class EphemeralAccreditation implements _i1.SerializableModel {
     return {
       '__className__': 'anonaccred.EphemeralAccreditation',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'transactionTimestamp': transactionTimestamp.toJson(),
     };
   }
@@ -75,11 +77,11 @@ class _Undefined {}
 class _EphemeralAccreditationImpl extends EphemeralAccreditation {
   _EphemeralAccreditationImpl({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required DateTime transactionTimestamp,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          transactionTimestamp: transactionTimestamp,
        );
 
@@ -89,12 +91,12 @@ class _EphemeralAccreditationImpl extends EphemeralAccreditation {
   @override
   EphemeralAccreditation copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     DateTime? transactionTimestamp,
   }) {
     return EphemeralAccreditation(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       transactionTimestamp: transactionTimestamp ?? this.transactionTimestamp,
     );
   }

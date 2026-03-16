@@ -9,7 +9,8 @@
       "dependencies": [
         "crypto",
         "pointycastle",
-        "serverpod"
+        "serverpod",
+        "serverpod_auth_idp_server"
       ],
       "devDependencies": [
         "lints",
@@ -88,6 +89,25 @@
       "dependencies": [
         "collection",
         "convert"
+      ]
+    },
+    {
+      "name": "serverpod_auth_idp_server",
+      "version": "3.4.1",
+      "dependencies": [
+        "clock",
+        "dart_jsonwebtoken",
+        "email_validator",
+        "googleapis",
+        "googleapis_auth",
+        "http",
+        "meta",
+        "passkeys_server",
+        "pointycastle",
+        "serverpod",
+        "serverpod_auth_core_server",
+        "serverpod_shared",
+        "sign_in_with_apple_server"
       ]
     },
     {
@@ -413,6 +433,64 @@
       ]
     },
     {
+      "name": "sign_in_with_apple_server",
+      "version": "1.0.0",
+      "dependencies": [
+        "dart_jsonwebtoken",
+        "http",
+        "meta"
+      ]
+    },
+    {
+      "name": "serverpod_shared",
+      "version": "3.4.1",
+      "dependencies": [
+        "crypto",
+        "meta",
+        "path",
+        "super_string",
+        "yaml"
+      ]
+    },
+    {
+      "name": "serverpod_auth_core_server",
+      "version": "3.4.1",
+      "dependencies": [
+        "clock",
+        "crypto",
+        "dart_jsonwebtoken",
+        "http",
+        "image",
+        "meta",
+        "pointycastle",
+        "serverpod",
+        "serverpod_shared",
+        "uuid"
+      ]
+    },
+    {
+      "name": "passkeys_server",
+      "version": "1.0.0",
+      "dependencies": [
+        "asn1lib",
+        "cbor",
+        "crypto",
+        "dart_jsonwebtoken",
+        "pointycastle",
+        "uuid"
+      ]
+    },
+    {
+      "name": "http",
+      "version": "1.6.0",
+      "dependencies": [
+        "async",
+        "http_parser",
+        "meta",
+        "web"
+      ]
+    },
+    {
       "name": "web_socket",
       "version": "1.0.1",
       "dependencies": [
@@ -437,17 +515,6 @@
       "version": "2.2.2",
       "dependencies": [
         "ffi"
-      ]
-    },
-    {
-      "name": "serverpod_shared",
-      "version": "3.4.1",
-      "dependencies": [
-        "crypto",
-        "meta",
-        "path",
-        "super_string",
-        "yaml"
       ]
     },
     {
@@ -498,16 +565,6 @@
       "dependencies": []
     },
     {
-      "name": "http",
-      "version": "1.6.0",
-      "dependencies": [
-        "async",
-        "http_parser",
-        "meta",
-        "web"
-      ]
-    },
-    {
       "name": "args",
       "version": "2.7.0",
       "dependencies": []
@@ -533,6 +590,16 @@
       "name": "characters",
       "version": "1.4.0",
       "dependencies": []
+    },
+    {
+      "name": "http_parser",
+      "version": "4.1.2",
+      "dependencies": [
+        "collection",
+        "source_span",
+        "string_scanner",
+        "typed_data"
+      ]
     },
     {
       "name": "string_scanner",
@@ -597,16 +664,6 @@
       "dependencies": []
     },
     {
-      "name": "http_parser",
-      "version": "4.1.2",
-      "dependencies": [
-        "collection",
-        "source_span",
-        "string_scanner",
-        "typed_data"
-      ]
-    },
-    {
       "name": "cli_config",
       "version": "0.2.0",
       "dependencies": [
@@ -645,13 +702,18 @@
       ]
     },
     {
-      "name": "fixnum",
-      "version": "1.1.1",
+      "name": "super_string",
+      "version": "1.0.3",
       "dependencies": []
     },
     {
-      "name": "super_string",
-      "version": "1.0.3",
+      "name": "asn1lib",
+      "version": "1.6.5",
+      "dependencies": []
+    },
+    {
+      "name": "fixnum",
+      "version": "1.1.1",
       "dependencies": []
     },
     {
@@ -702,6 +764,139 @@
       "dependencies": [
         "meta",
         "path"
+      ]
+    },
+    {
+      "name": "email_validator",
+      "version": "3.0.0",
+      "dependencies": []
+    },
+    {
+      "name": "clock",
+      "version": "1.1.2",
+      "dependencies": []
+    },
+    {
+      "name": "googleapis_auth",
+      "version": "2.0.0",
+      "dependencies": [
+        "args",
+        "crypto",
+        "google_identity_services_web",
+        "http",
+        "http_parser"
+      ]
+    },
+    {
+      "name": "google_identity_services_web",
+      "version": "0.3.3+1",
+      "dependencies": [
+        "meta",
+        "web"
+      ]
+    },
+    {
+      "name": "dart_jsonwebtoken",
+      "version": "3.3.2",
+      "dependencies": [
+        "clock",
+        "convert",
+        "ed25519_edwards",
+        "pointycastle"
+      ]
+    },
+    {
+      "name": "ed25519_edwards",
+      "version": "0.3.1",
+      "dependencies": [
+        "adaptive_number",
+        "collection",
+        "convert",
+        "crypto"
+      ]
+    },
+    {
+      "name": "adaptive_number",
+      "version": "1.0.0",
+      "dependencies": [
+        "fixnum"
+      ]
+    },
+    {
+      "name": "cbor",
+      "version": "6.5.1",
+      "dependencies": [
+        "characters",
+        "collection",
+        "convert",
+        "hex",
+        "meta",
+        "typed_data"
+      ]
+    },
+    {
+      "name": "hex",
+      "version": "0.2.0",
+      "dependencies": []
+    },
+    {
+      "name": "googleapis",
+      "version": "16.0.0",
+      "dependencies": [
+        "_discoveryapis_commons",
+        "http"
+      ]
+    },
+    {
+      "name": "_discoveryapis_commons",
+      "version": "1.0.7",
+      "dependencies": [
+        "http",
+        "http_parser",
+        "meta"
+      ]
+    },
+    {
+      "name": "image",
+      "version": "4.8.0",
+      "dependencies": [
+        "archive",
+        "meta",
+        "xml"
+      ]
+    },
+    {
+      "name": "archive",
+      "version": "4.0.9",
+      "dependencies": [
+        "path",
+        "posix"
+      ]
+    },
+    {
+      "name": "posix",
+      "version": "6.5.0",
+      "dependencies": [
+        "ffi",
+        "meta",
+        "path"
+      ]
+    },
+    {
+      "name": "xml",
+      "version": "6.6.1",
+      "dependencies": [
+        "collection",
+        "meta",
+        "petitparser"
+      ]
+    },
+    {
+      "name": "petitparser",
+      "version": "7.0.2",
+      "dependencies": [
+        "collection",
+        "meta"
       ]
     }
   ],

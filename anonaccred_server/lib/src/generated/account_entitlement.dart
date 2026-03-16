@@ -19,7 +19,7 @@ abstract class AccountEntitlement
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   AccountEntitlement._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.entitlementId,
     this.entitlement,
     required this.balance,
@@ -27,7 +27,7 @@ abstract class AccountEntitlement
 
   factory AccountEntitlement({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required int entitlementId,
     _i2.Entitlement? entitlement,
     required double balance,
@@ -36,7 +36,9 @@ abstract class AccountEntitlement
   factory AccountEntitlement.fromJson(Map<String, dynamic> jsonSerialization) {
     return AccountEntitlement(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['accountUuid'],
+      ),
       entitlementId: jsonSerialization['entitlementId'] as int,
       entitlement: jsonSerialization['entitlement'] == null
           ? null
@@ -54,7 +56,7 @@ abstract class AccountEntitlement
   @override
   int? id;
 
-  int accountId;
+  _i1.UuidValue accountUuid;
 
   int entitlementId;
 
@@ -70,7 +72,7 @@ abstract class AccountEntitlement
   @_i1.useResult
   AccountEntitlement copyWith({
     int? id,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     int? entitlementId,
     _i2.Entitlement? entitlement,
     double? balance,
@@ -80,7 +82,7 @@ abstract class AccountEntitlement
     return {
       '__className__': 'anonaccred.AccountEntitlement',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'entitlementId': entitlementId,
       if (entitlement != null) 'entitlement': entitlement?.toJson(),
       'balance': balance,
@@ -92,7 +94,7 @@ abstract class AccountEntitlement
     return {
       '__className__': 'anonaccred.AccountEntitlement',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'entitlementId': entitlementId,
       if (entitlement != null) 'entitlement': entitlement?.toJsonForProtocol(),
       'balance': balance,
@@ -136,13 +138,13 @@ class _Undefined {}
 class _AccountEntitlementImpl extends AccountEntitlement {
   _AccountEntitlementImpl({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required int entitlementId,
     _i2.Entitlement? entitlement,
     required double balance,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          entitlementId: entitlementId,
          entitlement: entitlement,
          balance: balance,
@@ -154,14 +156,14 @@ class _AccountEntitlementImpl extends AccountEntitlement {
   @override
   AccountEntitlement copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     int? entitlementId,
     Object? entitlement = _Undefined,
     double? balance,
   }) {
     return AccountEntitlement(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       entitlementId: entitlementId ?? this.entitlementId,
       entitlement: entitlement is _i2.Entitlement?
           ? entitlement
@@ -175,8 +177,10 @@ class AccountEntitlementUpdateTable
     extends _i1.UpdateTable<AccountEntitlementTable> {
   AccountEntitlementUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
-    table.accountId,
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> accountUuid(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -195,8 +199,8 @@ class AccountEntitlementTable extends _i1.Table<int?> {
   AccountEntitlementTable({super.tableRelation})
     : super(tableName: 'account_entitlement') {
     updateTable = AccountEntitlementUpdateTable(this);
-    accountId = _i1.ColumnInt(
-      'accountId',
+    accountUuid = _i1.ColumnUuid(
+      'accountUuid',
       this,
     );
     entitlementId = _i1.ColumnInt(
@@ -211,7 +215,7 @@ class AccountEntitlementTable extends _i1.Table<int?> {
 
   late final AccountEntitlementUpdateTable updateTable;
 
-  late final _i1.ColumnInt accountId;
+  late final _i1.ColumnUuid accountUuid;
 
   late final _i1.ColumnInt entitlementId;
 
@@ -235,7 +239,7 @@ class AccountEntitlementTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    accountId,
+    accountUuid,
     entitlementId,
     balance,
   ];

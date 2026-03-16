@@ -9,6 +9,7 @@ import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 
@@ -32,6 +33,7 @@ void main() {
 
       // Create test account and device for authenticated tests
       testAccount = await AnonAccount.db.insertRow(sessionBuilder.build(), AnonAccount(
+        accountUuid: UuidValue.fromString(const Uuid().v4()),
         ultimateSigningPublicKeyHex:
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 128-char hex for ECDSA P-256

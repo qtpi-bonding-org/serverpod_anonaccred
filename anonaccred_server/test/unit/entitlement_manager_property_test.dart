@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
 
@@ -30,6 +31,7 @@ void main() {
 
           final session = sessionBuilder.build();
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicKey,
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: publicKey, // ultimatePublicKey - using same key for testing
@@ -200,6 +202,7 @@ void main() {
 
       final session = sessionBuilder.build();
       final account = await AnonAccount.db.insertRow(session, AnonAccount(
+        accountUuid: UuidValue.fromString(const Uuid().v4()),
         ultimateSigningPublicKeyHex: publicKey,
         encryptedDataKey: encryptedDataKey,
         ultimatePublicKey: publicKey,
@@ -261,6 +264,7 @@ void main() {
 
           final session = sessionBuilder.build();
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicKey,
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: publicKey,
@@ -378,6 +382,7 @@ void main() {
           final publicKey = _generateRandomPublicKey();
           final session = sessionBuilder.build();
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicKey,
             encryptedDataKey: 'test_empty_$i',
             ultimatePublicKey: publicKey,

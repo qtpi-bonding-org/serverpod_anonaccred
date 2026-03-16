@@ -11,6 +11,7 @@ import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
 
@@ -66,6 +67,7 @@ void main() {
 
           // 1. Setup random account
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_test_$i',
             ultimatePublicKey: _generateRandomPublicKey(),
@@ -146,6 +148,7 @@ void main() {
         final account = await AnonAccount.db.insertRow(
           session1,
           AnonAccount(
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_val',
             ultimatePublicKey: _generateRandomPublicKey(),
@@ -202,6 +205,7 @@ void main() {
 
           // 1. Account
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_full_$i',
             ultimatePublicKey: _generateRandomPublicKey(),

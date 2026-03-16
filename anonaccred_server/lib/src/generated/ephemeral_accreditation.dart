@@ -16,13 +16,13 @@ abstract class EphemeralAccreditation
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   EphemeralAccreditation._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.transactionTimestamp,
   });
 
   factory EphemeralAccreditation({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required DateTime transactionTimestamp,
   }) = _EphemeralAccreditationImpl;
 
@@ -31,7 +31,9 @@ abstract class EphemeralAccreditation
   ) {
     return EphemeralAccreditation(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['accountUuid'],
+      ),
       transactionTimestamp: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['transactionTimestamp'],
       ),
@@ -45,7 +47,7 @@ abstract class EphemeralAccreditation
   @override
   int? id;
 
-  int accountId;
+  _i1.UuidValue accountUuid;
 
   DateTime transactionTimestamp;
 
@@ -57,7 +59,7 @@ abstract class EphemeralAccreditation
   @_i1.useResult
   EphemeralAccreditation copyWith({
     int? id,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     DateTime? transactionTimestamp,
   });
   @override
@@ -65,7 +67,7 @@ abstract class EphemeralAccreditation
     return {
       '__className__': 'anonaccred.EphemeralAccreditation',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'transactionTimestamp': transactionTimestamp.toJson(),
     };
   }
@@ -75,7 +77,7 @@ abstract class EphemeralAccreditation
     return {
       '__className__': 'anonaccred.EphemeralAccreditation',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'transactionTimestamp': transactionTimestamp.toJson(),
     };
   }
@@ -115,11 +117,11 @@ class _Undefined {}
 class _EphemeralAccreditationImpl extends EphemeralAccreditation {
   _EphemeralAccreditationImpl({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required DateTime transactionTimestamp,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          transactionTimestamp: transactionTimestamp,
        );
 
@@ -129,12 +131,12 @@ class _EphemeralAccreditationImpl extends EphemeralAccreditation {
   @override
   EphemeralAccreditation copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     DateTime? transactionTimestamp,
   }) {
     return EphemeralAccreditation(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       transactionTimestamp: transactionTimestamp ?? this.transactionTimestamp,
     );
   }
@@ -144,8 +146,10 @@ class EphemeralAccreditationUpdateTable
     extends _i1.UpdateTable<EphemeralAccreditationTable> {
   EphemeralAccreditationUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
-    table.accountId,
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> accountUuid(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -160,8 +164,8 @@ class EphemeralAccreditationTable extends _i1.Table<int?> {
   EphemeralAccreditationTable({super.tableRelation})
     : super(tableName: 'ephemeral_accreditation') {
     updateTable = EphemeralAccreditationUpdateTable(this);
-    accountId = _i1.ColumnInt(
-      'accountId',
+    accountUuid = _i1.ColumnUuid(
+      'accountUuid',
       this,
     );
     transactionTimestamp = _i1.ColumnDateTime(
@@ -172,14 +176,14 @@ class EphemeralAccreditationTable extends _i1.Table<int?> {
 
   late final EphemeralAccreditationUpdateTable updateTable;
 
-  late final _i1.ColumnInt accountId;
+  late final _i1.ColumnUuid accountUuid;
 
   late final _i1.ColumnDateTime transactionTimestamp;
 
   @override
   List<_i1.Column> get columns => [
     id,
-    accountId,
+    accountUuid,
     transactionTimestamp,
   ];
 }

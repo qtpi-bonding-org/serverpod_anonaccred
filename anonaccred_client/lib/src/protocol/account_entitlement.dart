@@ -17,7 +17,7 @@ import 'package:anonaccred_client/src/protocol/protocol.dart' as _i3;
 abstract class AccountEntitlement implements _i1.SerializableModel {
   AccountEntitlement._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.entitlementId,
     this.entitlement,
     required this.balance,
@@ -25,7 +25,7 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
 
   factory AccountEntitlement({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required int entitlementId,
     _i2.Entitlement? entitlement,
     required double balance,
@@ -34,7 +34,9 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
   factory AccountEntitlement.fromJson(Map<String, dynamic> jsonSerialization) {
     return AccountEntitlement(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['accountUuid'],
+      ),
       entitlementId: jsonSerialization['entitlementId'] as int,
       entitlement: jsonSerialization['entitlement'] == null
           ? null
@@ -50,7 +52,7 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  int accountId;
+  _i1.UuidValue accountUuid;
 
   int entitlementId;
 
@@ -63,7 +65,7 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
   @_i1.useResult
   AccountEntitlement copyWith({
     int? id,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     int? entitlementId,
     _i2.Entitlement? entitlement,
     double? balance,
@@ -73,7 +75,7 @@ abstract class AccountEntitlement implements _i1.SerializableModel {
     return {
       '__className__': 'anonaccred.AccountEntitlement',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'entitlementId': entitlementId,
       if (entitlement != null) 'entitlement': entitlement?.toJson(),
       'balance': balance,
@@ -91,13 +93,13 @@ class _Undefined {}
 class _AccountEntitlementImpl extends AccountEntitlement {
   _AccountEntitlementImpl({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required int entitlementId,
     _i2.Entitlement? entitlement,
     required double balance,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          entitlementId: entitlementId,
          entitlement: entitlement,
          balance: balance,
@@ -109,14 +111,14 @@ class _AccountEntitlementImpl extends AccountEntitlement {
   @override
   AccountEntitlement copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     int? entitlementId,
     Object? entitlement = _Undefined,
     double? balance,
   }) {
     return AccountEntitlement(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       entitlementId: entitlementId ?? this.entitlementId,
       entitlement: entitlement is _i2.Entitlement?
           ? entitlement

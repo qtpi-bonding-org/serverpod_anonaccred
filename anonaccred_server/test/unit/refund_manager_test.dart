@@ -6,6 +6,7 @@ import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:anonaccred_server/src/refund_manager.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
 
@@ -27,6 +28,7 @@ Future<_SeedResult> _seedBridgeChain(
   final account = await AnonAccount.db.insertRow(
     session,
     AnonAccount(
+      accountUuid: UuidValue.fromString(const Uuid().v4()),
       ultimateSigningPublicKeyHex: 'test_key_$paymentRef',
       encryptedDataKey: 'test_data',
       ultimatePublicKey: 'test_pubkey_$paymentRef',

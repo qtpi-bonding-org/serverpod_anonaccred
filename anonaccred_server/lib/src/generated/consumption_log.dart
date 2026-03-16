@@ -16,7 +16,7 @@ abstract class ConsumptionLog
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   ConsumptionLog._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.entitlementId,
     required this.amount,
     required this.reason,
@@ -25,7 +25,7 @@ abstract class ConsumptionLog
 
   factory ConsumptionLog({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required int entitlementId,
     required double amount,
     required String reason,
@@ -35,7 +35,9 @@ abstract class ConsumptionLog
   factory ConsumptionLog.fromJson(Map<String, dynamic> jsonSerialization) {
     return ConsumptionLog(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['accountUuid'],
+      ),
       entitlementId: jsonSerialization['entitlementId'] as int,
       amount: (jsonSerialization['amount'] as num).toDouble(),
       reason: jsonSerialization['reason'] as String,
@@ -52,7 +54,7 @@ abstract class ConsumptionLog
   @override
   int? id;
 
-  int accountId;
+  _i1.UuidValue accountUuid;
 
   int entitlementId;
 
@@ -70,7 +72,7 @@ abstract class ConsumptionLog
   @_i1.useResult
   ConsumptionLog copyWith({
     int? id,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     int? entitlementId,
     double? amount,
     String? reason,
@@ -81,7 +83,7 @@ abstract class ConsumptionLog
     return {
       '__className__': 'anonaccred.ConsumptionLog',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'entitlementId': entitlementId,
       'amount': amount,
       'reason': reason,
@@ -94,7 +96,7 @@ abstract class ConsumptionLog
     return {
       '__className__': 'anonaccred.ConsumptionLog',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'entitlementId': entitlementId,
       'amount': amount,
       'reason': reason,
@@ -137,14 +139,14 @@ class _Undefined {}
 class _ConsumptionLogImpl extends ConsumptionLog {
   _ConsumptionLogImpl({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required int entitlementId,
     required double amount,
     required String reason,
     DateTime? timestamp,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          entitlementId: entitlementId,
          amount: amount,
          reason: reason,
@@ -157,7 +159,7 @@ class _ConsumptionLogImpl extends ConsumptionLog {
   @override
   ConsumptionLog copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     int? entitlementId,
     double? amount,
     String? reason,
@@ -165,7 +167,7 @@ class _ConsumptionLogImpl extends ConsumptionLog {
   }) {
     return ConsumptionLog(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       entitlementId: entitlementId ?? this.entitlementId,
       amount: amount ?? this.amount,
       reason: reason ?? this.reason,
@@ -177,8 +179,10 @@ class _ConsumptionLogImpl extends ConsumptionLog {
 class ConsumptionLogUpdateTable extends _i1.UpdateTable<ConsumptionLogTable> {
   ConsumptionLogUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
-    table.accountId,
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> accountUuid(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -208,8 +212,8 @@ class ConsumptionLogTable extends _i1.Table<int?> {
   ConsumptionLogTable({super.tableRelation})
     : super(tableName: 'consumption_log') {
     updateTable = ConsumptionLogUpdateTable(this);
-    accountId = _i1.ColumnInt(
-      'accountId',
+    accountUuid = _i1.ColumnUuid(
+      'accountUuid',
       this,
     );
     entitlementId = _i1.ColumnInt(
@@ -233,7 +237,7 @@ class ConsumptionLogTable extends _i1.Table<int?> {
 
   late final ConsumptionLogUpdateTable updateTable;
 
-  late final _i1.ColumnInt accountId;
+  late final _i1.ColumnUuid accountUuid;
 
   late final _i1.ColumnInt entitlementId;
 
@@ -246,7 +250,7 @@ class ConsumptionLogTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    accountId,
+    accountUuid,
     entitlementId,
     amount,
     reason,

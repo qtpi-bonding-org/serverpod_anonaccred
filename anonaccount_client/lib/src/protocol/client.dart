@@ -561,17 +561,17 @@ class EndpointEntrypoint extends EndpointPow {
 
 /// Abstract base class for JWT-protected endpoints.
 ///
-/// Serverpod validates the JWT before the method runs.
+/// Serverpod validates the JWT before the method runs (via `initializeAuthServices`).
 /// Subclasses get:
 /// - `requireLogin => true` (Serverpod enforces JWT validation)
 /// - `getDevicePublicKey()` to extract the device's public key from JWT scopes
-/// - `getAccountId()` to extract the account ID from JWT claims
+/// - `getAccountUuid()` to extract the account's UUID from JWT claims
 ///
 /// Usage:
 /// ```dart
 /// class MyProtectedEndpoint extends JwtEndpoint {
 ///   Future<MyData> getData(Session session) async {
-///     final accountId = getAccountId(session);
+///     final accountUuid = getAccountUuid(session);
 ///     // ... business logic using authenticated identity
 ///   }
 /// }

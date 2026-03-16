@@ -28,6 +28,7 @@ void main() {
 
           // Create account with cryptographic data
           final account = AnonAccount(
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
             ultimatePublicKey: _generateFakePublicKeyString(),
@@ -96,6 +97,7 @@ void main() {
           final encryptedMasterDataKey = _generateRandomEncryptedData();
 
           final account = AnonAccount(
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
             ultimatePublicKey: _generateFakePublicKeyString(),

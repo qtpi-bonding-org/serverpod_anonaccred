@@ -28,6 +28,7 @@ void main() {
 
           // Create account model
           final account = AnonAccount(
+            accountUuid: _generateRandomAccountUuid(),
             ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),

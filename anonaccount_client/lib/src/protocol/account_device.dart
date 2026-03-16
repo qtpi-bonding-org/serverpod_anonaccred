@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class AccountDevice implements _i1.SerializableModel {
   AccountDevice._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.deviceSigningPublicKeyHex,
     required this.encryptedDataKey,
     required this.label,
@@ -26,7 +26,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
 
   factory AccountDevice({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
@@ -37,7 +37,9 @@ abstract class AccountDevice implements _i1.SerializableModel {
   factory AccountDevice.fromJson(Map<String, dynamic> jsonSerialization) {
     return AccountDevice(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['accountUuid'],
+      ),
       deviceSigningPublicKeyHex:
           jsonSerialization['deviceSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
@@ -56,7 +58,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  int accountId;
+  _i1.UuidValue accountUuid;
 
   String deviceSigningPublicKeyHex;
 
@@ -73,7 +75,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
   @_i1.useResult
   AccountDevice copyWith({
     int? id,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     String? deviceSigningPublicKeyHex,
     String? encryptedDataKey,
     String? label,
@@ -85,7 +87,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
     return {
       '__className__': 'anonaccount.AccountDevice',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
@@ -105,7 +107,7 @@ class _Undefined {}
 class _AccountDeviceImpl extends AccountDevice {
   _AccountDeviceImpl({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
@@ -113,7 +115,7 @@ class _AccountDeviceImpl extends AccountDevice {
     bool? isRevoked,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          label: label,
@@ -127,7 +129,7 @@ class _AccountDeviceImpl extends AccountDevice {
   @override
   AccountDevice copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     String? deviceSigningPublicKeyHex,
     String? encryptedDataKey,
     String? label,
@@ -136,7 +138,7 @@ class _AccountDeviceImpl extends AccountDevice {
   }) {
     return AccountDevice(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       deviceSigningPublicKeyHex:
           deviceSigningPublicKeyHex ?? this.deviceSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,

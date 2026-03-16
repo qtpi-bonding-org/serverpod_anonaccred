@@ -1,5 +1,6 @@
 import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
 
 void main() {
@@ -12,6 +13,7 @@ void main() {
 
       // Create a test account for foreign key constraint
       testAccount = AnonAccount(
+        accountUuid: UuidValue.fromString(const Uuid().v4()),
         ultimateSigningPublicKeyHex:
             'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',

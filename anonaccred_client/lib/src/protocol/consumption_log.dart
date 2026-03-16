@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class ConsumptionLog implements _i1.SerializableModel {
   ConsumptionLog._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.entitlementId,
     required this.amount,
     required this.reason,
@@ -24,7 +24,7 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
 
   factory ConsumptionLog({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required int entitlementId,
     required double amount,
     required String reason,
@@ -34,7 +34,9 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
   factory ConsumptionLog.fromJson(Map<String, dynamic> jsonSerialization) {
     return ConsumptionLog(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['accountUuid'],
+      ),
       entitlementId: jsonSerialization['entitlementId'] as int,
       amount: (jsonSerialization['amount'] as num).toDouble(),
       reason: jsonSerialization['reason'] as String,
@@ -49,7 +51,7 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  int accountId;
+  _i1.UuidValue accountUuid;
 
   int entitlementId;
 
@@ -64,7 +66,7 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
   @_i1.useResult
   ConsumptionLog copyWith({
     int? id,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     int? entitlementId,
     double? amount,
     String? reason,
@@ -75,7 +77,7 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
     return {
       '__className__': 'anonaccred.ConsumptionLog',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid.toJson(),
       'entitlementId': entitlementId,
       'amount': amount,
       'reason': reason,
@@ -94,14 +96,14 @@ class _Undefined {}
 class _ConsumptionLogImpl extends ConsumptionLog {
   _ConsumptionLogImpl({
     int? id,
-    required int accountId,
+    required _i1.UuidValue accountUuid,
     required int entitlementId,
     required double amount,
     required String reason,
     DateTime? timestamp,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          entitlementId: entitlementId,
          amount: amount,
          reason: reason,
@@ -114,7 +116,7 @@ class _ConsumptionLogImpl extends ConsumptionLog {
   @override
   ConsumptionLog copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    _i1.UuidValue? accountUuid,
     int? entitlementId,
     double? amount,
     String? reason,
@@ -122,7 +124,7 @@ class _ConsumptionLogImpl extends ConsumptionLog {
   }) {
     return ConsumptionLog(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       entitlementId: entitlementId ?? this.entitlementId,
       amount: amount ?? this.amount,
       reason: reason ?? this.reason,
