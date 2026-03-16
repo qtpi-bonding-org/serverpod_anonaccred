@@ -30,7 +30,7 @@ class EntitlementManager {
     final existingRecord = await AccountEntitlement.db.findFirstRow(
       session,
       where: (t) =>
-          t.anonAccountId.equals(accountUuid) &
+          t.accountUuid.equals(accountUuid) &
           t.entitlementId.equals(entitlementId),
       transaction: transaction,
     );
@@ -45,7 +45,7 @@ class EntitlementManager {
       await AccountEntitlement.db.insertRow(
         session,
         AccountEntitlement(
-          anonAccountId: accountUuid,
+          accountUuid: accountUuid,
           entitlementId: entitlementId,
           balance: quantity,
         ),
@@ -124,7 +124,7 @@ class EntitlementManager {
         final record = await AccountEntitlement.db.findFirstRow(
           session,
           where: (t) =>
-              t.anonAccountId.equals(accountUuid) &
+              t.accountUuid.equals(accountUuid) &
               t.entitlementId.equals(entitlement.id),
           transaction: transaction,
         );
@@ -152,7 +152,7 @@ class EntitlementManager {
         await ConsumptionLog.db.insertRow(
           session,
           ConsumptionLog(
-            anonAccountId: accountUuid,
+            accountUuid: accountUuid,
             entitlementId: entitlement.id!,
             amount: amount,
             reason: reason,
@@ -190,7 +190,7 @@ class EntitlementManager {
         final record = await AccountEntitlement.db.findFirstRow(
           session,
           where: (t) =>
-              t.anonAccountId.equals(accountUuid) &
+              t.accountUuid.equals(accountUuid) &
               t.entitlementId.equals(entitlementId),
           transaction: transaction,
         );
@@ -209,7 +209,7 @@ class EntitlementManager {
         await ConsumptionLog.db.insertRow(
           session,
           ConsumptionLog(
-            anonAccountId: accountUuid,
+            accountUuid: accountUuid,
             entitlementId: entitlementId,
             amount: debit,
             reason: reason,
@@ -248,7 +248,7 @@ class EntitlementManager {
       final record = await AccountEntitlement.db.findFirstRow(
         session,
         where: (t) =>
-            t.anonAccountId.equals(accountUuid) &
+            t.accountUuid.equals(accountUuid) &
             t.entitlementId.equals(entitlement.id),
       );
 
@@ -270,7 +270,7 @@ class EntitlementManager {
     try {
       return await AccountEntitlement.db.find(
         session,
-        where: (t) => t.anonAccountId.equals(accountUuid),
+        where: (t) => t.accountUuid.equals(accountUuid),
         include: AccountEntitlement.include(
           entitlement: Entitlement.include(),
         ),

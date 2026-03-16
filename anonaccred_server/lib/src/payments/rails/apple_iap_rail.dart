@@ -299,7 +299,7 @@ class AppleIAPRail implements PaymentRailInterface {
       await EphemeralAccreditation.db.insertRow(
         session,
         EphemeralAccreditation(
-          anonAccountId: accountUuid,
+          accountUuid: accountUuid,
           transactionTimestamp: purchaseDate,
         ),
         transaction: dbTransaction,

@@ -28,7 +28,7 @@ void main() {
 
           // Create account model
           final account = AnonAccount(
-            accountUuid: _generateRandomAccountUuid(),
+            id: _generateRandomAccountUuid(),
             ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
@@ -74,7 +74,7 @@ void main() {
 
           // Create device model
           final device = AccountDevice(
-            accountUuid: accountUuid,
+            anonAccountId: accountUuid,
             deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
             label: label,
@@ -83,7 +83,7 @@ void main() {
           );
 
           // Verify privacy preservation - only public key and encrypted data stored
-          expect(device.accountUuid, equals(accountUuid));
+          expect(device.anonAccountId, equals(accountUuid));
           expect(
             device.deviceSigningPublicKeyHex,
             equals(deviceSigningPublicKeyHex),

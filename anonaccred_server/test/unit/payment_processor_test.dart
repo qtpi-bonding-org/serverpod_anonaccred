@@ -13,7 +13,7 @@ void main() {
 
       // Create a test account for foreign key constraint
       testAccount = AnonAccount(
-        accountUuid: UuidValue.fromString(const Uuid().v4()),
+        id: UuidValue.fromString(const Uuid().v4()),
         ultimateSigningPublicKeyHex:
             'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',

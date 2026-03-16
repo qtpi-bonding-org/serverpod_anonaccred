@@ -309,7 +309,7 @@ class GoogleIAPRail implements PaymentRailInterface {
         await EphemeralAccreditation.db.insertRow(
           session,
           EphemeralAccreditation(
-            anonAccountId: accountUuid,
+            accountUuid: accountUuid,
             transactionTimestamp: purchaseTime,
           ),
           transaction: dbTransaction,

@@ -67,12 +67,12 @@ void main() {
 
           // 1. Setup random account
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_test_$i',
             ultimatePublicKey: _generateRandomPublicKey(),
           ));
-          final accountUuid = account.accountUuid;
+          final accountUuid = account.id!;
 
           // 2. Setup random RailProduct
           final storeProductId = 'com.test.product_$i';
@@ -148,13 +148,13 @@ void main() {
         final account = await AnonAccount.db.insertRow(
           session1,
           AnonAccount(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_val',
             ultimatePublicKey: _generateRandomPublicKey(),
           ),
         );
-        final accountUuid = account.accountUuid;
+        final accountUuid = account.id!;
 
         // 1. Test non-existent SKU
         try {
@@ -205,12 +205,12 @@ void main() {
 
           // 1. Account
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_full_$i',
             ultimatePublicKey: _generateRandomPublicKey(),
           ));
-          final accountUuid = account.accountUuid;
+          final accountUuid = account.id!;
 
           // 2. Entitlements and RailProduct
           final tag = 'credits_$i';

@@ -28,7 +28,7 @@ void main() {
 
           // Create account with cryptographic data
           final account = AnonAccount(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
             ultimatePublicKey: _generateFakePublicKeyString(),
@@ -37,7 +37,7 @@ void main() {
 
           // Create device with cryptographic data
           final device = AccountDevice(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            anonAccountId: UuidValue.fromString(const Uuid().v4()),
             deviceSigningPublicKeyHex: publicSubKey,
             encryptedDataKey: encryptedDeviceDataKey,
             label: 'Test Device',
@@ -97,7 +97,7 @@ void main() {
           final encryptedMasterDataKey = _generateRandomEncryptedData();
 
           final account = AnonAccount(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
             ultimatePublicKey: _generateFakePublicKeyString(),
@@ -110,7 +110,7 @@ void main() {
 
           for (var j = 0; j < deviceCount; j++) {
             final device = AccountDevice(
-              accountUuid: UuidValue.fromString(const Uuid().v4()),
+              anonAccountId: UuidValue.fromString(const Uuid().v4()),
               deviceSigningPublicKeyHex: _generateFakePublicKeyString(),
               encryptedDataKey: _generateRandomEncryptedData(),
               label: 'Device $j',

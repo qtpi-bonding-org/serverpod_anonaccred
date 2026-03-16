@@ -171,7 +171,7 @@ class RefundManager {
 
     if (accreditations.length == 1) {
       // Unambiguous
-      accountUuid = accreditations.first.anonAccountId;
+      accountUuid = accreditations.first.accountUuid;
     } else {
       // Multiple EAs at same timestamp — but only 1 TransactionPayment at (T, R).
       // Different rails purchased at same instant. We can still resolve:
@@ -179,7 +179,7 @@ class RefundManager {
       // Since we have only 1 payment at (T, R), the EA is the one matching.
       // We just use the first one since we can't disambiguate further without
       // a direct FK. This is the "best effort" case.
-      accountUuid = accreditations.first.anonAccountId;
+      accountUuid = accreditations.first.accountUuid;
     }
 
     // 4. Get grants for the rail product

@@ -28,13 +28,13 @@ Future<_SeedResult> _seedBridgeChain(
   final account = await AnonAccount.db.insertRow(
     session,
     AnonAccount(
-      accountUuid: UuidValue.fromString(const Uuid().v4()),
+      id: UuidValue.fromString(const Uuid().v4()),
       ultimateSigningPublicKeyHex: 'test_key_$paymentRef',
       encryptedDataKey: 'test_data',
       ultimatePublicKey: 'test_pubkey_$paymentRef',
     ),
   );
-  final accountUuid = account.accountUuid;
+  final accountUuid = account.id!;
 
   // 2. ReceiptHash
   await ReceiptHash.db.insertRow(

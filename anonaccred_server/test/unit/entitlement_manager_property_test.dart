@@ -31,12 +31,12 @@ void main() {
 
           final session = sessionBuilder.build();
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicKey,
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: publicKey, // ultimatePublicKey - using same key for testing
           ));
-          final accountUuid = account.accountUuid;
+          final accountUuid = account.id!;
 
           // REQUIREMENT: Must create the Entitlement record first for EntitlementManager to work
           final createdEntitlement = await Entitlement.db.insertRow(
@@ -202,12 +202,12 @@ void main() {
 
       final session = sessionBuilder.build();
       final account = await AnonAccount.db.insertRow(session, AnonAccount(
-        accountUuid: UuidValue.fromString(const Uuid().v4()),
+        id: UuidValue.fromString(const Uuid().v4()),
         ultimateSigningPublicKeyHex: publicKey,
         encryptedDataKey: encryptedDataKey,
         ultimatePublicKey: publicKey,
       ));
-      final accountUuid = account.accountUuid;
+      final accountUuid = account.id!;
 
       await Entitlement.db.insertRow(
         session,
@@ -264,12 +264,12 @@ void main() {
 
           final session = sessionBuilder.build();
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicKey,
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: publicKey,
           ));
-          final accountUuid = account.accountUuid;
+          final accountUuid = account.id!;
 
           // Empty state
           final empty = await EntitlementManager.getAccountEntitlements(
@@ -382,12 +382,12 @@ void main() {
           final publicKey = _generateRandomPublicKey();
           final session = sessionBuilder.build();
           final account = await AnonAccount.db.insertRow(session, AnonAccount(
-            accountUuid: UuidValue.fromString(const Uuid().v4()),
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicKey,
             encryptedDataKey: 'test_empty_$i',
             ultimatePublicKey: publicKey,
           ));
-          final accountUuid = account.accountUuid;
+          final accountUuid = account.id!;
 
           final ents = await EntitlementManager.getAccountEntitlements(
             session,

@@ -26,7 +26,7 @@ void main() {
         where: (t) => t.ultimatePublicKey.equals(validPublicKey),
       );
       account ??= await AnonAccount.db.insertRow(session, AnonAccount(
-        accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+        id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
         ultimateSigningPublicKeyHex: validPublicKey,
         encryptedDataKey: 'encrypted_data_key_for_commerce_test',
         ultimatePublicKey: validPublicKey,
@@ -41,7 +41,7 @@ void main() {
       device ??= await AccountDevice.db.insertRow(
         session,
         AccountDevice(
-          accountUuid: testAccount.accountUuid,
+          anonAccountId: testAccount.id!,
           deviceSigningPublicKeyHex: validPublicKey,
           encryptedDataKey: 'device_encrypted_key_commerce_test',
           label: 'Test Device',
@@ -52,7 +52,7 @@ void main() {
       // userIdentifier must be the UUID string so getAccountUuid() can parse it
       authenticatedSessionBuilder = sessionBuilder.copyWith(
         authentication: AuthenticationOverride.authenticationInfo(
-          testAccount.accountUuid.toString(),
+          testAccount.id.toString(),
           {Scope('device:$validPublicKey')},
           authId: validPublicKey,
         ),
@@ -61,7 +61,7 @@ void main() {
       // Clean up any leftover entitlement balances from prior runs
       await AccountEntitlement.db.deleteWhere(
         session,
-        where: (t) => t.accountUuid.equals(testAccount.accountUuid),
+        where: (t) => t.accountUuid.equals(testAccount.id!),
       );
     });
 
@@ -141,7 +141,7 @@ void main() {
         await session.db.transaction((txn) async {
           await EntitlementManager.grantEntitlement(
             session,
-            accountUuid: testAccount.accountUuid,
+            accountUuid: testAccount.id!,
             tag: 'api_calls',
             quantity: 100.0,
             transaction: txn,

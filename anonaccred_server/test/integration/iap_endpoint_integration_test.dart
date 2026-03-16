@@ -33,7 +33,7 @@ void main() {
 
       // Create test account and device for authenticated tests
       testAccount = await AnonAccount.db.insertRow(sessionBuilder.build(), AnonAccount(
-        accountUuid: UuidValue.fromString(const Uuid().v4()),
+        id: UuidValue.fromString(const Uuid().v4()),
         ultimateSigningPublicKeyHex:
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 128-char hex for ECDSA P-256
@@ -44,7 +44,7 @@ void main() {
       ));
 
       testDevice = await AccountDevice.db.insertRow(sessionBuilder.build(), AccountDevice(
-        accountUuid: testAccount.accountUuid,
+        anonAccountId: testAccount.id!,
         deviceSigningPublicKeyHex:
             'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
             'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
@@ -56,7 +56,7 @@ void main() {
       // userIdentifier must be the UUID string so getAccountUuid() can parse it
       authenticatedSessionBuilder = sessionBuilder.copyWith(
         authentication: AuthenticationOverride.authenticationInfo(
-          testAccount.accountUuid.toString(),
+          testAccount.id.toString(),
           {Scope('device:${testDevice.deviceSigningPublicKeyHex}')},
           authId: testDevice.deviceSigningPublicKeyHex,
         ),
