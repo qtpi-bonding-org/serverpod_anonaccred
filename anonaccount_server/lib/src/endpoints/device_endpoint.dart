@@ -104,7 +104,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
 
       // Create new device
       final device = AccountDevice(
-        accountId: account.id!,
+        accountUuid: account.accountUuid,
         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         label: label,
@@ -184,23 +184,10 @@ class DeviceEndpoint extends SignedPowEndpoint {
         ),
       );
 
-      // Look up account to get the authUserId (UUID) for JWT issuance
-      final account = await AnonAccount.db.findById(
-        session,
-        activeDevice.accountId,
-      );
-      if (account == null) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authAccountNotFound,
-          message: 'Account not found for device',
-          operation: 'signIn',
-        );
-      }
-
       // Issue JWT via Serverpod's built-in token manager
       final authSuccess = await AuthServices.instance.tokenManager.issueToken(
         session,
-        authUserId: account.accountUuid,
+        authUserId: activeDevice.accountUuid,
         method: 'anonaccount',
         scopes: {Scope('device:$devicePublicKeyHex')},
       );
