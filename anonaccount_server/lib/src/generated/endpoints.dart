@@ -16,6 +16,10 @@ import '../endpoints/data_key_endpoint.dart' as _i3;
 import '../endpoints/device_endpoint.dart' as _i4;
 import '../endpoints/device_management_endpoint.dart' as _i5;
 import '../endpoints/entrypoint_endpoint.dart' as _i6;
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+    as _i7;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i8;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -843,5 +847,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    modules['serverpod_auth_idp'] = _i7.Endpoints()
+      ..initializeEndpoints(server);
+    modules['serverpod_auth_core'] = _i8.Endpoints()
+      ..initializeEndpoints(server);
   }
 }

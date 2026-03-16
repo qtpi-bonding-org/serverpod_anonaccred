@@ -12,20 +12,24 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'package:serverpod/protocol.dart' as _i2;
-import 'account.dart' as _i3;
-import 'account_creation_response.dart' as _i4;
-import 'account_device.dart' as _i5;
-import 'anonaccount_exception.dart' as _i6;
-import 'authentication_exception.dart' as _i7;
-import 'authentication_result.dart' as _i8;
-import 'challenge_exists.dart' as _i9;
-import 'device_pairing_event.dart' as _i10;
-import 'device_pairing_info.dart' as _i11;
-import 'encrypted_data_key_response.dart' as _i12;
-import 'public_challenge.dart' as _i13;
-import 'public_challenge_response.dart' as _i14;
-import 'rate_limit_counter.dart' as _i15;
-import 'package:anonaccount_server/src/generated/account_device.dart' as _i16;
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+    as _i3;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i4;
+import 'account.dart' as _i5;
+import 'account_creation_response.dart' as _i6;
+import 'account_device.dart' as _i7;
+import 'anonaccount_exception.dart' as _i8;
+import 'authentication_exception.dart' as _i9;
+import 'authentication_result.dart' as _i10;
+import 'challenge_exists.dart' as _i11;
+import 'device_pairing_event.dart' as _i12;
+import 'device_pairing_info.dart' as _i13;
+import 'encrypted_data_key_response.dart' as _i14;
+import 'public_challenge.dart' as _i15;
+import 'public_challenge_response.dart' as _i16;
+import 'rate_limit_counter.dart' as _i17;
+import 'package:anonaccount_server/src/generated/account_device.dart' as _i18;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -62,10 +66,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'nextval(\'account_device_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.uuid,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'UuidValue',
         ),
         _i2.ColumnDefinition(
           name: 'deviceSigningPublicKeyHex',
@@ -100,18 +104,7 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'false',
         ),
       ],
-      foreignKeys: [
-        _i2.ForeignKeyDefinition(
-          constraintName: 'account_device_fk_0',
-          columns: ['accountId'],
-          referenceTable: 'anon_account',
-          referenceTableSchema: 'public',
-          referenceColumns: ['id'],
-          onUpdate: _i2.ForeignKeyAction.noAction,
-          onDelete: _i2.ForeignKeyAction.cascade,
-          matchType: null,
-        ),
-      ],
+      foreignKeys: [],
       indexes: [
         _i2.IndexDefinition(
           indexName: 'account_device_pkey',
@@ -143,6 +136,19 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: false,
           isPrimary: false,
         ),
+        _i2.IndexDefinition(
+          indexName: 'account_devices_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'accountUuid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
       ],
       managed: true,
     ),
@@ -158,6 +164,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: false,
           dartType: 'int?',
           columnDefault: 'nextval(\'anon_account_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
         ),
         _i2.ColumnDefinition(
           name: 'ultimateSigningPublicKeyHex',
@@ -207,6 +219,19 @@ class Protocol extends _i1.SerializationManagerServer {
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'ultimatePublicKey',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'account_uuid_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'accountUuid',
             ),
           ],
           type: 'btree',
@@ -286,6 +311,8 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
+    ..._i3.Protocol.targetTableDefinitions,
+    ..._i4.Protocol.targetTableDefinitions,
   ];
 
   static String? getClassNameFromObjectJson(dynamic data) {
@@ -317,92 +344,92 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
 
-    if (t == _i3.AnonAccount) {
-      return _i3.AnonAccount.fromJson(data) as T;
+    if (t == _i5.AnonAccount) {
+      return _i5.AnonAccount.fromJson(data) as T;
     }
-    if (t == _i4.AccountCreationResponse) {
-      return _i4.AccountCreationResponse.fromJson(data) as T;
+    if (t == _i6.AccountCreationResponse) {
+      return _i6.AccountCreationResponse.fromJson(data) as T;
     }
-    if (t == _i5.AccountDevice) {
-      return _i5.AccountDevice.fromJson(data) as T;
+    if (t == _i7.AccountDevice) {
+      return _i7.AccountDevice.fromJson(data) as T;
     }
-    if (t == _i6.AnonAccountException) {
-      return _i6.AnonAccountException.fromJson(data) as T;
+    if (t == _i8.AnonAccountException) {
+      return _i8.AnonAccountException.fromJson(data) as T;
     }
-    if (t == _i7.AuthenticationException) {
-      return _i7.AuthenticationException.fromJson(data) as T;
+    if (t == _i9.AuthenticationException) {
+      return _i9.AuthenticationException.fromJson(data) as T;
     }
-    if (t == _i8.AuthenticationResult) {
-      return _i8.AuthenticationResult.fromJson(data) as T;
+    if (t == _i10.AuthenticationResult) {
+      return _i10.AuthenticationResult.fromJson(data) as T;
     }
-    if (t == _i9.ChallengeExists) {
-      return _i9.ChallengeExists.fromJson(data) as T;
+    if (t == _i11.ChallengeExists) {
+      return _i11.ChallengeExists.fromJson(data) as T;
     }
-    if (t == _i10.DevicePairingEvent) {
-      return _i10.DevicePairingEvent.fromJson(data) as T;
+    if (t == _i12.DevicePairingEvent) {
+      return _i12.DevicePairingEvent.fromJson(data) as T;
     }
-    if (t == _i11.DevicePairingInfo) {
-      return _i11.DevicePairingInfo.fromJson(data) as T;
+    if (t == _i13.DevicePairingInfo) {
+      return _i13.DevicePairingInfo.fromJson(data) as T;
     }
-    if (t == _i12.EncryptedDataKeyResponse) {
-      return _i12.EncryptedDataKeyResponse.fromJson(data) as T;
+    if (t == _i14.EncryptedDataKeyResponse) {
+      return _i14.EncryptedDataKeyResponse.fromJson(data) as T;
     }
-    if (t == _i13.PublicChallenge) {
-      return _i13.PublicChallenge.fromJson(data) as T;
+    if (t == _i15.PublicChallenge) {
+      return _i15.PublicChallenge.fromJson(data) as T;
     }
-    if (t == _i14.PublicChallengeResponse) {
-      return _i14.PublicChallengeResponse.fromJson(data) as T;
+    if (t == _i16.PublicChallengeResponse) {
+      return _i16.PublicChallengeResponse.fromJson(data) as T;
     }
-    if (t == _i15.RateLimitCounter) {
-      return _i15.RateLimitCounter.fromJson(data) as T;
+    if (t == _i17.RateLimitCounter) {
+      return _i17.RateLimitCounter.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i3.AnonAccount?>()) {
-      return (data != null ? _i3.AnonAccount.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i5.AnonAccount?>()) {
+      return (data != null ? _i5.AnonAccount.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i4.AccountCreationResponse?>()) {
-      return (data != null ? _i4.AccountCreationResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i6.AccountCreationResponse?>()) {
+      return (data != null ? _i6.AccountCreationResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i5.AccountDevice?>()) {
-      return (data != null ? _i5.AccountDevice.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i7.AccountDevice?>()) {
+      return (data != null ? _i7.AccountDevice.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i6.AnonAccountException?>()) {
-      return (data != null ? _i6.AnonAccountException.fromJson(data) : null)
+    if (t == _i1.getType<_i8.AnonAccountException?>()) {
+      return (data != null ? _i8.AnonAccountException.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i7.AuthenticationException?>()) {
-      return (data != null ? _i7.AuthenticationException.fromJson(data) : null)
+    if (t == _i1.getType<_i9.AuthenticationException?>()) {
+      return (data != null ? _i9.AuthenticationException.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i8.AuthenticationResult?>()) {
-      return (data != null ? _i8.AuthenticationResult.fromJson(data) : null)
+    if (t == _i1.getType<_i10.AuthenticationResult?>()) {
+      return (data != null ? _i10.AuthenticationResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i9.ChallengeExists?>()) {
-      return (data != null ? _i9.ChallengeExists.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.ChallengeExists?>()) {
+      return (data != null ? _i11.ChallengeExists.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i10.DevicePairingEvent?>()) {
-      return (data != null ? _i10.DevicePairingEvent.fromJson(data) : null)
+    if (t == _i1.getType<_i12.DevicePairingEvent?>()) {
+      return (data != null ? _i12.DevicePairingEvent.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i11.DevicePairingInfo?>()) {
-      return (data != null ? _i11.DevicePairingInfo.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.DevicePairingInfo?>()) {
+      return (data != null ? _i13.DevicePairingInfo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.EncryptedDataKeyResponse?>()) {
+    if (t == _i1.getType<_i14.EncryptedDataKeyResponse?>()) {
       return (data != null
-              ? _i12.EncryptedDataKeyResponse.fromJson(data)
+              ? _i14.EncryptedDataKeyResponse.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i13.PublicChallenge?>()) {
-      return (data != null ? _i13.PublicChallenge.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i15.PublicChallenge?>()) {
+      return (data != null ? _i15.PublicChallenge.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.PublicChallengeResponse?>()) {
-      return (data != null ? _i14.PublicChallengeResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i16.PublicChallengeResponse?>()) {
+      return (data != null ? _i16.PublicChallengeResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i15.RateLimitCounter?>()) {
-      return (data != null ? _i15.RateLimitCounter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i17.RateLimitCounter?>()) {
+      return (data != null ? _i17.RateLimitCounter.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -419,12 +446,18 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i16.AccountDevice>) {
+    if (t == List<_i18.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i16.AccountDevice>(e))
+              .map((e) => deserialize<_i18.AccountDevice>(e))
               .toList()
           as T;
     }
+    try {
+      return _i3.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i4.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i2.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
@@ -433,19 +466,19 @@ class Protocol extends _i1.SerializationManagerServer {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i3.AnonAccount => 'AnonAccount',
-      _i4.AccountCreationResponse => 'AccountCreationResponse',
-      _i5.AccountDevice => 'AccountDevice',
-      _i6.AnonAccountException => 'AnonAccountException',
-      _i7.AuthenticationException => 'AuthenticationException',
-      _i8.AuthenticationResult => 'AuthenticationResult',
-      _i9.ChallengeExists => 'ChallengeExists',
-      _i10.DevicePairingEvent => 'DevicePairingEvent',
-      _i11.DevicePairingInfo => 'DevicePairingInfo',
-      _i12.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
-      _i13.PublicChallenge => 'PublicChallenge',
-      _i14.PublicChallengeResponse => 'PublicChallengeResponse',
-      _i15.RateLimitCounter => 'RateLimitCounter',
+      _i5.AnonAccount => 'AnonAccount',
+      _i6.AccountCreationResponse => 'AccountCreationResponse',
+      _i7.AccountDevice => 'AccountDevice',
+      _i8.AnonAccountException => 'AnonAccountException',
+      _i9.AuthenticationException => 'AuthenticationException',
+      _i10.AuthenticationResult => 'AuthenticationResult',
+      _i11.ChallengeExists => 'ChallengeExists',
+      _i12.DevicePairingEvent => 'DevicePairingEvent',
+      _i13.DevicePairingInfo => 'DevicePairingInfo',
+      _i14.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
+      _i15.PublicChallenge => 'PublicChallenge',
+      _i16.PublicChallengeResponse => 'PublicChallengeResponse',
+      _i17.RateLimitCounter => 'RateLimitCounter',
       _ => null,
     };
   }
@@ -460,36 +493,44 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i3.AnonAccount():
+      case _i5.AnonAccount():
         return 'AnonAccount';
-      case _i4.AccountCreationResponse():
+      case _i6.AccountCreationResponse():
         return 'AccountCreationResponse';
-      case _i5.AccountDevice():
+      case _i7.AccountDevice():
         return 'AccountDevice';
-      case _i6.AnonAccountException():
+      case _i8.AnonAccountException():
         return 'AnonAccountException';
-      case _i7.AuthenticationException():
+      case _i9.AuthenticationException():
         return 'AuthenticationException';
-      case _i8.AuthenticationResult():
+      case _i10.AuthenticationResult():
         return 'AuthenticationResult';
-      case _i9.ChallengeExists():
+      case _i11.ChallengeExists():
         return 'ChallengeExists';
-      case _i10.DevicePairingEvent():
+      case _i12.DevicePairingEvent():
         return 'DevicePairingEvent';
-      case _i11.DevicePairingInfo():
+      case _i13.DevicePairingInfo():
         return 'DevicePairingInfo';
-      case _i12.EncryptedDataKeyResponse():
+      case _i14.EncryptedDataKeyResponse():
         return 'EncryptedDataKeyResponse';
-      case _i13.PublicChallenge():
+      case _i15.PublicChallenge():
         return 'PublicChallenge';
-      case _i14.PublicChallengeResponse():
+      case _i16.PublicChallengeResponse():
         return 'PublicChallengeResponse';
-      case _i15.RateLimitCounter():
+      case _i17.RateLimitCounter():
         return 'RateLimitCounter';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod.$className';
+    }
+    className = _i3.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return 'serverpod_auth_idp.$className';
+    }
+    className = _i4.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return 'serverpod_auth_core.$className';
     }
     return null;
   }
@@ -501,47 +542,55 @@ class Protocol extends _i1.SerializationManagerServer {
       return super.deserializeByClassName(data);
     }
     if (dataClassName == 'AnonAccount') {
-      return deserialize<_i3.AnonAccount>(data['data']);
+      return deserialize<_i5.AnonAccount>(data['data']);
     }
     if (dataClassName == 'AccountCreationResponse') {
-      return deserialize<_i4.AccountCreationResponse>(data['data']);
+      return deserialize<_i6.AccountCreationResponse>(data['data']);
     }
     if (dataClassName == 'AccountDevice') {
-      return deserialize<_i5.AccountDevice>(data['data']);
+      return deserialize<_i7.AccountDevice>(data['data']);
     }
     if (dataClassName == 'AnonAccountException') {
-      return deserialize<_i6.AnonAccountException>(data['data']);
+      return deserialize<_i8.AnonAccountException>(data['data']);
     }
     if (dataClassName == 'AuthenticationException') {
-      return deserialize<_i7.AuthenticationException>(data['data']);
+      return deserialize<_i9.AuthenticationException>(data['data']);
     }
     if (dataClassName == 'AuthenticationResult') {
-      return deserialize<_i8.AuthenticationResult>(data['data']);
+      return deserialize<_i10.AuthenticationResult>(data['data']);
     }
     if (dataClassName == 'ChallengeExists') {
-      return deserialize<_i9.ChallengeExists>(data['data']);
+      return deserialize<_i11.ChallengeExists>(data['data']);
     }
     if (dataClassName == 'DevicePairingEvent') {
-      return deserialize<_i10.DevicePairingEvent>(data['data']);
+      return deserialize<_i12.DevicePairingEvent>(data['data']);
     }
     if (dataClassName == 'DevicePairingInfo') {
-      return deserialize<_i11.DevicePairingInfo>(data['data']);
+      return deserialize<_i13.DevicePairingInfo>(data['data']);
     }
     if (dataClassName == 'EncryptedDataKeyResponse') {
-      return deserialize<_i12.EncryptedDataKeyResponse>(data['data']);
+      return deserialize<_i14.EncryptedDataKeyResponse>(data['data']);
     }
     if (dataClassName == 'PublicChallenge') {
-      return deserialize<_i13.PublicChallenge>(data['data']);
+      return deserialize<_i15.PublicChallenge>(data['data']);
     }
     if (dataClassName == 'PublicChallengeResponse') {
-      return deserialize<_i14.PublicChallengeResponse>(data['data']);
+      return deserialize<_i16.PublicChallengeResponse>(data['data']);
     }
     if (dataClassName == 'RateLimitCounter') {
-      return deserialize<_i15.RateLimitCounter>(data['data']);
+      return deserialize<_i17.RateLimitCounter>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
       return _i2.Protocol().deserializeByClassName(data);
+    }
+    if (dataClassName.startsWith('serverpod_auth_idp.')) {
+      data['className'] = dataClassName.substring(19);
+      return _i3.Protocol().deserializeByClassName(data);
+    }
+    if (dataClassName.startsWith('serverpod_auth_core.')) {
+      data['className'] = dataClassName.substring(20);
+      return _i4.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -549,18 +598,30 @@ class Protocol extends _i1.SerializationManagerServer {
   @override
   _i1.Table? getTableForType(Type t) {
     {
+      var table = _i3.Protocol().getTableForType(t);
+      if (table != null) {
+        return table;
+      }
+    }
+    {
+      var table = _i4.Protocol().getTableForType(t);
+      if (table != null) {
+        return table;
+      }
+    }
+    {
       var table = _i2.Protocol().getTableForType(t);
       if (table != null) {
         return table;
       }
     }
     switch (t) {
-      case _i3.AnonAccount:
-        return _i3.AnonAccount.t;
-      case _i5.AccountDevice:
-        return _i5.AccountDevice.t;
-      case _i13.PublicChallenge:
-        return _i13.PublicChallenge.t;
+      case _i5.AnonAccount:
+        return _i5.AnonAccount.t;
+      case _i7.AccountDevice:
+        return _i7.AccountDevice.t;
+      case _i15.PublicChallenge:
+        return _i15.PublicChallenge.t;
     }
     return null;
   }
@@ -582,7 +643,10 @@ class Protocol extends _i1.SerializationManagerServer {
       return null;
     }
     try {
-      return _i2.Protocol().mapRecordToJson(record);
+      return _i3.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i4.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

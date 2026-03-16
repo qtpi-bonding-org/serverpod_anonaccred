@@ -16,6 +16,7 @@ abstract class AnonAccount
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   AnonAccount._({
     this.id,
+    required this.accountUuid,
     required this.ultimateSigningPublicKeyHex,
     required this.encryptedDataKey,
     required this.ultimatePublicKey,
@@ -24,6 +25,7 @@ abstract class AnonAccount
 
   factory AnonAccount({
     int? id,
+    required _i1.UuidValue accountUuid,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
@@ -33,6 +35,9 @@ abstract class AnonAccount
   factory AnonAccount.fromJson(Map<String, dynamic> jsonSerialization) {
     return AnonAccount(
       id: jsonSerialization['id'] as int?,
+      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['accountUuid'],
+      ),
       ultimateSigningPublicKeyHex:
           jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
@@ -50,6 +55,8 @@ abstract class AnonAccount
   @override
   int? id;
 
+  _i1.UuidValue accountUuid;
+
   String ultimateSigningPublicKeyHex;
 
   String encryptedDataKey;
@@ -66,6 +73,7 @@ abstract class AnonAccount
   @_i1.useResult
   AnonAccount copyWith({
     int? id,
+    _i1.UuidValue? accountUuid,
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimatePublicKey,
@@ -76,6 +84,7 @@ abstract class AnonAccount
     return {
       '__className__': 'anonaccount.AnonAccount',
       if (id != null) 'id': id,
+      'accountUuid': accountUuid.toJson(),
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
@@ -88,6 +97,7 @@ abstract class AnonAccount
     return {
       '__className__': 'anonaccount.AnonAccount',
       if (id != null) 'id': id,
+      'accountUuid': accountUuid.toJson(),
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
@@ -130,12 +140,14 @@ class _Undefined {}
 class _AnonAccountImpl extends AnonAccount {
   _AnonAccountImpl({
     int? id,
+    required _i1.UuidValue accountUuid,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
     DateTime? createdAt,
   }) : super._(
          id: id,
+         accountUuid: accountUuid,
          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          ultimatePublicKey: ultimatePublicKey,
@@ -148,6 +160,7 @@ class _AnonAccountImpl extends AnonAccount {
   @override
   AnonAccount copyWith({
     Object? id = _Undefined,
+    _i1.UuidValue? accountUuid,
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimatePublicKey,
@@ -155,6 +168,7 @@ class _AnonAccountImpl extends AnonAccount {
   }) {
     return AnonAccount(
       id: id is int? ? id : this.id,
+      accountUuid: accountUuid ?? this.accountUuid,
       ultimateSigningPublicKeyHex:
           ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
@@ -166,6 +180,13 @@ class _AnonAccountImpl extends AnonAccount {
 
 class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
   AnonAccountUpdateTable(super.table);
+
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> accountUuid(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
+    table.accountUuid,
+    value,
+  );
 
   _i1.ColumnValue<String, String> ultimateSigningPublicKeyHex(String value) =>
       _i1.ColumnValue(
@@ -195,6 +216,10 @@ class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
 class AnonAccountTable extends _i1.Table<int?> {
   AnonAccountTable({super.tableRelation}) : super(tableName: 'anon_account') {
     updateTable = AnonAccountUpdateTable(this);
+    accountUuid = _i1.ColumnUuid(
+      'accountUuid',
+      this,
+    );
     ultimateSigningPublicKeyHex = _i1.ColumnString(
       'ultimateSigningPublicKeyHex',
       this,
@@ -216,6 +241,8 @@ class AnonAccountTable extends _i1.Table<int?> {
 
   late final AnonAccountUpdateTable updateTable;
 
+  late final _i1.ColumnUuid accountUuid;
+
   late final _i1.ColumnString ultimateSigningPublicKeyHex;
 
   late final _i1.ColumnString encryptedDataKey;
@@ -227,6 +254,7 @@ class AnonAccountTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
+    accountUuid,
     ultimateSigningPublicKeyHex,
     encryptedDataKey,
     ultimatePublicKey,
