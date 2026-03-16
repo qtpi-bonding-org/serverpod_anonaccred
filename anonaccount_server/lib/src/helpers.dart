@@ -8,28 +8,28 @@ import 'generated/protocol.dart';
 /// No complex abstractions, caching, or infrastructure
 class AnonAccountHelpers {
 
-  /// Resolve accountId from a device signing public key.
+  /// Resolve the account UUID from a device signing public key.
   ///
-  /// Looks up the device by its signing key and returns the associated accountId.
-  /// Used by endpoints that previously took accountId as a parameter.
-  static Future<int> resolveAccountId(
+  /// Looks up the device by its signing key and returns the associated accountUuid.
+  /// Used for JWT token management (issuance, revocation).
+  static Future<UuidValue> resolveAccountUuid(
     Session session,
-    String publicKey,
+    String identifier,
     String operation,
   ) async {
     final device = await AccountDevice.db.findFirstRow(
       session,
-      where: (t) => t.deviceSigningPublicKeyHex.equals(publicKey),
+      where: (t) => t.deviceSigningPublicKeyHex.equals(identifier),
     );
     if (device == null) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
         code: AnonAccountErrorCodes.authDeviceNotFound,
         message: 'Device not found for public key',
         operation: operation,
-        details: {'deviceSigningPublicKeyHex': publicKey},
+        details: {'deviceSigningPublicKeyHex': identifier},
       );
     }
-    return device.accountId;
+    return device.accountUuid;
   }
 
 
@@ -87,14 +87,14 @@ class AnonAccountHelpers {
   /// Require account to exist, throw if null
   static AnonAccount requireAccount(
     AnonAccount? account,
-    int accountId,
+    String identifier,
     String operation,
   ) => requireEntity(
     account,
     AnonAccountErrorCodes.authAccountNotFound,
     'Account not found',
     operation,
-    {'accountId': accountId.toString()},
+    {'identifier': identifier},
   );
 
   /// Require device to exist, throw if null
