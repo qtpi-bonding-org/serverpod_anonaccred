@@ -5,7 +5,7 @@ BEGIN;
 --
 CREATE TABLE "account_device" (
     "id" bigserial PRIMARY KEY,
-    "accountId" bigint NOT NULL,
+    "anonAccountId" uuid NOT NULL,
     "deviceSigningPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "label" text NOT NULL,
@@ -15,25 +15,26 @@ CREATE TABLE "account_device" (
 
 -- Indexes
 CREATE INDEX "auth_lookup_idx" ON "account_device" USING btree ("deviceSigningPublicKeyHex", "isRevoked");
+CREATE INDEX "account_devices_idx" ON "account_device" USING btree ("anonAccountId");
 
 --
 -- Class AccountEntitlement as table account_entitlement
 --
 CREATE TABLE "account_entitlement" (
     "id" bigserial PRIMARY KEY,
-    "accountId" bigint NOT NULL,
+    "accountUuid" uuid NOT NULL,
     "entitlementId" bigint NOT NULL,
     "balance" double precision NOT NULL
 );
 
 -- Indexes
-CREATE UNIQUE INDEX "account_entitlement_idx" ON "account_entitlement" USING btree ("accountId", "entitlementId");
+CREATE UNIQUE INDEX "account_entitlement_idx" ON "account_entitlement" USING btree ("accountUuid", "entitlementId");
 
 --
 -- Class AnonAccount as table anon_account
 --
 CREATE TABLE "anon_account" (
-    "id" bigserial PRIMARY KEY,
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "ultimateSigningPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "ultimatePublicKey" text NOT NULL,
@@ -48,7 +49,7 @@ CREATE UNIQUE INDEX "ultimate_key_idx" ON "anon_account" USING btree ("ultimateP
 --
 CREATE TABLE "consumption_log" (
     "id" bigserial PRIMARY KEY,
-    "accountId" bigint NOT NULL,
+    "accountUuid" uuid NOT NULL,
     "entitlementId" bigint NOT NULL,
     "amount" double precision NOT NULL,
     "reason" text NOT NULL,
@@ -56,7 +57,7 @@ CREATE TABLE "consumption_log" (
 );
 
 -- Indexes
-CREATE INDEX "account_idx" ON "consumption_log" USING btree ("accountId");
+CREATE INDEX "account_idx" ON "consumption_log" USING btree ("accountUuid");
 CREATE INDEX "entitlement_idx" ON "consumption_log" USING btree ("entitlementId");
 
 --
@@ -77,7 +78,7 @@ CREATE UNIQUE INDEX "tag_idx" ON "entitlement" USING btree ("tag");
 --
 CREATE TABLE "ephemeral_accreditation" (
     "id" bigserial PRIMARY KEY,
-    "accountId" bigint NOT NULL,
+    "accountUuid" uuid NOT NULL,
     "transactionTimestamp" timestamp without time zone NOT NULL
 );
 
@@ -356,20 +357,15 @@ CREATE INDEX "serverpod_session_log_isopen_idx" ON "serverpod_session_log" USING
 --
 ALTER TABLE ONLY "account_device"
     ADD CONSTRAINT "account_device_fk_0"
-    FOREIGN KEY("accountId")
+    FOREIGN KEY("anonAccountId")
     REFERENCES "anon_account"("id")
     ON DELETE CASCADE
     ON UPDATE NO ACTION;
 
 --
 -- Foreign relations for "account_entitlement" table
+-- (no FK to anon_account — cross-module, manual deletion)
 --
-ALTER TABLE ONLY "account_entitlement"
-    ADD CONSTRAINT "account_entitlement_fk_0"
-    FOREIGN KEY("accountId")
-    REFERENCES "anon_account"("id")
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION;
 ALTER TABLE ONLY "account_entitlement"
     ADD CONSTRAINT "account_entitlement_fk_1"
     FOREIGN KEY("entitlementId")
@@ -379,28 +375,13 @@ ALTER TABLE ONLY "account_entitlement"
 
 --
 -- Foreign relations for "consumption_log" table
+-- (no FK to anon_account — cross-module, manual deletion)
 --
-ALTER TABLE ONLY "consumption_log"
-    ADD CONSTRAINT "consumption_log_fk_0"
-    FOREIGN KEY("accountId")
-    REFERENCES "anon_account"("id")
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION;
 ALTER TABLE ONLY "consumption_log"
     ADD CONSTRAINT "consumption_log_fk_1"
     FOREIGN KEY("entitlementId")
     REFERENCES "entitlement"("id")
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-
---
--- Foreign relations for "ephemeral_accreditation" table
---
-ALTER TABLE ONLY "ephemeral_accreditation"
-    ADD CONSTRAINT "ephemeral_accreditation_fk_0"
-    FOREIGN KEY("accountId")
-    REFERENCES "anon_account"("id")
-    ON DELETE CASCADE
     ON UPDATE NO ACTION;
 
 --

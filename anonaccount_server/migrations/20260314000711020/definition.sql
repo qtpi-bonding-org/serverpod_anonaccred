@@ -5,7 +5,7 @@ BEGIN;
 --
 CREATE TABLE "account_device" (
     "id" bigserial PRIMARY KEY,
-    "accountId" bigint NOT NULL,
+    "anonAccountId" uuid NOT NULL,
     "deviceSigningPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "label" text NOT NULL,
@@ -15,12 +15,13 @@ CREATE TABLE "account_device" (
 
 -- Indexes
 CREATE INDEX "auth_lookup_idx" ON "account_device" USING btree ("deviceSigningPublicKeyHex", "isRevoked");
+CREATE INDEX "account_devices_idx" ON "account_device" USING btree ("anonAccountId");
 
 --
 -- Class AnonAccount as table anon_account
 --
 CREATE TABLE "anon_account" (
-    "id" bigserial PRIMARY KEY,
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "ultimateSigningPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "ultimatePublicKey" text NOT NULL,
@@ -256,7 +257,7 @@ CREATE INDEX "serverpod_session_log_isopen_idx" ON "serverpod_session_log" USING
 --
 ALTER TABLE ONLY "account_device"
     ADD CONSTRAINT "account_device_fk_0"
-    FOREIGN KEY("accountId")
+    FOREIGN KEY("anonAccountId")
     REFERENCES "anon_account"("id")
     ON DELETE CASCADE
     ON UPDATE NO ACTION;
