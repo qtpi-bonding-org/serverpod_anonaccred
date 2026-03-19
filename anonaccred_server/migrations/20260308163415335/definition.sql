@@ -367,7 +367,7 @@ ALTER TABLE ONLY "account_device"
 -- (no FK to anon_account — cross-module, manual deletion)
 --
 ALTER TABLE ONLY "account_entitlement"
-    ADD CONSTRAINT "account_entitlement_fk_1"
+    ADD CONSTRAINT "account_entitlement_fk_0"
     FOREIGN KEY("entitlementId")
     REFERENCES "entitlement"("id")
     ON DELETE NO ACTION
@@ -378,7 +378,7 @@ ALTER TABLE ONLY "account_entitlement"
 -- (no FK to anon_account — cross-module, manual deletion)
 --
 ALTER TABLE ONLY "consumption_log"
-    ADD CONSTRAINT "consumption_log_fk_1"
+    ADD CONSTRAINT "consumption_log_fk_0"
     FOREIGN KEY("entitlementId")
     REFERENCES "entitlement"("id")
     ON DELETE NO ACTION
