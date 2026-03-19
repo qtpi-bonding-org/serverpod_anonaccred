@@ -28,10 +28,11 @@ import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
 ///
 /// Extends [SignedPowEndpoint] to inherit `getChallenge()` and `verifySignedPow()`.
 ///
-/// Provides account creation and recovery with:
+/// Provides account creation with:
 /// - Hashcash proof-of-work for spam prevention
 /// - ECDSA P-256 signature verification
 /// - Redis-based rate limiting by public key
+/// - Atomic first-device registration (account + device in one call)
 ///
 /// Server-only query methods (getAccountById, getAccountByPublicKey) live
 /// in [AccountQueryService] — not exposed to clients.
@@ -42,7 +43,11 @@ class EndpointAccount extends EndpointSignedPow {
   @override
   String get name => 'anonaccount.account';
 
-  /// Create new anonymous account with PoW verification.
+  /// Create new anonymous account with first device, atomically.
+  ///
+  /// Creates the account and registers the first device in a single call.
+  /// An account without a device is useless, so this ensures they're always
+  /// created together. Additional devices use [DeviceEndpoint.registerDevice].
   ///
   /// Returns [AccountCreationResponse] — no internal int id exposed to client.
   _i2.Future<_i3.AccountCreationResponse> createAccount({
@@ -53,6 +58,10 @@ class EndpointAccount extends EndpointSignedPow {
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
+    required String deviceKeyAttestation,
+    required String deviceSigningPublicKeyHex,
+    required String deviceEncryptedDataKey,
+    required String deviceLabel,
   }) => caller.callServerEndpoint<_i3.AccountCreationResponse>(
     'anonaccount.account',
     'createAccount',
@@ -64,6 +73,10 @@ class EndpointAccount extends EndpointSignedPow {
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
+      'deviceKeyAttestation': deviceKeyAttestation,
+      'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+      'deviceEncryptedDataKey': deviceEncryptedDataKey,
+      'deviceLabel': deviceLabel,
     },
   );
 

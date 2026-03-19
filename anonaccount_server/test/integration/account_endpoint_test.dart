@@ -43,6 +43,10 @@ void main() {
           'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
           'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
+      // Generate device keypair and attestation
+      final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+      final deviceAttestation = SigningTestHelper.signWith(devicePubKey, privKey);
+
       final account = await endpoints.account.createAccount(
         sessionBuilder,
         challenge: challengeResponse.challenge,
@@ -52,6 +56,10 @@ void main() {
         ultimateSigningPublicKeyHex: pubKey,
         encryptedDataKey: 'test-encrypted-data-key',
         ultimatePublicKey: ultimatePublicKey,
+        deviceKeyAttestation: deviceAttestation,
+        deviceSigningPublicKeyHex: devicePubKey,
+        deviceEncryptedDataKey: 'test-device-data-key',
+        deviceLabel: 'test-device',
       );
 
       expect(
@@ -86,6 +94,9 @@ void main() {
           '${challengeResponse.challenge}:${AccountMethods.createAccount}:$pubKey';
       final signature = SigningTestHelper.signWith(payload, privKey);
 
+      final (devicePrivKey2, devicePubKey2) = SigningTestHelper.generateKeypair();
+      final deviceAttestation2 = SigningTestHelper.signWith(devicePubKey2, privKey);
+
       expect(
         () => endpoints.account.createAccount(
           sessionBuilder,
@@ -98,6 +109,10 @@ void main() {
           ultimatePublicKey:
               'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
               'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+          deviceKeyAttestation: deviceAttestation2,
+          deviceSigningPublicKeyHex: devicePubKey2,
+          deviceEncryptedDataKey: 'test-device-data-key-2',
+          deviceLabel: 'test-device-2',
         ),
         throwsA(isA<AuthenticationException>()),
       );

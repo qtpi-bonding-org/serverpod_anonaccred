@@ -38,6 +38,10 @@ void main() {
             '${challengeResponse.challenge}:${AccountMethods.createAccount}:$pubKey';
         final signature = SigningTestHelper.signWith(payload, privKey);
 
+        // Generate first device keypair and attestation
+        final (_, firstDevicePubKey) = SigningTestHelper.generateKeypair();
+        final firstDeviceAttestation = SigningTestHelper.signWith(firstDevicePubKey, privKey);
+
         final accountResponse = await endpoints.account.createAccount(
           sessionBuilder,
           challenge: challengeResponse.challenge,
@@ -47,6 +51,10 @@ void main() {
           ultimateSigningPublicKeyHex: pubKey,
           encryptedDataKey: encryptedDataKey,
           ultimatePublicKey: ultimatePublicKey,
+          deviceKeyAttestation: firstDeviceAttestation,
+          deviceSigningPublicKeyHex: firstDevicePubKey,
+          deviceEncryptedDataKey: 'test-device-data-key',
+          deviceLabel: 'test-device',
         );
 
         expect(

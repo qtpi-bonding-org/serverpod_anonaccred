@@ -67,23 +67,12 @@ class DeviceEndpoint extends SignedPowEndpoint {
         payload,
       );
 
-      // Validate input parameters
+      // Validate ultimate key and resolve account
       AnonAccountHelpers.validatePublicKey(
         ultimateSigningPublicKeyHex,
         'registerDevice',
       );
-      AnonAccountHelpers.validatePublicKey(
-        deviceSigningPublicKeyHex,
-        'registerDevice',
-      );
-      AnonAccountHelpers.validateNonEmpty(
-        encryptedDataKey,
-        'encryptedDataKey',
-        'registerDevice',
-      );
-      AnonAccountHelpers.validateNonEmpty(label, 'label', 'registerDevice');
 
-      // Resolve account from ultimate signing public key
       final account = await AnonAccount.db.findFirstRow(
         session,
         where: (t) => t.ultimateSigningPublicKeyHex
@@ -100,37 +89,15 @@ class DeviceEndpoint extends SignedPowEndpoint {
         );
       }
 
-      // Check for duplicate device signing public key
-      final existingDevice = await AccountDevice.db.findFirstRow(
+      // Validate + duplicate check + insert via shared helper
+      final insertedDevice = await AnonAccountHelpers.insertDevice(
         session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(deviceSigningPublicKeyHex),
-      );
-
-      if (existingDevice != null) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authDuplicateDevice,
-          message: 'Device signing public key already registered',
-          operation: 'registerDevice',
-          details: {
-            'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
-            'existingDeviceId': existingDevice.id.toString(),
-          },
-        );
-      }
-
-      // Create new device
-      final device = AccountDevice(
-        anonAccountId: account.id!,
+        accountId: account.id!,
         deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         label: label,
-        lastActive: AnonAccountHelpers.roundToMinute(DateTime.now()),
-        isRevoked: false,
+        operation: 'registerDevice',
       );
-
-      final insertedDevice =
-          await AccountDevice.db.insertRow(session, device);
 
       session.log(
         'DeviceEndpoint: Device registered successfully with ID: ${insertedDevice.id}',

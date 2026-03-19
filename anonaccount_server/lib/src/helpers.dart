@@ -180,6 +180,53 @@ class AnonAccountHelpers {
   static DateTime roundToMinute(DateTime dt) =>
       DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
 
+  // === DEVICE REGISTRATION ===
+
+  /// Register a device for an account (validate + duplicate check + insert).
+  ///
+  /// Shared by [AccountEndpoint.createAccount] (first device) and
+  /// [DeviceEndpoint.registerDevice] (additional devices).
+  /// Callers are responsible for PoW verification and attestation checks.
+  static Future<AccountDevice> insertDevice(
+    Session session, {
+    required UuidValue accountId,
+    required String deviceSigningPublicKeyHex,
+    required String encryptedDataKey,
+    required String label,
+    required String operation,
+  }) async {
+    validatePublicKey(deviceSigningPublicKeyHex, operation);
+    validateNonEmpty(encryptedDataKey, 'encryptedDataKey', operation);
+    validateNonEmpty(label, 'label', operation);
+
+    final existing = await AccountDevice.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.deviceSigningPublicKeyHex.equals(deviceSigningPublicKeyHex),
+    );
+    if (existing != null) {
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.authDuplicateDevice,
+        message: 'Device signing public key already registered',
+        operation: operation,
+        details: {
+          'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+        },
+      );
+    }
+
+    final device = AccountDevice(
+      anonAccountId: accountId,
+      deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+      encryptedDataKey: encryptedDataKey,
+      label: label,
+      lastActive: roundToMinute(DateTime.now()),
+      isRevoked: false,
+    );
+
+    return await AccountDevice.db.insertRow(session, device);
+  }
+
   /// Require active device (exists and not revoked)
   static AccountDevice requireActiveDevice(
     AccountDevice? device,

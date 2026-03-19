@@ -46,6 +46,10 @@ void main() {
             ultimateSigningPublicKeyHex: publicKey,
             encryptedDataKey: 'test_encrypted_data',
             ultimatePublicKey: ultimatePublicKey,
+            deviceKeyAttestation: 'dummy-attestation',
+            deviceSigningPublicKeyHex: publicKey,
+            deviceEncryptedDataKey: 'dummy-device-key',
+            deviceLabel: 'dummy-device',
           ),
           throwsA(isA<AuthenticationException>()),
         );

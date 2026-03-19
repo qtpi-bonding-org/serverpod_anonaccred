@@ -192,6 +192,10 @@ class _AccountEndpoint {
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
+    required String deviceKeyAttestation,
+    required String deviceSigningPublicKeyHex,
+    required String deviceEncryptedDataKey,
+    required String deviceLabel,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -212,6 +216,10 @@ class _AccountEndpoint {
             'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
             'encryptedDataKey': encryptedDataKey,
             'ultimatePublicKey': ultimatePublicKey,
+            'deviceKeyAttestation': deviceKeyAttestation,
+            'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+            'deviceEncryptedDataKey': deviceEncryptedDataKey,
+            'deviceLabel': deviceLabel,
           }),
           serializationManager: _serializationManager,
         );

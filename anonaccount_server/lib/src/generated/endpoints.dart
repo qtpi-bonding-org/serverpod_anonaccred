@@ -98,6 +98,26 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'deviceKeyAttestation': _i1.ParameterDescription(
+              name: 'deviceKeyAttestation',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'deviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deviceEncryptedDataKey': _i1.ParameterDescription(
+              name: 'deviceEncryptedDataKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deviceLabel': _i1.ParameterDescription(
+              name: 'deviceLabel',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -114,6 +134,11 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['ultimateSigningPublicKeyHex'],
                     encryptedDataKey: params['encryptedDataKey'],
                     ultimatePublicKey: params['ultimatePublicKey'],
+                    deviceKeyAttestation: params['deviceKeyAttestation'],
+                    deviceSigningPublicKeyHex:
+                        params['deviceSigningPublicKeyHex'],
+                    deviceEncryptedDataKey: params['deviceEncryptedDataKey'],
+                    deviceLabel: params['deviceLabel'],
                   ),
         ),
         'getChallenge': _i1.MethodConnector(

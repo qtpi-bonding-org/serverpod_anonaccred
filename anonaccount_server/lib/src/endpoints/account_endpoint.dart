@@ -1,6 +1,7 @@
 import '../pow_methods.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
+import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
@@ -10,10 +11,11 @@ import 'signed_pow_endpoint.dart';
 ///
 /// Extends [SignedPowEndpoint] to inherit `getChallenge()` and `verifySignedPow()`.
 ///
-/// Provides account creation and recovery with:
+/// Provides account creation with:
 /// - Hashcash proof-of-work for spam prevention
 /// - ECDSA P-256 signature verification
 /// - Redis-based rate limiting by public key
+/// - Atomic first-device registration (account + device in one call)
 ///
 /// Server-only query methods (getAccountById, getAccountByPublicKey) live
 /// in [AccountQueryService] — not exposed to clients.
@@ -21,7 +23,11 @@ class AccountEndpoint extends SignedPowEndpoint {
   @override
   String get endpointType => 'account';
 
-  /// Create new anonymous account with PoW verification.
+  /// Create new anonymous account with first device, atomically.
+  ///
+  /// Creates the account and registers the first device in a single call.
+  /// An account without a device is useless, so this ensures they're always
+  /// created together. Additional devices use [DeviceEndpoint.registerDevice].
   ///
   /// Returns [AccountCreationResponse] — no internal int id exposed to client.
   Future<AccountCreationResponse> createAccount(
@@ -33,6 +39,10 @@ class AccountEndpoint extends SignedPowEndpoint {
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
+    required String deviceKeyAttestation,
+    required String deviceSigningPublicKeyHex,
+    required String deviceEncryptedDataKey,
+    required String deviceLabel,
   }) async {
     try {
       final payload =
@@ -47,6 +57,7 @@ class AccountEndpoint extends SignedPowEndpoint {
         payload,
       );
 
+      // Validate account params
       AnonAccountHelpers.validatePublicKey(
         ultimateSigningPublicKeyHex,
         'createAccount',
@@ -61,6 +72,22 @@ class AccountEndpoint extends SignedPowEndpoint {
         'createAccount',
       );
 
+      // Verify attestation: ultimate key authorized this device key
+      final attestationValid = await CryptoUtils.verifySignature(
+        message: deviceSigningPublicKeyHex,
+        signature: deviceKeyAttestation,
+        publicKey: ultimateSigningPublicKeyHex,
+      );
+      if (!attestationValid) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.cryptoInvalidSignature,
+          message:
+              'Invalid device key attestation — ultimate key did not authorize this device',
+          operation: 'createAccount',
+        );
+      }
+
+      // Check for duplicate account
       final existingByDevice = await AnonAccount.db.findFirstRow(
         session,
         where: (t) => t.ultimateSigningPublicKeyHex
@@ -106,8 +133,18 @@ class AccountEndpoint extends SignedPowEndpoint {
 
       await AnonAccount.db.insertRow(session, newAccount);
 
+      // Register first device atomically
+      await AnonAccountHelpers.insertDevice(
+        session,
+        accountId: authUser.id,
+        deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+        encryptedDataKey: deviceEncryptedDataKey,
+        label: deviceLabel,
+        operation: 'createAccount',
+      );
+
       session.log(
-        'AccountEndpoint: Account created successfully',
+        'AccountEndpoint: Account + first device created successfully',
         level: LogLevel.info,
       );
       return AccountCreationResponse(
@@ -130,5 +167,4 @@ class AccountEndpoint extends SignedPowEndpoint {
       );
     }
   }
-
 }
