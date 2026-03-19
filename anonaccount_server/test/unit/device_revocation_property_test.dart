@@ -34,7 +34,7 @@ void main() {
         );
 
         // Register a device with PoW
-        final (_, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'device_encrypted_data_key';
         const deviceLabel = 'Test Device for Revocation';
 
@@ -47,13 +47,16 @@ void main() {
         final regPayload =
             '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
         final regSignature =
-            SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+            SigningTestHelper.signWith(regPayload, devicePrivKey);
+        final deviceKeyAttestation =
+            SigningTestHelper.signWith(devicePubKey, ultimatePrivKey);
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
           challenge: regChallenge.challenge,
           proofOfWork: regPow,
           signature: regSignature,
+          deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex:
               testAccount.ultimateSigningPublicKeyHex,
           deviceSigningPublicKeyHex: devicePubKey,
@@ -92,7 +95,7 @@ void main() {
         );
 
         // Verify device registration still works (PoW-protected, not session-auth)
-        final (_, devicePubKey2) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey2, devicePubKey2) = SigningTestHelper.generateKeypair();
 
         final regChallenge2 =
             await endpoints.entrypoint.getChallenge(sessionBuilder);
@@ -103,13 +106,16 @@ void main() {
         final regPayload2 =
             '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$devicePubKey2';
         final regSignature2 =
-            SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
+            SigningTestHelper.signWith(regPayload2, devicePrivKey2);
+        final deviceKeyAttestation2 =
+            SigningTestHelper.signWith(devicePubKey2, ultimatePrivKey);
 
         final device2 = await endpoints.device.registerDevice(
           sessionBuilder,
           challenge: regChallenge2.challenge,
           proofOfWork: regPow2,
           signature: regSignature2,
+          deviceKeyAttestation: deviceKeyAttestation2,
           ultimateSigningPublicKeyHex:
               testAccount.ultimateSigningPublicKeyHex,
           deviceSigningPublicKeyHex: devicePubKey2,

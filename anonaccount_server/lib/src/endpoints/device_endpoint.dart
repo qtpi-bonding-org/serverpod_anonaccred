@@ -2,6 +2,7 @@ import '../pow_methods.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import '../crypto_auth.dart';
+import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
@@ -31,13 +32,29 @@ class DeviceEndpoint extends SignedPowEndpoint {
     required String challenge,
     required String proofOfWork,
     required String signature,
+    required String deviceKeyAttestation,
     required String ultimateSigningPublicKeyHex,
     required String deviceSigningPublicKeyHex,
     required String encryptedDataKey,
     required String label,
   }) async {
     try {
-      // Verify PoW + signature + rate limit (ultimate key authorizes device registration)
+      // 1. Verify attestation: ultimate key authorized this device key
+      final attestationValid = await CryptoUtils.verifySignature(
+        message: deviceSigningPublicKeyHex,
+        signature: deviceKeyAttestation,
+        publicKey: ultimateSigningPublicKeyHex,
+      );
+      if (!attestationValid) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.cryptoInvalidSignature,
+          message:
+              'Invalid device key attestation — ultimate key did not authorize this device',
+          operation: 'registerDevice',
+        );
+      }
+
+      // 2. Verify PoW + signature + rate limit (device key proves liveness)
       final payload =
           '$challenge:${DeviceMethods.registerDevice}:$deviceSigningPublicKeyHex';
 
@@ -45,7 +62,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
         session,
         challenge,
         proofOfWork,
-        ultimateSigningPublicKeyHex,
+        deviceSigningPublicKeyHex,
         signature,
         payload,
       );

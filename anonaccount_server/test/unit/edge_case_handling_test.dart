@@ -32,6 +32,7 @@ void main() {
         );
         final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$emptyDeviceKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final deviceKeyAttestation = SigningTestHelper.signWith(emptyDeviceKey, ultimatePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -39,6 +40,7 @@ void main() {
             challenge: regChallenge.challenge,
             proofOfWork: regPow,
             signature: regSignature,
+            deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
             deviceSigningPublicKeyHex: emptyDeviceKey,
             encryptedDataKey: 'encrypted_data_key',
@@ -68,6 +70,7 @@ void main() {
         );
         final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$invalidDeviceKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final deviceKeyAttestation = SigningTestHelper.signWith(invalidDeviceKey, ultimatePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -75,6 +78,7 @@ void main() {
             challenge: regChallenge.challenge,
             proofOfWork: regPow,
             signature: regSignature,
+            deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
             deviceSigningPublicKeyHex: invalidDeviceKey,
             encryptedDataKey: 'encrypted_data_key',

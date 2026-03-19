@@ -32,7 +32,7 @@ abstract class SignedPowEndpoint extends PowEndpoint {
   ///
   /// Override in subclasses to set custom rate limits.
   /// Defaults to 10.
-  int get rateLimitPerHour => 10;
+  int get rateLimitPerHour => 30;
 
   /// Verify PoW + ECDSA signature + rate limit.
   ///

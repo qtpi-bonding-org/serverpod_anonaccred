@@ -121,6 +121,8 @@ void main() {
             '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$emptyDeviceKey';
         final regSignature =
             SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final deviceKeyAttestation =
+            SigningTestHelper.signWith(emptyDeviceKey, ultimatePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -128,6 +130,7 @@ void main() {
             challenge: regChallenge.challenge,
             proofOfWork: regPow,
             signature: regSignature,
+            deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex:
                 testAccount.ultimateSigningPublicKeyHex,
             deviceSigningPublicKeyHex: emptyDeviceKey,
@@ -139,9 +142,8 @@ void main() {
               isA<AuthenticationException>(),
               predicate<AuthenticationException>(
                 (e) =>
-                    e.toString().contains('AUTH_MISSING_KEY') &&
-                    e.toString().contains(
-                        'publicKey is required for registerDevice'),
+                    e.toString().contains('CRYPTO_INVALID_MESSAGE') &&
+                    e.toString().contains('Message cannot be empty'),
               ),
             ),
           ),
@@ -170,6 +172,8 @@ void main() {
             '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$invalidDeviceKey';
         final regSignature =
             SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final deviceKeyAttestation =
+            SigningTestHelper.signWith(invalidDeviceKey, ultimatePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -177,6 +181,7 @@ void main() {
             challenge: regChallenge.challenge,
             proofOfWork: regPow,
             signature: regSignature,
+            deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex:
                 testAccount.ultimateSigningPublicKeyHex,
             deviceSigningPublicKeyHex: invalidDeviceKey,
@@ -189,8 +194,7 @@ void main() {
               predicate<AuthenticationException>(
                 (e) =>
                     e.toString().contains('CRYPTO_INVALID_PUBLIC_KEY') &&
-                    e.toString().contains(
-                        'Invalid ECDSA P-256 public key format'),
+                    e.toString().contains('Invalid public key format'),
               ),
             ),
           ),
@@ -207,7 +211,7 @@ void main() {
           ultimateSigningPublicKeyHex: ultimatePubKey,
         );
 
-        final (_, validDevicePubKey) = SigningTestHelper.generateKeypair();
+        final (validDevicePrivKey, validDevicePubKey) = SigningTestHelper.generateKeypair();
 
         // Register first time — payload must use device key (matches endpoint)
         final regChallenge1 =
@@ -219,13 +223,16 @@ void main() {
         final regPayload1 =
             '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$validDevicePubKey';
         final regSignature1 =
-            SigningTestHelper.signWith(regPayload1, ultimatePrivKey);
+            SigningTestHelper.signWith(regPayload1, validDevicePrivKey);
+        final deviceKeyAttestation1 =
+            SigningTestHelper.signWith(validDevicePubKey, ultimatePrivKey);
 
         await endpoints.device.registerDevice(
           sessionBuilder,
           challenge: regChallenge1.challenge,
           proofOfWork: regPow1,
           signature: regSignature1,
+          deviceKeyAttestation: deviceKeyAttestation1,
           ultimateSigningPublicKeyHex:
               testAccount.ultimateSigningPublicKeyHex,
           deviceSigningPublicKeyHex: validDevicePubKey,
@@ -243,7 +250,9 @@ void main() {
         final regPayload2 =
             '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$validDevicePubKey';
         final regSignature2 =
-            SigningTestHelper.signWith(regPayload2, ultimatePrivKey);
+            SigningTestHelper.signWith(regPayload2, validDevicePrivKey);
+        final deviceKeyAttestation2 =
+            SigningTestHelper.signWith(validDevicePubKey, ultimatePrivKey);
 
         expect(
           () => endpoints.device.registerDevice(
@@ -251,6 +260,7 @@ void main() {
             challenge: regChallenge2.challenge,
             proofOfWork: regPow2,
             signature: regSignature2,
+            deviceKeyAttestation: deviceKeyAttestation2,
             ultimateSigningPublicKeyHex:
                 testAccount.ultimateSigningPublicKeyHex,
             deviceSigningPublicKeyHex: validDevicePubKey,
