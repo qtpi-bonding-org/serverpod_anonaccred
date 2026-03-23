@@ -73,13 +73,35 @@ class AppStoreServerClient {
   /// - [PaymentException] with code PAYMENT_VALIDATION_FAILED if transaction is invalid
   /// - [PaymentException] with code CONFIGURATION_MISSING if API configuration is invalid
   /// - [AnonAccountException] for other API errors
+  /// Get all transactions for a given transaction ID, paginating through
+  /// Apple's history API until all pages are fetched.
+  ///
+  /// Returns a [HistoryResponse] with the complete list of signed transactions
+  /// across all pages.
   Future<HistoryResponse> getTransactionInfo(
     String transactionId,
   ) async {
     try {
-      // The SDK doesn't have a direct getTransactionInfo method
-      // We use getTransactionHistory with the transaction ID as the original transaction ID
-      return await _api.getTransactionHistory(transactionId);
+      var response = await _api.getTransactionHistory(transactionId);
+      final allTransactions = List<String>.from(response.signedTransactions);
+
+      // Paginate through all remaining pages
+      while (response.hasMore) {
+        response = await _api.getTransactionHistory(
+          transactionId,
+          revision: response.revision,
+        );
+        allTransactions.addAll(response.signedTransactions);
+      }
+
+      return HistoryResponse(
+        response.environment,
+        response.appAppleId,
+        response.bundleId,
+        false,
+        response.revision,
+        allTransactions,
+      );
     } on ApiException catch (e) {
       _handleApiException(e, 'getTransactionInfo', {'transactionId': transactionId});
       rethrow;
