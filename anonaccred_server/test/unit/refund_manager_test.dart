@@ -49,6 +49,7 @@ Future<_SeedResult> _seedBridgeChain(
       tag: entitlementTag,
       name: entitlementTag,
       type: EntitlementType.consumable,
+      serverValidated: true,
     ),
   );
 

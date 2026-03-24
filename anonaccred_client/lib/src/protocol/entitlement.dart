@@ -19,6 +19,7 @@ abstract class Entitlement implements _i1.SerializableModel {
     required this.tag,
     required this.name,
     required this.type,
+    required this.serverValidated,
   });
 
   factory Entitlement({
@@ -26,6 +27,7 @@ abstract class Entitlement implements _i1.SerializableModel {
     required String tag,
     required String name,
     required _i2.EntitlementType type,
+    required bool serverValidated,
   }) = _EntitlementImpl;
 
   factory Entitlement.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -34,6 +36,9 @@ abstract class Entitlement implements _i1.SerializableModel {
       tag: jsonSerialization['tag'] as String,
       name: jsonSerialization['name'] as String,
       type: _i2.EntitlementType.fromJson((jsonSerialization['type'] as String)),
+      serverValidated: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['serverValidated'],
+      ),
     );
   }
 
@@ -48,6 +53,8 @@ abstract class Entitlement implements _i1.SerializableModel {
 
   _i2.EntitlementType type;
 
+  bool serverValidated;
+
   /// Returns a shallow copy of this [Entitlement]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -56,6 +63,7 @@ abstract class Entitlement implements _i1.SerializableModel {
     String? tag,
     String? name,
     _i2.EntitlementType? type,
+    bool? serverValidated,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -65,6 +73,7 @@ abstract class Entitlement implements _i1.SerializableModel {
       'tag': tag,
       'name': name,
       'type': type.toJson(),
+      'serverValidated': serverValidated,
     };
   }
 
@@ -82,11 +91,13 @@ class _EntitlementImpl extends Entitlement {
     required String tag,
     required String name,
     required _i2.EntitlementType type,
+    required bool serverValidated,
   }) : super._(
          id: id,
          tag: tag,
          name: name,
          type: type,
+         serverValidated: serverValidated,
        );
 
   /// Returns a shallow copy of this [Entitlement]
@@ -98,12 +109,14 @@ class _EntitlementImpl extends Entitlement {
     String? tag,
     String? name,
     _i2.EntitlementType? type,
+    bool? serverValidated,
   }) {
     return Entitlement(
       id: id is int? ? id : this.id,
       tag: tag ?? this.tag,
       name: name ?? this.name,
       type: type ?? this.type,
+      serverValidated: serverValidated ?? this.serverValidated,
     );
   }
 }

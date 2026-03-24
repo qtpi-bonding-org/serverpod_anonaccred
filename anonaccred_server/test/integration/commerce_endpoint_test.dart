@@ -134,6 +134,7 @@ void main() {
               name: 'API Calls',
               tag: 'api_calls',
               type: EntitlementType.consumable,
+              serverValidated: true,
             ),
           );
         }

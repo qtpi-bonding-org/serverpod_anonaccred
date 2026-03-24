@@ -45,6 +45,7 @@ void main() {
               tag: tag,
               name: 'Test $tag',
               type: EntitlementType.consumable,
+              serverValidated: true,
             ),
           );
           final entitlementId = createdEntitlement.id!;
@@ -143,6 +144,7 @@ void main() {
               tag: secondTag,
               name: 'Test $secondTag',
               type: EntitlementType.subscription,
+              serverValidated: true,
             ),
           );
           final secondEntId = secondEnt.id!;
@@ -215,6 +217,7 @@ void main() {
           tag: tag,
           name: 'Test $tag',
           type: EntitlementType.consumable,
+          serverValidated: true,
         ),
       );
 
@@ -305,6 +308,7 @@ void main() {
                 tag: tag,
                 name: 'Test $tag',
                 type: EntitlementType.consumable,
+                serverValidated: true,
               ),
             );
             ids.add(createdEnt.id!);

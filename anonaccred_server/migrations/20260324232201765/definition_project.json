@@ -4,119 +4,6 @@
   "tables": [
     {
       "__className__": "serverpod.TableDefinition",
-      "name": "account_device",
-      "dartName": "AccountDevice",
-      "module": "anonaccred",
-      "schema": "public",
-      "columns": [
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "id",
-          "columnType": 6,
-          "isNullable": false,
-          "columnDefault": "nextval('account_device_id_seq'::regclass)",
-          "dartType": "int?"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
-          "isNullable": false,
-          "dartType": "int"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "deviceSigningPublicKeyHex",
-          "columnType": 0,
-          "isNullable": false,
-          "dartType": "String"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "encryptedDataKey",
-          "columnType": 0,
-          "isNullable": false,
-          "dartType": "String"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "label",
-          "columnType": 0,
-          "isNullable": false,
-          "dartType": "String"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "lastActive",
-          "columnType": 4,
-          "isNullable": false,
-          "columnDefault": "CURRENT_TIMESTAMP",
-          "dartType": "DateTime"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "isRevoked",
-          "columnType": 1,
-          "isNullable": false,
-          "columnDefault": "false",
-          "dartType": "bool"
-        }
-      ],
-      "foreignKeys": [
-        {
-          "__className__": "serverpod.ForeignKeyDefinition",
-          "constraintName": "account_device_fk_0",
-          "columns": [
-            "accountId"
-          ],
-          "referenceTable": "anon_account",
-          "referenceTableSchema": "public",
-          "referenceColumns": [
-            "id"
-          ],
-          "onUpdate": 3,
-          "onDelete": 4
-        }
-      ],
-      "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "account_device_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "auth_lookup_idx",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "deviceSigningPublicKeyHex"
-            },
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "isRevoked"
-            }
-          ],
-          "type": "btree",
-          "isUnique": false,
-          "isPrimary": false
-        }
-      ],
-      "managed": true
-    },
-    {
-      "__className__": "serverpod.TableDefinition",
       "name": "account_entitlement",
       "dartName": "AccountEntitlement",
       "module": "anonaccred",
@@ -132,10 +19,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 7,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "UuidValue"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -156,20 +43,6 @@
         {
           "__className__": "serverpod.ForeignKeyDefinition",
           "constraintName": "account_entitlement_fk_0",
-          "columns": [
-            "accountId"
-          ],
-          "referenceTable": "anon_account",
-          "referenceTableSchema": "public",
-          "referenceColumns": [
-            "id"
-          ],
-          "onUpdate": 3,
-          "onDelete": 4
-        },
-        {
-          "__className__": "serverpod.ForeignKeyDefinition",
-          "constraintName": "account_entitlement_fk_1",
           "columns": [
             "entitlementId"
           ],
@@ -204,90 +77,12 @@
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "accountId"
+              "definition": "accountUuid"
             },
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
               "definition": "entitlementId"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": false
-        }
-      ],
-      "managed": true
-    },
-    {
-      "__className__": "serverpod.TableDefinition",
-      "name": "anon_account",
-      "dartName": "AnonAccount",
-      "module": "anonaccred",
-      "schema": "public",
-      "columns": [
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "id",
-          "columnType": 6,
-          "isNullable": false,
-          "columnDefault": "nextval('anon_account_id_seq'::regclass)",
-          "dartType": "int?"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "ultimateSigningPublicKeyHex",
-          "columnType": 0,
-          "isNullable": false,
-          "dartType": "String"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "encryptedDataKey",
-          "columnType": 0,
-          "isNullable": false,
-          "dartType": "String"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "ultimatePublicKey",
-          "columnType": 0,
-          "isNullable": false,
-          "dartType": "String"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "createdAt",
-          "columnType": 4,
-          "isNullable": false,
-          "columnDefault": "CURRENT_TIMESTAMP",
-          "dartType": "DateTime"
-        }
-      ],
-      "foreignKeys": [],
-      "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "anon_account_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "ultimate_key_idx",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "ultimatePublicKey"
             }
           ],
           "type": "btree",
@@ -314,10 +109,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 7,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "UuidValue"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -354,20 +149,6 @@
           "__className__": "serverpod.ForeignKeyDefinition",
           "constraintName": "consumption_log_fk_0",
           "columns": [
-            "accountId"
-          ],
-          "referenceTable": "anon_account",
-          "referenceTableSchema": "public",
-          "referenceColumns": [
-            "id"
-          ],
-          "onUpdate": 3,
-          "onDelete": 4
-        },
-        {
-          "__className__": "serverpod.ForeignKeyDefinition",
-          "constraintName": "consumption_log_fk_1",
-          "columns": [
             "entitlementId"
           ],
           "referenceTable": "entitlement",
@@ -401,7 +182,7 @@
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "accountId"
+              "definition": "accountUuid"
             }
           ],
           "type": "btree",
@@ -460,6 +241,13 @@
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:EntitlementType"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "serverValidated",
+          "columnType": 1,
+          "isNullable": false,
+          "dartType": "bool"
         }
       ],
       "foreignKeys": [],
@@ -512,10 +300,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 7,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "UuidValue"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -525,22 +313,7 @@
           "dartType": "DateTime"
         }
       ],
-      "foreignKeys": [
-        {
-          "__className__": "serverpod.ForeignKeyDefinition",
-          "constraintName": "ephemeral_accreditation_fk_0",
-          "columns": [
-            "accountId"
-          ],
-          "referenceTable": "anon_account",
-          "referenceTableSchema": "public",
-          "referenceColumns": [
-            "id"
-          ],
-          "onUpdate": 3,
-          "onDelete": 4
-        }
-      ],
+      "foreignKeys": [],
       "indexes": [
         {
           "__className__": "serverpod.IndexDefinition",
@@ -970,8 +743,23 @@
   "installedModules": [
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
+      "module": "anonaccount",
+      "version": "20260314000711020"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "serverpod",
       "version": "20260129180959368"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationVersion",
+      "module": "serverpod_auth_idp",
+      "version": "20260213194423028"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationVersion",
+      "module": "serverpod_auth_core",
+      "version": "20260129181112269"
     }
   ],
   "migrationApiVersion": 1

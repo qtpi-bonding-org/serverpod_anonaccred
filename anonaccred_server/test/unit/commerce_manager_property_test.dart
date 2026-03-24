@@ -220,6 +220,7 @@ void main() {
               tag: tag,
               name: 'Credits $i',
               type: EntitlementType.consumable,
+              serverValidated: true,
             ),
           );
 

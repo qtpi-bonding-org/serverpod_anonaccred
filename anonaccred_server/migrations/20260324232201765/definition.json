@@ -241,6 +241,13 @@
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:EntitlementType"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "serverValidated",
+          "columnType": 1,
+          "isNullable": false,
+          "dartType": "bool"
         }
       ],
       "foreignKeys": [],
@@ -4146,7 +4153,7 @@
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "anonaccred",
-      "version": "20260308163415335"
+      "version": "20260324232201765"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",

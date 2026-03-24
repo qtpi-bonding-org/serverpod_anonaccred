@@ -20,6 +20,7 @@ abstract class Entitlement
     required this.tag,
     required this.name,
     required this.type,
+    required this.serverValidated,
   });
 
   factory Entitlement({
@@ -27,6 +28,7 @@ abstract class Entitlement
     required String tag,
     required String name,
     required _i2.EntitlementType type,
+    required bool serverValidated,
   }) = _EntitlementImpl;
 
   factory Entitlement.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -35,6 +37,9 @@ abstract class Entitlement
       tag: jsonSerialization['tag'] as String,
       name: jsonSerialization['name'] as String,
       type: _i2.EntitlementType.fromJson((jsonSerialization['type'] as String)),
+      serverValidated: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['serverValidated'],
+      ),
     );
   }
 
@@ -51,6 +56,8 @@ abstract class Entitlement
 
   _i2.EntitlementType type;
 
+  bool serverValidated;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -62,6 +69,7 @@ abstract class Entitlement
     String? tag,
     String? name,
     _i2.EntitlementType? type,
+    bool? serverValidated,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -71,6 +79,7 @@ abstract class Entitlement
       'tag': tag,
       'name': name,
       'type': type.toJson(),
+      'serverValidated': serverValidated,
     };
   }
 
@@ -82,6 +91,7 @@ abstract class Entitlement
       'tag': tag,
       'name': name,
       'type': type.toJson(),
+      'serverValidated': serverValidated,
     };
   }
 
@@ -123,11 +133,13 @@ class _EntitlementImpl extends Entitlement {
     required String tag,
     required String name,
     required _i2.EntitlementType type,
+    required bool serverValidated,
   }) : super._(
          id: id,
          tag: tag,
          name: name,
          type: type,
+         serverValidated: serverValidated,
        );
 
   /// Returns a shallow copy of this [Entitlement]
@@ -139,12 +151,14 @@ class _EntitlementImpl extends Entitlement {
     String? tag,
     String? name,
     _i2.EntitlementType? type,
+    bool? serverValidated,
   }) {
     return Entitlement(
       id: id is int? ? id : this.id,
       tag: tag ?? this.tag,
       name: name ?? this.name,
       type: type ?? this.type,
+      serverValidated: serverValidated ?? this.serverValidated,
     );
   }
 }
@@ -168,6 +182,11 @@ class EntitlementUpdateTable extends _i1.UpdateTable<EntitlementTable> {
     table.type,
     value,
   );
+
+  _i1.ColumnValue<bool, bool> serverValidated(bool value) => _i1.ColumnValue(
+    table.serverValidated,
+    value,
+  );
 }
 
 class EntitlementTable extends _i1.Table<int?> {
@@ -186,6 +205,10 @@ class EntitlementTable extends _i1.Table<int?> {
       this,
       _i1.EnumSerialization.byName,
     );
+    serverValidated = _i1.ColumnBool(
+      'serverValidated',
+      this,
+    );
   }
 
   late final EntitlementUpdateTable updateTable;
@@ -196,12 +219,15 @@ class EntitlementTable extends _i1.Table<int?> {
 
   late final _i1.ColumnEnum<_i2.EntitlementType> type;
 
+  late final _i1.ColumnBool serverValidated;
+
   @override
   List<_i1.Column> get columns => [
     id,
     tag,
     name,
     type,
+    serverValidated,
   ];
 }
 

@@ -137,6 +137,7 @@ void main() {
             tag: consumableType,
             name: 'Flexible Product',
             type: EntitlementType.consumable,
+            serverValidated: true,
           );
           expect(entitlement.tag, equals(consumableType));
 

@@ -277,6 +277,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: false,
           dartType: 'protocol:EntitlementType',
         ),
+        _i2.ColumnDefinition(
+          name: 'serverValidated',
+          columnType: _i2.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+        ),
       ],
       foreignKeys: [],
       indexes: [
