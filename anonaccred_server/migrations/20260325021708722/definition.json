@@ -756,10 +756,11 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "anonAccountId",
+          "columnType": 7,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "UuidValue",
+          "columnDefault": null
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -804,7 +805,7 @@
           "__className__": "serverpod.ForeignKeyDefinition",
           "constraintName": "account_device_fk_0",
           "columns": [
-            "accountId"
+            "anonAccountId"
           ],
           "referenceTable": "anon_account",
           "referenceTableSchema": "public",
@@ -848,6 +849,20 @@
           "type": "btree",
           "isUnique": false,
           "isPrimary": false
+        },
+        {
+          "__className__": "serverpod.IndexDefinition",
+          "indexName": "account_devices_idx",
+          "elements": [
+            {
+              "__className__": "serverpod.IndexElementDefinition",
+              "type": 0,
+              "definition": "anonAccountId"
+            }
+          ],
+          "type": "btree",
+          "isUnique": false,
+          "isPrimary": false
         }
       ],
       "managed": true
@@ -862,10 +877,10 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
-          "columnType": 6,
+          "columnType": 7,
           "isNullable": false,
-          "columnDefault": "nextval('anon_account_id_seq'::regclass)",
-          "dartType": "int?"
+          "columnDefault": "gen_random_uuid()",
+          "dartType": "UuidValue?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -4153,7 +4168,7 @@
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "anonaccred",
-      "version": "20260324232201765"
+      "version": "20260325021708722"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
