@@ -633,7 +633,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'deviceId': _i1.ParameterDescription(
               name: 'deviceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },

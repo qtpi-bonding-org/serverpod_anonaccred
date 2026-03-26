@@ -1,5 +1,6 @@
 
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
@@ -211,7 +212,7 @@ void main() {
             proofOfWork: 'invalid',
             publicKeyHex: 'invalid',
             signature: 'invalid',
-            deviceId: 123,
+            deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           ),
           throwsA(isA<AuthenticationException>()),
         );
@@ -225,7 +226,7 @@ void main() {
             proofOfWork: 'invalid',
             publicKeyHex: 'invalid',
             signature: 'invalid',
-            deviceId: 123,
+            deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
           ),
           throwsA(isA<AuthenticationException>()),
         );

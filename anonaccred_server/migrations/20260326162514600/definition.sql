@@ -147,7 +147,7 @@ CREATE INDEX "timestamp_idx" ON "transaction_payment" USING btree ("transactionT
 -- Class AccountDevice as table account_device
 --
 CREATE TABLE "account_device" (
-    "id" bigserial PRIMARY KEY,
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "anonAccountId" uuid NOT NULL,
     "deviceSigningPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
@@ -925,17 +925,17 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 -- MIGRATION VERSION FOR anonaccred
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccred', '20260325021708722', now())
+    VALUES ('anonaccred', '20260326162514600', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260325021708722', "timestamp" = now();
+    DO UPDATE SET "version" = '20260326162514600', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR anonaccount
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccount', '20260314000711020', now())
+    VALUES ('anonaccount', '20260326162459530', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260314000711020', "timestamp" = now();
+    DO UPDATE SET "version" = '20260326162459530', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod

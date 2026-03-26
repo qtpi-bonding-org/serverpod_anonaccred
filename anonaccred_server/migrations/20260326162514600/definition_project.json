@@ -744,7 +744,7 @@
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "anonaccount",
-      "version": "20260314000711020"
+      "version": "20260326162459530"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",

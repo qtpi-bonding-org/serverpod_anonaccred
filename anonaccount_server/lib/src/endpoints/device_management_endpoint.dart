@@ -23,18 +23,9 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
-    required int deviceId,
+    required UuidValue deviceId,
   }) async {
     try {
-      if (deviceId <= 0) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authMissingKey,
-          message: 'deviceId is required for revokeDevice',
-          operation: 'revokeDevice',
-          details: {'deviceId': deviceId.toString()},
-        );
-      }
-
       await verifySignedPow(
         session,
         challenge,

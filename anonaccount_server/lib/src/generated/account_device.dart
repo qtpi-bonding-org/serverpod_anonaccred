@@ -16,7 +16,7 @@ import 'account.dart' as _i2;
 import 'package:anonaccount_server/src/generated/protocol.dart' as _i3;
 
 abstract class AccountDevice
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   AccountDevice._({
     this.id,
     required this.anonAccountId,
@@ -30,7 +30,7 @@ abstract class AccountDevice
        isRevoked = isRevoked ?? false;
 
   factory AccountDevice({
-    int? id,
+    _i1.UuidValue? id,
     required _i1.UuidValue anonAccountId,
     _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
@@ -42,7 +42,9 @@ abstract class AccountDevice
 
   factory AccountDevice.fromJson(Map<String, dynamic> jsonSerialization) {
     return AccountDevice(
-      id: jsonSerialization['id'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       anonAccountId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['anonAccountId'],
       ),
@@ -69,7 +71,7 @@ abstract class AccountDevice
   static const db = AccountDeviceRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
   _i1.UuidValue anonAccountId;
 
@@ -86,13 +88,13 @@ abstract class AccountDevice
   bool isRevoked;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [AccountDevice]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   AccountDevice copyWith({
-    int? id,
+    _i1.UuidValue? id,
     _i1.UuidValue? anonAccountId,
     _i2.AnonAccount? anonAccount,
     String? deviceSigningPublicKeyHex,
@@ -105,7 +107,7 @@ abstract class AccountDevice
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'anonaccount.AccountDevice',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       'anonAccountId': anonAccountId.toJson(),
       if (anonAccount != null) 'anonAccount': anonAccount?.toJson(),
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
@@ -120,7 +122,7 @@ abstract class AccountDevice
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'anonaccount.AccountDevice',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       'anonAccountId': anonAccountId.toJson(),
       if (anonAccount != null) 'anonAccount': anonAccount?.toJsonForProtocol(),
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
@@ -165,7 +167,7 @@ class _Undefined {}
 
 class _AccountDeviceImpl extends AccountDevice {
   _AccountDeviceImpl({
-    int? id,
+    _i1.UuidValue? id,
     required _i1.UuidValue anonAccountId,
     _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
@@ -199,7 +201,7 @@ class _AccountDeviceImpl extends AccountDevice {
     bool? isRevoked,
   }) {
     return AccountDevice(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       anonAccountId: anonAccountId ?? this.anonAccountId,
       anonAccount: anonAccount is _i2.AnonAccount?
           ? anonAccount
@@ -253,7 +255,7 @@ class AccountDeviceUpdateTable extends _i1.UpdateTable<AccountDeviceTable> {
   );
 }
 
-class AccountDeviceTable extends _i1.Table<int?> {
+class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
   AccountDeviceTable({super.tableRelation})
     : super(tableName: 'account_device') {
     updateTable = AccountDeviceUpdateTable(this);
@@ -345,7 +347,7 @@ class AccountDeviceInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {'anonAccount': _anonAccount};
 
   @override
-  _i1.Table<int?> get table => AccountDevice.t;
+  _i1.Table<_i1.UuidValue?> get table => AccountDevice.t;
 }
 
 class AccountDeviceIncludeList extends _i1.IncludeList {
@@ -365,7 +367,7 @@ class AccountDeviceIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => AccountDevice.t;
+  _i1.Table<_i1.UuidValue?> get table => AccountDevice.t;
 }
 
 class AccountDeviceRepository {
@@ -467,7 +469,7 @@ class AccountDeviceRepository {
   /// Finds a single [AccountDevice] by its [id] or null if no such row exists.
   Future<AccountDevice?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
     AccountDeviceInclude? include,
     _i1.LockMode? lockMode,
@@ -557,7 +559,7 @@ class AccountDeviceRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<AccountDevice?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<AccountDeviceUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

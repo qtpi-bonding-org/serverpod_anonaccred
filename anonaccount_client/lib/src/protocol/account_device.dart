@@ -28,7 +28,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
        isRevoked = isRevoked ?? false;
 
   factory AccountDevice({
-    int? id,
+    _i1.UuidValue? id,
     required _i1.UuidValue anonAccountId,
     _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
@@ -40,7 +40,9 @@ abstract class AccountDevice implements _i1.SerializableModel {
 
   factory AccountDevice.fromJson(Map<String, dynamic> jsonSerialization) {
     return AccountDevice(
-      id: jsonSerialization['id'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       anonAccountId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['anonAccountId'],
       ),
@@ -65,7 +67,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
   _i1.UuidValue anonAccountId;
 
@@ -85,7 +87,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   AccountDevice copyWith({
-    int? id,
+    _i1.UuidValue? id,
     _i1.UuidValue? anonAccountId,
     _i2.AnonAccount? anonAccount,
     String? deviceSigningPublicKeyHex,
@@ -98,7 +100,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'anonaccount.AccountDevice',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       'anonAccountId': anonAccountId.toJson(),
       if (anonAccount != null) 'anonAccount': anonAccount?.toJson(),
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
@@ -119,7 +121,7 @@ class _Undefined {}
 
 class _AccountDeviceImpl extends AccountDevice {
   _AccountDeviceImpl({
-    int? id,
+    _i1.UuidValue? id,
     required _i1.UuidValue anonAccountId,
     _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
@@ -153,7 +155,7 @@ class _AccountDeviceImpl extends AccountDevice {
     bool? isRevoked,
   }) {
     return AccountDevice(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       anonAccountId: anonAccountId ?? this.anonAccountId,
       anonAccount: anonAccount is _i2.AnonAccount?
           ? anonAccount

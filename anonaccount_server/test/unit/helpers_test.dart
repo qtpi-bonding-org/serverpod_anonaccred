@@ -205,7 +205,7 @@ void main() {
     group('requireDevice', () {
       test('should return device when not null', () {
         final device = AccountDevice(
-          id: 1,
+          id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
@@ -227,7 +227,7 @@ void main() {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
-            id: random.nextInt(1000) + 1,
+            id: UuidValue.fromString('00000000-0000-0000-0000-${(i + 1).toString().padLeft(12, '0')}'),
             anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
@@ -245,7 +245,7 @@ void main() {
     group('requireActiveDevice', () {
       test('should return device when not null and not revoked', () {
         final device = AccountDevice(
-          id: 1,
+          id: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
@@ -266,7 +266,7 @@ void main() {
 
       test('should throw when device is revoked', () {
         final device = AccountDevice(
-          id: 1,
+          id: UuidValue.fromString('00000000-0000-0000-0000-000000000003'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
           encryptedDataKey: 'encrypted',
@@ -284,7 +284,7 @@ void main() {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
-            id: random.nextInt(1000) + 1,
+            id: UuidValue.fromString('00000000-0000-0000-0001-${(i + 1).toString().padLeft(12, '0')}'),
             anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
@@ -303,7 +303,7 @@ void main() {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
           final device = AccountDevice(
-            id: random.nextInt(1000) + 1,
+            id: UuidValue.fromString('00000000-0000-0000-0002-${(i + 1).toString().padLeft(12, '0')}'),
             anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',

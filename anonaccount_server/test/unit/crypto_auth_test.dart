@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
 
 void main() {
@@ -164,12 +165,13 @@ void main() {
 
     test('AuthenticationResult factory methods work correctly', () {
       // Test success result
+      final testDeviceId = UuidValue.fromString('00000000-0000-0000-0000-000000000456');
       final successResult = AuthenticationResultFactory.success(
-        deviceId: 456,
+        deviceId: testDeviceId,
         details: {'test': 'value'},
       );
       expect(successResult.success, isTrue);
-      expect(successResult.deviceId, equals(456));
+      expect(successResult.deviceId, equals(testDeviceId));
       expect(successResult.details?['test'], equals('value'));
 
       // Test failure result

@@ -1,7 +1,7 @@
 class: AuthenticationResult
 fields:
   success: bool
-  deviceId: int?
+  deviceId: UuidValue?
   errorCode: String?
   errorMessage: String?
   details: Map<String, String>?

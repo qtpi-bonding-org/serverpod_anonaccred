@@ -419,7 +419,7 @@ class EndpointDeviceManagement extends EndpointSignedPow {
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
-    required int deviceId,
+    required _i1.UuidValue deviceId,
   }) => caller.callServerEndpoint<bool>(
     'anonaccount.deviceManagement',
     'revokeDevice',

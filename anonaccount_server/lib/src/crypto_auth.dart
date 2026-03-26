@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'crypto_utils.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
@@ -7,7 +8,7 @@ import 'generated/protocol.dart';
 class AuthenticationResultFactory {
   /// Create a successful authentication result
   static AuthenticationResult success({
-    int? deviceId,
+    UuidValue? deviceId,
     Map<String, String>? details,
   }) => AuthenticationResult(
     success: true,

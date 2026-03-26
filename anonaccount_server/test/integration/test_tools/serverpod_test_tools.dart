@@ -798,7 +798,7 @@ class _DeviceManagementEndpoint {
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
-    required int deviceId,
+    required _i2.UuidValue deviceId,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =

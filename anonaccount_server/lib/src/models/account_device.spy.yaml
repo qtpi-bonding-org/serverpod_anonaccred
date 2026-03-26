@@ -10,6 +10,9 @@ indexes:
     fields: anonAccountId
     unique: false
 fields:
+  # UUID primary key — consistent with AnonAccount
+  id: UuidValue?, defaultPersist=random
+
   # FK to AnonAccount — Serverpod auto-generates anonAccountId: UuidValue
   anonAccount: AnonAccount?, relation(onDelete=Cascade)
 
