@@ -9,10 +9,12 @@ class AuthenticationResultFactory {
   /// Create a successful authentication result
   static AuthenticationResult success({
     UuidValue? deviceId,
+    String? accountPublicKeyHex,
     Map<String, String>? details,
   }) => AuthenticationResult(
     success: true,
     deviceId: deviceId,
+    accountPublicKeyHex: accountPublicKeyHex,
     details: details,
   );
 

@@ -18,6 +18,7 @@ abstract class AuthenticationResult
   AuthenticationResult._({
     required this.success,
     this.deviceId,
+    this.accountPublicKeyHex,
     this.errorCode,
     this.errorMessage,
     this.details,
@@ -26,6 +27,7 @@ abstract class AuthenticationResult
   factory AuthenticationResult({
     required bool success,
     _i1.UuidValue? deviceId,
+    String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
     Map<String, String>? details,
@@ -39,6 +41,7 @@ abstract class AuthenticationResult
       deviceId: jsonSerialization['deviceId'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deviceId']),
+      accountPublicKeyHex: jsonSerialization['accountPublicKeyHex'] as String?,
       errorCode: jsonSerialization['errorCode'] as String?,
       errorMessage: jsonSerialization['errorMessage'] as String?,
       details: jsonSerialization['details'] == null
@@ -53,6 +56,8 @@ abstract class AuthenticationResult
 
   _i1.UuidValue? deviceId;
 
+  String? accountPublicKeyHex;
+
   String? errorCode;
 
   String? errorMessage;
@@ -65,6 +70,7 @@ abstract class AuthenticationResult
   AuthenticationResult copyWith({
     bool? success,
     _i1.UuidValue? deviceId,
+    String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
     Map<String, String>? details,
@@ -75,6 +81,8 @@ abstract class AuthenticationResult
       '__className__': 'anonaccount.AuthenticationResult',
       'success': success,
       if (deviceId != null) 'deviceId': deviceId?.toJson(),
+      if (accountPublicKeyHex != null)
+        'accountPublicKeyHex': accountPublicKeyHex,
       if (errorCode != null) 'errorCode': errorCode,
       if (errorMessage != null) 'errorMessage': errorMessage,
       if (details != null) 'details': details?.toJson(),
@@ -87,6 +95,8 @@ abstract class AuthenticationResult
       '__className__': 'anonaccount.AuthenticationResult',
       'success': success,
       if (deviceId != null) 'deviceId': deviceId?.toJson(),
+      if (accountPublicKeyHex != null)
+        'accountPublicKeyHex': accountPublicKeyHex,
       if (errorCode != null) 'errorCode': errorCode,
       if (errorMessage != null) 'errorMessage': errorMessage,
       if (details != null) 'details': details?.toJson(),
@@ -105,12 +115,14 @@ class _AuthenticationResultImpl extends AuthenticationResult {
   _AuthenticationResultImpl({
     required bool success,
     _i1.UuidValue? deviceId,
+    String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
     Map<String, String>? details,
   }) : super._(
          success: success,
          deviceId: deviceId,
+         accountPublicKeyHex: accountPublicKeyHex,
          errorCode: errorCode,
          errorMessage: errorMessage,
          details: details,
@@ -123,6 +135,7 @@ class _AuthenticationResultImpl extends AuthenticationResult {
   AuthenticationResult copyWith({
     bool? success,
     Object? deviceId = _Undefined,
+    Object? accountPublicKeyHex = _Undefined,
     Object? errorCode = _Undefined,
     Object? errorMessage = _Undefined,
     Object? details = _Undefined,
@@ -130,6 +143,9 @@ class _AuthenticationResultImpl extends AuthenticationResult {
     return AuthenticationResult(
       success: success ?? this.success,
       deviceId: deviceId is _i1.UuidValue? ? deviceId : this.deviceId,
+      accountPublicKeyHex: accountPublicKeyHex is String?
+          ? accountPublicKeyHex
+          : this.accountPublicKeyHex,
       errorCode: errorCode is String? ? errorCode : this.errorCode,
       errorMessage: errorMessage is String? ? errorMessage : this.errorMessage,
       details: details is Map<String, String>?

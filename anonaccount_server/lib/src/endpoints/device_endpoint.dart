@@ -168,6 +168,12 @@ class DeviceEndpoint extends SignedPowEndpoint {
         ),
       );
 
+      // Look up account to get ultimate public key hex for client
+      final account = await AnonAccount.db.findById(
+        session,
+        activeDevice.anonAccountId,
+      );
+
       // Issue JWT via Serverpod's built-in token manager
       final authSuccess = await AuthServices.instance.tokenManager.issueToken(
         session,
@@ -178,6 +184,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
 
       return AuthenticationResultFactory.success(
         deviceId: activeDevice.id,
+        accountPublicKeyHex: account?.ultimateSigningPublicKeyHex,
         details: {
           'token': authSuccess.token,
           if (authSuccess.tokenExpiresAt != null)
