@@ -36,29 +36,33 @@ abstract final class GroupMethods {
 abstract final class AccountInnerPayloads {
   /// Ultimate key attests to a new device signing key.
   /// Used identically in createAccount and registerDevice.
+  ///
+  /// The attestation payload IS the raw device public key hex — no prefix or
+  /// wrapper. This method exists solely to give both callers a named,
+  /// findable reference point rather than an ad-hoc inline string.
   static String deviceAttestation(String deviceSigningPublicKeyHex) =>
       deviceSigningPublicKeyHex;
 }
 
 abstract final class GroupInnerPayloads {
   static String createGroup(
-    String ultimateSigningKeyHex,
+    String ultimateSigningPublicKeyHex,
     String ultimatePublicKey,
-    String memberSigningKeyHex,
+    String memberSigningPublicKeyHex,
     String memberPublicKey,
   ) =>
-      'createGroup:$ultimateSigningKeyHex:$ultimatePublicKey'
-      ':$memberSigningKeyHex:$memberPublicKey';
+      'createGroup:$ultimateSigningPublicKeyHex:$ultimatePublicKey'
+      ':$memberSigningPublicKeyHex:$memberPublicKey';
 
   static String addGroupMember(
     UuidValue groupId,
     UuidValue newMemberAccountId,
     GroupMemberRole role,
-    String memberSigningKeyHex,
+    String memberSigningPublicKeyHex,
     String memberPublicKey,
   ) =>
       'addGroupMember:$groupId:$newMemberAccountId:${role.name}'
-      ':$memberSigningKeyHex:$memberPublicKey';
+      ':$memberSigningPublicKeyHex:$memberPublicKey';
 
   static String removeGroupMember(UuidValue memberId) =>
       'removeGroupMember:$memberId';
