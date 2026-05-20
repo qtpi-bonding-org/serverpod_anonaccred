@@ -132,6 +132,8 @@ class TestEndpoints {
   late final _GroupCommerceEndpoint groupCommerce;
 
   late final _IAPEndpoint iAP;
+
+  late final _PolarEndpoint polar;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -150,6 +152,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     iAP = _IAPEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    polar = _PolarEndpoint(
       endpoints,
       serializationManager,
     );
@@ -446,6 +452,54 @@ class _IAPEndpoint {
             'packageName': packageName,
             'productId': productId,
             'purchaseToken': purchaseToken,
+            'internalTransactionId': internalTransactionId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i7.IapValidationResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _PolarEndpoint {
+  _PolarEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i7.IapValidationResponse> redeemLicenseKey(
+    _i1.TestSessionBuilder sessionBuilder,
+    String licenseKey, {
+    _i2.UuidValue? shareGroupUuid,
+    String? internalTransactionId,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'polar',
+            method: 'redeemLicenseKey',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'polar',
+          methodName: 'redeemLicenseKey',
+          parameters: _i1.testObjectToJson({
+            'licenseKey': licenseKey,
+            'shareGroupUuid': shareGroupUuid,
             'internalTransactionId': internalTransactionId,
           }),
           serializationManager: _serializationManager,

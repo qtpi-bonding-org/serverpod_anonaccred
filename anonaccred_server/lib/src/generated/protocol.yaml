@@ -9,3 +9,5 @@ groupCommerce:
 iAP:
   - validateAppleTransaction:
   - validateGooglePurchase:
+polar:
+  - redeemLicenseKey:
