@@ -24,6 +24,10 @@ export 'src/crypto/key_gen.dart';
 
 export 'package:anonaccount_client/anonaccount_client.dart'
     show
+        Caller,
+        EndpointAccount,
+        EndpointDevice,
+        EndpointGroup,
         AccountMethods,
         DeviceMethods,
         DataKeyMethods,
