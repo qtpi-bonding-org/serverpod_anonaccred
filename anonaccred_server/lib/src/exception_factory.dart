@@ -62,6 +62,15 @@ class AnonAccredErrorCodes {
   static const String x402ConfigurationMissing = 'X402_CONFIGURATION_MISSING';
   static const String x402VerificationFailed = 'X402_VERIFICATION_FAILED';
 
+  // Polar-specific error codes
+  static const String polarApiUnavailable = 'POLAR_API_UNAVAILABLE';
+  static const String polarValidationFailed = 'POLAR_VALIDATION_FAILED';
+  static const String polarLicenseRevoked = 'POLAR_LICENSE_REVOKED';
+  static const String polarBenefitUnmapped = 'POLAR_BENEFIT_UNMAPPED';
+  static const String polarScopeMismatch = 'POLAR_SCOPE_MISMATCH';
+  static const String polarWebhookSignatureInvalid =
+      'POLAR_WEBHOOK_SIGNATURE_INVALID';
+
   // Inventory error codes
   static const String inventoryInsufficientBalance =
       'INVENTORY_INSUFFICIENT_BALANCE';

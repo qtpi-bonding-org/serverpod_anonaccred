@@ -18,7 +18,8 @@ enum PaymentRail implements _i1.SerializableModel {
   monero,
   manual,
   stripe,
-  x402_http;
+  x402_http,
+  polar;
 
   static PaymentRail fromJson(String name) {
     switch (name) {
@@ -34,6 +35,8 @@ enum PaymentRail implements _i1.SerializableModel {
         return PaymentRail.stripe;
       case 'x402_http':
         return PaymentRail.x402_http;
+      case 'polar':
+        return PaymentRail.polar;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "PaymentRail"',

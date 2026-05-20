@@ -6,6 +6,7 @@ import '../generated/payment_request.dart';
 import 'payment_rail_interface.dart';
 import 'rails/apple_iap_rail.dart';
 import 'rails/google_iap_rail.dart';
+import 'rails/polar_rail.dart';
 import 'x402_payment_rail.dart';
 
 /// Payment Manager factory for routing payment requests to appropriate rails
@@ -194,6 +195,27 @@ class PaymentManager {
     }
   }
 
+  /// Initialize Polar payment rail
+  ///
+  /// [session] - Serverpod session for logging (optional)
+  ///
+  /// Requires `POLAR_ACCESS_TOKEN` + `POLAR_ORGANIZATION_ID` env vars.
+  /// Registration is best-effort: missing or invalid config logs a
+  /// warning and leaves the rail unregistered.
+  static void initializePolarRail([Session? session]) {
+    if (!isRailRegistered(PaymentRail.polar)) {
+      try {
+        registerRail(PolarRail.fromEnvironment());
+        session?.log('Polar Payment Rail registered', level: LogLevel.info);
+      } catch (e) {
+        session?.log(
+          'Polar rail was not registered (likely missing config): $e',
+          level: LogLevel.warning,
+        );
+      }
+    }
+  }
+
   /// Initialize all available payment rails asynchronously
   ///
   /// [session] - Serverpod session for logging (optional)
@@ -223,6 +245,16 @@ class PaymentManager {
     } catch (e) {
       session?.log(
         'Failed to initialize google_iap rail: $e',
+        level: LogLevel.warning,
+      );
+    }
+
+    // 4. Initialize Polar rail (sync, credentials required)
+    try {
+      initializePolarRail(session);
+    } catch (e) {
+      session?.log(
+        'Failed to initialize polar rail: $e',
         level: LogLevel.warning,
       );
     }

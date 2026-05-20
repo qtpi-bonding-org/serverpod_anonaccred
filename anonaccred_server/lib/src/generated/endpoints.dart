@@ -14,11 +14,12 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/commerce_endpoint.dart' as _i2;
 import '../endpoints/group_commerce_endpoint.dart' as _i3;
 import '../endpoints/iap_endpoint.dart' as _i4;
-import 'package:anonaccount_server/anonaccount_server.dart' as _i5;
+import '../endpoints/polar_endpoint.dart' as _i5;
+import 'package:anonaccount_server/anonaccount_server.dart' as _i6;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i6;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i7;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i8;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -40,6 +41,12 @@ class Endpoints extends _i1.EndpointDispatch {
         ..initialize(
           server,
           'iAP',
+          'anonaccred',
+        ),
+      'polar': _i5.PolarEndpoint()
+        ..initialize(
+          server,
+          'polar',
           'anonaccred',
         ),
     };
@@ -261,10 +268,47 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['anonaccount'] = _i5.Endpoints()..initializeEndpoints(server);
-    modules['serverpod_auth_idp'] = _i6.Endpoints()
+    connectors['polar'] = _i1.EndpointConnector(
+      name: 'polar',
+      endpoint: endpoints['polar']!,
+      methodConnectors: {
+        'redeemLicenseKey': _i1.MethodConnector(
+          name: 'redeemLicenseKey',
+          params: {
+            'licenseKey': _i1.ParameterDescription(
+              name: 'licenseKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'shareGroupUuid': _i1.ParameterDescription(
+              name: 'shareGroupUuid',
+              type: _i1.getType<_i1.UuidValue?>(),
+              nullable: true,
+            ),
+            'internalTransactionId': _i1.ParameterDescription(
+              name: 'internalTransactionId',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['polar'] as _i5.PolarEndpoint).redeemLicenseKey(
+                    session,
+                    params['licenseKey'],
+                    shareGroupUuid: params['shareGroupUuid'],
+                    internalTransactionId: params['internalTransactionId'],
+                  ),
+        ),
+      },
+    );
+    modules['anonaccount'] = _i6.Endpoints()..initializeEndpoints(server);
+    modules['serverpod_auth_idp'] = _i7.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i7.Endpoints()
+    modules['serverpod_auth_core'] = _i8.Endpoints()
       ..initializeEndpoints(server);
   }
 }

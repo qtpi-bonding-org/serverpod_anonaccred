@@ -182,11 +182,50 @@ class EndpointIAP extends _i1.EndpointJwt {
   );
 }
 
+/// JWT-protected Polar license-key redemption endpoint.
+///
+/// Mirrors [IAPEndpoint] in shape but supports both account and group
+/// redemption targets via the same method.
+///
+///   * Buyer identity comes from the JWT (`getAccountUuid(session)`)
+///   * Optional [shareGroupUuid] switches to group target — the
+///     endpoint enforces that the buyer is an active [GroupMember]
+///     before letting the rail credit the group
+///   * Returns [IapValidationResponse] (reused for parity with the IAP
+///     rails; no new protocol model needed)
+/// {@category Endpoint}
+class EndpointPolar extends _i1.EndpointJwt {
+  EndpointPolar(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccred.polar';
+
+  /// Validate a Polar license key and credit the redemption target.
+  ///
+  /// Returns [IapValidationResponse]. `productId` carries the Polar
+  /// benefit UUID. `tag` / `amount` come from the first granted
+  /// entitlement. `fromCache=true` indicates an idempotent replay.
+  _i3.Future<_i7.IapValidationResponse> redeemLicenseKey(
+    String licenseKey, {
+    _i2.UuidValue? shareGroupUuid,
+    String? internalTransactionId,
+  }) => caller.callServerEndpoint<_i7.IapValidationResponse>(
+    'anonaccred.polar',
+    'redeemLicenseKey',
+    {
+      'licenseKey': licenseKey,
+      'shareGroupUuid': shareGroupUuid,
+      'internalTransactionId': internalTransactionId,
+    },
+  );
+}
+
 class Caller extends _i2.ModuleEndpointCaller {
   Caller(_i2.ServerpodClientShared client) : super(client) {
     commerce = EndpointCommerce(this);
     groupCommerce = EndpointGroupCommerce(this);
     iAP = EndpointIAP(this);
+    polar = EndpointPolar(this);
   }
 
   late final EndpointCommerce commerce;
@@ -195,10 +234,13 @@ class Caller extends _i2.ModuleEndpointCaller {
 
   late final EndpointIAP iAP;
 
+  late final EndpointPolar polar;
+
   @override
   Map<String, _i2.EndpointRef> get endpointRefLookup => {
     'anonaccred.commerce': commerce,
     'anonaccred.groupCommerce': groupCommerce,
     'anonaccred.iAP': iAP,
+    'anonaccred.polar': polar,
   };
 }

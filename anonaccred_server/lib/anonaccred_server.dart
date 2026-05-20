@@ -71,12 +71,18 @@ export 'src/generated/protocol.dart';
 export 'src/payments/payment_manager.dart';
 export 'src/payments/payment_processor.dart';
 export 'src/payments/payment_rail_interface.dart';
+export 'src/payments/polar_client.dart';
+export 'src/payments/polar_http_client.dart';
+export 'src/payments/polar_signature_validator.dart';
+export 'src/payments/rails/polar_rail.dart';
+export 'src/payments/redemption_target.dart';
 export 'src/payments/x402_interceptor.dart';
 export 'src/payments/x402_payment_rail.dart';
 export 'src/price_registry.dart';
 // Refund system
 export 'src/refund_event.dart';
 export 'src/refund_manager.dart';
-// Webhook routes for Apple and Google server-to-server notifications
+// Webhook routes for Apple, Google, and Polar server-to-server notifications
 export 'src/webhooks/apple_webhook_route.dart';
 export 'src/webhooks/google_webhook_route.dart';
+export 'src/webhooks/polar_webhook_route.dart';

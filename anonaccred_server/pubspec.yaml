@@ -44,3 +44,13 @@ dev_dependencies:
   test: ^1.25.5
   webcrypto: ^0.5.3
 
+dependency_overrides:
+  # Pin relic_* to 1.1.x. relic_core 1.2.0 added a `Cache` class that
+  # collides with serverpod 3.4.1's own `Cache` import inside
+  # `lib/src/endpoints/insights.dart`, which breaks any test that
+  # transitively imports `package:serverpod/serverpod.dart`. Drop once
+  # serverpod ships a release that resolves the conflict.
+  relic: '>=1.1.0 <1.2.0'
+  relic_core: '>=1.1.0 <1.2.0'
+  relic_io: '>=1.1.0 <1.2.0'
+
