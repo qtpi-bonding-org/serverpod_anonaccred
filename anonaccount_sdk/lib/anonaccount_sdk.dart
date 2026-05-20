@@ -21,3 +21,14 @@ export 'src/crypto/symmetric.dart';
 export 'src/crypto/signing.dart';
 export 'src/crypto/asymmetric.dart';
 export 'src/crypto/key_gen.dart';
+
+export 'package:anonaccount_client/anonaccount_client.dart'
+    show
+        AccountMethods,
+        DeviceMethods,
+        DataKeyMethods,
+        AccountDevice,
+        AuthenticationResult,
+        ShareGroup,
+        GroupMember,
+        GroupMemberRole;
