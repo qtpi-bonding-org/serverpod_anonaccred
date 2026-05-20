@@ -929,6 +929,58 @@ test('leaveGroup: rejected when inner sig is wrong', () async {
   );
 });
 
+    test('monitorGroupMembership: rejected for invalid device key', () async {
+  final (memberPriv, memberPub) = SigningTestHelper.generateKeypair();
+  final (_, unknownPub) = SigningTestHelper.generateKeypair();
+
+  // Build outer with an unknown device key — no DB row exists for it.
+  final challengeResp = await endpoints.entrypoint.getChallenge(sessionBuilder);
+  final pow = await PowTestHelper.mint(
+    challengeResp.challenge,
+    difficulty: challengeResp.difficulty,
+  );
+  final payload =
+      '${challengeResp.challenge}:${GroupMethods.monitorGroupMembership}:$unknownPub';
+  final sig = SigningTestHelper.signWith(payload, memberPriv);
+
+  final stream = endpoints.group.monitorGroupMembership(
+    sessionBuilder,
+    challenge: challengeResp.challenge,
+    proofOfWork: pow,
+    signature: sig,
+    callerDeviceSigningPublicKeyHex: unknownPub,
+    memberSigningKeyHex: memberPub,
+  );
+
+  expect(
+    () async => await stream.first,
+    throwsA(isA<Exception>()),
+  );
+});
+
+test('monitorGroupMembership: opens without throwing for valid device', () async {
+  final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+  final (_, freshMemberPub) = SigningTestHelper.generateKeypair();
+
+  final outer = await _outer(
+    sessionBuilder,
+    endpoints,
+    GroupMethods.monitorGroupMembership,
+    s.devicePub,
+    s.devicePriv,
+  );
+
+  final stream = endpoints.group.monitorGroupMembership(
+    sessionBuilder,
+    challenge: outer.challenge,
+    proofOfWork: outer.pow,
+    signature: outer.signature,
+    callerDeviceSigningPublicKeyHex: s.devicePub,
+    memberSigningKeyHex: freshMemberPub,
+  );
+  expect(stream, isNotNull);
+});
+
     test('removeGroupMember: rejected when removing an admin without owner sig',
         () async {
       final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);

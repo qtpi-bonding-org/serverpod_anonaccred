@@ -599,7 +599,23 @@ class GroupEndpoint extends SignedPowEndpoint {
     required String callerDeviceSigningPublicKeyHex,
     required String memberSigningKeyHex,
   }) async* {
-    throw UnimplementedError('monitorGroupMembership not yet implemented');
+    final outerPayload =
+        '$challenge:${GroupMethods.monitorGroupMembership}:$callerDeviceSigningPublicKeyHex';
+    await verifySignedPow(
+      session,
+      challenge,
+      proofOfWork,
+      callerDeviceSigningPublicKeyHex,
+      signature,
+      outerPayload,
+    );
+
+    final channelName = 'group-membership-$memberSigningKeyHex';
+    final stream = session.messages.createStream<GroupMember>(channelName);
+
+    await for (final event in stream) {
+      yield event;
+    }
   }
 
   Future<ShareGroup> getGroup(
