@@ -11,3 +11,4 @@ export 'package:webcrypto/webcrypto.dart'
     show AesGcmSecretKey, EcdhPublicKey, EcdhPrivateKey, EllipticCurve;
 
 // Filled in as later tasks land.
+export 'src/auth/exceptions.dart';
