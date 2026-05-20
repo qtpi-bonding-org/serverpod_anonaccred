@@ -207,4 +207,16 @@ class AnonaccountAuth {
       deviceId: deviceId,
     );
   }
+
+  /// Server-side deleteAccount is not yet implemented. The SDK exposes this
+  /// method so consumer code can wire it up now; the call will throw until
+  /// the server endpoint lands. See spec section 6.6.
+  Future<void> deleteAccount({
+    required KeyDuo ultimateKey,
+  }) async {
+    throw UnimplementedError(
+      'deleteAccount: server-side endpoint not yet available. '
+      'Track follow-up in the anonaccount_server spec.',
+    );
+  }
 }
