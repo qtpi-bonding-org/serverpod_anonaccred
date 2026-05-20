@@ -16,10 +16,12 @@ import '../endpoints/data_key_endpoint.dart' as _i3;
 import '../endpoints/device_endpoint.dart' as _i4;
 import '../endpoints/device_management_endpoint.dart' as _i5;
 import '../endpoints/entrypoint_endpoint.dart' as _i6;
+import '../endpoints/group_endpoint.dart' as _i7;
+import 'package:anonaccount_server/src/generated/group_member_role.dart' as _i8;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i7;
+    as _i9;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
-    as _i8;
+    as _i10;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -53,6 +55,12 @@ class Endpoints extends _i1.EndpointDispatch {
         ..initialize(
           server,
           'entrypoint',
+          'anonaccount',
+        ),
+      'group': _i7.GroupEndpoint()
+        ..initialize(
+          server,
+          'group',
           'anonaccount',
         ),
     };
@@ -878,9 +886,370 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i7.Endpoints()
+    connectors['group'] = _i1.EndpointConnector(
+      name: 'group',
+      endpoint: endpoints['group']!,
+      methodConnectors: {
+        'createGroup': _i1.MethodConnector(
+          name: 'createGroup',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'groupUltimateSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'groupUltimateSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'groupUltimatePublicKey': _i1.ParameterDescription(
+              name: 'groupUltimatePublicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'groupEncryptedDataKey': _i1.ParameterDescription(
+              name: 'groupEncryptedDataKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'creatorMemberSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'creatorMemberSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'creatorMemberPublicKey': _i1.ParameterDescription(
+              name: 'creatorMemberPublicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'creatorMemberEncryptedDataKey': _i1.ParameterDescription(
+              name: 'creatorMemberEncryptedDataKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'groupUltimateAttestation': _i1.ParameterDescription(
+              name: 'groupUltimateAttestation',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['group'] as _i7.GroupEndpoint).createGroup(
+                session,
+                challenge: params['challenge'],
+                proofOfWork: params['proofOfWork'],
+                signature: params['signature'],
+                callerDeviceSigningPublicKeyHex:
+                    params['callerDeviceSigningPublicKeyHex'],
+                groupUltimateSigningPublicKeyHex:
+                    params['groupUltimateSigningPublicKeyHex'],
+                groupUltimatePublicKey: params['groupUltimatePublicKey'],
+                groupEncryptedDataKey: params['groupEncryptedDataKey'],
+                creatorMemberSigningPublicKeyHex:
+                    params['creatorMemberSigningPublicKeyHex'],
+                creatorMemberPublicKey: params['creatorMemberPublicKey'],
+                creatorMemberEncryptedDataKey:
+                    params['creatorMemberEncryptedDataKey'],
+                groupUltimateAttestation: params['groupUltimateAttestation'],
+              ),
+        ),
+        'listMyGroups': _i1.MethodConnector(
+          name: 'listMyGroups',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['group'] as _i7.GroupEndpoint).listMyGroups(
+                session,
+                challenge: params['challenge'],
+                proofOfWork: params['proofOfWork'],
+                signature: params['signature'],
+                callerDeviceSigningPublicKeyHex:
+                    params['callerDeviceSigningPublicKeyHex'],
+              ),
+        ),
+        'addGroupMember': _i1.MethodConnector(
+          name: 'addGroupMember',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'groupId': _i1.ParameterDescription(
+              name: 'groupId',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'newMemberAccountId': _i1.ParameterDescription(
+              name: 'newMemberAccountId',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'role': _i1.ParameterDescription(
+              name: 'role',
+              type: _i1.getType<_i8.GroupMemberRole>(),
+              nullable: false,
+            ),
+            'memberSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'memberSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'memberPublicKey': _i1.ParameterDescription(
+              name: 'memberPublicKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'encryptedDataKey': _i1.ParameterDescription(
+              name: 'encryptedDataKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerMemberSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerMemberSigningPublicKeyHex',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'memberAuthSignature': _i1.ParameterDescription(
+              name: 'memberAuthSignature',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'groupUltimateSignature': _i1.ParameterDescription(
+              name: 'groupUltimateSignature',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['group'] as _i7.GroupEndpoint).addGroupMember(
+                    session,
+                    challenge: params['challenge'],
+                    proofOfWork: params['proofOfWork'],
+                    signature: params['signature'],
+                    callerDeviceSigningPublicKeyHex:
+                        params['callerDeviceSigningPublicKeyHex'],
+                    groupId: params['groupId'],
+                    newMemberAccountId: params['newMemberAccountId'],
+                    role: params['role'],
+                    memberSigningPublicKeyHex:
+                        params['memberSigningPublicKeyHex'],
+                    memberPublicKey: params['memberPublicKey'],
+                    encryptedDataKey: params['encryptedDataKey'],
+                    callerMemberSigningPublicKeyHex:
+                        params['callerMemberSigningPublicKeyHex'],
+                    memberAuthSignature: params['memberAuthSignature'],
+                    groupUltimateSignature: params['groupUltimateSignature'],
+                  ),
+        ),
+        'removeGroupMember': _i1.MethodConnector(
+          name: 'removeGroupMember',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'memberId': _i1.ParameterDescription(
+              name: 'memberId',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'callerMemberSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerMemberSigningPublicKeyHex',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'memberAuthSignature': _i1.ParameterDescription(
+              name: 'memberAuthSignature',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'groupUltimateSignature': _i1.ParameterDescription(
+              name: 'groupUltimateSignature',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['group'] as _i7.GroupEndpoint).removeGroupMember(
+                    session,
+                    challenge: params['challenge'],
+                    proofOfWork: params['proofOfWork'],
+                    signature: params['signature'],
+                    callerDeviceSigningPublicKeyHex:
+                        params['callerDeviceSigningPublicKeyHex'],
+                    memberId: params['memberId'],
+                    callerMemberSigningPublicKeyHex:
+                        params['callerMemberSigningPublicKeyHex'],
+                    memberAuthSignature: params['memberAuthSignature'],
+                    groupUltimateSignature: params['groupUltimateSignature'],
+                  ),
+        ),
+        'getChallenge': _i1.MethodConnector(
+          name: 'getChallenge',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['group'] as _i7.GroupEndpoint).getChallenge(
+                session,
+              ),
+        ),
+        'verifySignedPow': _i1.MethodConnector(
+          name: 'verifySignedPow',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'publicKeyHex': _i1.ParameterDescription(
+              name: 'publicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'payload': _i1.ParameterDescription(
+              name: 'payload',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['group'] as _i7.GroupEndpoint).verifySignedPow(
+                    session,
+                    params['challenge'],
+                    params['proofOfWork'],
+                    params['publicKeyHex'],
+                    params['signature'],
+                    params['payload'],
+                  ),
+        ),
+        'verifyHashcash': _i1.MethodConnector(
+          name: 'verifyHashcash',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['group'] as _i7.GroupEndpoint).verifyHashcash(
+                    session,
+                    params['challenge'],
+                    params['proofOfWork'],
+                  ),
+        ),
+      },
+    );
+    modules['serverpod_auth_idp'] = _i9.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i8.Endpoints()
+    modules['serverpod_auth_core'] = _i10.Endpoints()
       ..initializeEndpoints(server);
   }
 }

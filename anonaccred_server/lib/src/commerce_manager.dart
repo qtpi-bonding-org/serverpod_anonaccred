@@ -1,15 +1,28 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'entitlement_manager.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
+import 'group_entitlement_manager.dart';
+import 'group_post_fulfillment_context.dart';
 import 'payments/payment_manager.dart';
 import 'post_fulfillment_context.dart';
 import 'price_registry.dart';
 
-/// Called after fulfillTransactionPayment() has granted all entitlements.
+/// Called after fulfillTransactionPayment() has granted all entitlements
+/// to an account-scoped target.
 typedef PostFulfillmentHook = Future<void> Function(
   Session session,
   PostFulfillmentContext context,
+);
+
+/// Called after fulfillTransactionPayment() has granted all entitlements
+/// to a group-scoped target. Separate from [PostFulfillmentHook] so each
+/// parent app can opt in independently and each context carries its
+/// identity field non-nullably.
+typedef GroupPostFulfillmentHook = Future<void> Function(
+  Session session,
+  GroupPostFulfillmentContext context,
 );
 
 /// Service for managing commerce operations (payments, fulfillment, and accreditation)
@@ -20,15 +33,26 @@ typedef PostFulfillmentHook = Future<void> Function(
 /// 3. After 7 days, the bridge record is deleted, leaving the financials anonymous.
 class CommerceManager {
   static PostFulfillmentHook? _postFulfillmentHook;
+  static GroupPostFulfillmentHook? _groupPostFulfillmentHook;
 
-  /// Register a hook called after every successful fulfillment.
+  /// Register a hook called after every successful account-scoped fulfillment.
   static void onPostFulfillment(PostFulfillmentHook hook) {
     _postFulfillmentHook = hook;
   }
 
-  /// Reset hook (for testing).
+  /// Register a hook called after every successful group-scoped fulfillment.
+  static void onGroupPostFulfillment(GroupPostFulfillmentHook hook) {
+    _groupPostFulfillmentHook = hook;
+  }
+
+  /// Reset account hook (for testing).
   static void resetPostFulfillmentHook() {
     _postFulfillmentHook = null;
+  }
+
+  /// Reset group hook (for testing).
+  static void resetGroupPostFulfillmentHook() {
+    _groupPostFulfillmentHook = null;
   }
 
   /// Initiates a transaction payment using the 7-day identity bridge.
@@ -142,15 +166,24 @@ class CommerceManager {
         return;
       }
 
-      // 2. Locate the Account via the Bridge (Exact timestamp match)
-      final bridge = await EphemeralAccreditation.db.findFirstRow(
+      // 2. Locate the target via the Bridge (exact timestamp match).
+      //    Per spec §7.5: try account bridge first, then group bridge.
+      final accountBridge = await EphemeralAccreditation.db.findFirstRow(
         session,
         where: (t) =>
             t.transactionTimestamp.equals(payment.transactionTimestamp),
         transaction: transaction,
       );
+      final groupBridge = accountBridge != null
+          ? null
+          : await EphemeralAccreditationGroup.db.findFirstRow(
+              session,
+              where: (t) =>
+                  t.transactionTimestamp.equals(payment.transactionTimestamp),
+              transaction: transaction,
+            );
 
-      if (bridge == null) {
+      if (accountBridge == null && groupBridge == null) {
         throw AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentVerificationFailed,
           message:
@@ -172,43 +205,32 @@ class CommerceManager {
         transaction: transaction,
       );
 
-      for (final grant in grants) {
-        // Find or create account entitlement
-        final existingRecord = await AccountEntitlement.db.findFirstRow(
-          session,
-          where: (t) =>
-              t.accountUuid.equals(bridge.accountUuid) &
-              t.entitlementId.equals(grant.entitlementId),
-          transaction: transaction,
-        );
-
-        if (existingRecord != null) {
-          await AccountEntitlement.db.updateRow(
+      if (accountBridge != null) {
+        for (final grant in grants) {
+          await EntitlementManager.grantEntitlementById(
             session,
-            existingRecord.copyWith(
-              balance: existingRecord.balance + grant.quantity,
-            ),
-            transaction: transaction,
-          );
-        } else {
-          await AccountEntitlement.db.insertRow(
-            session,
-            AccountEntitlement(
-              accountUuid: bridge.accountUuid,
-              entitlementId: grant.entitlementId,
-              balance: grant.quantity,
-            ),
+            accountUuid: accountBridge.accountUuid,
+            entitlementId: grant.entitlementId,
+            quantity: grant.quantity,
             transaction: transaction,
           );
         }
-
-        // Optional: Add record to consumption log or a generic "GrantLog" if needed
-        // The schema has consumption_log which tracks usage, but maybe we want a "GrantLog" as well?
-        // For now, only the balance is updated.
+      } else {
+        for (final grant in grants) {
+          await GroupEntitlementManager.grantGroupEntitlementById(
+            session,
+            shareGroupUuid: groupBridge!.shareGroupUuid,
+            entitlementId: grant.entitlementId,
+            quantity: grant.quantity,
+            transaction: transaction,
+          );
+        }
       }
 
-      // 5. Call post-fulfillment hook if registered
-      if (_postFulfillmentHook != null) {
+      // 5. Post-fulfillment hooks. Each scope has its own opt-in hook
+      //    surface so parent apps can subscribe to whichever they care
+      //    about and each context carries a non-nullable identity.
+      if (accountBridge != null && _postFulfillmentHook != null) {
         final railProduct = await RailProduct.db.findById(
           session,
           payment.railProductId,
@@ -217,7 +239,23 @@ class CommerceManager {
         await _postFulfillmentHook!(
           session,
           PostFulfillmentContext(
-            accountUuid: bridge.accountUuid,
+            accountUuid: accountBridge.accountUuid,
+            grantsApplied: grants,
+            payment: payment,
+            storeProductId: railProduct?.storeProductId ?? '',
+          ),
+        );
+      } else if (groupBridge != null && _groupPostFulfillmentHook != null) {
+        final railProduct = await RailProduct.db.findById(
+          session,
+          payment.railProductId,
+          transaction: transaction,
+        );
+        await _groupPostFulfillmentHook!(
+          session,
+          GroupPostFulfillmentContext(
+            shareGroupUuid: groupBridge.shareGroupUuid,
+            buyerAccountUuid: groupBridge.accountUuid,
             grantsApplied: grants,
             payment: payment,
             storeProductId: railProduct?.storeProductId ?? '',

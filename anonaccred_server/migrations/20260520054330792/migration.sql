@@ -32,6 +32,163 @@ volatile;
 --
 -- ACTION CREATE TABLE
 --
+CREATE TABLE "account_entitlement" (
+    "id" bigserial PRIMARY KEY,
+    "accountUuid" uuid NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "balance" double precision NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "account_entitlement_idx" ON "account_entitlement" USING btree ("accountUuid", "entitlementId");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "consumption_log" (
+    "id" bigserial PRIMARY KEY,
+    "accountUuid" uuid NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "amount" double precision NOT NULL,
+    "reason" text NOT NULL,
+    "timestamp" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE INDEX "account_idx" ON "consumption_log" USING btree ("accountUuid");
+CREATE INDEX "entitlement_idx" ON "consumption_log" USING btree ("entitlementId");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "entitlement" (
+    "id" bigserial PRIMARY KEY,
+    "tag" text NOT NULL,
+    "name" text NOT NULL,
+    "type" text NOT NULL,
+    "serverValidated" boolean NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "tag_idx" ON "entitlement" USING btree ("tag");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "ephemeral_accreditation" (
+    "id" bigserial PRIMARY KEY,
+    "accountUuid" uuid NOT NULL,
+    "transactionTimestamp" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "lookup_idx" ON "ephemeral_accreditation" USING btree ("transactionTimestamp");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "ephemeral_accreditation_group" (
+    "id" bigserial PRIMARY KEY,
+    "accountUuid" uuid NOT NULL,
+    "shareGroupUuid" uuid NOT NULL,
+    "transactionTimestamp" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "ephemeral_group_lookup_idx" ON "ephemeral_accreditation_group" USING btree ("transactionTimestamp");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "group_consumption_log" (
+    "id" bigserial PRIMARY KEY,
+    "shareGroupUuid" uuid NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "amount" double precision NOT NULL,
+    "reason" text NOT NULL,
+    "timestamp" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "consumingAccountUuid" uuid
+);
+
+-- Indexes
+CREATE INDEX "group_consumption_group_idx" ON "group_consumption_log" USING btree ("shareGroupUuid");
+CREATE INDEX "group_consumption_entitlement_idx" ON "group_consumption_log" USING btree ("entitlementId");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "group_entitlement" (
+    "id" bigserial PRIMARY KEY,
+    "shareGroupUuid" uuid NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "balance" double precision NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "group_entitlement_idx" ON "group_entitlement" USING btree ("shareGroupUuid", "entitlementId");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "rail_product" (
+    "id" bigserial PRIMARY KEY,
+    "rail" text NOT NULL,
+    "storeProductId" text NOT NULL,
+    "isActive" boolean NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "store_product_idx" ON "rail_product" USING btree ("rail", "storeProductId");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "rail_product_grant" (
+    "id" bigserial PRIMARY KEY,
+    "railProductId" bigint NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "quantity" double precision NOT NULL
+);
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "receipt_hash" (
+    "id" bigserial PRIMARY KEY,
+    "hash" text NOT NULL,
+    "paymentRail" text NOT NULL,
+    "processedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "hash_idx" ON "receipt_hash" USING btree ("hash");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "transaction_payment" (
+    "id" bigserial PRIMARY KEY,
+    "railProductId" bigint NOT NULL,
+    "internalTransactionId" text NOT NULL,
+    "priceCurrency" text NOT NULL,
+    "price" double precision NOT NULL,
+    "paymentRail" text NOT NULL,
+    "paymentCurrency" text NOT NULL,
+    "paymentAmount" double precision NOT NULL,
+    "paymentRef" text,
+    "transactionTimestamp" timestamp without time zone NOT NULL,
+    "clientReference" text,
+    "status" text NOT NULL,
+    "railDataJson" text
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "internal_tx_id_idx" ON "transaction_payment" USING btree ("internalTransactionId");
+CREATE INDEX "timestamp_idx" ON "transaction_payment" USING btree ("transactionTimestamp");
+
+--
+-- ACTION CREATE TABLE
+--
 CREATE TABLE "account_device" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "anonAccountId" uuid NOT NULL,
@@ -63,6 +220,30 @@ CREATE UNIQUE INDEX "ultimate_key_idx" ON "anon_account" USING btree ("ultimateP
 --
 -- ACTION CREATE TABLE
 --
+CREATE TABLE "group_member" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "shareGroupId" uuid NOT NULL,
+    "anonAccountId" uuid NOT NULL,
+    "role" text NOT NULL,
+    "memberSigningPublicKeyHex" text NOT NULL,
+    "memberPublicKey" text NOT NULL,
+    "encryptedDataKey" text NOT NULL,
+    "joinedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastActive" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isRevoked" boolean NOT NULL DEFAULT false,
+    "addedBySignerPublicKeyHex" text,
+    "addedByAttestation" text,
+    "revokedBySignerPublicKeyHex" text,
+    "revokedByAttestation" text
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "group_member_unique_idx" ON "group_member" USING btree ("shareGroupId", "anonAccountId");
+CREATE INDEX "group_member_account_idx" ON "group_member" USING btree ("anonAccountId");
+
+--
+-- ACTION CREATE TABLE
+--
 CREATE TABLE "public_challenges" (
     "id" bigserial PRIMARY KEY,
     "challenge" text NOT NULL,
@@ -72,6 +253,17 @@ CREATE TABLE "public_challenges" (
 -- Indexes
 CREATE UNIQUE INDEX "public_challenges_challenge_idx" ON "public_challenges" USING btree ("challenge");
 CREATE INDEX "public_challenges_expires_idx" ON "public_challenges" USING btree ("expiresAt");
+
+--
+-- ACTION CREATE TABLE
+--
+CREATE TABLE "share_group" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "ultimateSigningPublicKeyHex" text NOT NULL,
+    "ultimatePublicKey" text NOT NULL,
+    "encryptedDataKey" text NOT NULL,
+    "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 --
 -- ACTION CREATE TABLE
@@ -549,8 +741,90 @@ CREATE TABLE "serverpod_auth_core_user" (
 --
 -- ACTION CREATE FOREIGN KEY
 --
+ALTER TABLE ONLY "account_entitlement"
+    ADD CONSTRAINT "account_entitlement_fk_0"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- ACTION CREATE FOREIGN KEY
+--
+ALTER TABLE ONLY "consumption_log"
+    ADD CONSTRAINT "consumption_log_fk_0"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- ACTION CREATE FOREIGN KEY
+--
+ALTER TABLE ONLY "group_consumption_log"
+    ADD CONSTRAINT "group_consumption_log_fk_0"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- ACTION CREATE FOREIGN KEY
+--
+ALTER TABLE ONLY "group_entitlement"
+    ADD CONSTRAINT "group_entitlement_fk_0"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- ACTION CREATE FOREIGN KEY
+--
+ALTER TABLE ONLY "rail_product_grant"
+    ADD CONSTRAINT "rail_product_grant_fk_0"
+    FOREIGN KEY("railProductId")
+    REFERENCES "rail_product"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+ALTER TABLE ONLY "rail_product_grant"
+    ADD CONSTRAINT "rail_product_grant_fk_1"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- ACTION CREATE FOREIGN KEY
+--
+ALTER TABLE ONLY "transaction_payment"
+    ADD CONSTRAINT "transaction_payment_fk_0"
+    FOREIGN KEY("railProductId")
+    REFERENCES "rail_product"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- ACTION CREATE FOREIGN KEY
+--
 ALTER TABLE ONLY "account_device"
     ADD CONSTRAINT "account_device_fk_0"
+    FOREIGN KEY("anonAccountId")
+    REFERENCES "anon_account"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+
+--
+-- ACTION CREATE FOREIGN KEY
+--
+ALTER TABLE ONLY "group_member"
+    ADD CONSTRAINT "group_member_fk_0"
+    FOREIGN KEY("shareGroupId")
+    REFERENCES "share_group"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+ALTER TABLE ONLY "group_member"
+    ADD CONSTRAINT "group_member_fk_1"
     FOREIGN KEY("anonAccountId")
     REFERENCES "anon_account"("id")
     ON DELETE CASCADE
@@ -762,12 +1036,20 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 
 
 --
+-- MIGRATION VERSION FOR anonaccred
+--
+INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
+    VALUES ('anonaccred', '20260520054330792', now())
+    ON CONFLICT ("module")
+    DO UPDATE SET "version" = '20260520054330792', "timestamp" = now();
+
+--
 -- MIGRATION VERSION FOR anonaccount
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccount', '20260326162459530', now())
+    VALUES ('anonaccount', '20260520054316004', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260326162459530', "timestamp" = now();
+    DO UPDATE SET "version" = '20260520054316004', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod

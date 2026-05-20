@@ -26,3 +26,11 @@ deviceManagement:
 entrypoint:
   - getChallenge:
   - verifyHashcash:
+group:
+  - createGroup:
+  - listMyGroups:
+  - addGroupMember:
+  - removeGroupMember:
+  - getChallenge:
+  - verifySignedPow:
+  - verifyHashcash:

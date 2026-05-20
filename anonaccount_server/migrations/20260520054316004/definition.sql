@@ -61,6 +61,30 @@ CREATE TABLE "anon_account" (
 CREATE UNIQUE INDEX "ultimate_key_idx" ON "anon_account" USING btree ("ultimatePublicKey");
 
 --
+-- Class GroupMember as table group_member
+--
+CREATE TABLE "group_member" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "shareGroupId" uuid NOT NULL,
+    "anonAccountId" uuid NOT NULL,
+    "role" text NOT NULL,
+    "memberSigningPublicKeyHex" text NOT NULL,
+    "memberPublicKey" text NOT NULL,
+    "encryptedDataKey" text NOT NULL,
+    "joinedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastActive" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isRevoked" boolean NOT NULL DEFAULT false,
+    "addedBySignerPublicKeyHex" text,
+    "addedByAttestation" text,
+    "revokedBySignerPublicKeyHex" text,
+    "revokedByAttestation" text
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "group_member_unique_idx" ON "group_member" USING btree ("shareGroupId", "anonAccountId");
+CREATE INDEX "group_member_account_idx" ON "group_member" USING btree ("anonAccountId");
+
+--
 -- Class PublicChallenge as table public_challenges
 --
 CREATE TABLE "public_challenges" (
@@ -72,6 +96,17 @@ CREATE TABLE "public_challenges" (
 -- Indexes
 CREATE UNIQUE INDEX "public_challenges_challenge_idx" ON "public_challenges" USING btree ("challenge");
 CREATE INDEX "public_challenges_expires_idx" ON "public_challenges" USING btree ("expiresAt");
+
+--
+-- Class ShareGroup as table share_group
+--
+CREATE TABLE "share_group" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "ultimateSigningPublicKeyHex" text NOT NULL,
+    "ultimatePublicKey" text NOT NULL,
+    "encryptedDataKey" text NOT NULL,
+    "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 --
 -- Class CloudStorageEntry as table serverpod_cloud_storage
@@ -557,6 +592,22 @@ ALTER TABLE ONLY "account_device"
     ON UPDATE NO ACTION;
 
 --
+-- Foreign relations for "group_member" table
+--
+ALTER TABLE ONLY "group_member"
+    ADD CONSTRAINT "group_member_fk_0"
+    FOREIGN KEY("shareGroupId")
+    REFERENCES "share_group"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+ALTER TABLE ONLY "group_member"
+    ADD CONSTRAINT "group_member_fk_1"
+    FOREIGN KEY("anonAccountId")
+    REFERENCES "anon_account"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+
+--
 -- Foreign relations for "serverpod_log" table
 --
 ALTER TABLE ONLY "serverpod_log"
@@ -765,9 +816,9 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 -- MIGRATION VERSION FOR anonaccount
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccount', '20260326162459530', now())
+    VALUES ('anonaccount', '20260520054316004', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260326162459530', "timestamp" = now();
+    DO UPDATE SET "version" = '20260520054316004', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod

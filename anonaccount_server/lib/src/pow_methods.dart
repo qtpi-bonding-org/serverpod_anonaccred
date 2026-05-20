@@ -18,3 +18,10 @@ abstract final class DataKeyMethods {
   static const retrieveEncryptedDataKey = 'retrieveEncryptedDataKey';
   static const recoverEncryptedDataKey = 'recoverEncryptedDataKey';
 }
+
+abstract final class GroupMethods {
+  static const createGroup = 'createGroup';
+  static const listMyGroups = 'listMyGroups';
+  static const addGroupMember = 'addGroupMember';
+  static const removeGroupMember = 'removeGroupMember';
+}

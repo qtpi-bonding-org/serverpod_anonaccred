@@ -23,6 +23,9 @@ import 'package:anonaccount_client/src/protocol/authentication_result.dart'
     as _i7;
 import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
     as _i8;
+import 'package:anonaccount_client/src/protocol/share_group.dart' as _i9;
+import 'package:anonaccount_client/src/protocol/group_member.dart' as _i10;
+import 'package:anonaccount_client/src/protocol/group_member_role.dart' as _i11;
 
 /// Account endpoint with PoW + signature protection.
 ///
@@ -574,6 +577,218 @@ class EndpointEntrypoint extends EndpointPow {
   );
 }
 
+/// Three-tier auth model for group operations:
+///
+/// 1. **Transport (outer envelope):** every call carries a PoW + ECDSA
+///    signature from the caller's device key. Same shape as every other
+///    `SignedPowEndpoint`. Proves the request is live and from a
+///    non-revoked device of some account.
+/// 2. **Role (inner signature):** for admin-tier ops where the role is
+///    `member`, the caller's group-member signing key signs an
+///    operation-specific payload. The server verifies against the row
+///    in `group_member` and asserts `role = admin`, not revoked, and
+///    account-bound to the device-resolved account.
+/// 3. **Owner (inner signature):** for owner-tier ops (creating the
+///    group, granting/removing admins), the group's ultimate signing
+///    key signs the inner payload. The server verifies against
+///    `share_group.ultimateSigningPublicKeyHex`. There is no DB role
+///    for "owner" — possession of the ultimate private key IS owner
+///    authority.
+///
+/// Inner payloads are challenge-free so the persisted attestation is
+/// reconstructable from row state alone. Outer envelopes keep the
+/// challenge for transport replay protection (PoW).
+/// {@category Endpoint}
+class EndpointGroup extends EndpointSignedPow {
+  EndpointGroup(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonaccount.group';
+
+  /// Create a new share group.
+  ///
+  /// The creator becomes the first `admin`. Possession of the new
+  /// group's ultimate signing private key (proven by signing the inner
+  /// payload) makes them an "owner" — there is no DB role for that.
+  _i2.Future<_i9.ShareGroup> createGroup({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required String groupUltimateSigningPublicKeyHex,
+    required String groupUltimatePublicKey,
+    required String groupEncryptedDataKey,
+    required String creatorMemberSigningPublicKeyHex,
+    required String creatorMemberPublicKey,
+    required String creatorMemberEncryptedDataKey,
+    required String groupUltimateAttestation,
+  }) => caller.callServerEndpoint<_i9.ShareGroup>(
+    'anonaccount.group',
+    'createGroup',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+      'groupUltimateSigningPublicKeyHex': groupUltimateSigningPublicKeyHex,
+      'groupUltimatePublicKey': groupUltimatePublicKey,
+      'groupEncryptedDataKey': groupEncryptedDataKey,
+      'creatorMemberSigningPublicKeyHex': creatorMemberSigningPublicKeyHex,
+      'creatorMemberPublicKey': creatorMemberPublicKey,
+      'creatorMemberEncryptedDataKey': creatorMemberEncryptedDataKey,
+      'groupUltimateAttestation': groupUltimateAttestation,
+    },
+  );
+
+  /// List the caller's non-revoked group memberships.
+  _i2.Future<List<_i10.GroupMember>> listMyGroups({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+  }) => caller.callServerEndpoint<List<_i10.GroupMember>>(
+    'anonaccount.group',
+    'listMyGroups',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+    },
+  );
+
+  /// Add a new member to a group.
+  ///
+  /// Auth branches on [role]:
+  /// - `member`: requires `callerMemberSigningPublicKeyHex` +
+  ///   `memberAuthSignature`. Caller's `group_member` row must be
+  ///   `role = admin`, not revoked, and account-bound to the
+  ///   device-resolved account.
+  /// - `admin`: requires `groupUltimateSignature`. Verified against
+  ///   `share_group.ultimateSigningPublicKeyHex`. Member-tier params
+  ///   are ignored.
+  _i2.Future<_i10.GroupMember> addGroupMember({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i1.UuidValue groupId,
+    required _i1.UuidValue newMemberAccountId,
+    required _i11.GroupMemberRole role,
+    required String memberSigningPublicKeyHex,
+    required String memberPublicKey,
+    required String encryptedDataKey,
+    String? callerMemberSigningPublicKeyHex,
+    String? memberAuthSignature,
+    String? groupUltimateSignature,
+  }) => caller.callServerEndpoint<_i10.GroupMember>(
+    'anonaccount.group',
+    'addGroupMember',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+      'groupId': groupId,
+      'newMemberAccountId': newMemberAccountId,
+      'role': role,
+      'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
+      'memberPublicKey': memberPublicKey,
+      'encryptedDataKey': encryptedDataKey,
+      'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+      'memberAuthSignature': memberAuthSignature,
+      'groupUltimateSignature': groupUltimateSignature,
+    },
+  );
+
+  /// Mark a group member as revoked.
+  ///
+  /// Auth branches on the target row's [role]:
+  /// - target `member`: caller's member key must be admin (+ binding check).
+  /// - target `admin`: requires `groupUltimateSignature`.
+  _i2.Future<bool> removeGroupMember({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i1.UuidValue memberId,
+    String? callerMemberSigningPublicKeyHex,
+    String? memberAuthSignature,
+    String? groupUltimateSignature,
+  }) => caller.callServerEndpoint<bool>(
+    'anonaccount.group',
+    'removeGroupMember',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+      'memberId': memberId,
+      'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+      'memberAuthSignature': memberAuthSignature,
+      'groupUltimateSignature': groupUltimateSignature,
+    },
+  );
+
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
+  ///
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
+  @override
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
+        'anonaccount.group',
+        'getChallenge',
+        {},
+      );
+
+  /// Verify PoW + ECDSA signature + rate limit.
+  ///
+  /// Call this at the top of each protected endpoint method.
+  ///
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
+  @override
+  _i2.Future<void> verifySignedPow(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'anonaccount.group',
+    'verifySignedPow',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
+    },
+  );
+
+  /// Verify hashcash proof-of-work only (no signature, no rate limit).
+  ///
+  /// Checks stamp format, challenge existence, and hash quality.
+  /// Consumes the challenge (one-time use).
+  @override
+  _i2.Future<void> verifyHashcash(
+    String challenge,
+    String proofOfWork,
+  ) => caller.callServerEndpoint<void>(
+    'anonaccount.group',
+    'verifyHashcash',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+    },
+  );
+}
+
 /// Abstract base class for JWT-protected endpoints.
 ///
 /// Serverpod validates the JWT before the method runs (via `initializeAuthServices`).
@@ -682,6 +897,7 @@ class Caller extends _i1.ModuleEndpointCaller {
     device = EndpointDevice(this);
     deviceManagement = EndpointDeviceManagement(this);
     entrypoint = EndpointEntrypoint(this);
+    group = EndpointGroup(this);
   }
 
   late final EndpointAccount account;
@@ -694,6 +910,8 @@ class Caller extends _i1.ModuleEndpointCaller {
 
   late final EndpointEntrypoint entrypoint;
 
+  late final EndpointGroup group;
+
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'anonaccount.account': account,
@@ -701,5 +919,6 @@ class Caller extends _i1.ModuleEndpointCaller {
     'anonaccount.device': device,
     'anonaccount.deviceManagement': deviceManagement,
     'anonaccount.entrypoint': entrypoint,
+    'anonaccount.group': group,
   };
 }

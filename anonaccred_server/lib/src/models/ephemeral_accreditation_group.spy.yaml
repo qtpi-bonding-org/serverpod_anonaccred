@@ -1,0 +1,10 @@
+class: EphemeralAccreditationGroup
+table: ephemeral_accreditation_group
+fields:
+  accountUuid: UuidValue
+  shareGroupUuid: UuidValue
+  transactionTimestamp: DateTime
+indexes:
+  ephemeral_group_lookup_idx:
+    fields: transactionTimestamp
+    unique: false

@@ -1,0 +1,16 @@
+class: GroupConsumptionLog
+table: group_consumption_log
+fields:
+  shareGroupUuid: UuidValue
+  entitlementId: int, relation(parent=entitlement)
+  amount: double
+  reason: String
+  timestamp: DateTime, default=now
+  consumingAccountUuid: UuidValue?
+indexes:
+  group_consumption_group_idx:
+    fields: shareGroupUuid
+    unique: false
+  group_consumption_entitlement_idx:
+    fields: entitlementId
+    unique: false

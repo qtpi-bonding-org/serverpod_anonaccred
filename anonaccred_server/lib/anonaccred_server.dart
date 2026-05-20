@@ -56,7 +56,11 @@ export 'package:anonaccount_server/anonaccount_server.dart'
 // Commerce and Entitlement Management
 export 'src/commerce_manager.dart';
 export 'src/post_fulfillment_context.dart';
+export 'src/group_post_fulfillment_context.dart';
 export 'src/entitlement_manager.dart';
+export 'src/group_entitlement_manager.dart';
+export 'src/group_entitlement_utils.dart';
+export 'src/entitlement_core.dart';
 // Exception handling and error classification system
 export 'src/error_classification.dart';
 export 'src/exception_factory.dart';

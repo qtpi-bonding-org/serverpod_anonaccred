@@ -2,6 +2,10 @@ commerce:
   - getEntitlements:
   - getEntitlementBalance:
   - consumeEntitlement:
+groupCommerce:
+  - getGroupEntitlements:
+  - getGroupEntitlementBalance:
+  - consumeGroupEntitlement:
 iAP:
   - validateAppleTransaction:
   - validateGooglePurchase:

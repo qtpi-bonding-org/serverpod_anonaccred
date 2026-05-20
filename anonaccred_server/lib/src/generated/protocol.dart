@@ -25,20 +25,24 @@ import 'currency.dart' as _i10;
 import 'entitlement.dart' as _i11;
 import 'entitlement_type.dart' as _i12;
 import 'ephemeral_accreditation.dart' as _i13;
-import 'iap_validation_response.dart' as _i14;
-import 'inventory_exception.dart' as _i15;
-import 'module_class.dart' as _i16;
-import 'order_status.dart' as _i17;
-import 'payment_exception.dart' as _i18;
-import 'payment_rail.dart' as _i19;
-import 'payment_request.dart' as _i20;
-import 'payment_result.dart' as _i21;
-import 'rail_product.dart' as _i22;
-import 'rail_product_grant.dart' as _i23;
-import 'receipt_hash.dart' as _i24;
-import 'transaction_payment.dart' as _i25;
+import 'ephemeral_accreditation_group.dart' as _i14;
+import 'group_consumption_log.dart' as _i15;
+import 'group_entitlement.dart' as _i16;
+import 'iap_validation_response.dart' as _i17;
+import 'inventory_exception.dart' as _i18;
+import 'module_class.dart' as _i19;
+import 'order_status.dart' as _i20;
+import 'payment_exception.dart' as _i21;
+import 'payment_rail.dart' as _i22;
+import 'payment_request.dart' as _i23;
+import 'payment_result.dart' as _i24;
+import 'rail_product.dart' as _i25;
+import 'rail_product_grant.dart' as _i26;
+import 'receipt_hash.dart' as _i27;
+import 'transaction_payment.dart' as _i28;
 import 'package:anonaccred_server/src/generated/account_entitlement.dart'
-    as _i26;
+    as _i29;
+import 'package:anonaccred_server/src/generated/group_entitlement.dart' as _i30;
 export 'account_entitlement.dart';
 export 'api_response.dart';
 export 'consume_result.dart';
@@ -47,6 +51,9 @@ export 'currency.dart';
 export 'entitlement.dart';
 export 'entitlement_type.dart';
 export 'ephemeral_accreditation.dart';
+export 'ephemeral_accreditation_group.dart';
+export 'group_consumption_log.dart';
+export 'group_entitlement.dart';
 export 'iap_validation_response.dart';
 export 'inventory_exception.dart';
 export 'module_class.dart';
@@ -368,6 +375,254 @@ class Protocol extends _i1.SerializationManagerServer {
           ],
           type: 'btree',
           isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'ephemeral_accreditation_group',
+      dartName: 'EphemeralAccreditationGroup',
+      schema: 'public',
+      module: 'anonaccred',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault:
+              'nextval(\'ephemeral_accreditation_group_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'shareGroupUuid',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'transactionTimestamp',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'ephemeral_accreditation_group_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'ephemeral_group_lookup_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'transactionTimestamp',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'group_consumption_log',
+      dartName: 'GroupConsumptionLog',
+      schema: 'public',
+      module: 'anonaccred',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'group_consumption_log_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'shareGroupUuid',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'entitlementId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'amount',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+        _i2.ColumnDefinition(
+          name: 'reason',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'timestamp',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+        _i2.ColumnDefinition(
+          name: 'consumingAccountUuid',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+      ],
+      foreignKeys: [
+        _i2.ForeignKeyDefinition(
+          constraintName: 'group_consumption_log_fk_0',
+          columns: ['entitlementId'],
+          referenceTable: 'entitlement',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'group_consumption_log_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'group_consumption_group_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'shareGroupUuid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'group_consumption_entitlement_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'entitlementId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'group_entitlement',
+      dartName: 'GroupEntitlement',
+      schema: 'public',
+      module: 'anonaccred',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'group_entitlement_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'shareGroupUuid',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'entitlementId',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'balance',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+        ),
+      ],
+      foreignKeys: [
+        _i2.ForeignKeyDefinition(
+          constraintName: 'group_entitlement_fk_0',
+          columns: ['entitlementId'],
+          referenceTable: 'entitlement',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'group_entitlement_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'group_entitlement_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'shareGroupUuid',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'entitlementId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
           isPrimary: false,
         ),
       ],
@@ -774,41 +1029,50 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i13.EphemeralAccreditation) {
       return _i13.EphemeralAccreditation.fromJson(data) as T;
     }
-    if (t == _i14.IapValidationResponse) {
-      return _i14.IapValidationResponse.fromJson(data) as T;
+    if (t == _i14.EphemeralAccreditationGroup) {
+      return _i14.EphemeralAccreditationGroup.fromJson(data) as T;
     }
-    if (t == _i15.InventoryException) {
-      return _i15.InventoryException.fromJson(data) as T;
+    if (t == _i15.GroupConsumptionLog) {
+      return _i15.GroupConsumptionLog.fromJson(data) as T;
     }
-    if (t == _i16.ModuleClass) {
-      return _i16.ModuleClass.fromJson(data) as T;
+    if (t == _i16.GroupEntitlement) {
+      return _i16.GroupEntitlement.fromJson(data) as T;
     }
-    if (t == _i17.OrderStatus) {
-      return _i17.OrderStatus.fromJson(data) as T;
+    if (t == _i17.IapValidationResponse) {
+      return _i17.IapValidationResponse.fromJson(data) as T;
     }
-    if (t == _i18.PaymentException) {
-      return _i18.PaymentException.fromJson(data) as T;
+    if (t == _i18.InventoryException) {
+      return _i18.InventoryException.fromJson(data) as T;
     }
-    if (t == _i19.PaymentRail) {
-      return _i19.PaymentRail.fromJson(data) as T;
+    if (t == _i19.ModuleClass) {
+      return _i19.ModuleClass.fromJson(data) as T;
     }
-    if (t == _i20.PaymentRequest) {
-      return _i20.PaymentRequest.fromJson(data) as T;
+    if (t == _i20.OrderStatus) {
+      return _i20.OrderStatus.fromJson(data) as T;
     }
-    if (t == _i21.PaymentResult) {
-      return _i21.PaymentResult.fromJson(data) as T;
+    if (t == _i21.PaymentException) {
+      return _i21.PaymentException.fromJson(data) as T;
     }
-    if (t == _i22.RailProduct) {
-      return _i22.RailProduct.fromJson(data) as T;
+    if (t == _i22.PaymentRail) {
+      return _i22.PaymentRail.fromJson(data) as T;
     }
-    if (t == _i23.RailProductGrant) {
-      return _i23.RailProductGrant.fromJson(data) as T;
+    if (t == _i23.PaymentRequest) {
+      return _i23.PaymentRequest.fromJson(data) as T;
     }
-    if (t == _i24.ReceiptHash) {
-      return _i24.ReceiptHash.fromJson(data) as T;
+    if (t == _i24.PaymentResult) {
+      return _i24.PaymentResult.fromJson(data) as T;
     }
-    if (t == _i25.TransactionPayment) {
-      return _i25.TransactionPayment.fromJson(data) as T;
+    if (t == _i25.RailProduct) {
+      return _i25.RailProduct.fromJson(data) as T;
+    }
+    if (t == _i26.RailProductGrant) {
+      return _i26.RailProductGrant.fromJson(data) as T;
+    }
+    if (t == _i27.ReceiptHash) {
+      return _i27.ReceiptHash.fromJson(data) as T;
+    }
+    if (t == _i28.TransactionPayment) {
+      return _i28.TransactionPayment.fromJson(data) as T;
     }
     if (t == _i1.getType<_i6.AccountEntitlement?>()) {
       return (data != null ? _i6.AccountEntitlement.fromJson(data) : null) as T;
@@ -835,48 +1099,67 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null ? _i13.EphemeralAccreditation.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i14.IapValidationResponse?>()) {
-      return (data != null ? _i14.IapValidationResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i14.EphemeralAccreditationGroup?>()) {
+      return (data != null
+              ? _i14.EphemeralAccreditationGroup.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i15.InventoryException?>()) {
-      return (data != null ? _i15.InventoryException.fromJson(data) : null)
+    if (t == _i1.getType<_i15.GroupConsumptionLog?>()) {
+      return (data != null ? _i15.GroupConsumptionLog.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i16.ModuleClass?>()) {
-      return (data != null ? _i16.ModuleClass.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i16.GroupEntitlement?>()) {
+      return (data != null ? _i16.GroupEntitlement.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i17.OrderStatus?>()) {
-      return (data != null ? _i17.OrderStatus.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i18.PaymentException?>()) {
-      return (data != null ? _i18.PaymentException.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i19.PaymentRail?>()) {
-      return (data != null ? _i19.PaymentRail.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i20.PaymentRequest?>()) {
-      return (data != null ? _i20.PaymentRequest.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i21.PaymentResult?>()) {
-      return (data != null ? _i21.PaymentResult.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i22.RailProduct?>()) {
-      return (data != null ? _i22.RailProduct.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i23.RailProductGrant?>()) {
-      return (data != null ? _i23.RailProductGrant.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i24.ReceiptHash?>()) {
-      return (data != null ? _i24.ReceiptHash.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i25.TransactionPayment?>()) {
-      return (data != null ? _i25.TransactionPayment.fromJson(data) : null)
+    if (t == _i1.getType<_i17.IapValidationResponse?>()) {
+      return (data != null ? _i17.IapValidationResponse.fromJson(data) : null)
           as T;
     }
-    if (t == List<_i26.AccountEntitlement>) {
+    if (t == _i1.getType<_i18.InventoryException?>()) {
+      return (data != null ? _i18.InventoryException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i19.ModuleClass?>()) {
+      return (data != null ? _i19.ModuleClass.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i20.OrderStatus?>()) {
+      return (data != null ? _i20.OrderStatus.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i21.PaymentException?>()) {
+      return (data != null ? _i21.PaymentException.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i22.PaymentRail?>()) {
+      return (data != null ? _i22.PaymentRail.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i23.PaymentRequest?>()) {
+      return (data != null ? _i23.PaymentRequest.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i24.PaymentResult?>()) {
+      return (data != null ? _i24.PaymentResult.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i25.RailProduct?>()) {
+      return (data != null ? _i25.RailProduct.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i26.RailProductGrant?>()) {
+      return (data != null ? _i26.RailProductGrant.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i27.ReceiptHash?>()) {
+      return (data != null ? _i27.ReceiptHash.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i28.TransactionPayment?>()) {
+      return (data != null ? _i28.TransactionPayment.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<_i29.AccountEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i26.AccountEntitlement>(e))
+              .map((e) => deserialize<_i29.AccountEntitlement>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i30.GroupEntitlement>) {
+      return (data as List)
+              .map((e) => deserialize<_i30.GroupEntitlement>(e))
               .toList()
           as T;
     }
@@ -905,18 +1188,21 @@ class Protocol extends _i1.SerializationManagerServer {
       _i11.Entitlement => 'Entitlement',
       _i12.EntitlementType => 'EntitlementType',
       _i13.EphemeralAccreditation => 'EphemeralAccreditation',
-      _i14.IapValidationResponse => 'IapValidationResponse',
-      _i15.InventoryException => 'InventoryException',
-      _i16.ModuleClass => 'ModuleClass',
-      _i17.OrderStatus => 'OrderStatus',
-      _i18.PaymentException => 'PaymentException',
-      _i19.PaymentRail => 'PaymentRail',
-      _i20.PaymentRequest => 'PaymentRequest',
-      _i21.PaymentResult => 'PaymentResult',
-      _i22.RailProduct => 'RailProduct',
-      _i23.RailProductGrant => 'RailProductGrant',
-      _i24.ReceiptHash => 'ReceiptHash',
-      _i25.TransactionPayment => 'TransactionPayment',
+      _i14.EphemeralAccreditationGroup => 'EphemeralAccreditationGroup',
+      _i15.GroupConsumptionLog => 'GroupConsumptionLog',
+      _i16.GroupEntitlement => 'GroupEntitlement',
+      _i17.IapValidationResponse => 'IapValidationResponse',
+      _i18.InventoryException => 'InventoryException',
+      _i19.ModuleClass => 'ModuleClass',
+      _i20.OrderStatus => 'OrderStatus',
+      _i21.PaymentException => 'PaymentException',
+      _i22.PaymentRail => 'PaymentRail',
+      _i23.PaymentRequest => 'PaymentRequest',
+      _i24.PaymentResult => 'PaymentResult',
+      _i25.RailProduct => 'RailProduct',
+      _i26.RailProductGrant => 'RailProductGrant',
+      _i27.ReceiptHash => 'ReceiptHash',
+      _i28.TransactionPayment => 'TransactionPayment',
       _ => null,
     };
   }
@@ -947,29 +1233,35 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'EntitlementType';
       case _i13.EphemeralAccreditation():
         return 'EphemeralAccreditation';
-      case _i14.IapValidationResponse():
+      case _i14.EphemeralAccreditationGroup():
+        return 'EphemeralAccreditationGroup';
+      case _i15.GroupConsumptionLog():
+        return 'GroupConsumptionLog';
+      case _i16.GroupEntitlement():
+        return 'GroupEntitlement';
+      case _i17.IapValidationResponse():
         return 'IapValidationResponse';
-      case _i15.InventoryException():
+      case _i18.InventoryException():
         return 'InventoryException';
-      case _i16.ModuleClass():
+      case _i19.ModuleClass():
         return 'ModuleClass';
-      case _i17.OrderStatus():
+      case _i20.OrderStatus():
         return 'OrderStatus';
-      case _i18.PaymentException():
+      case _i21.PaymentException():
         return 'PaymentException';
-      case _i19.PaymentRail():
+      case _i22.PaymentRail():
         return 'PaymentRail';
-      case _i20.PaymentRequest():
+      case _i23.PaymentRequest():
         return 'PaymentRequest';
-      case _i21.PaymentResult():
+      case _i24.PaymentResult():
         return 'PaymentResult';
-      case _i22.RailProduct():
+      case _i25.RailProduct():
         return 'RailProduct';
-      case _i23.RailProductGrant():
+      case _i26.RailProductGrant():
         return 'RailProductGrant';
-      case _i24.ReceiptHash():
+      case _i27.ReceiptHash():
         return 'ReceiptHash';
-      case _i25.TransactionPayment():
+      case _i28.TransactionPayment():
         return 'TransactionPayment';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -1021,41 +1313,50 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'EphemeralAccreditation') {
       return deserialize<_i13.EphemeralAccreditation>(data['data']);
     }
+    if (dataClassName == 'EphemeralAccreditationGroup') {
+      return deserialize<_i14.EphemeralAccreditationGroup>(data['data']);
+    }
+    if (dataClassName == 'GroupConsumptionLog') {
+      return deserialize<_i15.GroupConsumptionLog>(data['data']);
+    }
+    if (dataClassName == 'GroupEntitlement') {
+      return deserialize<_i16.GroupEntitlement>(data['data']);
+    }
     if (dataClassName == 'IapValidationResponse') {
-      return deserialize<_i14.IapValidationResponse>(data['data']);
+      return deserialize<_i17.IapValidationResponse>(data['data']);
     }
     if (dataClassName == 'InventoryException') {
-      return deserialize<_i15.InventoryException>(data['data']);
+      return deserialize<_i18.InventoryException>(data['data']);
     }
     if (dataClassName == 'ModuleClass') {
-      return deserialize<_i16.ModuleClass>(data['data']);
+      return deserialize<_i19.ModuleClass>(data['data']);
     }
     if (dataClassName == 'OrderStatus') {
-      return deserialize<_i17.OrderStatus>(data['data']);
+      return deserialize<_i20.OrderStatus>(data['data']);
     }
     if (dataClassName == 'PaymentException') {
-      return deserialize<_i18.PaymentException>(data['data']);
+      return deserialize<_i21.PaymentException>(data['data']);
     }
     if (dataClassName == 'PaymentRail') {
-      return deserialize<_i19.PaymentRail>(data['data']);
+      return deserialize<_i22.PaymentRail>(data['data']);
     }
     if (dataClassName == 'PaymentRequest') {
-      return deserialize<_i20.PaymentRequest>(data['data']);
+      return deserialize<_i23.PaymentRequest>(data['data']);
     }
     if (dataClassName == 'PaymentResult') {
-      return deserialize<_i21.PaymentResult>(data['data']);
+      return deserialize<_i24.PaymentResult>(data['data']);
     }
     if (dataClassName == 'RailProduct') {
-      return deserialize<_i22.RailProduct>(data['data']);
+      return deserialize<_i25.RailProduct>(data['data']);
     }
     if (dataClassName == 'RailProductGrant') {
-      return deserialize<_i23.RailProductGrant>(data['data']);
+      return deserialize<_i26.RailProductGrant>(data['data']);
     }
     if (dataClassName == 'ReceiptHash') {
-      return deserialize<_i24.ReceiptHash>(data['data']);
+      return deserialize<_i27.ReceiptHash>(data['data']);
     }
     if (dataClassName == 'TransactionPayment') {
-      return deserialize<_i25.TransactionPayment>(data['data']);
+      return deserialize<_i28.TransactionPayment>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -1111,14 +1412,20 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i11.Entitlement.t;
       case _i13.EphemeralAccreditation:
         return _i13.EphemeralAccreditation.t;
-      case _i22.RailProduct:
-        return _i22.RailProduct.t;
-      case _i23.RailProductGrant:
-        return _i23.RailProductGrant.t;
-      case _i24.ReceiptHash:
-        return _i24.ReceiptHash.t;
-      case _i25.TransactionPayment:
-        return _i25.TransactionPayment.t;
+      case _i14.EphemeralAccreditationGroup:
+        return _i14.EphemeralAccreditationGroup.t;
+      case _i15.GroupConsumptionLog:
+        return _i15.GroupConsumptionLog.t;
+      case _i16.GroupEntitlement:
+        return _i16.GroupEntitlement.t;
+      case _i25.RailProduct:
+        return _i25.RailProduct.t;
+      case _i26.RailProductGrant:
+        return _i26.RailProductGrant.t;
+      case _i27.ReceiptHash:
+        return _i27.ReceiptHash.t;
+      case _i28.TransactionPayment:
+        return _i28.TransactionPayment.t;
     }
     return null;
   }

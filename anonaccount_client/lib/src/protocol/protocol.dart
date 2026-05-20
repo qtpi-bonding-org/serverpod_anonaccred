@@ -20,14 +20,18 @@ import 'authentication_result.dart' as _i7;
 import 'device_pairing_event.dart' as _i8;
 import 'device_pairing_info.dart' as _i9;
 import 'encrypted_data_key_response.dart' as _i10;
-import 'public_challenge.dart' as _i11;
-import 'public_challenge_response.dart' as _i12;
-import 'rate_limit_counter.dart' as _i13;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i14;
+import 'group_member.dart' as _i11;
+import 'group_member_role.dart' as _i12;
+import 'public_challenge.dart' as _i13;
+import 'public_challenge_response.dart' as _i14;
+import 'rate_limit_counter.dart' as _i15;
+import 'share_group.dart' as _i16;
+import 'package:anonaccount_client/src/protocol/account_device.dart' as _i17;
+import 'package:anonaccount_client/src/protocol/group_member.dart' as _i18;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i15;
+    as _i19;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i16;
+    as _i20;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -37,9 +41,12 @@ export 'authentication_result.dart';
 export 'device_pairing_event.dart';
 export 'device_pairing_info.dart';
 export 'encrypted_data_key_response.dart';
+export 'group_member.dart';
+export 'group_member_role.dart';
 export 'public_challenge.dart';
 export 'public_challenge_response.dart';
 export 'rate_limit_counter.dart';
+export 'share_group.dart';
 export 'client.dart';
 
 class Protocol extends _i1.SerializationManager {
@@ -105,14 +112,23 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i10.EncryptedDataKeyResponse) {
       return _i10.EncryptedDataKeyResponse.fromJson(data) as T;
     }
-    if (t == _i11.PublicChallenge) {
-      return _i11.PublicChallenge.fromJson(data) as T;
+    if (t == _i11.GroupMember) {
+      return _i11.GroupMember.fromJson(data) as T;
     }
-    if (t == _i12.PublicChallengeResponse) {
-      return _i12.PublicChallengeResponse.fromJson(data) as T;
+    if (t == _i12.GroupMemberRole) {
+      return _i12.GroupMemberRole.fromJson(data) as T;
     }
-    if (t == _i13.RateLimitCounter) {
-      return _i13.RateLimitCounter.fromJson(data) as T;
+    if (t == _i13.PublicChallenge) {
+      return _i13.PublicChallenge.fromJson(data) as T;
+    }
+    if (t == _i14.PublicChallengeResponse) {
+      return _i14.PublicChallengeResponse.fromJson(data) as T;
+    }
+    if (t == _i15.RateLimitCounter) {
+      return _i15.RateLimitCounter.fromJson(data) as T;
+    }
+    if (t == _i16.ShareGroup) {
+      return _i16.ShareGroup.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AnonAccount?>()) {
       return (data != null ? _i2.AnonAccount.fromJson(data) : null) as T;
@@ -148,15 +164,24 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == _i1.getType<_i11.PublicChallenge?>()) {
-      return (data != null ? _i11.PublicChallenge.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.GroupMember?>()) {
+      return (data != null ? _i11.GroupMember.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.PublicChallengeResponse?>()) {
-      return (data != null ? _i12.PublicChallengeResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i12.GroupMemberRole?>()) {
+      return (data != null ? _i12.GroupMemberRole.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i13.PublicChallenge?>()) {
+      return (data != null ? _i13.PublicChallenge.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i14.PublicChallengeResponse?>()) {
+      return (data != null ? _i14.PublicChallengeResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i13.RateLimitCounter?>()) {
-      return (data != null ? _i13.RateLimitCounter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i15.RateLimitCounter?>()) {
+      return (data != null ? _i15.RateLimitCounter.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i16.ShareGroup?>()) {
+      return (data != null ? _i16.ShareGroup.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -173,17 +198,23 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i14.AccountDevice>) {
+    if (t == List<_i17.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i14.AccountDevice>(e))
+              .map((e) => deserialize<_i17.AccountDevice>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i18.GroupMember>) {
+      return (data as List)
+              .map((e) => deserialize<_i18.GroupMember>(e))
               .toList()
           as T;
     }
     try {
-      return _i15.Protocol().deserialize<T>(data, t);
+      return _i19.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i16.Protocol().deserialize<T>(data, t);
+      return _i20.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -199,9 +230,12 @@ class Protocol extends _i1.SerializationManager {
       _i8.DevicePairingEvent => 'DevicePairingEvent',
       _i9.DevicePairingInfo => 'DevicePairingInfo',
       _i10.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
-      _i11.PublicChallenge => 'PublicChallenge',
-      _i12.PublicChallengeResponse => 'PublicChallengeResponse',
-      _i13.RateLimitCounter => 'RateLimitCounter',
+      _i11.GroupMember => 'GroupMember',
+      _i12.GroupMemberRole => 'GroupMemberRole',
+      _i13.PublicChallenge => 'PublicChallenge',
+      _i14.PublicChallengeResponse => 'PublicChallengeResponse',
+      _i15.RateLimitCounter => 'RateLimitCounter',
+      _i16.ShareGroup => 'ShareGroup',
       _ => null,
     };
   }
@@ -234,18 +268,24 @@ class Protocol extends _i1.SerializationManager {
         return 'DevicePairingInfo';
       case _i10.EncryptedDataKeyResponse():
         return 'EncryptedDataKeyResponse';
-      case _i11.PublicChallenge():
+      case _i11.GroupMember():
+        return 'GroupMember';
+      case _i12.GroupMemberRole():
+        return 'GroupMemberRole';
+      case _i13.PublicChallenge():
         return 'PublicChallenge';
-      case _i12.PublicChallengeResponse():
+      case _i14.PublicChallengeResponse():
         return 'PublicChallengeResponse';
-      case _i13.RateLimitCounter():
+      case _i15.RateLimitCounter():
         return 'RateLimitCounter';
+      case _i16.ShareGroup():
+        return 'ShareGroup';
     }
-    className = _i15.Protocol().getClassNameForObject(data);
+    className = _i19.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i16.Protocol().getClassNameForObject(data);
+    className = _i20.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -285,22 +325,31 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'EncryptedDataKeyResponse') {
       return deserialize<_i10.EncryptedDataKeyResponse>(data['data']);
     }
+    if (dataClassName == 'GroupMember') {
+      return deserialize<_i11.GroupMember>(data['data']);
+    }
+    if (dataClassName == 'GroupMemberRole') {
+      return deserialize<_i12.GroupMemberRole>(data['data']);
+    }
     if (dataClassName == 'PublicChallenge') {
-      return deserialize<_i11.PublicChallenge>(data['data']);
+      return deserialize<_i13.PublicChallenge>(data['data']);
     }
     if (dataClassName == 'PublicChallengeResponse') {
-      return deserialize<_i12.PublicChallengeResponse>(data['data']);
+      return deserialize<_i14.PublicChallengeResponse>(data['data']);
     }
     if (dataClassName == 'RateLimitCounter') {
-      return deserialize<_i13.RateLimitCounter>(data['data']);
+      return deserialize<_i15.RateLimitCounter>(data['data']);
+    }
+    if (dataClassName == 'ShareGroup') {
+      return deserialize<_i16.ShareGroup>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i15.Protocol().deserializeByClassName(data);
+      return _i19.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i16.Protocol().deserializeByClassName(data);
+      return _i20.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -315,10 +364,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i15.Protocol().mapRecordToJson(record);
+      return _i19.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i16.Protocol().mapRecordToJson(record);
+      return _i20.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

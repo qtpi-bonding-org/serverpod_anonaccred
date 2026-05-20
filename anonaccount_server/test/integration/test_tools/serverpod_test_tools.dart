@@ -25,6 +25,10 @@ import 'package:anonaccount_server/src/generated/authentication_result.dart'
     as _i8;
 import 'package:anonaccount_server/src/generated/device_pairing_event.dart'
     as _i9;
+import 'package:anonaccount_server/src/generated/share_group.dart' as _i10;
+import 'package:anonaccount_server/src/generated/group_member.dart' as _i11;
+import 'package:anonaccount_server/src/generated/group_member_role.dart'
+    as _i12;
 import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -141,6 +145,8 @@ class TestEndpoints {
   late final _DeviceManagementEndpoint deviceManagement;
 
   late final _EntrypointEndpoint entrypoint;
+
+  late final _GroupEndpoint group;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -167,6 +173,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     entrypoint = _EntrypointEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    group = _GroupEndpoint(
       endpoints,
       serializationManager,
     );
@@ -1079,6 +1089,321 @@ class _EntrypointEndpoint {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'entrypoint',
+          methodName: 'verifyHashcash',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _GroupEndpoint {
+  _GroupEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i10.ShareGroup> createGroup(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required String groupUltimateSigningPublicKeyHex,
+    required String groupUltimatePublicKey,
+    required String groupEncryptedDataKey,
+    required String creatorMemberSigningPublicKeyHex,
+    required String creatorMemberPublicKey,
+    required String creatorMemberEncryptedDataKey,
+    required String groupUltimateAttestation,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'createGroup',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'createGroup',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+            'groupUltimateSigningPublicKeyHex':
+                groupUltimateSigningPublicKeyHex,
+            'groupUltimatePublicKey': groupUltimatePublicKey,
+            'groupEncryptedDataKey': groupEncryptedDataKey,
+            'creatorMemberSigningPublicKeyHex':
+                creatorMemberSigningPublicKeyHex,
+            'creatorMemberPublicKey': creatorMemberPublicKey,
+            'creatorMemberEncryptedDataKey': creatorMemberEncryptedDataKey,
+            'groupUltimateAttestation': groupUltimateAttestation,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i10.ShareGroup>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i11.GroupMember>> listMyGroups(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'listMyGroups',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'listMyGroups',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i11.GroupMember>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i11.GroupMember> addGroupMember(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i2.UuidValue groupId,
+    required _i2.UuidValue newMemberAccountId,
+    required _i12.GroupMemberRole role,
+    required String memberSigningPublicKeyHex,
+    required String memberPublicKey,
+    required String encryptedDataKey,
+    String? callerMemberSigningPublicKeyHex,
+    String? memberAuthSignature,
+    String? groupUltimateSignature,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'addGroupMember',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'addGroupMember',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+            'groupId': groupId,
+            'newMemberAccountId': newMemberAccountId,
+            'role': role,
+            'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
+            'memberPublicKey': memberPublicKey,
+            'encryptedDataKey': encryptedDataKey,
+            'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+            'memberAuthSignature': memberAuthSignature,
+            'groupUltimateSignature': groupUltimateSignature,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i11.GroupMember>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> removeGroupMember(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i2.UuidValue memberId,
+    String? callerMemberSigningPublicKeyHex,
+    String? memberAuthSignature,
+    String? groupUltimateSignature,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'removeGroupMember',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'removeGroupMember',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+            'memberId': memberId,
+            'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+            'memberAuthSignature': memberAuthSignature,
+            'groupUltimateSignature': groupUltimateSignature,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i5.PublicChallengeResponse> getChallenge(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'getChallenge',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'getChallenge',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i5.PublicChallengeResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> verifySignedPow(
+    _i1.TestSessionBuilder sessionBuilder,
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'verifySignedPow',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'verifySignedPow',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'publicKeyHex': publicKeyHex,
+            'signature': signature,
+            'payload': payload,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> verifyHashcash(
+    _i1.TestSessionBuilder sessionBuilder,
+    String challenge,
+    String proofOfWork,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'verifyHashcash',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
           methodName: 'verifyHashcash',
           parameters: _i1.testObjectToJson({
             'challenge': challenge,

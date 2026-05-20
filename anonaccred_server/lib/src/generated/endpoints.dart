@@ -12,12 +12,13 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/commerce_endpoint.dart' as _i2;
-import '../endpoints/iap_endpoint.dart' as _i3;
-import 'package:anonaccount_server/anonaccount_server.dart' as _i4;
+import '../endpoints/group_commerce_endpoint.dart' as _i3;
+import '../endpoints/iap_endpoint.dart' as _i4;
+import 'package:anonaccount_server/anonaccount_server.dart' as _i5;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i5;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i6;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i7;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -29,7 +30,13 @@ class Endpoints extends _i1.EndpointDispatch {
           'commerce',
           'anonaccred',
         ),
-      'iAP': _i3.IAPEndpoint()
+      'groupCommerce': _i3.GroupCommerceEndpoint()
+        ..initialize(
+          server,
+          'groupCommerce',
+          'anonaccred',
+        ),
+      'iAP': _i4.IAPEndpoint()
         ..initialize(
           server,
           'iAP',
@@ -96,6 +103,90 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['groupCommerce'] = _i1.EndpointConnector(
+      name: 'groupCommerce',
+      endpoint: endpoints['groupCommerce']!,
+      methodConnectors: {
+        'getGroupEntitlements': _i1.MethodConnector(
+          name: 'getGroupEntitlements',
+          params: {
+            'shareGroupUuid': _i1.ParameterDescription(
+              name: 'shareGroupUuid',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['groupCommerce'] as _i3.GroupCommerceEndpoint)
+                      .getGroupEntitlements(
+                        session,
+                        params['shareGroupUuid'],
+                      ),
+        ),
+        'getGroupEntitlementBalance': _i1.MethodConnector(
+          name: 'getGroupEntitlementBalance',
+          params: {
+            'shareGroupUuid': _i1.ParameterDescription(
+              name: 'shareGroupUuid',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'tag': _i1.ParameterDescription(
+              name: 'tag',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['groupCommerce'] as _i3.GroupCommerceEndpoint)
+                      .getGroupEntitlementBalance(
+                        session,
+                        params['shareGroupUuid'],
+                        params['tag'],
+                      ),
+        ),
+        'consumeGroupEntitlement': _i1.MethodConnector(
+          name: 'consumeGroupEntitlement',
+          params: {
+            'shareGroupUuid': _i1.ParameterDescription(
+              name: 'shareGroupUuid',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'tag': _i1.ParameterDescription(
+              name: 'tag',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'quantity': _i1.ParameterDescription(
+              name: 'quantity',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['groupCommerce'] as _i3.GroupCommerceEndpoint)
+                      .consumeGroupEntitlement(
+                        session,
+                        params['shareGroupUuid'],
+                        params['tag'],
+                        params['quantity'],
+                      ),
+        ),
+      },
+    );
     connectors['iAP'] = _i1.EndpointConnector(
       name: 'iAP',
       endpoint: endpoints['iAP']!,
@@ -123,7 +214,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['iAP'] as _i3.IAPEndpoint)
+              ) async => (endpoints['iAP'] as _i4.IAPEndpoint)
                   .validateAppleTransaction(
                     session,
                     params['transactionId'],
@@ -160,7 +251,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['iAP'] as _i3.IAPEndpoint).validateGooglePurchase(
+                  (endpoints['iAP'] as _i4.IAPEndpoint).validateGooglePurchase(
                     session,
                     params['packageName'],
                     params['productId'],
@@ -170,10 +261,10 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['anonaccount'] = _i4.Endpoints()..initializeEndpoints(server);
-    modules['serverpod_auth_idp'] = _i5.Endpoints()
+    modules['anonaccount'] = _i5.Endpoints()..initializeEndpoints(server);
+    modules['serverpod_auth_idp'] = _i6.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i6.Endpoints()
+    modules['serverpod_auth_core'] = _i7.Endpoints()
       ..initializeEndpoints(server);
   }
 }

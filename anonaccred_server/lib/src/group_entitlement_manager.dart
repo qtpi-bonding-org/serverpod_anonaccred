@@ -4,47 +4,54 @@ import 'entitlement_core.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
 
-/// High-level service for managing account entitlements (balances and consumption).
+/// High-level service for managing group-scoped entitlements.
 ///
-/// Shares validation, tag lookup, and exception construction with
-/// [EntitlementCore] — see also [GroupEntitlementManager] for the
-/// parallel group-scoped service.
-class EntitlementManager {
-  /// Grants entitlement to an account by its ID.
+/// Mirrors [EntitlementManager]'s public surface against the
+/// `group_entitlement` and `group_consumption_log` tables, keyed on
+/// `shareGroupUuid` instead of `accountUuid`. Consumption events
+/// optionally attribute themselves to a specific member via
+/// `consumingAccountUuid` (for UI attribution only — billing
+/// correctness doesn't depend on it).
+///
+/// Tag namespace convention (spec §7.1): group-scoped entitlements use
+/// the `group_*` tag prefix. This is not enforced here — callers are
+/// responsible for keeping account and group entitlement tags
+/// separate. Use the same `entitlement` registry table for both.
+class GroupEntitlementManager {
+  /// Grants entitlement to a group by entitlement ID.
   ///
-  /// Caller must provide a [transaction] — the grant participates in the
-  /// caller's transaction so everything commits or rolls back together.
-  static Future<void> grantEntitlementById(
+  /// Caller must provide a [transaction].
+  static Future<void> grantGroupEntitlementById(
     Session session, {
-    required UuidValue accountUuid,
+    required UuidValue shareGroupUuid,
     required int entitlementId,
     required double quantity,
     required Transaction transaction,
   }) async {
     EntitlementCore.requirePositiveAmount(
       quantity,
-      operation: 'Grant',
+      operation: 'Group grant',
     );
 
-    final existingRecord = await AccountEntitlement.db.findFirstRow(
+    final existing = await GroupEntitlement.db.findFirstRow(
       session,
       where: (t) =>
-          t.accountUuid.equals(accountUuid) &
+          t.shareGroupUuid.equals(shareGroupUuid) &
           t.entitlementId.equals(entitlementId),
       transaction: transaction,
     );
 
-    if (existingRecord != null) {
-      await AccountEntitlement.db.updateRow(
+    if (existing != null) {
+      await GroupEntitlement.db.updateRow(
         session,
-        existingRecord.copyWith(balance: existingRecord.balance + quantity),
+        existing.copyWith(balance: existing.balance + quantity),
         transaction: transaction,
       );
     } else {
-      await AccountEntitlement.db.insertRow(
+      await GroupEntitlement.db.insertRow(
         session,
-        AccountEntitlement(
-          accountUuid: accountUuid,
+        GroupEntitlement(
+          shareGroupUuid: shareGroupUuid,
           entitlementId: entitlementId,
           balance: quantity,
         ),
@@ -53,12 +60,12 @@ class EntitlementManager {
     }
   }
 
-  /// Grants entitlement to an account by its tag.
+  /// Grants entitlement to a group by tag.
   ///
   /// Caller must provide a [transaction].
-  static Future<void> grantEntitlement(
+  static Future<void> grantGroupEntitlement(
     Session session, {
-    required UuidValue accountUuid,
+    required UuidValue shareGroupUuid,
     required String tag,
     required double quantity,
     required Transaction transaction,
@@ -68,28 +75,32 @@ class EntitlementManager {
       tag,
       transaction: transaction,
     );
-    await grantEntitlementById(
+    await grantGroupEntitlementById(
       session,
-      accountUuid: accountUuid,
+      shareGroupUuid: shareGroupUuid,
       entitlementId: entitlement.id!,
       quantity: quantity,
       transaction: transaction,
     );
   }
 
-  /// Consumes an entitlement from an account.
-  /// Deducts from balance and logs the consumption.
-  static Future<void> consumeEntitlement(
+  /// Consumes a group entitlement.
+  ///
+  /// Deducts from balance and writes a `group_consumption_log` row.
+  /// [consumingAccountUuid] optionally attributes the event to the
+  /// member who triggered it (used by client UI; billing-irrelevant).
+  static Future<void> consumeGroupEntitlement(
     Session session, {
-    required UuidValue accountUuid,
+    required UuidValue shareGroupUuid,
     required String tag,
     required double amount,
     required String reason,
+    UuidValue? consumingAccountUuid,
   }) async {
     EntitlementCore.requirePositiveAmount(
       amount,
       tag: tag,
-      operation: 'Consumption',
+      operation: 'Group consumption',
     );
 
     try {
@@ -100,10 +111,10 @@ class EntitlementManager {
           transaction: transaction,
         );
 
-        final record = await AccountEntitlement.db.findFirstRow(
+        final record = await GroupEntitlement.db.findFirstRow(
           session,
           where: (t) =>
-              t.accountUuid.equals(accountUuid) &
+              t.shareGroupUuid.equals(shareGroupUuid) &
               t.entitlementId.equals(entitlement.id),
           transaction: transaction,
         );
@@ -116,20 +127,21 @@ class EntitlementManager {
           );
         }
 
-        await AccountEntitlement.db.updateRow(
+        await GroupEntitlement.db.updateRow(
           session,
           record.copyWith(balance: record.balance - amount),
           transaction: transaction,
         );
 
-        await ConsumptionLog.db.insertRow(
+        await GroupConsumptionLog.db.insertRow(
           session,
-          ConsumptionLog(
-            accountUuid: accountUuid,
+          GroupConsumptionLog(
+            shareGroupUuid: shareGroupUuid,
             entitlementId: entitlement.id!,
             amount: amount,
             reason: reason,
             timestamp: DateTime.now(),
+            consumingAccountUuid: consumingAccountUuid,
           ),
           transaction: transaction,
         );
@@ -138,55 +150,55 @@ class EntitlementManager {
       if (e is InventoryException) rethrow;
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to consume entitlement: ${e.toString()}',
+        message: 'Failed to consume group entitlement: ${e.toString()}',
         tag: tag,
         details: {'error': e.toString()},
       );
     }
   }
 
-  /// Revokes entitlement from an account by debiting the balance.
+  /// Revokes a group entitlement balance.
   ///
-  /// Clamps at zero (never goes negative). Creates a ConsumptionLog entry
-  /// with the provided reason. No-op if no AccountEntitlement record exists.
-  static Future<void> revokeEntitlement(
+  /// Clamps at zero. Writes a log row. No-op if no balance exists.
+  static Future<void> revokeGroupEntitlement(
     Session session, {
-    required UuidValue accountUuid,
+    required UuidValue shareGroupUuid,
     required int entitlementId,
     required double quantity,
     required String reason,
+    UuidValue? consumingAccountUuid,
   }) async {
     if (quantity <= 0) return;
 
     try {
       await session.db.transaction((transaction) async {
-        final record = await AccountEntitlement.db.findFirstRow(
+        final record = await GroupEntitlement.db.findFirstRow(
           session,
           where: (t) =>
-              t.accountUuid.equals(accountUuid) &
+              t.shareGroupUuid.equals(shareGroupUuid) &
               t.entitlementId.equals(entitlementId),
           transaction: transaction,
         );
-
         if (record == null) return;
 
         final debit = quantity > record.balance ? record.balance : quantity;
         if (debit <= 0) return;
 
-        await AccountEntitlement.db.updateRow(
+        await GroupEntitlement.db.updateRow(
           session,
           record.copyWith(balance: record.balance - debit),
           transaction: transaction,
         );
 
-        await ConsumptionLog.db.insertRow(
+        await GroupConsumptionLog.db.insertRow(
           session,
-          ConsumptionLog(
-            accountUuid: accountUuid,
+          GroupConsumptionLog(
+            shareGroupUuid: shareGroupUuid,
             entitlementId: entitlementId,
             amount: debit,
             reason: reason,
             timestamp: DateTime.now(),
+            consumingAccountUuid: consumingAccountUuid,
           ),
           transaction: transaction,
         );
@@ -195,7 +207,7 @@ class EntitlementManager {
       if (e is InventoryException) rethrow;
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to revoke entitlement: ${e.toString()}',
+        message: 'Failed to revoke group entitlement: ${e.toString()}',
         details: {
           'error': e.toString(),
           'entitlementId': entitlementId.toString(),
@@ -204,10 +216,10 @@ class EntitlementManager {
     }
   }
 
-  /// Gets the current balance for an entitlement by tag.
-  static Future<double> getEntitlementBalance(
+  /// Gets the current balance for a group entitlement by tag.
+  static Future<double> getGroupEntitlementBalance(
     Session session, {
-    required UuidValue accountUuid,
+    required UuidValue shareGroupUuid,
     required String tag,
   }) async {
     try {
@@ -217,10 +229,10 @@ class EntitlementManager {
       );
       if (entitlement == null) return 0.0;
 
-      final record = await AccountEntitlement.db.findFirstRow(
+      final record = await GroupEntitlement.db.findFirstRow(
         session,
         where: (t) =>
-            t.accountUuid.equals(accountUuid) &
+            t.shareGroupUuid.equals(shareGroupUuid) &
             t.entitlementId.equals(entitlement.id),
       );
 
@@ -228,29 +240,29 @@ class EntitlementManager {
     } catch (e) {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to get entitlement balance: ${e.toString()}',
+        message: 'Failed to get group entitlement balance: ${e.toString()}',
         tag: tag,
       );
     }
   }
 
-  /// Gets all entitlement balances for an account.
-  static Future<List<AccountEntitlement>> getAccountEntitlements(
+  /// Gets all entitlement balances for a group.
+  static Future<List<GroupEntitlement>> getGroupEntitlements(
     Session session, {
-    required UuidValue accountUuid,
+    required UuidValue shareGroupUuid,
   }) async {
     try {
-      return await AccountEntitlement.db.find(
+      return await GroupEntitlement.db.find(
         session,
-        where: (t) => t.accountUuid.equals(accountUuid),
-        include: AccountEntitlement.include(
+        where: (t) => t.shareGroupUuid.equals(shareGroupUuid),
+        include: GroupEntitlement.include(
           entitlement: Entitlement.include(),
         ),
       );
     } catch (e) {
       throw AnonAccredExceptionFactory.createInventoryException(
         code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to get account entitlements: ${e.toString()}',
+        message: 'Failed to get group entitlements: ${e.toString()}',
       );
     }
   }

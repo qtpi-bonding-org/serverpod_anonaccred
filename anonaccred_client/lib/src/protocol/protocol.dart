@@ -19,25 +19,29 @@ import 'currency.dart' as _i6;
 import 'entitlement.dart' as _i7;
 import 'entitlement_type.dart' as _i8;
 import 'ephemeral_accreditation.dart' as _i9;
-import 'iap_validation_response.dart' as _i10;
-import 'inventory_exception.dart' as _i11;
-import 'module_class.dart' as _i12;
-import 'order_status.dart' as _i13;
-import 'payment_exception.dart' as _i14;
-import 'payment_rail.dart' as _i15;
-import 'payment_request.dart' as _i16;
-import 'payment_result.dart' as _i17;
-import 'rail_product.dart' as _i18;
-import 'rail_product_grant.dart' as _i19;
-import 'receipt_hash.dart' as _i20;
-import 'transaction_payment.dart' as _i21;
+import 'ephemeral_accreditation_group.dart' as _i10;
+import 'group_consumption_log.dart' as _i11;
+import 'group_entitlement.dart' as _i12;
+import 'iap_validation_response.dart' as _i13;
+import 'inventory_exception.dart' as _i14;
+import 'module_class.dart' as _i15;
+import 'order_status.dart' as _i16;
+import 'payment_exception.dart' as _i17;
+import 'payment_rail.dart' as _i18;
+import 'payment_request.dart' as _i19;
+import 'payment_result.dart' as _i20;
+import 'rail_product.dart' as _i21;
+import 'rail_product_grant.dart' as _i22;
+import 'receipt_hash.dart' as _i23;
+import 'transaction_payment.dart' as _i24;
 import 'package:anonaccred_client/src/protocol/account_entitlement.dart'
-    as _i22;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i23;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i24;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i25;
+import 'package:anonaccred_client/src/protocol/group_entitlement.dart' as _i26;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i27;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i28;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i29;
 export 'account_entitlement.dart';
 export 'api_response.dart';
 export 'consume_result.dart';
@@ -46,6 +50,9 @@ export 'currency.dart';
 export 'entitlement.dart';
 export 'entitlement_type.dart';
 export 'ephemeral_accreditation.dart';
+export 'ephemeral_accreditation_group.dart';
+export 'group_consumption_log.dart';
+export 'group_entitlement.dart';
 export 'iap_validation_response.dart';
 export 'inventory_exception.dart';
 export 'module_class.dart';
@@ -120,41 +127,50 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i9.EphemeralAccreditation) {
       return _i9.EphemeralAccreditation.fromJson(data) as T;
     }
-    if (t == _i10.IapValidationResponse) {
-      return _i10.IapValidationResponse.fromJson(data) as T;
+    if (t == _i10.EphemeralAccreditationGroup) {
+      return _i10.EphemeralAccreditationGroup.fromJson(data) as T;
     }
-    if (t == _i11.InventoryException) {
-      return _i11.InventoryException.fromJson(data) as T;
+    if (t == _i11.GroupConsumptionLog) {
+      return _i11.GroupConsumptionLog.fromJson(data) as T;
     }
-    if (t == _i12.ModuleClass) {
-      return _i12.ModuleClass.fromJson(data) as T;
+    if (t == _i12.GroupEntitlement) {
+      return _i12.GroupEntitlement.fromJson(data) as T;
     }
-    if (t == _i13.OrderStatus) {
-      return _i13.OrderStatus.fromJson(data) as T;
+    if (t == _i13.IapValidationResponse) {
+      return _i13.IapValidationResponse.fromJson(data) as T;
     }
-    if (t == _i14.PaymentException) {
-      return _i14.PaymentException.fromJson(data) as T;
+    if (t == _i14.InventoryException) {
+      return _i14.InventoryException.fromJson(data) as T;
     }
-    if (t == _i15.PaymentRail) {
-      return _i15.PaymentRail.fromJson(data) as T;
+    if (t == _i15.ModuleClass) {
+      return _i15.ModuleClass.fromJson(data) as T;
     }
-    if (t == _i16.PaymentRequest) {
-      return _i16.PaymentRequest.fromJson(data) as T;
+    if (t == _i16.OrderStatus) {
+      return _i16.OrderStatus.fromJson(data) as T;
     }
-    if (t == _i17.PaymentResult) {
-      return _i17.PaymentResult.fromJson(data) as T;
+    if (t == _i17.PaymentException) {
+      return _i17.PaymentException.fromJson(data) as T;
     }
-    if (t == _i18.RailProduct) {
-      return _i18.RailProduct.fromJson(data) as T;
+    if (t == _i18.PaymentRail) {
+      return _i18.PaymentRail.fromJson(data) as T;
     }
-    if (t == _i19.RailProductGrant) {
-      return _i19.RailProductGrant.fromJson(data) as T;
+    if (t == _i19.PaymentRequest) {
+      return _i19.PaymentRequest.fromJson(data) as T;
     }
-    if (t == _i20.ReceiptHash) {
-      return _i20.ReceiptHash.fromJson(data) as T;
+    if (t == _i20.PaymentResult) {
+      return _i20.PaymentResult.fromJson(data) as T;
     }
-    if (t == _i21.TransactionPayment) {
-      return _i21.TransactionPayment.fromJson(data) as T;
+    if (t == _i21.RailProduct) {
+      return _i21.RailProduct.fromJson(data) as T;
+    }
+    if (t == _i22.RailProductGrant) {
+      return _i22.RailProductGrant.fromJson(data) as T;
+    }
+    if (t == _i23.ReceiptHash) {
+      return _i23.ReceiptHash.fromJson(data) as T;
+    }
+    if (t == _i24.TransactionPayment) {
+      return _i24.TransactionPayment.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AccountEntitlement?>()) {
       return (data != null ? _i2.AccountEntitlement.fromJson(data) : null) as T;
@@ -181,59 +197,78 @@ class Protocol extends _i1.SerializationManager {
       return (data != null ? _i9.EphemeralAccreditation.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i10.IapValidationResponse?>()) {
-      return (data != null ? _i10.IapValidationResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i10.EphemeralAccreditationGroup?>()) {
+      return (data != null
+              ? _i10.EphemeralAccreditationGroup.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i11.InventoryException?>()) {
-      return (data != null ? _i11.InventoryException.fromJson(data) : null)
+    if (t == _i1.getType<_i11.GroupConsumptionLog?>()) {
+      return (data != null ? _i11.GroupConsumptionLog.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i12.ModuleClass?>()) {
-      return (data != null ? _i12.ModuleClass.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.GroupEntitlement?>()) {
+      return (data != null ? _i12.GroupEntitlement.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.OrderStatus?>()) {
-      return (data != null ? _i13.OrderStatus.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i14.PaymentException?>()) {
-      return (data != null ? _i14.PaymentException.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i15.PaymentRail?>()) {
-      return (data != null ? _i15.PaymentRail.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i16.PaymentRequest?>()) {
-      return (data != null ? _i16.PaymentRequest.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i17.PaymentResult?>()) {
-      return (data != null ? _i17.PaymentResult.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i18.RailProduct?>()) {
-      return (data != null ? _i18.RailProduct.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i19.RailProductGrant?>()) {
-      return (data != null ? _i19.RailProductGrant.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i20.ReceiptHash?>()) {
-      return (data != null ? _i20.ReceiptHash.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i21.TransactionPayment?>()) {
-      return (data != null ? _i21.TransactionPayment.fromJson(data) : null)
+    if (t == _i1.getType<_i13.IapValidationResponse?>()) {
+      return (data != null ? _i13.IapValidationResponse.fromJson(data) : null)
           as T;
     }
-    if (t == List<_i22.AccountEntitlement>) {
+    if (t == _i1.getType<_i14.InventoryException?>()) {
+      return (data != null ? _i14.InventoryException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i15.ModuleClass?>()) {
+      return (data != null ? _i15.ModuleClass.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i16.OrderStatus?>()) {
+      return (data != null ? _i16.OrderStatus.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i17.PaymentException?>()) {
+      return (data != null ? _i17.PaymentException.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i18.PaymentRail?>()) {
+      return (data != null ? _i18.PaymentRail.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i19.PaymentRequest?>()) {
+      return (data != null ? _i19.PaymentRequest.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i20.PaymentResult?>()) {
+      return (data != null ? _i20.PaymentResult.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i21.RailProduct?>()) {
+      return (data != null ? _i21.RailProduct.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i22.RailProductGrant?>()) {
+      return (data != null ? _i22.RailProductGrant.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i23.ReceiptHash?>()) {
+      return (data != null ? _i23.ReceiptHash.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i24.TransactionPayment?>()) {
+      return (data != null ? _i24.TransactionPayment.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<_i25.AccountEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i22.AccountEntitlement>(e))
+              .map((e) => deserialize<_i25.AccountEntitlement>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i26.GroupEntitlement>) {
+      return (data as List)
+              .map((e) => deserialize<_i26.GroupEntitlement>(e))
               .toList()
           as T;
     }
     try {
-      return _i23.Protocol().deserialize<T>(data, t);
+      return _i27.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i24.Protocol().deserialize<T>(data, t);
+      return _i28.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i25.Protocol().deserialize<T>(data, t);
+      return _i29.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -248,18 +283,21 @@ class Protocol extends _i1.SerializationManager {
       _i7.Entitlement => 'Entitlement',
       _i8.EntitlementType => 'EntitlementType',
       _i9.EphemeralAccreditation => 'EphemeralAccreditation',
-      _i10.IapValidationResponse => 'IapValidationResponse',
-      _i11.InventoryException => 'InventoryException',
-      _i12.ModuleClass => 'ModuleClass',
-      _i13.OrderStatus => 'OrderStatus',
-      _i14.PaymentException => 'PaymentException',
-      _i15.PaymentRail => 'PaymentRail',
-      _i16.PaymentRequest => 'PaymentRequest',
-      _i17.PaymentResult => 'PaymentResult',
-      _i18.RailProduct => 'RailProduct',
-      _i19.RailProductGrant => 'RailProductGrant',
-      _i20.ReceiptHash => 'ReceiptHash',
-      _i21.TransactionPayment => 'TransactionPayment',
+      _i10.EphemeralAccreditationGroup => 'EphemeralAccreditationGroup',
+      _i11.GroupConsumptionLog => 'GroupConsumptionLog',
+      _i12.GroupEntitlement => 'GroupEntitlement',
+      _i13.IapValidationResponse => 'IapValidationResponse',
+      _i14.InventoryException => 'InventoryException',
+      _i15.ModuleClass => 'ModuleClass',
+      _i16.OrderStatus => 'OrderStatus',
+      _i17.PaymentException => 'PaymentException',
+      _i18.PaymentRail => 'PaymentRail',
+      _i19.PaymentRequest => 'PaymentRequest',
+      _i20.PaymentResult => 'PaymentResult',
+      _i21.RailProduct => 'RailProduct',
+      _i22.RailProductGrant => 'RailProductGrant',
+      _i23.ReceiptHash => 'ReceiptHash',
+      _i24.TransactionPayment => 'TransactionPayment',
       _ => null,
     };
   }
@@ -290,40 +328,46 @@ class Protocol extends _i1.SerializationManager {
         return 'EntitlementType';
       case _i9.EphemeralAccreditation():
         return 'EphemeralAccreditation';
-      case _i10.IapValidationResponse():
+      case _i10.EphemeralAccreditationGroup():
+        return 'EphemeralAccreditationGroup';
+      case _i11.GroupConsumptionLog():
+        return 'GroupConsumptionLog';
+      case _i12.GroupEntitlement():
+        return 'GroupEntitlement';
+      case _i13.IapValidationResponse():
         return 'IapValidationResponse';
-      case _i11.InventoryException():
+      case _i14.InventoryException():
         return 'InventoryException';
-      case _i12.ModuleClass():
+      case _i15.ModuleClass():
         return 'ModuleClass';
-      case _i13.OrderStatus():
+      case _i16.OrderStatus():
         return 'OrderStatus';
-      case _i14.PaymentException():
+      case _i17.PaymentException():
         return 'PaymentException';
-      case _i15.PaymentRail():
+      case _i18.PaymentRail():
         return 'PaymentRail';
-      case _i16.PaymentRequest():
+      case _i19.PaymentRequest():
         return 'PaymentRequest';
-      case _i17.PaymentResult():
+      case _i20.PaymentResult():
         return 'PaymentResult';
-      case _i18.RailProduct():
+      case _i21.RailProduct():
         return 'RailProduct';
-      case _i19.RailProductGrant():
+      case _i22.RailProductGrant():
         return 'RailProductGrant';
-      case _i20.ReceiptHash():
+      case _i23.ReceiptHash():
         return 'ReceiptHash';
-      case _i21.TransactionPayment():
+      case _i24.TransactionPayment():
         return 'TransactionPayment';
     }
-    className = _i23.Protocol().getClassNameForObject(data);
+    className = _i27.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'anonaccount.$className';
     }
-    className = _i24.Protocol().getClassNameForObject(data);
+    className = _i28.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i25.Protocol().getClassNameForObject(data);
+    className = _i29.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -360,53 +404,62 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'EphemeralAccreditation') {
       return deserialize<_i9.EphemeralAccreditation>(data['data']);
     }
+    if (dataClassName == 'EphemeralAccreditationGroup') {
+      return deserialize<_i10.EphemeralAccreditationGroup>(data['data']);
+    }
+    if (dataClassName == 'GroupConsumptionLog') {
+      return deserialize<_i11.GroupConsumptionLog>(data['data']);
+    }
+    if (dataClassName == 'GroupEntitlement') {
+      return deserialize<_i12.GroupEntitlement>(data['data']);
+    }
     if (dataClassName == 'IapValidationResponse') {
-      return deserialize<_i10.IapValidationResponse>(data['data']);
+      return deserialize<_i13.IapValidationResponse>(data['data']);
     }
     if (dataClassName == 'InventoryException') {
-      return deserialize<_i11.InventoryException>(data['data']);
+      return deserialize<_i14.InventoryException>(data['data']);
     }
     if (dataClassName == 'ModuleClass') {
-      return deserialize<_i12.ModuleClass>(data['data']);
+      return deserialize<_i15.ModuleClass>(data['data']);
     }
     if (dataClassName == 'OrderStatus') {
-      return deserialize<_i13.OrderStatus>(data['data']);
+      return deserialize<_i16.OrderStatus>(data['data']);
     }
     if (dataClassName == 'PaymentException') {
-      return deserialize<_i14.PaymentException>(data['data']);
+      return deserialize<_i17.PaymentException>(data['data']);
     }
     if (dataClassName == 'PaymentRail') {
-      return deserialize<_i15.PaymentRail>(data['data']);
+      return deserialize<_i18.PaymentRail>(data['data']);
     }
     if (dataClassName == 'PaymentRequest') {
-      return deserialize<_i16.PaymentRequest>(data['data']);
+      return deserialize<_i19.PaymentRequest>(data['data']);
     }
     if (dataClassName == 'PaymentResult') {
-      return deserialize<_i17.PaymentResult>(data['data']);
+      return deserialize<_i20.PaymentResult>(data['data']);
     }
     if (dataClassName == 'RailProduct') {
-      return deserialize<_i18.RailProduct>(data['data']);
+      return deserialize<_i21.RailProduct>(data['data']);
     }
     if (dataClassName == 'RailProductGrant') {
-      return deserialize<_i19.RailProductGrant>(data['data']);
+      return deserialize<_i22.RailProductGrant>(data['data']);
     }
     if (dataClassName == 'ReceiptHash') {
-      return deserialize<_i20.ReceiptHash>(data['data']);
+      return deserialize<_i23.ReceiptHash>(data['data']);
     }
     if (dataClassName == 'TransactionPayment') {
-      return deserialize<_i21.TransactionPayment>(data['data']);
+      return deserialize<_i24.TransactionPayment>(data['data']);
     }
     if (dataClassName.startsWith('anonaccount.')) {
       data['className'] = dataClassName.substring(12);
-      return _i23.Protocol().deserializeByClassName(data);
+      return _i27.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i24.Protocol().deserializeByClassName(data);
+      return _i28.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i25.Protocol().deserializeByClassName(data);
+      return _i29.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -421,13 +474,13 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i23.Protocol().mapRecordToJson(record);
+      return _i27.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i24.Protocol().mapRecordToJson(record);
+      return _i28.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i25.Protocol().mapRecordToJson(record);
+      return _i29.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }
