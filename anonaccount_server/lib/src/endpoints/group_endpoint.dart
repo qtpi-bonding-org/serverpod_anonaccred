@@ -790,6 +790,103 @@ class GroupEndpoint extends SignedPowEndpoint {
     required String memberSigningPublicKeyHex,
     required String memberAuthSignature,
   }) async {
-    throw UnimplementedError('leaveGroup not yet implemented');
+    try {
+      final outerPayload =
+          '$challenge:${GroupMethods.leaveGroup}:$callerDeviceSigningPublicKeyHex';
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        callerDeviceSigningPublicKeyHex,
+        signature,
+        outerPayload,
+      );
+
+      final target = await GroupMember.db.findById(session, memberId);
+      if (target == null || target.isRevoked) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authDeviceNotFound,
+          message: 'Group member not found or already revoked',
+          operation: 'leaveGroup',
+          details: {'memberId': memberId.toString()},
+        );
+      }
+
+      if (target.memberSigningPublicKeyHex != memberSigningPublicKeyHex) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authInvalidSignature,
+          message: 'memberSigningPublicKeyHex does not match the target row',
+          operation: 'leaveGroup',
+        );
+      }
+
+      final innerPayload = GroupInnerPayloads.leaveGroup(memberId);
+      final innerOk = await CryptoUtils.verifySignature(
+        message: innerPayload,
+        signature: memberAuthSignature,
+        publicKey: memberSigningPublicKeyHex,
+      );
+      if (!innerOk) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.cryptoInvalidSignature,
+          message: 'Invalid member attestation for leaveGroup',
+          operation: 'leaveGroup',
+        );
+      }
+
+      final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+        session,
+        callerDeviceSigningPublicKeyHex,
+        'leaveGroup',
+      );
+      if (target.anonAccountId != deviceAccountId) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authInvalidSignature,
+          message:
+              'Caller member key is not bound to the device-resolved account',
+          operation: 'leaveGroup',
+        );
+      }
+
+      await GroupMember.db.updateRow(
+        session,
+        target.copyWith(
+          isRevoked: true,
+          revokedBySignerPublicKeyHex: memberSigningPublicKeyHex,
+          revokedByAttestation: memberAuthSignature,
+        ),
+      );
+
+      // If no non-revoked admins remain, delete the group (cascades all members).
+      final allMembers = await GroupMember.db.find(
+        session,
+        where: (t) =>
+            t.shareGroupId.equals(target.shareGroupId) &
+            t.isRevoked.equals(false),
+      );
+      final remainingAdmins =
+          allMembers.where((m) => m.role == GroupMemberRole.admin).length;
+      if (remainingAdmins == 0) {
+        final group = await ShareGroup.db.findById(session, target.shareGroupId);
+        if (group != null) {
+          await ShareGroup.db.deleteRow(session, group);
+        }
+      }
+
+      return true;
+    } on AuthenticationException {
+      rethrow;
+    } catch (e, stackTrace) {
+      session.log(
+        'GroupEndpoint: leaveGroup error: $e\n$stackTrace',
+        level: LogLevel.error,
+      );
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.databaseError,
+        message: 'leaveGroup failed: ${e.toString()}',
+        operation: 'leaveGroup',
+        details: {'error': e.toString()},
+      );
+    }
   }
 }

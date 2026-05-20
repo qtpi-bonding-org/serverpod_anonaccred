@@ -759,6 +759,176 @@ test('listGroupMembers: rejected when caller is not a member', () async {
   );
 });
 
+    test('leaveGroup: member removes themselves, row is self-attested', () async {
+  final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+  // Add a second member to leave.
+  final (_, m2UltPub) = SigningTestHelper.generateKeypair();
+  final m2 = await createTestAccount(
+    sessionBuilder,
+    ultimateSigningPublicKeyHex: m2UltPub,
+    ultimatePublicKey: m2UltPub,
+  );
+  final (m2DevicePriv, m2DevicePub) = SigningTestHelper.generateKeypair();
+  await createTestDevice(
+    sessionBuilder,
+    anonAccountId: m2.id!,
+    deviceSigningPublicKeyHex: m2DevicePub,
+  );
+  final (m2MemberPriv, m2MemberPub) = SigningTestHelper.generateKeypair();
+  final (_, m2MemberEnc) = SigningTestHelper.generateKeypair();
+
+  final outerAdd = await _outer(
+    sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
+  );
+  final addInner = GroupInnerPayloads.addGroupMember(
+    s.group.id!, m2.id!, GroupMemberRole.member, m2MemberPub, m2MemberEnc,
+  );
+  final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
+  final m2Row = await endpoints.group.addGroupMember(
+    sessionBuilder,
+    challenge: outerAdd.challenge,
+    proofOfWork: outerAdd.pow,
+    signature: outerAdd.signature,
+    callerDeviceSigningPublicKeyHex: s.devicePub,
+    groupId: s.group.id!,
+    newMemberAccountId: m2.id!,
+    role: GroupMemberRole.member,
+    memberSigningPublicKeyHex: m2MemberPub,
+    memberPublicKey: m2MemberEnc,
+    encryptedDataKey: 'wrapped',
+    callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
+    memberAuthSignature: addSig,
+  );
+
+  // m2 leaves.
+  final outer = await _outer(
+    sessionBuilder, endpoints, 'leaveGroup', m2DevicePub, m2DevicePriv,
+  );
+  final innerPayload = GroupInnerPayloads.leaveGroup(m2Row.id!);
+  final innerSig = SigningTestHelper.signWith(innerPayload, m2MemberPriv);
+
+  final ok = await endpoints.group.leaveGroup(
+    sessionBuilder,
+    challenge: outer.challenge,
+    proofOfWork: outer.pow,
+    signature: outer.signature,
+    callerDeviceSigningPublicKeyHex: m2DevicePub,
+    memberId: m2Row.id!,
+    memberSigningPublicKeyHex: m2MemberPub,
+    memberAuthSignature: innerSig,
+  );
+  expect(ok, isTrue);
+
+  // Verify row is self-attested revocation.
+  final dbSession = (sessionBuilder as InternalTestSessionBuilder)
+      .internalBuild(endpoint: 'test', method: 'verify');
+  try {
+    final after = await GroupMember.db.findById(dbSession, m2Row.id!);
+    expect(after!.isRevoked, isTrue);
+    expect(after.revokedBySignerPublicKeyHex, equals(m2MemberPub));
+    expect(after.revokedByAttestation, equals(innerSig));
+  } finally {
+    await dbSession.close();
+  }
+
+  // Group still exists — creator is still an admin.
+  final dbSession2 = (sessionBuilder as InternalTestSessionBuilder)
+      .internalBuild(endpoint: 'test', method: 'verify');
+  try {
+    final groupAfter = await ShareGroup.db.findById(dbSession2, s.group.id!);
+    expect(groupAfter, isNotNull);
+  } finally {
+    await dbSession2.close();
+  }
+});
+
+test('leaveGroup: last admin leaving deletes the group and all members', () async {
+  final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+  // Find the creator's member row.
+  final lookupSession = (sessionBuilder as InternalTestSessionBuilder)
+      .internalBuild(endpoint: 'test', method: 'findCreator');
+  late final GroupMember creatorRow;
+  try {
+    creatorRow = (await GroupMember.db.findFirstRow(
+      lookupSession,
+      where: (t) =>
+          t.shareGroupId.equals(s.group.id!) &
+          t.anonAccountId.equals(s.account.id!),
+    ))!;
+  } finally {
+    await lookupSession.close();
+  }
+
+  final outer = await _outer(
+    sessionBuilder, endpoints, 'leaveGroup', s.devicePub, s.devicePriv,
+  );
+  final innerPayload = GroupInnerPayloads.leaveGroup(creatorRow.id!);
+  final innerSig = SigningTestHelper.signWith(innerPayload, s.creatorMemberSigPriv);
+
+  final ok = await endpoints.group.leaveGroup(
+    sessionBuilder,
+    challenge: outer.challenge,
+    proofOfWork: outer.pow,
+    signature: outer.signature,
+    callerDeviceSigningPublicKeyHex: s.devicePub,
+    memberId: creatorRow.id!,
+    memberSigningPublicKeyHex: s.creatorMemberSigPub,
+    memberAuthSignature: innerSig,
+  );
+  expect(ok, isTrue);
+
+  // Group must be deleted.
+  final dbSession = (sessionBuilder as InternalTestSessionBuilder)
+      .internalBuild(endpoint: 'test', method: 'verify');
+  try {
+    final groupAfter = await ShareGroup.db.findById(dbSession, s.group.id!);
+    expect(groupAfter, isNull);
+  } finally {
+    await dbSession.close();
+  }
+});
+
+test('leaveGroup: rejected when inner sig is wrong', () async {
+  final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+  final lookupSession = (sessionBuilder as InternalTestSessionBuilder)
+      .internalBuild(endpoint: 'test', method: 'findCreator');
+  late final GroupMember creatorRow;
+  try {
+    creatorRow = (await GroupMember.db.findFirstRow(
+      lookupSession,
+      where: (t) =>
+          t.shareGroupId.equals(s.group.id!) &
+          t.anonAccountId.equals(s.account.id!),
+    ))!;
+  } finally {
+    await lookupSession.close();
+  }
+
+  final outer = await _outer(
+    sessionBuilder, endpoints, 'leaveGroup', s.devicePub, s.devicePriv,
+  );
+  final innerPayload = GroupInnerPayloads.leaveGroup(creatorRow.id!);
+  final (foreignPriv, _) = SigningTestHelper.generateKeypair();
+  final badSig = SigningTestHelper.signWith(innerPayload, foreignPriv);
+
+  expect(
+    () => endpoints.group.leaveGroup(
+      sessionBuilder,
+      challenge: outer.challenge,
+      proofOfWork: outer.pow,
+      signature: outer.signature,
+      callerDeviceSigningPublicKeyHex: s.devicePub,
+      memberId: creatorRow.id!,
+      memberSigningPublicKeyHex: s.creatorMemberSigPub,
+      memberAuthSignature: badSig,
+    ),
+    throwsA(isA<Exception>()),
+  );
+});
+
     test('removeGroupMember: rejected when removing an admin without owner sig',
         () async {
       final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
