@@ -574,6 +574,94 @@ void main() {
       }
     });
 
+    test('getGroup: returns group details for active member', () async {
+      final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+      final outer = await _outer(
+        sessionBuilder, endpoints, 'getGroup', s.devicePub, s.devicePriv,
+      );
+      final innerPayload = GroupInnerPayloads.getGroup(s.group.id!);
+      final innerSig = SigningTestHelper.signWith(innerPayload, s.creatorMemberSigPriv);
+
+      final result = await endpoints.group.getGroup(
+        sessionBuilder,
+        challenge: outer.challenge,
+        proofOfWork: outer.pow,
+        signature: outer.signature,
+        callerDeviceSigningPublicKeyHex: s.devicePub,
+        groupId: s.group.id!,
+        callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
+        memberAuthSignature: innerSig,
+      );
+
+      expect(result.id, equals(s.group.id));
+      expect(result.ultimateSigningPublicKeyHex, equals(s.groupUltSigPub));
+    });
+
+    test('getGroup: rejected when member sig is wrong', () async {
+      final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+      final outer = await _outer(
+        sessionBuilder, endpoints, 'getGroup', s.devicePub, s.devicePriv,
+      );
+      final innerPayload = GroupInnerPayloads.getGroup(s.group.id!);
+      final (foreignPriv, _) = SigningTestHelper.generateKeypair();
+      final badSig = SigningTestHelper.signWith(innerPayload, foreignPriv);
+
+      expect(
+        () => endpoints.group.getGroup(
+          sessionBuilder,
+          challenge: outer.challenge,
+          proofOfWork: outer.pow,
+          signature: outer.signature,
+          callerDeviceSigningPublicKeyHex: s.devicePub,
+          groupId: s.group.id!,
+          callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
+          memberAuthSignature: badSig,
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('getGroup: rejected when caller is not a member of the group', () async {
+      final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+      // A separate account with no membership.
+      final (_, outsiderUltPub) = SigningTestHelper.generateKeypair();
+      final outsider = await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: outsiderUltPub,
+        ultimatePublicKey: outsiderUltPub,
+      );
+      final (outsiderDevicePriv, outsiderDevicePub) = SigningTestHelper.generateKeypair();
+      await createTestDevice(
+        sessionBuilder,
+        anonAccountId: outsider.id!,
+        deviceSigningPublicKeyHex: outsiderDevicePub,
+      );
+      final (outsiderMemberPriv, outsiderMemberPub) = SigningTestHelper.generateKeypair();
+
+      final outer = await _outer(
+        sessionBuilder, endpoints, 'getGroup', outsiderDevicePub, outsiderDevicePriv,
+      );
+      final innerPayload = GroupInnerPayloads.getGroup(s.group.id!);
+      final innerSig = SigningTestHelper.signWith(innerPayload, outsiderMemberPriv);
+
+      expect(
+        () => endpoints.group.getGroup(
+          sessionBuilder,
+          challenge: outer.challenge,
+          proofOfWork: outer.pow,
+          signature: outer.signature,
+          callerDeviceSigningPublicKeyHex: outsiderDevicePub,
+          groupId: s.group.id!,
+          callerMemberSigningPublicKeyHex: outsiderMemberPub,
+          memberAuthSignature: innerSig,
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
+
     test('removeGroupMember: rejected when removing an admin without owner sig',
         () async {
       final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);

@@ -612,7 +612,85 @@ class GroupEndpoint extends SignedPowEndpoint {
     required String callerMemberSigningPublicKeyHex,
     required String memberAuthSignature,
   }) async {
-    throw UnimplementedError('getGroup not yet implemented');
+    try {
+      final outerPayload =
+          '$challenge:${GroupMethods.getGroup}:$callerDeviceSigningPublicKeyHex';
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        callerDeviceSigningPublicKeyHex,
+        signature,
+        outerPayload,
+      );
+
+      final innerPayload = GroupInnerPayloads.getGroup(groupId);
+      final innerOk = await CryptoUtils.verifySignature(
+        message: innerPayload,
+        signature: memberAuthSignature,
+        publicKey: callerMemberSigningPublicKeyHex,
+      );
+      if (!innerOk) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.cryptoInvalidSignature,
+          message: 'Invalid member attestation for getGroup',
+          operation: 'getGroup',
+        );
+      }
+
+      final callerMembership = await GroupMember.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.memberSigningPublicKeyHex
+                .equals(callerMemberSigningPublicKeyHex) &
+            t.shareGroupId.equals(groupId) &
+            t.isRevoked.equals(false),
+      );
+      if (callerMembership == null) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authAccountNotFound,
+          message: 'No active membership for caller in this group',
+          operation: 'getGroup',
+        );
+      }
+
+      final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+        session,
+        callerDeviceSigningPublicKeyHex,
+        'getGroup',
+      );
+      if (callerMembership.anonAccountId != deviceAccountId) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authInvalidSignature,
+          message: 'Caller member key is not bound to the device-resolved account',
+          operation: 'getGroup',
+        );
+      }
+
+      final group = await ShareGroup.db.findById(session, groupId);
+      if (group == null) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authAccountNotFound,
+          message: 'Group not found',
+          operation: 'getGroup',
+          details: {'groupId': groupId.toString()},
+        );
+      }
+      return group;
+    } on AuthenticationException {
+      rethrow;
+    } catch (e, stackTrace) {
+      session.log(
+        'GroupEndpoint: getGroup error: $e\n$stackTrace',
+        level: LogLevel.error,
+      );
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.databaseError,
+        message: 'getGroup failed: ${e.toString()}',
+        operation: 'getGroup',
+        details: {'error': e.toString()},
+      );
+    }
   }
 
   Future<List<GroupMember>> listGroupMembers(
