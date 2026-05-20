@@ -14,3 +14,4 @@ export 'package:webcrypto/webcrypto.dart'
 export 'src/auth/exceptions.dart';
 export 'src/util/crypto_logger.dart';
 export 'src/util/secure_memory_utils.dart';
+export 'src/crypto/hashcash.dart';
