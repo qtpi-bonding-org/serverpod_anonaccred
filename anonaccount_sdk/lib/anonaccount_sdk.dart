@@ -27,12 +27,17 @@ export 'package:anonaccount_client/anonaccount_client.dart'
         Caller,
         EndpointAccount,
         EndpointDevice,
+        EndpointEntrypoint,
         EndpointGroup,
         AccountMethods,
         DeviceMethods,
         DataKeyMethods,
         AccountDevice,
+        AccountCreationResponse,
         AuthenticationResult,
+        PublicChallengeResponse,
         ShareGroup,
         GroupMember,
         GroupMemberRole;
+
+export 'src/auth/anonaccount_auth.dart';
