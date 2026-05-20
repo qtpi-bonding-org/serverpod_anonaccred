@@ -43,3 +43,4 @@ export 'package:anonaccount_client/anonaccount_client.dart'
         UuidValue;
 
 export 'src/auth/anonaccount_auth.dart';
+export 'src/auth/pairing.dart';
