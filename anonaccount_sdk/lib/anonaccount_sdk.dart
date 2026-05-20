@@ -17,3 +17,4 @@ export 'src/util/secure_memory_utils.dart';
 export 'src/crypto/hashcash.dart';
 export 'src/util/error_recovery.dart';
 export 'src/models/models.dart';
+export 'src/crypto/symmetric.dart';
