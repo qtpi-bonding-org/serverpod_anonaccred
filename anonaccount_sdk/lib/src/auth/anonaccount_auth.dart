@@ -7,6 +7,7 @@ import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
+import 'package:dart_jwk_duo/dart_jwk_duo.dart' show KeyDuo, KeyDuoSerializer;
 
 import '../crypto/asymmetric.dart';
 import '../crypto/key_gen.dart';
@@ -14,6 +15,7 @@ import '../crypto/signing.dart';
 import '../models/account_creation_result.dart';
 import '../models/account_keys.dart';
 import '../models/registration_payload.dart';
+import 'exceptions.dart';
 import 'pow_signer.dart';
 
 /// High-level account lifecycle wrapper. Stateless — every call takes
@@ -108,6 +110,68 @@ class AnonaccountAuth {
       deviceSigningPublicKeyHex: payload.devicePublicKeyHex,
       deviceEncryptedDataKey: payload.deviceBlob,
       deviceLabel: deviceLabel,
+    );
+  }
+
+  /// Re-derives a fresh device key for an existing account using a
+  /// previously-backed-up ultimate key JWK Set. Returns the new local
+  /// material; submit via [registerAccount].
+  ///
+  /// Throws [InvalidUltimateKeyException] if [ultimateKeyJwk] cannot be parsed.
+  Future<AccountCreationResult> recoverAccount({
+    required String ultimateKeyJwk,
+    required String deviceLabel,
+  }) async {
+    final KeyDuo ultimate;
+    try {
+      ultimate = await const KeyDuoSerializer().importKeyDuo(ultimateKeyJwk);
+    } catch (e) {
+      throw InvalidUltimateKeyException(
+        'recoverAccount: could not parse ultimate key JWK: $e',
+      );
+    }
+
+    final device = await KeyGen.generateDeviceKey();
+    final symmetricKeyJwk = await KeyGen.generateSymmetricKeyJwk();
+
+    final devicePublicKeyHex =
+        await device.signingKeyPair.exportPublicKeyHex();
+    final ultimatePublicKeyHex =
+        await ultimate.signingKeyPair.exportPublicKeyHex();
+
+    final recoveryBlob = await AsymmetricCrypto.wrapForRecipient(
+      symmetricKeyJwk,
+      ultimate.encryptionKeyPair.publicKey,
+    );
+    final deviceBlob = await AsymmetricCrypto.wrapForRecipient(
+      symmetricKeyJwk,
+      device.encryptionKeyPair.publicKey,
+    );
+
+    final createdAt = DateTime.now().toUtc();
+    final signableData =
+        '$devicePublicKeyHex:$ultimatePublicKeyHex:$recoveryBlob:$deviceBlob:'
+        '${createdAt.toIso8601String()}';
+    final signature =
+        await SigningCrypto.signChallenge(signableData, ultimate);
+    final deviceKeyAttestation =
+        await SigningCrypto.signChallenge(devicePublicKeyHex, ultimate);
+
+    return AccountCreationResult(
+      keys: AccountKeys(
+        ultimateKey: ultimate,
+        deviceKey: device,
+        symmetricKeyJwk: symmetricKeyJwk,
+      ),
+      payload: RegistrationPayload(
+        devicePublicKeyHex: devicePublicKeyHex,
+        ultimatePublicKeyHex: ultimatePublicKeyHex,
+        recoveryBlob: recoveryBlob,
+        deviceBlob: deviceBlob,
+        signature: signature,
+        deviceKeyAttestation: deviceKeyAttestation,
+        createdAt: createdAt,
+      ),
     );
   }
 }
