@@ -83,7 +83,7 @@ void main() {
             proofOfWork: 'invalid',
             publicKeyHex: 'invalid',
             signature: 'invalid',
-            deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+            deviceId: UuidValue.fromString('d4e5f6a7-b8c9-4d0e-af1a-2b3c4d5e6f7a'),
           ),
           throwsA(isA<AuthenticationException>()),
         );

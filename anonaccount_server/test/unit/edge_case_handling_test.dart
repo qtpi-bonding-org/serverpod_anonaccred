@@ -100,7 +100,7 @@ void main() {
             proofOfWork: 'invalid',
             publicKeyHex: 'invalid',
             signature: 'invalid',
-            deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+            deviceId: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-e0f1a2b3c4d5'),
           ),
           throwsA(isA<AuthenticationException>()),
         );
@@ -133,7 +133,7 @@ void main() {
             proofOfWork: 'invalid',
             publicKeyHex: 'invalid',
             signature: 'invalid',
-            deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
+            deviceId: UuidValue.fromString('b2c3d4e5-f6a7-4b8c-9d0e-f1a2b3c4d5e6'),
           ),
           throwsA(isA<AuthenticationException>()),
         );
@@ -147,7 +147,7 @@ void main() {
             proofOfWork: 'invalid',
             publicKeyHex: 'invalid',
             signature: 'invalid',
-            deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000003'),
+            deviceId: UuidValue.fromString('c3d4e5f6-a7b8-4c9d-ae0f-1a2b3c4d5e6f'),
           ),
           throwsA(isA<AuthenticationException>()),
         );
