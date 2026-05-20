@@ -5,9 +5,8 @@ pubspec.lock
 build/
 doc/api/
 
-# Generated files
-*.g.dart
-*.freezed.dart
+# Generated files — note: *.freezed.dart and *.g.dart are TRACKED for this
+# library so consumers don't need to run build_runner themselves.
 *.mocks.dart
 
 # IDE
