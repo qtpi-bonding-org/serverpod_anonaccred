@@ -662,6 +662,103 @@ void main() {
       );
     });
 
+    test('listGroupMembers: returns active members only', () async {
+  final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+  // Add a second member.
+  final (_, m2UltPub) = SigningTestHelper.generateKeypair();
+  final m2 = await createTestAccount(
+    sessionBuilder,
+    ultimateSigningPublicKeyHex: m2UltPub,
+    ultimatePublicKey: m2UltPub,
+  );
+  final (_, m2MemberSig) = SigningTestHelper.generateKeypair();
+  final (_, m2MemberEnc) = SigningTestHelper.generateKeypair();
+
+  final outerAdd = await _outer(
+    sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
+  );
+  final addInner = GroupInnerPayloads.addGroupMember(
+    s.group.id!, m2.id!, GroupMemberRole.member, m2MemberSig, m2MemberEnc,
+  );
+  final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
+  await endpoints.group.addGroupMember(
+    sessionBuilder,
+    challenge: outerAdd.challenge,
+    proofOfWork: outerAdd.pow,
+    signature: outerAdd.signature,
+    callerDeviceSigningPublicKeyHex: s.devicePub,
+    groupId: s.group.id!,
+    newMemberAccountId: m2.id!,
+    role: GroupMemberRole.member,
+    memberSigningPublicKeyHex: m2MemberSig,
+    memberPublicKey: m2MemberEnc,
+    encryptedDataKey: 'wrapped',
+    callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
+    memberAuthSignature: addSig,
+  );
+
+  final outer = await _outer(
+    sessionBuilder, endpoints, 'listGroupMembers', s.devicePub, s.devicePriv,
+  );
+  final innerPayload = GroupInnerPayloads.listGroupMembers(s.group.id!);
+  final innerSig = SigningTestHelper.signWith(innerPayload, s.creatorMemberSigPriv);
+
+  final members = await endpoints.group.listGroupMembers(
+    sessionBuilder,
+    challenge: outer.challenge,
+    proofOfWork: outer.pow,
+    signature: outer.signature,
+    callerDeviceSigningPublicKeyHex: s.devicePub,
+    groupId: s.group.id!,
+    callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
+    memberAuthSignature: innerSig,
+  );
+
+  expect(members, hasLength(2));
+  expect(members.any((m) => m.role == GroupMemberRole.admin), isTrue);
+  expect(members.any((m) => m.role == GroupMemberRole.member), isTrue);
+  expect(members.every((m) => !m.isRevoked), isTrue);
+});
+
+test('listGroupMembers: rejected when caller is not a member', () async {
+  final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+  final (_, outsiderUltPub) = SigningTestHelper.generateKeypair();
+  final outsider = await createTestAccount(
+    sessionBuilder,
+    ultimateSigningPublicKeyHex: outsiderUltPub,
+    ultimatePublicKey: outsiderUltPub,
+  );
+  final (outsiderDevicePriv, outsiderDevicePub) = SigningTestHelper.generateKeypair();
+  await createTestDevice(
+    sessionBuilder,
+    anonAccountId: outsider.id!,
+    deviceSigningPublicKeyHex: outsiderDevicePub,
+  );
+  final (outsiderMemberPriv, outsiderMemberPub) = SigningTestHelper.generateKeypair();
+
+  final outer = await _outer(
+    sessionBuilder, endpoints, 'listGroupMembers', outsiderDevicePub, outsiderDevicePriv,
+  );
+  final innerPayload = GroupInnerPayloads.listGroupMembers(s.group.id!);
+  final innerSig = SigningTestHelper.signWith(innerPayload, outsiderMemberPriv);
+
+  expect(
+    () => endpoints.group.listGroupMembers(
+      sessionBuilder,
+      challenge: outer.challenge,
+      proofOfWork: outer.pow,
+      signature: outer.signature,
+      callerDeviceSigningPublicKeyHex: outsiderDevicePub,
+      groupId: s.group.id!,
+      callerMemberSigningPublicKeyHex: outsiderMemberPub,
+      memberAuthSignature: innerSig,
+    ),
+    throwsA(isA<Exception>()),
+  );
+});
+
     test('removeGroupMember: rejected when removing an admin without owner sig',
         () async {
       final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
