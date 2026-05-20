@@ -7,6 +7,8 @@ import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
+// UuidValue comes from serverpod_client, re-exported by anonaccount_client.
+import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
 import 'package:dart_jwk_duo/dart_jwk_duo.dart' show KeyDuo, KeyDuoSerializer;
 
 import '../crypto/asymmetric.dart';
@@ -172,6 +174,37 @@ class AnonaccountAuth {
         deviceKeyAttestation: deviceKeyAttestation,
         createdAt: createdAt,
       ),
+    );
+  }
+
+  /// Revokes a device from the caller's account.
+  ///
+  /// Authenticates with the ultimate key — the server verifies the PoW was
+  /// signed by the ultimate key and resolves the account from it.
+  ///
+  /// [deviceId] is the UUID of the device row to revoke (not a pubkey hex).
+  /// [ultimateKey] is the account's ultimate key pair.
+  ///
+  /// Returns `true` if the device was successfully revoked.
+  Future<bool> revokeDevice({
+    required UuidValue deviceId,
+    required KeyDuo ultimateKey,
+  }) async {
+    final ultimateHex = await ultimateKey.signingKeyPair.exportPublicKeyHex();
+    final challengeResp = await _caller.entrypoint.getChallenge();
+    final envelope = await PowSigner.build(
+      challenge: challengeResp.challenge,
+      methodName: 'revokeDevice',
+      signingKey: ultimateKey,
+      publicKeyHex: ultimateHex,
+      difficulty: challengeResp.difficulty,
+    );
+    return _caller.deviceManagement.revokeDevice(
+      challenge: envelope.challenge,
+      proofOfWork: envelope.proofOfWork,
+      publicKeyHex: envelope.publicKeyHex,
+      signature: envelope.signature,
+      deviceId: deviceId,
     );
   }
 }

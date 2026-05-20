@@ -27,6 +27,7 @@ export 'package:anonaccount_client/anonaccount_client.dart'
         Caller,
         EndpointAccount,
         EndpointDevice,
+        EndpointDeviceManagement,
         EndpointEntrypoint,
         EndpointGroup,
         AccountMethods,
@@ -38,6 +39,7 @@ export 'package:anonaccount_client/anonaccount_client.dart'
         PublicChallengeResponse,
         ShareGroup,
         GroupMember,
-        GroupMemberRole;
+        GroupMemberRole,
+        UuidValue;
 
 export 'src/auth/anonaccount_auth.dart';
