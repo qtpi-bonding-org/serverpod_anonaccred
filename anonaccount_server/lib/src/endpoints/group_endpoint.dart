@@ -104,8 +104,12 @@ class GroupEndpoint extends SignedPowEndpoint {
         'createGroup',
       );
 
-      final innerPayload =
-          'createGroup:$groupUltimateSigningPublicKeyHex:$groupUltimatePublicKey:$creatorMemberSigningPublicKeyHex:$creatorMemberPublicKey';
+      final innerPayload = GroupInnerPayloads.createGroup(
+        groupUltimateSigningPublicKeyHex,
+        groupUltimatePublicKey,
+        creatorMemberSigningPublicKeyHex,
+        creatorMemberPublicKey,
+      );
       final innerOk = await CryptoUtils.verifySignature(
         message: innerPayload,
         signature: groupUltimateAttestation,
@@ -259,8 +263,13 @@ class GroupEndpoint extends SignedPowEndpoint {
         'addGroupMember',
       );
 
-      final innerPayload =
-          'addGroupMember:$groupId:$newMemberAccountId:${role.name}:$memberSigningPublicKeyHex:$memberPublicKey';
+      final innerPayload = GroupInnerPayloads.addGroupMember(
+        groupId,
+        newMemberAccountId,
+        role,
+        memberSigningPublicKeyHex,
+        memberPublicKey,
+      );
 
       late final String attestingPubkey;
       late final String attestationSig;
@@ -451,7 +460,7 @@ class GroupEndpoint extends SignedPowEndpoint {
         );
       }
 
-      final innerPayload = 'removeGroupMember:$memberId';
+      final innerPayload = GroupInnerPayloads.removeGroupMember(memberId);
       late final String attestingPubkey;
       late final String attestationSig;
 

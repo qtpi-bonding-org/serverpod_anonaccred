@@ -41,7 +41,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
     try {
       // 1. Verify attestation: ultimate key authorized this device key
       final attestationValid = await CryptoUtils.verifySignature(
-        message: deviceSigningPublicKeyHex,
+        message: AccountInnerPayloads.deviceAttestation(deviceSigningPublicKeyHex),
         signature: deviceKeyAttestation,
         publicKey: ultimateSigningPublicKeyHex,
       );
