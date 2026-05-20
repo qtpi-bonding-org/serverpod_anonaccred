@@ -12,3 +12,5 @@ export 'package:webcrypto/webcrypto.dart'
 
 // Filled in as later tasks land.
 export 'src/auth/exceptions.dart';
+export 'src/util/crypto_logger.dart';
+export 'src/util/secure_memory_utils.dart';
