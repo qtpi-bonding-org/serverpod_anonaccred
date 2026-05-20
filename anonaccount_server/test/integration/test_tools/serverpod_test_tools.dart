@@ -1318,6 +1318,184 @@ class _GroupEndpoint {
     });
   }
 
+  _i3.Stream<_i11.GroupMember> monitorGroupMembership(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required String memberSigningKeyHex,
+  }) {
+    var _localTestStreamManager = _i1.TestStreamManager<_i11.GroupMember>();
+    _i1.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'group',
+              method: 'monitorGroupMembership',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'group',
+              methodName: 'monitorGroupMembership',
+              arguments: {
+                'challenge': challenge,
+                'proofOfWork': proofOfWork,
+                'signature': signature,
+                'callerDeviceSigningPublicKeyHex':
+                    callerDeviceSigningPublicKeyHex,
+                'memberSigningKeyHex': memberSigningKeyHex,
+              },
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+
+  _i3.Future<_i10.ShareGroup> getGroup(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i2.UuidValue groupId,
+    required String callerMemberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'getGroup',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'getGroup',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+            'groupId': groupId,
+            'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+            'memberAuthSignature': memberAuthSignature,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i10.ShareGroup>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i11.GroupMember>> listGroupMembers(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i2.UuidValue groupId,
+    required String callerMemberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'listGroupMembers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'listGroupMembers',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+            'groupId': groupId,
+            'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+            'memberAuthSignature': memberAuthSignature,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i11.GroupMember>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> leaveGroup(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i2.UuidValue memberId,
+    required String memberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'leaveGroup',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'leaveGroup',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+            'memberId': memberId,
+            'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
+            'memberAuthSignature': memberAuthSignature,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<_i5.PublicChallengeResponse> getChallenge(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {

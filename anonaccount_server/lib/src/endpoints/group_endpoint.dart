@@ -405,7 +405,12 @@ class GroupEndpoint extends SignedPowEndpoint {
         addedBySignerPublicKeyHex: attestingPubkey,
         addedByAttestation: attestationSig,
       );
-      return await GroupMember.db.insertRow(session, member);
+      final insertedMember = await GroupMember.db.insertRow(session, member);
+      session.messages.postMessage(
+        'group-membership-${insertedMember.memberSigningPublicKeyHex}',
+        insertedMember,
+      );
+      return insertedMember;
     } on AuthenticationException {
       rethrow;
     } catch (e, stackTrace) {
@@ -584,5 +589,55 @@ class GroupEndpoint extends SignedPowEndpoint {
         details: {'error': e.toString()},
       );
     }
+  }
+
+  Stream<GroupMember> monitorGroupMembership(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required String memberSigningKeyHex,
+  }) async* {
+    throw UnimplementedError('monitorGroupMembership not yet implemented');
+  }
+
+  Future<ShareGroup> getGroup(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required UuidValue groupId,
+    required String callerMemberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    throw UnimplementedError('getGroup not yet implemented');
+  }
+
+  Future<List<GroupMember>> listGroupMembers(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required UuidValue groupId,
+    required String callerMemberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    throw UnimplementedError('listGroupMembers not yet implemented');
+  }
+
+  Future<bool> leaveGroup(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required UuidValue memberId,
+    required String memberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    throw UnimplementedError('leaveGroup not yet implemented');
   }
 }
