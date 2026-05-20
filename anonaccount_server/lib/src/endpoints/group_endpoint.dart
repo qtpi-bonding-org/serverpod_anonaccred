@@ -104,8 +104,12 @@ class GroupEndpoint extends SignedPowEndpoint {
         'createGroup',
       );
 
-      final innerPayload =
-          'createGroup:$groupUltimateSigningPublicKeyHex:$groupUltimatePublicKey:$creatorMemberSigningPublicKeyHex:$creatorMemberPublicKey';
+      final innerPayload = GroupInnerPayloads.createGroup(
+        groupUltimateSigningPublicKeyHex,
+        groupUltimatePublicKey,
+        creatorMemberSigningPublicKeyHex,
+        creatorMemberPublicKey,
+      );
       final innerOk = await CryptoUtils.verifySignature(
         message: innerPayload,
         signature: groupUltimateAttestation,
@@ -259,8 +263,13 @@ class GroupEndpoint extends SignedPowEndpoint {
         'addGroupMember',
       );
 
-      final innerPayload =
-          'addGroupMember:$groupId:$newMemberAccountId:${role.name}:$memberSigningPublicKeyHex:$memberPublicKey';
+      final innerPayload = GroupInnerPayloads.addGroupMember(
+        groupId,
+        newMemberAccountId,
+        role,
+        memberSigningPublicKeyHex,
+        memberPublicKey,
+      );
 
       late final String attestingPubkey;
       late final String attestationSig;
@@ -396,7 +405,12 @@ class GroupEndpoint extends SignedPowEndpoint {
         addedBySignerPublicKeyHex: attestingPubkey,
         addedByAttestation: attestationSig,
       );
-      return await GroupMember.db.insertRow(session, member);
+      final insertedMember = await GroupMember.db.insertRow(session, member);
+      session.messages.postMessage(
+        'group-membership-${insertedMember.memberSigningPublicKeyHex}',
+        insertedMember,
+      );
+      return insertedMember;
     } on AuthenticationException {
       rethrow;
     } catch (e, stackTrace) {
@@ -451,7 +465,7 @@ class GroupEndpoint extends SignedPowEndpoint {
         );
       }
 
-      final innerPayload = 'removeGroupMember:$memberId';
+      final innerPayload = GroupInnerPayloads.removeGroupMember(memberId);
       late final String attestingPubkey;
       late final String attestationSig;
 
@@ -572,6 +586,321 @@ class GroupEndpoint extends SignedPowEndpoint {
         code: AnonAccountErrorCodes.databaseError,
         message: 'removeGroupMember failed: ${e.toString()}',
         operation: 'removeGroupMember',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
+  Stream<GroupMember> monitorGroupMembership(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required String memberSigningKeyHex,
+  }) async* {
+    final outerPayload =
+        '$challenge:${GroupMethods.monitorGroupMembership}:$callerDeviceSigningPublicKeyHex';
+    await verifySignedPow(
+      session,
+      challenge,
+      proofOfWork,
+      callerDeviceSigningPublicKeyHex,
+      signature,
+      outerPayload,
+    );
+
+    final channelName = 'group-membership-$memberSigningKeyHex';
+    final stream = session.messages.createStream<GroupMember>(channelName);
+
+    await for (final event in stream) {
+      yield event;
+    }
+  }
+
+  Future<ShareGroup> getGroup(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required UuidValue groupId,
+    required String callerMemberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    try {
+      final outerPayload =
+          '$challenge:${GroupMethods.getGroup}:$callerDeviceSigningPublicKeyHex';
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        callerDeviceSigningPublicKeyHex,
+        signature,
+        outerPayload,
+      );
+
+      final innerPayload = GroupInnerPayloads.getGroup(groupId);
+      final innerOk = await CryptoUtils.verifySignature(
+        message: innerPayload,
+        signature: memberAuthSignature,
+        publicKey: callerMemberSigningPublicKeyHex,
+      );
+      if (!innerOk) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.cryptoInvalidSignature,
+          message: 'Invalid member attestation for getGroup',
+          operation: 'getGroup',
+        );
+      }
+
+      final callerMembership = await GroupMember.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.memberSigningPublicKeyHex
+                .equals(callerMemberSigningPublicKeyHex) &
+            t.shareGroupId.equals(groupId) &
+            t.isRevoked.equals(false),
+      );
+      if (callerMembership == null) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authAccountNotFound,
+          message: 'No active membership for caller in this group',
+          operation: 'getGroup',
+        );
+      }
+
+      final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+        session,
+        callerDeviceSigningPublicKeyHex,
+        'getGroup',
+      );
+      if (callerMembership.anonAccountId != deviceAccountId) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authInvalidSignature,
+          message: 'Caller member key is not bound to the device-resolved account',
+          operation: 'getGroup',
+        );
+      }
+
+      final group = await ShareGroup.db.findById(session, groupId);
+      if (group == null) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authAccountNotFound,
+          message: 'Group not found',
+          operation: 'getGroup',
+          details: {'groupId': groupId.toString()},
+        );
+      }
+      return group;
+    } on AuthenticationException {
+      rethrow;
+    } catch (e, stackTrace) {
+      session.log(
+        'GroupEndpoint: getGroup error: $e\n$stackTrace',
+        level: LogLevel.error,
+      );
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.databaseError,
+        message: 'getGroup failed: ${e.toString()}',
+        operation: 'getGroup',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
+  Future<List<GroupMember>> listGroupMembers(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required UuidValue groupId,
+    required String callerMemberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    try {
+      final outerPayload =
+          '$challenge:${GroupMethods.listGroupMembers}:$callerDeviceSigningPublicKeyHex';
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        callerDeviceSigningPublicKeyHex,
+        signature,
+        outerPayload,
+      );
+
+      final innerPayload = GroupInnerPayloads.listGroupMembers(groupId);
+      final innerOk = await CryptoUtils.verifySignature(
+        message: innerPayload,
+        signature: memberAuthSignature,
+        publicKey: callerMemberSigningPublicKeyHex,
+      );
+      if (!innerOk) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.cryptoInvalidSignature,
+          message: 'Invalid member attestation for listGroupMembers',
+          operation: 'listGroupMembers',
+        );
+      }
+
+      final callerMembership = await GroupMember.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.memberSigningPublicKeyHex
+                .equals(callerMemberSigningPublicKeyHex) &
+            t.shareGroupId.equals(groupId) &
+            t.isRevoked.equals(false),
+      );
+      if (callerMembership == null) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authAccountNotFound,
+          message: 'No active membership for caller in this group',
+          operation: 'listGroupMembers',
+        );
+      }
+
+      final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+        session,
+        callerDeviceSigningPublicKeyHex,
+        'listGroupMembers',
+      );
+      if (callerMembership.anonAccountId != deviceAccountId) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authInvalidSignature,
+          message: 'Caller member key is not bound to the device-resolved account',
+          operation: 'listGroupMembers',
+        );
+      }
+
+      return await GroupMember.db.find(
+        session,
+        where: (t) =>
+            t.shareGroupId.equals(groupId) & t.isRevoked.equals(false),
+        orderBy: (t) => t.joinedAt,
+      );
+    } on AuthenticationException {
+      rethrow;
+    } catch (e, stackTrace) {
+      session.log(
+        'GroupEndpoint: listGroupMembers error: $e\n$stackTrace',
+        level: LogLevel.error,
+      );
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.databaseError,
+        message: 'listGroupMembers failed: ${e.toString()}',
+        operation: 'listGroupMembers',
+        details: {'error': e.toString()},
+      );
+    }
+  }
+
+  Future<bool> leaveGroup(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required UuidValue memberId,
+    required String memberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) async {
+    try {
+      final outerPayload =
+          '$challenge:${GroupMethods.leaveGroup}:$callerDeviceSigningPublicKeyHex';
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        callerDeviceSigningPublicKeyHex,
+        signature,
+        outerPayload,
+      );
+
+      final target = await GroupMember.db.findById(session, memberId);
+      if (target == null || target.isRevoked) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authDeviceNotFound,
+          message: 'Group member not found or already revoked',
+          operation: 'leaveGroup',
+          details: {'memberId': memberId.toString()},
+        );
+      }
+
+      if (target.memberSigningPublicKeyHex != memberSigningPublicKeyHex) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authInvalidSignature,
+          message: 'memberSigningPublicKeyHex does not match the target row',
+          operation: 'leaveGroup',
+        );
+      }
+
+      final innerPayload = GroupInnerPayloads.leaveGroup(memberId);
+      final innerOk = await CryptoUtils.verifySignature(
+        message: innerPayload,
+        signature: memberAuthSignature,
+        publicKey: memberSigningPublicKeyHex,
+      );
+      if (!innerOk) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.cryptoInvalidSignature,
+          message: 'Invalid member attestation for leaveGroup',
+          operation: 'leaveGroup',
+        );
+      }
+
+      final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+        session,
+        callerDeviceSigningPublicKeyHex,
+        'leaveGroup',
+      );
+      if (target.anonAccountId != deviceAccountId) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.authInvalidSignature,
+          message:
+              'Caller member key is not bound to the device-resolved account',
+          operation: 'leaveGroup',
+        );
+      }
+
+      await GroupMember.db.updateRow(
+        session,
+        target.copyWith(
+          isRevoked: true,
+          revokedBySignerPublicKeyHex: memberSigningPublicKeyHex,
+          revokedByAttestation: memberAuthSignature,
+        ),
+      );
+
+      // If no non-revoked admins remain, delete the group (cascades all members).
+      final allMembers = await GroupMember.db.find(
+        session,
+        where: (t) =>
+            t.shareGroupId.equals(target.shareGroupId) &
+            t.isRevoked.equals(false),
+      );
+      final remainingAdmins =
+          allMembers.where((m) => m.role == GroupMemberRole.admin).length;
+      if (remainingAdmins == 0) {
+        final group = await ShareGroup.db.findById(session, target.shareGroupId);
+        if (group != null) {
+          await ShareGroup.db.deleteRow(session, group);
+        }
+      }
+
+      return true;
+    } on AuthenticationException {
+      rethrow;
+    } catch (e, stackTrace) {
+      session.log(
+        'GroupEndpoint: leaveGroup error: $e\n$stackTrace',
+        level: LogLevel.error,
+      );
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.databaseError,
+        message: 'leaveGroup failed: ${e.toString()}',
+        operation: 'leaveGroup',
         details: {'error': e.toString()},
       );
     }

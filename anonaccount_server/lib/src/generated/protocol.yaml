@@ -31,6 +31,10 @@ group:
   - listMyGroups:
   - addGroupMember:
   - removeGroupMember:
+  - monitorGroupMembership:
+  - getGroup:
+  - listGroupMembers:
+  - leaveGroup:
   - getChallenge:
   - verifySignedPow:
   - verifyHashcash:

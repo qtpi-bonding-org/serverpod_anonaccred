@@ -730,6 +730,95 @@ class EndpointGroup extends EndpointSignedPow {
     },
   );
 
+  _i2.Stream<_i10.GroupMember> monitorGroupMembership({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required String memberSigningKeyHex,
+  }) =>
+      caller.callStreamingServerEndpoint<
+        _i2.Stream<_i10.GroupMember>,
+        _i10.GroupMember
+      >(
+        'anonaccount.group',
+        'monitorGroupMembership',
+        {
+          'challenge': challenge,
+          'proofOfWork': proofOfWork,
+          'signature': signature,
+          'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+          'memberSigningKeyHex': memberSigningKeyHex,
+        },
+        {},
+      );
+
+  _i2.Future<_i9.ShareGroup> getGroup({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i1.UuidValue groupId,
+    required String callerMemberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) => caller.callServerEndpoint<_i9.ShareGroup>(
+    'anonaccount.group',
+    'getGroup',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+      'groupId': groupId,
+      'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+      'memberAuthSignature': memberAuthSignature,
+    },
+  );
+
+  _i2.Future<List<_i10.GroupMember>> listGroupMembers({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i1.UuidValue groupId,
+    required String callerMemberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) => caller.callServerEndpoint<List<_i10.GroupMember>>(
+    'anonaccount.group',
+    'listGroupMembers',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+      'groupId': groupId,
+      'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+      'memberAuthSignature': memberAuthSignature,
+    },
+  );
+
+  _i2.Future<bool> leaveGroup({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i1.UuidValue memberId,
+    required String memberSigningPublicKeyHex,
+    required String memberAuthSignature,
+  }) => caller.callServerEndpoint<bool>(
+    'anonaccount.group',
+    'leaveGroup',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+      'memberId': memberId,
+      'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
+      'memberAuthSignature': memberAuthSignature,
+    },
+  );
+
   /// Throws — use [EntrypointEndpoint.getChallenge] instead.
   ///
   /// Overridden without `@doNotGenerate` so the generated client class gets a
