@@ -3,6 +3,9 @@ import 'dart:convert';
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/pow_methods.dart' show DeviceMethods;
 // ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/account_device.dart'
+    show AccountDevice;
+// ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 import 'package:dart_jwk_duo/dart_jwk_duo.dart' show KeyDuo;
 import 'package:webcrypto/webcrypto.dart';
@@ -100,4 +103,42 @@ class AnonaccountPairing {
     required KeyDuo deviceKey,
   }) =>
       monitorRegistration(mySigningPubkeyHex, deviceKey: deviceKey).first;
+
+  /// Side A (the approver, an existing paired device): wraps our account
+  /// symmetric key to the new device's encryption pubkey and registers
+  /// the new device with the server.
+  Future<AccountDevice> registerPairedDevice({
+    required KeyDuo ourDeviceKey,
+    required String theirSigningPubkeyHex,
+    required EcdhPublicKey theirEncryptionPubkey,
+    required String label,
+    required AesGcmSecretKey ourSymmetricKey,
+  }) async {
+    final symJwk = jsonEncode(await ourSymmetricKey.exportJsonWebKey());
+    final wrappedSymKey = await AsymmetricCrypto.wrapForRecipient(
+      symJwk,
+      theirEncryptionPubkey,
+    );
+
+    final ourDeviceHex =
+        await ourDeviceKey.signingKeyPair.exportPublicKeyHex();
+    final challengeResp = await _caller.entrypoint.getChallenge();
+    final envelope = await PowSigner.build(
+      challenge: challengeResp.challenge,
+      methodName: 'registerDeviceForAccount',
+      signingKey: ourDeviceKey,
+      publicKeyHex: ourDeviceHex,
+      difficulty: challengeResp.difficulty,
+    );
+
+    return _caller.deviceManagement.registerDeviceForAccount(
+      challenge: envelope.challenge,
+      proofOfWork: envelope.proofOfWork,
+      publicKeyHex: envelope.publicKeyHex,
+      signature: envelope.signature,
+      newDeviceSigningPublicKeyHex: theirSigningPubkeyHex,
+      newDeviceEncryptedDataKey: wrappedSymKey,
+      label: label,
+    );
+  }
 }
