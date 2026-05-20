@@ -31,4 +31,6 @@ dev_dependencies:
   lints: '>=3.0.0 <7.0.0'
   serverpod_test: 3.4.1
   test: ^1.25.5
-  webcrypto: ^0.5.3
+  webcrypto: ^0.6.0
+  anonaccount_sdk:
+    path: ../anonaccount_sdk

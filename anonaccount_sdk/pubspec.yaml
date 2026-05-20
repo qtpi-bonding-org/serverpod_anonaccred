@@ -1,0 +1,28 @@
+name: anonaccount_sdk
+description: Handcrafted Dart SDK for the anonaccount Serverpod module. Wraps anonaccount_client with crypto primitives, key generation, and account/pairing/groups protocol flows. Pure Dart, stateless, no Flutter dependencies.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '^3.8.0'
+
+dependencies:
+  anonaccount_client:
+    path: ../anonaccount_client
+  webcrypto: ^0.6.0
+  dart_jwk_duo:
+    git:
+      url: https://github.com/qtpi-bonding-org/dart_jwk_duo.git
+      ref: e30f27c943a9c25ec6c7eaf70787f48998a7c113
+  crypto: ^3.0.3
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+  meta: ^1.16.0
+
+dev_dependencies:
+  mocktail: ^1.0.4
+  test: ^1.25.5
+  build_runner: ^2.4.13
+  freezed: ^2.5.7
+  json_serializable: ^6.7.1
+  lints: ^4.0.0

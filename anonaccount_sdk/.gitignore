@@ -1,0 +1,34 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+pubspec.lock
+build/
+doc/api/
+
+# Generated files — note: *.freezed.dart and *.g.dart are TRACKED for this
+# library so consumers don't need to run build_runner themselves.
+*.mocks.dart
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+*.lcov
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Environment files
+.env
+.env.local
