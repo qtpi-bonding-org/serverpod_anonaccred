@@ -18,3 +18,4 @@ export 'src/crypto/hashcash.dart';
 export 'src/util/error_recovery.dart';
 export 'src/models/models.dart';
 export 'src/crypto/symmetric.dart';
+export 'src/crypto/signing.dart';
