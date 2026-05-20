@@ -1,11 +1,19 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:googleapis/androidpublisher/v3.dart' hide RefundEvent;
 import 'package:serverpod/serverpod.dart';
+
+import '../../entitlement_manager.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
+import '../../refund_event.dart';
+import '../../refund_manager.dart';
+import '../android_publisher_client.dart';
+import '../google_auth_client.dart';
 import '../payment_rail_interface.dart';
+import '../webhook_signature_validator.dart';
 
 /// Google Play In-App Purchase payment rail implementation
 ///
@@ -15,32 +23,66 @@ import '../payment_rail_interface.dart';
 ///
 /// Requirements 3.1, 3.2, 3.3: Google purchase validation with service account authentication
 class GoogleIAPRail implements PaymentRailInterface {
+  /// Create GoogleIAPRail with optional dependency injection
+  ///
+  /// If [client] is not provided, creates a default client using GoogleAuthClient
+  /// with credentials from environment variables.
+  ///
+  /// Parameters:
+  /// - [client]: Optional AndroidPublisherClient for dependency injection (e.g., for testing)
+  ///
+  /// Requirements 2.1: Use AndroidPublisherClient for API calls
+  /// Requirements 9.4: Support dependency injection for testing
+  GoogleIAPRail({AndroidPublisherClient? client}) : _client = client;
+  final AndroidPublisherClient? _client;
+
+  /// Internal helper to get the client, throws if not initialized
+  AndroidPublisherClient get _publisherClient {
+    if (_client == null) {
+      throw AnonAccountException(
+        code: AnonAccredErrorCodes.configurationMissing,
+        message:
+            'Google IAP rail not initialized. Use GoogleIAPRail.create() or provide a client.',
+      );
+    }
+    return _client;
+  }
+
+  /// Factory to create and initialize GoogleIAPRail asynchronously
+  ///
+  /// Loads credentials and initializes the AndroidPublisherClient.
+  /// Throws [AnonAccountException] if initialization fails.
+  static Future<GoogleIAPRail> create() async {
+    final authClient = await GoogleAuthClient.fromEnvironment();
+    final authenticatedClient = await authClient.createAuthenticatedClient();
+    final publisherClient = AndroidPublisherClient(authenticatedClient);
+    return GoogleIAPRail(client: publisherClient);
+  }
+
   @override
   PaymentRail get railType => PaymentRail.google_iap;
-
-  /// Google Play Developer API base URL
-  static const String _baseUrl =
-      'https://androidpublisher.googleapis.com/androidpublisher/v3';
 
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     // For IAP, the payment request provides information for the mobile app
     // The actual payment happens in the mobile app, then purchase token is validated
     return PaymentRequest(
-      paymentRef: orderId,
+      paymentRef: internalTransactionId,
       amountUSD: amountUSD,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       railDataJson: jsonEncode({
         'payment_rail': 'google_iap',
-        'order_id': orderId,
+        'internal_transaction_id': internalTransactionId,
         'amount_usd': amountUSD,
         'validation_endpoint': '/api/iap/google/validate',
         'instructions':
             'Complete purchase in Android app, then submit purchase token for validation',
-        'expires_at': DateTime.now().add(Duration(hours: 24)).toIso8601String(),
+        'expires_at': DateTime.now()
+            .add(const Duration(hours: 24))
+            .toIso8601String(),
       }),
     );
   }
@@ -56,7 +98,45 @@ class GoogleIAPRail implements PaymentRailInterface {
       final productId = callbackData['product_id'] as String?;
       final purchaseToken = callbackData['purchase_token'] as String?;
       final orderId = callbackData['order_id'] as String?;
+      final notificationType = callbackData['notification_type'] as String?;
+      final signature = callbackData['signature'] as String?;
+      final payload = callbackData['payload'] as String?;
+      final session = callbackData['session'] as Session?;
 
+      // Validate webhook signature — reject unsigned or unverifiable requests
+      if (signature == null || payload == null || session == null) {
+        return PaymentResult(
+          success: false,
+          errorMessage: 'Missing webhook signature, payload, or session',
+        );
+      }
+
+      try {
+        WebhookSignatureValidator.validateSignatureOrThrow(
+          session: session,
+          payload: payload,
+          signature: signature,
+        );
+      } on AnonAccountException catch (e) {
+        if (e.code == AnonAccountErrorCodes.authInvalidSignature) {
+          return PaymentResult(
+            success: false,
+            errorMessage: 'Invalid webhook signature',
+          );
+        }
+        rethrow;
+      }
+
+      // Handle refund notifications
+      if (notificationType == 'refund' && session != null) {
+        final event = extractRefundEvent(callbackData);
+        if (event != null) {
+          await RefundManager.processRefund(session, event);
+        }
+        return PaymentResult(success: true, internalTransactionId: orderId);
+      }
+
+      // Handle malformed payloads
       if (packageName == null ||
           productId == null ||
           purchaseToken == null ||
@@ -67,13 +147,18 @@ class GoogleIAPRail implements PaymentRailInterface {
         );
       }
 
-      final validationResult = await validatePurchase(
+      // Note: Full purchase validation with delivery tracking requires session and accountUuid
+      // This is handled by the validatePurchase() method which is GoogleIAPRail-specific
+      // For processCallback, we just validate the purchase exists and is in valid state
+      final purchase = await _publisherClient.getPurchase(
         packageName: packageName,
         productId: productId,
         purchaseToken: purchaseToken,
       );
 
-      if (validationResult.isValid) {
+      final isValid = purchase.purchaseState == 0;
+
+      if (isValid) {
         // Acknowledge the purchase (required by Google)
         await acknowledgePurchase(
           packageName: packageName,
@@ -83,13 +168,17 @@ class GoogleIAPRail implements PaymentRailInterface {
       }
 
       return PaymentResult(
-        success: validationResult.isValid,
-        orderId: orderId,
-        transactionTimestamp: validationResult.purchaseDate,
-        errorMessage: validationResult.isValid
-            ? null
-            : 'Purchase validation failed',
+        success: isValid,
+        internalTransactionId: purchase.orderId ?? '',
+        transactionTimestamp: purchase.purchaseTimeMillis != null
+            ? DateTime.fromMillisecondsSinceEpoch(
+                purchase.purchaseTimeMillis! as int,
+              )
+            : null,
+        errorMessage: isValid ? null : 'Purchase validation failed',
       );
+    } on AnonAccountException {
+      rethrow;
     } catch (e) {
       return PaymentResult(
         success: false,
@@ -98,81 +187,272 @@ class GoogleIAPRail implements PaymentRailInterface {
     }
   }
 
-  /// Validate Google Play purchase using Developer API
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) {
+    try {
+      final purchaseToken = notificationData['purchase_token'] as String? ??
+          notificationData['purchaseToken'] as String?;
+      final orderId = notificationData['order_id'] as String? ??
+          notificationData['orderId'] as String?;
+
+      if (purchaseToken == null || orderId == null) return null;
+
+      return RefundEvent(
+        rail: PaymentRail.google_iap,
+        receiptHash: CryptoUtils.sha256Hash(purchaseToken),
+        paymentRef: orderId,
+        productId: notificationData['product_id'] as String? ??
+            notificationData['productId'] as String?,
+        rawData: notificationData,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Validate Google Play purchase with idempotency checking
   ///
-  /// Validates purchase token with Google Play Developer API and returns
-  /// structured validation result. Requires service account authentication.
+  /// Implements idempotent purchase validation with delivery tracking:
+  /// 1. Checks for existing delivery record (idempotency)
+  /// 2. Validates with Google API if new
+  /// 3. Records delivery and adds to inventory atomically
+  /// 4. Acknowledges and consumes purchase asynchronously
   ///
   /// Parameters:
+  /// - [session]: Serverpod session for database operations
   /// - [packageName]: Android app package name
   /// - [productId]: In-app product ID (SKU)
   /// - [purchaseToken]: Purchase token from Android app
+  /// - [accountUuid]: Account UUID to deliver consumables to
   ///
-  /// Returns: [GooglePurchaseValidationResult] with validation status and purchase details
+  /// Returns: [GooglePurchaseValidationResult] with validation status and delivery details
   ///
-  /// Requirements 3.1: Validate using Google Play Developer API
-  /// Requirements 3.2: Use service account authentication
+  /// Requirements 2.1, 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.4, 6.2
   Future<GooglePurchaseValidationResult> validatePurchase({
+    required Session session,
     required String packageName,
     required String productId,
     required String purchaseToken,
+    required UuidValue accountUuid,
+    String? internalTransactionId,
   }) async {
-    final accessToken = await GoogleIAPConfig.getAccessToken();
-    if (accessToken == null) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.configurationMissing,
-        message: 'Google service account not configured',
-        details: {
-          'requiredConfig':
-              'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH',
-        },
-      );
-    }
-
     try {
-      final url =
-          '$_baseUrl/applications/$packageName/purchases/products/$productId/tokens/$purchaseToken';
+      // 1. Hash the purchase token for blind idempotency
+      final purchaseHash = CryptoUtils.sha256Hash(purchaseToken);
 
-      final client = HttpClient();
-      final request = await client.getUrl(Uri.parse(url));
+      // 2. Check for existing delivery via hash (idempotency)
+      final existingHash = await ReceiptHash.db.findFirstRow(
+        session,
+        where: (t) => t.hash.equals(purchaseHash),
+      );
 
-      request.headers.set('Authorization', 'Bearer $accessToken');
-      request.headers.set('Content-Type', 'application/json');
-
-      final response = await request.close();
-      final responseBody = await response.transform(utf8.decoder).join();
-
-      client.close();
-
-      if (response.statusCode != 200) {
-        throw AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.paymentValidationFailed,
-          message:
-              'Google purchase validation failed: HTTP ${response.statusCode}',
-          details: {
-            'httpStatus': response.statusCode.toString(),
-            'responseBody': responseBody,
-            'packageName': packageName,
-            'productId': productId,
-          },
+      if (existingHash != null) {
+        // Already handled - return success with fromCache
+        return GooglePurchaseValidationResult(
+          purchaseState: 0,
+          consumptionState: 1,
+          fromCache: true,
         );
       }
 
-      final responseData = jsonDecode(responseBody) as Map<String, dynamic>;
+      // 2. Validate with Google API
+      final purchase = await _publisherClient.getPurchase(
+        packageName: packageName,
+        productId: productId,
+        purchaseToken: purchaseToken,
+      );
 
-      return GooglePurchaseValidationResult.fromJson(responseData);
+      // 3. Check purchase state (must be 0 for valid)
+      if (purchase.purchaseState != 0) {
+        throw AnonAccredExceptionFactory.createPaymentException(
+          code: AnonAccredErrorCodes.paymentValidationFailed,
+          message: 'Purchase not in valid state: ${purchase.purchaseState}',
+          details: {'purchaseState': purchase.purchaseState.toString()},
+        );
+      }
+
+      // 4. Look up RailProduct from DB (replaces old env-var ProductMappingConfig)
+      final railProduct = await RailProduct.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.rail.equals(PaymentRail.google_iap) &
+            t.storeProductId.equals(productId),
+      );
+
+      if (railProduct == null) {
+        throw AnonAccountExceptionFactory.createException(
+          code: AnonAccredErrorCodes.configurationMissing,
+          message: 'No RailProduct found for Google product ID: $productId',
+          details: {'productId': productId},
+        );
+      }
+
+      // 5. Atomic Transaction: Record permanent hash, ephemeral audit, financial record, and inventory credit
+      String? deliveredTag;
+      double? deliveredQuantity;
+
+      await session.db.transaction((dbTransaction) async {
+        // a. Record the purchase hash permanently (blind idempotency)
+        await ReceiptHash.db.insertRow(
+          session,
+          ReceiptHash(hash: purchaseHash, paymentRail: PaymentRail.google_iap),
+          transaction: dbTransaction,
+        );
+
+        // b. Record the EPHEMERAL accreditation (Bridge account to time for 7-day refund support)
+        final purchaseTime = DateTime.fromMillisecondsSinceEpoch(
+          purchase.purchaseTimeMillis != null
+              ? int.parse(purchase.purchaseTimeMillis!)
+              : 0,
+        );
+
+        await EphemeralAccreditation.db.insertRow(
+          session,
+          EphemeralAccreditation(
+            accountUuid: accountUuid,
+            transactionTimestamp: purchaseTime,
+          ),
+          transaction: dbTransaction,
+        );
+
+        // c. Create the PERMANENT financial record
+        final internalTxId = internalTransactionId ?? const Uuid().v4();
+
+        await TransactionPayment.db.insertRow(
+          session,
+          TransactionPayment(
+            railProductId: railProduct.id!,
+            internalTransactionId: internalTxId,
+            priceCurrency: Currency.USD,
+            price: 0.0,
+            paymentRail: PaymentRail.google_iap,
+            paymentCurrency: Currency.USD,
+            paymentAmount: 0.0,
+            paymentRef: purchase.orderId ?? '',
+            transactionTimestamp: purchaseTime,
+            clientReference: internalTxId,
+            status: OrderStatus.paid,
+          ),
+          transaction: dbTransaction,
+        );
+
+        // d. Credit user inventory based on grants
+        final grants = await RailProductGrant.db.find(
+          session,
+          where: (t) => t.railProductId.equals(railProduct.id!),
+          transaction: dbTransaction,
+        );
+
+        for (final grant in grants) {
+          await EntitlementManager.grantEntitlementById(
+            session,
+            accountUuid: accountUuid,
+            entitlementId: grant.entitlementId,
+            quantity: grant.quantity,
+            transaction: dbTransaction,
+          );
+        }
+
+        // Capture first grant info for the response
+        if (grants.isNotEmpty) {
+          final entitlement = await Entitlement.db.findById(
+            session,
+            grants.first.entitlementId,
+            transaction: dbTransaction,
+          );
+          deliveredTag = entitlement?.tag;
+          deliveredQuantity = grants.first.quantity;
+        }
+      });
+
+      // 6. Acknowledge purchase (async, don't block)
+      _acknowledgePurchaseAsync(packageName, productId, purchaseToken);
+
+      // 7. Always consume (all IAP products are consumable)
+      _consumePurchaseAsync(packageName, productId, purchaseToken);
+
+      final base = GooglePurchaseValidationResult.fromProductPurchase(purchase);
+      return GooglePurchaseValidationResult(
+        consumptionState: base.consumptionState,
+        purchaseState: base.purchaseState,
+        developerPayload: base.developerPayload,
+        internalTransactionId: base.internalTransactionId,
+        purchaseTimeMillis: base.purchaseTimeMillis,
+        purchaseType: base.purchaseType,
+        acknowledgementState: base.acknowledgementState,
+        tag: deliveredTag,
+        quantity: deliveredQuantity,
+      );
+    } on PaymentException {
+      rethrow;
+    } on AnonAccountException {
+      rethrow;
     } catch (e) {
-      if (e is PaymentException) rethrow;
-
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
-        message: 'Google purchase validation network error: ${e.toString()}',
+        message: 'Google purchase validation failed: ${e.toString()}',
         details: {
           'packageName': packageName,
           'productId': productId,
           'error': e.toString(),
         },
       );
+    }
+  }
+
+  /// Acknowledge purchase asynchronously (non-blocking)
+  ///
+  /// Calls acknowledgePurchase() in the background without blocking the response.
+  /// Logs errors but doesn't throw - this is a best-effort operation.
+  ///
+  /// Parameters:
+  /// - [packageName]: Android app package name
+  /// - [productId]: In-app product ID (SKU)
+  /// - [purchaseToken]: Purchase token from Android app
+  ///
+  /// Requirements 2.2: Use AndroidPublisherClient for acknowledgment
+  Future<void> _acknowledgePurchaseAsync(
+    String packageName,
+    String productId,
+    String purchaseToken,
+  ) async {
+    try {
+      await _publisherClient.acknowledgePurchase(
+        packageName: packageName,
+        productId: productId,
+        purchaseToken: purchaseToken,
+      );
+    } catch (e) {
+      // Log but don't throw (async, non-blocking)
+      print('Failed to acknowledge purchase: $e');
+    }
+  }
+
+  /// Consume purchase asynchronously (non-blocking)
+  ///
+  /// Calls consumePurchase() in the background without blocking the response.
+  /// Logs errors but doesn't throw - this is a best-effort operation.
+  ///
+  /// Parameters:
+  /// - [packageName]: Android app package name
+  /// - [productId]: In-app product ID (SKU)
+  /// - [purchaseToken]: Purchase token from Android app
+  ///
+  /// Requirements 2.3, 5.3, 5.5: Use AndroidPublisherClient for consumption
+  Future<void> _consumePurchaseAsync(
+    String packageName,
+    String productId,
+    String purchaseToken,
+  ) async {
+    try {
+      await _publisherClient.consumePurchase(
+        packageName: packageName,
+        productId: productId,
+        purchaseToken: purchaseToken,
+      );
+    } catch (e) {
+      // Log but don't throw (async, non-blocking)
+      print('Failed to consume purchase: $e');
     }
   }
 
@@ -188,43 +468,21 @@ class GoogleIAPRail implements PaymentRailInterface {
   ///
   /// Returns: true if acknowledgment was successful
   ///
-  /// Requirements 3.3: Acknowledge purchases properly
+  /// Requirements 2.2: Use AndroidPublisherClient for acknowledgment
   Future<bool> acknowledgePurchase({
     required String packageName,
     required String productId,
     required String purchaseToken,
   }) async {
-    final accessToken = await GoogleIAPConfig.getAccessToken();
-    if (accessToken == null) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.configurationMissing,
-        message: 'Google service account not configured for acknowledgment',
-        details: {
-          'requiredConfig':
-              'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH',
-        },
-      );
-    }
-
     try {
-      final url =
-          '$_baseUrl/applications/$packageName/purchases/products/$productId/tokens/$purchaseToken:acknowledge';
-
-      final client = HttpClient();
-      final request = await client.postUrl(Uri.parse(url));
-
-      request.headers.set('Authorization', 'Bearer $accessToken');
-      request.headers.set('Content-Type', 'application/json');
-
-      // Empty JSON body for acknowledgment
-      request.write('{}');
-
-      final response = await request.close();
-      await response.drain(); // Consume response
-
-      client.close();
-
-      return response.statusCode == 200;
+      await _publisherClient.acknowledgePurchase(
+        packageName: packageName,
+        productId: productId,
+        purchaseToken: purchaseToken,
+      );
+      return true;
+    } on PaymentException {
+      rethrow;
     } catch (e) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
@@ -252,74 +510,16 @@ class GoogleIAPRail implements PaymentRailInterface {
   /// Requirements 6.1: Extract only transaction IDs and product information
   static Map<String, dynamic> extractTransactionData(
     Map<String, dynamic> purchaseData,
-  ) {
-    return {
-      'order_id': purchaseData['orderId'] as String?,
-      'product_id': purchaseData['productId'] as String?,
-      'purchase_time_millis': purchaseData['purchaseTimeMillis'] as int?,
-      'purchase_state': purchaseData['purchaseState'] as int?,
-      'consumption_state': purchaseData['consumptionState'] as int?,
-      'developer_payload': purchaseData['developerPayload'] as String?,
-      'purchase_type': purchaseData['purchaseType'] as int?,
-      'acknowledgement_state': purchaseData['acknowledgementState'] as int?,
-    };
-  }
-}
-
-/// Google IAP configuration management
-///
-/// Handles Google-specific configuration using environment variables or service account files.
-/// Provides OAuth 2.0 token management for API authentication.
-///
-/// Requirements 5.2: Use service account JSON file or environment variables
-/// Requirements 5.3: Support sandbox/production configuration
-class GoogleIAPConfig {
-  /// Service account JSON configuration
-  static String? get serviceAccountJson =>
-      Platform.environment['GOOGLE_SERVICE_ACCOUNT_JSON'];
-
-  /// Service account file path
-  static String? get serviceAccountPath =>
-      Platform.environment['GOOGLE_SERVICE_ACCOUNT_PATH'];
-
-  /// Check if Google IAP is properly configured
-  static bool get isConfigured =>
-      serviceAccountJson != null || serviceAccountPath != null;
-
-  /// Validate Google IAP configuration
-  ///
-  /// Throws configuration exception if required settings are missing.
-  ///
-  /// Requirements 5.4: Graceful handling of missing configuration
-  /// Requirements 5.5: Clear error messages for invalid configuration
-  static void validateConfiguration() {
-    if (!isConfigured) {
-      throw AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.configurationMissing,
-        message: 'Google IAP configuration missing',
-        details: {
-          'requiredConfig':
-              'GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_PATH',
-        },
-      );
-    }
-  }
-
-  /// Get OAuth 2.0 access token for Google Play Developer API
-  ///
-  /// This is a simplified implementation. In production, you would:
-  /// 1. Parse the service account JSON
-  /// 2. Create a JWT signed with the private key
-  /// 3. Exchange JWT for access token
-  /// 4. Cache tokens and handle refresh
-  ///
-  /// For now, returns null to indicate configuration needed.
-  static Future<String?> getAccessToken() async {
-    // TODO: Implement proper OAuth 2.0 flow with service account
-    // This would require JWT creation and token exchange
-    // For development, this returns null to indicate missing implementation
-    return null;
-  }
+  ) => {
+    'order_id': purchaseData['orderId'] as String?,
+    'product_id': purchaseData['productId'] as String?,
+    'purchase_time_millis': purchaseData['purchaseTimeMillis'] as int?,
+    'purchase_state': purchaseData['purchaseState'] as int?,
+    'consumption_state': purchaseData['consumptionState'] as int?,
+    'developer_payload': purchaseData['developerPayload'] as String?,
+    'purchase_type': purchaseData['purchaseType'] as int?,
+    'acknowledgement_state': purchaseData['acknowledgementState'] as int?,
+  };
 }
 
 /// Google purchase validation result
@@ -327,40 +527,106 @@ class GoogleIAPConfig {
 /// Structured representation of Google Play Developer API response.
 /// Provides convenient access to validation status and purchase details.
 class GooglePurchaseValidationResult {
-  final int consumptionState;
-  final int purchaseState;
-  final String? developerPayload;
-  final String? orderId;
-  final int? purchaseTimeMillis;
-  final int? purchaseType;
-  final int? acknowledgementState;
-
   GooglePurchaseValidationResult({
     required this.consumptionState,
     required this.purchaseState,
     this.developerPayload,
-    this.orderId,
+    this.internalTransactionId,
     this.purchaseTimeMillis,
     this.purchaseType,
     this.acknowledgementState,
+    this.tag,
+    this.quantity,
+    this.fromCache = false,
+    this.deliveredAt,
   });
 
   /// Create from Google API JSON response
-  factory GooglePurchaseValidationResult.fromJson(Map<String, dynamic> json) {
+  factory GooglePurchaseValidationResult.fromJson(Map<String, dynamic> json) =>
+      GooglePurchaseValidationResult(
+        consumptionState: json['consumptionState'] as int? ?? 0,
+        purchaseState: json['purchaseState'] as int? ?? 0,
+        developerPayload: json['developerPayload'] as String?,
+        internalTransactionId: json['orderId'] as String? ?? json['internalTransactionId'] as String?,
+        purchaseTimeMillis: json['purchaseTimeMillis'] as int?,
+        purchaseType: json['purchaseType'] as int?,
+        acknowledgementState: json['acknowledgementState'] as int?,
+      );
+
+  /// Create from ProductPurchase object from googleapis
+  factory GooglePurchaseValidationResult.fromProductPurchase(
+    ProductPurchase productPurchase,
+  ) {
+    // Extract values, converting types as needed
+    var consumptionState = 0;
+    var purchaseState = 0;
+
+    // Handle consumptionState - may be int or String
+    if (productPurchase.consumptionState != null) {
+      final val = productPurchase.consumptionState;
+      if (val is int) {
+        consumptionState = val;
+      } else {
+        consumptionState = int.tryParse(val.toString()) ?? 0;
+      }
+    }
+
+    // Handle purchaseState - may be int or String
+    if (productPurchase.purchaseState != null) {
+      final val = productPurchase.purchaseState;
+      if (val is int) {
+        purchaseState = val;
+      } else {
+        purchaseState = int.tryParse(val.toString()) ?? 0;
+      }
+    }
+
+    String? developerPayload;
+    if (productPurchase.developerPayload is String) {
+      developerPayload = productPurchase.developerPayload;
+    }
+
+    String? orderId;
+    if (productPurchase.orderId is String) {
+      orderId = productPurchase.orderId;
+    }
+
     return GooglePurchaseValidationResult(
-      consumptionState: json['consumptionState'] as int? ?? 0,
-      purchaseState: json['purchaseState'] as int? ?? 0,
-      developerPayload: json['developerPayload'] as String?,
-      orderId: json['orderId'] as String?,
-      purchaseTimeMillis: json['purchaseTimeMillis'] as int?,
-      purchaseType: json['purchaseType'] as int?,
-      acknowledgementState: json['acknowledgementState'] as int?,
+      consumptionState: consumptionState,
+      purchaseState: purchaseState,
+      developerPayload: developerPayload,
+      internalTransactionId: orderId,
+      purchaseTimeMillis: _parseIntField(productPurchase.purchaseTimeMillis),
+      purchaseType: _parseIntField(productPurchase.purchaseType),
+      acknowledgementState: _parseIntField(
+        productPurchase.acknowledgementState,
+      ),
     );
+  }
+
+  final int consumptionState;
+  final int purchaseState;
+  final String? developerPayload;
+  final String? internalTransactionId;
+  final int? purchaseTimeMillis;
+  final int? purchaseType;
+  final int? acknowledgementState;
+  final String? tag;
+  final double? quantity;
+  final bool fromCache;
+  final DateTime? deliveredAt;
+
+  /// Helper to parse int fields that may be int or String
+  static int? _parseIntField(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 
   /// Whether the purchase validation was successful
   /// purchaseState: 0 = Purchased, 1 = Canceled, 2 = Pending
-  bool get isValid => purchaseState == 0;
+  bool get isValid => purchaseState == 0 || fromCache;
 
   /// Whether the purchase has been consumed
   /// consumptionState: 0 = Yet to be consumed, 1 = Consumed

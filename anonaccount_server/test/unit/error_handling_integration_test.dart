@@ -1,0 +1,290 @@
+import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
+import 'package:test/test.dart';
+import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/auth_services_test_helper.dart';
+import '../test_helpers/pow_test_helper.dart';
+import '../test_helpers/signing_test_helper.dart';
+import '../test_helpers/test_account_helper.dart';
+
+/// Test error handling and privacy logging integration
+void main() {
+  setUpAll(initializeTestAuthServices);
+
+  withServerpod('Error Handling Integration Tests', (
+    sessionBuilder,
+    endpoints,
+  ) {
+    group('Authentication Error Handling', () {
+      test('should return structured error for invalid signature on createAccount',
+          () async {
+        final challengeResponse =
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final proofOfWork = await PowTestHelper.mint(
+          challengeResponse.challenge,
+          difficulty: challengeResponse.difficulty,
+        );
+
+        // Use valid public key format but wrong signature
+        const publicKey =
+            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        const ultimatePublicKey =
+            'f123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            'f123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        // Wrong signature (valid format but doesn't match payload)
+        const wrongSignature =
+            '0000000000000000000000000000000000000000000000000000000000000001'
+            '0000000000000000000000000000000000000000000000000000000000000001';
+
+        expect(
+          () => endpoints.account.createAccount(
+            sessionBuilder,
+            challenge: challengeResponse.challenge,
+            proofOfWork: proofOfWork,
+            signature: wrongSignature,
+            publicKeyHex: publicKey,
+            ultimateSigningPublicKeyHex: publicKey,
+            encryptedDataKey: 'test_encrypted_data',
+            ultimatePublicKey: ultimatePublicKey,
+            deviceKeyAttestation: 'dummy-attestation',
+            deviceSigningPublicKeyHex: publicKey,
+            deviceEncryptedDataKey: 'dummy-device-key',
+            deviceLabel: 'dummy-device',
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      });
+
+      test('should reject invalid PoW for device management',
+          () async {
+        // DeviceManagementEndpoint requires SignedPoW verification.
+        expect(
+          () => endpoints.deviceManagement.registerDeviceForAccount(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            newDeviceSigningPublicKeyHex: 'device_pub_key_hex',
+            newDeviceEncryptedDataKey: 'encrypted_data_key',
+            label: 'Test Device',
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      });
+
+      test('should reject invalid PoW for device revocation',
+          () async {
+        expect(
+          () => endpoints.deviceManagement.revokeDevice(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+            deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      });
+
+      test('should reject invalid PoW for device listing',
+          () async {
+        expect(
+          () => endpoints.deviceManagement.listDevices(
+            sessionBuilder,
+            challenge: 'invalid',
+            proofOfWork: 'invalid',
+            publicKeyHex: 'invalid',
+            signature: 'invalid',
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      });
+    });
+
+    group('Device Registration Error Analysis', () {
+      test('should reject empty device key with structured error', () async {
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
+
+        final testAccount = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+        );
+
+        // Payload must match what the endpoint constructs (device key in payload)
+        const emptyDeviceKey = '';
+        final regChallenge =
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload =
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$emptyDeviceKey';
+        final regSignature =
+            SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final deviceKeyAttestation =
+            SigningTestHelper.signWith(emptyDeviceKey, ultimatePrivKey);
+
+        expect(
+          () => endpoints.device.registerDevice(
+            sessionBuilder,
+            challenge: regChallenge.challenge,
+            proofOfWork: regPow,
+            signature: regSignature,
+            deviceKeyAttestation: deviceKeyAttestation,
+            ultimateSigningPublicKeyHex:
+                testAccount.ultimateSigningPublicKeyHex,
+            deviceSigningPublicKeyHex: emptyDeviceKey,
+            encryptedDataKey: 'encrypted_data_key',
+            label: 'Test Device',
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>(
+                (e) =>
+                    e.toString().contains('CRYPTO_INVALID_MESSAGE') &&
+                    e.toString().contains('Message cannot be empty'),
+              ),
+            ),
+          ),
+        );
+      });
+
+      test('should reject invalid device key format with structured error',
+          () async {
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
+
+        final testAccount = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+        );
+
+        // Payload must match what the endpoint constructs (device key in payload)
+        const invalidDeviceKey = 'invalid_format';
+        final regChallenge =
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload =
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$invalidDeviceKey';
+        final regSignature =
+            SigningTestHelper.signWith(regPayload, ultimatePrivKey);
+        final deviceKeyAttestation =
+            SigningTestHelper.signWith(invalidDeviceKey, ultimatePrivKey);
+
+        expect(
+          () => endpoints.device.registerDevice(
+            sessionBuilder,
+            challenge: regChallenge.challenge,
+            proofOfWork: regPow,
+            signature: regSignature,
+            deviceKeyAttestation: deviceKeyAttestation,
+            ultimateSigningPublicKeyHex:
+                testAccount.ultimateSigningPublicKeyHex,
+            deviceSigningPublicKeyHex: invalidDeviceKey,
+            encryptedDataKey: 'encrypted_data_key',
+            label: 'Test Device',
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>(
+                (e) =>
+                    e.toString().contains('CRYPTO_INVALID_PUBLIC_KEY') &&
+                    e.toString().contains('Invalid public key format'),
+              ),
+            ),
+          ),
+        );
+      });
+
+      test('should reject duplicate device registration with structured error',
+          () async {
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
+
+        final testAccount = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+        );
+
+        final (validDevicePrivKey, validDevicePubKey) = SigningTestHelper.generateKeypair();
+
+        // Register first time — payload must use device key (matches endpoint)
+        final regChallenge1 =
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regPow1 = await PowTestHelper.mint(
+          regChallenge1.challenge,
+          difficulty: regChallenge1.difficulty,
+        );
+        final regPayload1 =
+            '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$validDevicePubKey';
+        final regSignature1 =
+            SigningTestHelper.signWith(regPayload1, validDevicePrivKey);
+        final deviceKeyAttestation1 =
+            SigningTestHelper.signWith(validDevicePubKey, ultimatePrivKey);
+
+        await endpoints.device.registerDevice(
+          sessionBuilder,
+          challenge: regChallenge1.challenge,
+          proofOfWork: regPow1,
+          signature: regSignature1,
+          deviceKeyAttestation: deviceKeyAttestation1,
+          ultimateSigningPublicKeyHex:
+              testAccount.ultimateSigningPublicKeyHex,
+          deviceSigningPublicKeyHex: validDevicePubKey,
+          encryptedDataKey: 'encrypted_data_key',
+          label: 'Test Device',
+        );
+
+        // Duplicate should fail
+        final regChallenge2 =
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regPow2 = await PowTestHelper.mint(
+          regChallenge2.challenge,
+          difficulty: regChallenge2.difficulty,
+        );
+        final regPayload2 =
+            '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$validDevicePubKey';
+        final regSignature2 =
+            SigningTestHelper.signWith(regPayload2, validDevicePrivKey);
+        final deviceKeyAttestation2 =
+            SigningTestHelper.signWith(validDevicePubKey, ultimatePrivKey);
+
+        expect(
+          () => endpoints.device.registerDevice(
+            sessionBuilder,
+            challenge: regChallenge2.challenge,
+            proofOfWork: regPow2,
+            signature: regSignature2,
+            deviceKeyAttestation: deviceKeyAttestation2,
+            ultimateSigningPublicKeyHex:
+                testAccount.ultimateSigningPublicKeyHex,
+            deviceSigningPublicKeyHex: validDevicePubKey,
+            encryptedDataKey: 'encrypted_data_key_2',
+            label: 'Test Device 2',
+          ),
+          throwsA(
+            allOf(
+              isA<AuthenticationException>(),
+              predicate<AuthenticationException>(
+                (e) =>
+                    e.toString().contains('AUTH_DUPLICATE_DEVICE') &&
+                    e.toString().contains(
+                        'Device signing public key already registered'),
+              ),
+            ),
+          ),
+        );
+      });
+    });
+  });
+}

@@ -17,7 +17,8 @@ enum OrderStatus implements _i1.SerializableModel {
   processing,
   paid,
   failed,
-  cancelled;
+  cancelled,
+  refunded;
 
   static OrderStatus fromJson(String name) {
     switch (name) {
@@ -31,6 +32,8 @@ enum OrderStatus implements _i1.SerializableModel {
         return OrderStatus.failed;
       case 'cancelled':
         return OrderStatus.cancelled;
+      case 'refunded':
+        return OrderStatus.refunded;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "OrderStatus"',

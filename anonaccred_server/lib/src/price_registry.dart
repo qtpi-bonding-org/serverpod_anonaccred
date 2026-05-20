@@ -5,7 +5,10 @@
 /// and provides catalog and query operations for the commerce system.
 library;
 
+import '../anonaccred_server.dart' show PaymentException;
 import 'exception_factory.dart';
+import 'generated/payment_exception.dart' show PaymentException;
+import 'generated/protocol.dart' show PaymentException;
 
 /// Singleton service that manages product definitions and pricing
 class PriceRegistry {

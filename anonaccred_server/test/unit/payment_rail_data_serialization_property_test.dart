@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:math';
+
+import 'package:anonaccred_server/src/generated/payment_request.dart';
+import 'package:anonaccred_server/src/payments/payment_rail_interface.dart';
 import 'package:test/test.dart';
-import '../../lib/src/generated/payment_request.dart';
-import '../../lib/src/payments/payment_rail_interface.dart';
 
 /// Property-based test for payment rail data serialization round trip
 /// 
@@ -16,7 +16,7 @@ void main() {
     test('Property 4: Payment Rail Data Round Trip - 5 iterations', () {
       final random = Random();
       
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         // Generate random rail data with various types
         final railData = _generateRandomRailData(random);
         
@@ -24,7 +24,7 @@ void main() {
         final originalRequest = PaymentRequestExtension.withRailData(
           paymentRef: 'test-ref-$i',
           amountUSD: 10.0 + random.nextDouble() * 90.0,
-          orderId: 'order-$i',
+          internalTransactionId: 'order-$i',
           railData: railData,
         );
         
@@ -58,7 +58,7 @@ void main() {
       final request = PaymentRequestExtension.withRailData(
         paymentRef: 'test-ref-empty',
         amountUSD: 25.0,
-        orderId: 'order-empty',
+        internalTransactionId: 'order-empty',
         railData: <String, dynamic>{},
       );
       
@@ -92,7 +92,7 @@ void main() {
       final request = PaymentRequestExtension.withRailData(
         paymentRef: 'test-ref-complex',
         amountUSD: 102.5,
-        orderId: 'order-complex',
+        internalTransactionId: 'order-complex',
         railData: complexData,
       );
       
@@ -110,7 +110,7 @@ Map<String, dynamic> _generateRandomRailData(Random random) {
   final data = <String, dynamic>{};
   final keyCount = 1 + random.nextInt(5); // 1-5 keys
   
-  for (int i = 0; i < keyCount; i++) {
+  for (var i = 0; i < keyCount; i++) {
     final key = _generateRandomKey(random, i);
     final value = _generateRandomValue(random);
     data[key] = value;

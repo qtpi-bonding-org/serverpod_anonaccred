@@ -1,0 +1,11 @@
+class: Entitlement
+table: entitlement
+fields:
+  tag: String # e.g. 'api_credits', 'pro_days' (Unique)
+  name: String # Human readable name
+  type: EntitlementType # consumable, subscription, onetime
+  serverValidated: bool
+indexes:
+  tag_idx:
+    fields: tag
+    unique: true

@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
 
@@ -8,30 +8,32 @@ void main() {
     sessionBuilder,
     endpoints,
   ) {
+    late RailProduct testRailProduct;
+
+    setUp(() async {
+      final session = sessionBuilder.build();
+      // Ensure we have a RailProduct for tests
+      testRailProduct = await RailProduct.db.insertRow(
+        session,
+        RailProduct(
+          rail: PaymentRail.monero,
+          storeProductId: 'test_store_sku',
+          isActive: true,
+        ),
+      );
+    });
+
     test(
       'Insert and retrieve TransactionPayment with paymentRef and transactionTimestamp',
       () async {
         final testTimestamp = DateTime.now();
         final session = sessionBuilder.build();
 
-        // Create a test account for foreign key constraint
-        final testAccount = AnonAccount(
-          ultimateSigningPublicKeyHex:
-              'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
-          encryptedDataKey: 'encrypted_data_key_test',
-          ultimatePublicKey:
-              'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
-        );
-        final insertedAccount = await AnonAccount.db.insertRow(
-          session,
-          testAccount,
-        );
-
-        // Create a transaction with both paymentRef and transactionTimestamp
+        // Create a transaction with all required fields
         final transaction = TransactionPayment(
-          externalId:
-              'test_external_id_${DateTime.now().millisecondsSinceEpoch}',
-          accountId: insertedAccount.id!,
+          railProductId: testRailProduct.id!,
+          internalTransactionId:
+              'test_internal_id_${DateTime.now().millisecondsSinceEpoch}',
           priceCurrency: Currency.USD,
           price: 9.99,
           paymentRail: PaymentRail.monero,
@@ -62,8 +64,8 @@ void main() {
         // Verify all fields including the new ones
         expect(retrievedTransaction, isNotNull);
         expect(
-          retrievedTransaction!.externalId,
-          equals(transaction.externalId),
+          retrievedTransaction!.internalTransactionId,
+          equals(transaction.internalTransactionId),
         );
         expect(retrievedTransaction.paymentRef, equals('payment_ref_test_123'));
         expect(retrievedTransaction.transactionTimestamp, isNotNull);
@@ -75,35 +77,21 @@ void main() {
     );
 
     test(
-      'Insert TransactionPayment with null paymentRef and transactionTimestamp',
+      'TransactionPayment requires railProductId and transactionTimestamp',
       () async {
         final session = sessionBuilder.build();
 
-        // Create a test account for foreign key constraint
-        final testAccount = AnonAccount(
-          ultimateSigningPublicKeyHex:
-              'test_public_key_null_${DateTime.now().millisecondsSinceEpoch}',
-          encryptedDataKey: 'encrypted_data_key_test',
-          ultimatePublicKey:
-              'ultimate_public_key_null_${DateTime.now().millisecondsSinceEpoch}',
-        );
-        final insertedAccount = await AnonAccount.db.insertRow(
-          session,
-          testAccount,
-        );
-
-        // Create a transaction with null values for optional fields
+        // Create a transaction - all required fields must be present
         final transaction = TransactionPayment(
-          externalId:
-              'test_external_id_null_${DateTime.now().millisecondsSinceEpoch}',
-          accountId: insertedAccount.id!,
+          railProductId: testRailProduct.id!,
+          internalTransactionId:
+              'test_internal_id_req_${DateTime.now().millisecondsSinceEpoch}',
           priceCurrency: Currency.USD,
           price: 5.99,
           paymentRail: PaymentRail.x402_http,
           paymentCurrency: Currency.USD,
           paymentAmount: 5.99,
-          paymentRef: null,
-          transactionTimestamp: null,
+          transactionTimestamp: DateTime.now(),
           status: OrderStatus.pending,
         );
 
@@ -113,100 +101,65 @@ void main() {
           transaction,
         );
 
-        // Verify the transaction was inserted with null values
         expect(insertedTransaction.id, isNotNull);
-        expect(insertedTransaction.paymentRef, isNull);
-        expect(insertedTransaction.transactionTimestamp, isNull);
-
-        // Retrieve the transaction from database
-        final retrievedTransaction = await TransactionPayment.db.findById(
-          session,
-          insertedTransaction.id!,
-        );
-
-        // Verify null values are preserved
-        expect(retrievedTransaction, isNotNull);
-        expect(retrievedTransaction!.paymentRef, isNull);
-        expect(retrievedTransaction.transactionTimestamp, isNull);
-        expect(retrievedTransaction.status, equals(OrderStatus.pending));
+        expect(insertedTransaction.railProductId, equals(testRailProduct.id));
 
         // Clean up
         await TransactionPayment.db.deleteRow(session, insertedTransaction);
       },
     );
 
-    test(
-      'Update TransactionPayment paymentRef and transactionTimestamp fields',
-      () async {
-        final updateTimestamp = DateTime.now();
-        final session = sessionBuilder.build();
+    test('Update TransactionPayment status and paymentRef', () async {
+      final session = sessionBuilder.build();
 
-        // Create a test account for foreign key constraint
-        final testAccount = AnonAccount(
-          ultimateSigningPublicKeyHex:
-              'test_public_key_update_${DateTime.now().millisecondsSinceEpoch}',
-          encryptedDataKey: 'encrypted_data_key_test',
-          ultimatePublicKey:
-              'ultimate_public_key_update_${DateTime.now().millisecondsSinceEpoch}',
-        );
-        final insertedAccount = await AnonAccount.db.insertRow(
-          session,
-          testAccount,
-        );
+      // Create initial transaction
+      final transaction = TransactionPayment(
+        railProductId: testRailProduct.id!,
+        internalTransactionId:
+            'test_internal_id_update_${DateTime.now().millisecondsSinceEpoch}',
+        priceCurrency: Currency.USD,
+        price: 15.99,
+        paymentRail: PaymentRail.apple_iap,
+        paymentCurrency: Currency.USD,
+        paymentAmount: 15.99,
+        transactionTimestamp: DateTime.now(),
+        status: OrderStatus.pending,
+      );
 
-        // Create initial transaction
-        final transaction = TransactionPayment(
-          externalId:
-              'test_external_id_update_${DateTime.now().millisecondsSinceEpoch}',
-          accountId: insertedAccount.id!,
-          priceCurrency: Currency.USD,
-          price: 15.99,
-          paymentRail: PaymentRail.apple_iap,
-          paymentCurrency: Currency.USD,
-          paymentAmount: 15.99,
-          paymentRef: null,
-          transactionTimestamp: null,
-          status: OrderStatus.pending,
-        );
+      // Insert the transaction
+      final insertedTransaction = await TransactionPayment.db.insertRow(
+        session,
+        transaction,
+      );
 
-        // Insert the transaction
-        final insertedTransaction = await TransactionPayment.db.insertRow(
-          session,
-          transaction,
-        );
+      // Update with paymentRef
+      final updatedTransaction = insertedTransaction.copyWith(
+        paymentRef: 'updated_payment_ref_456',
+        status: OrderStatus.paid,
+      );
 
-        // Update with paymentRef and transactionTimestamp
-        final updatedTransaction = insertedTransaction.copyWith(
-          paymentRef: 'updated_payment_ref_456',
-          transactionTimestamp: updateTimestamp,
-          status: OrderStatus.paid,
-        );
+      // Update in database
+      final savedTransaction = await TransactionPayment.db.updateRow(
+        session,
+        updatedTransaction,
+      );
 
-        // Update in database
-        final savedTransaction = await TransactionPayment.db.updateRow(
-          session,
-          updatedTransaction,
-        );
+      // Verify the update
+      expect(savedTransaction.paymentRef, equals('updated_payment_ref_456'));
+      expect(savedTransaction.status, equals(OrderStatus.paid));
 
-        // Verify the update
-        expect(savedTransaction.paymentRef, equals('updated_payment_ref_456'));
-        expect(savedTransaction.transactionTimestamp, isNotNull);
-        expect(savedTransaction.status, equals(OrderStatus.paid));
+      // Retrieve and verify persistence
+      final retrievedTransaction = await TransactionPayment.db.findById(
+        session,
+        savedTransaction.id!,
+      );
+      expect(
+        retrievedTransaction!.paymentRef,
+        equals('updated_payment_ref_456'),
+      );
 
-        // Retrieve and verify persistence
-        final retrievedTransaction = await TransactionPayment.db.findById(
-          session,
-          savedTransaction.id!,
-        );
-        expect(
-          retrievedTransaction!.paymentRef,
-          equals('updated_payment_ref_456'),
-        );
-        expect(retrievedTransaction.transactionTimestamp, isNotNull);
-
-        // Clean up
-        await TransactionPayment.db.deleteRow(session, savedTransaction);
-      },
-    );
+      // Clean up
+      await TransactionPayment.db.deleteRow(session, savedTransaction);
+    });
   });
 }

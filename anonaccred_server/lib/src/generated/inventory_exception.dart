@@ -22,16 +22,14 @@ abstract class InventoryException
     required this.code,
     required this.message,
     this.details,
-    this.accountId,
-    this.consumableType,
+    this.tag,
   });
 
   factory InventoryException({
     required String code,
     required String message,
     Map<String, String>? details,
-    int? accountId,
-    String? consumableType,
+    String? tag,
   }) = _InventoryExceptionImpl;
 
   factory InventoryException.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -43,8 +41,7 @@ abstract class InventoryException
           : _i2.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
-      accountId: jsonSerialization['accountId'] as int?,
-      consumableType: jsonSerialization['consumableType'] as String?,
+      tag: jsonSerialization['tag'] as String?,
     );
   }
 
@@ -54,9 +51,7 @@ abstract class InventoryException
 
   Map<String, String>? details;
 
-  int? accountId;
-
-  String? consumableType;
+  String? tag;
 
   /// Returns a shallow copy of this [InventoryException]
   /// with some or all fields replaced by the given arguments.
@@ -65,8 +60,7 @@ abstract class InventoryException
     String? code,
     String? message,
     Map<String, String>? details,
-    int? accountId,
-    String? consumableType,
+    String? tag,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -75,8 +69,7 @@ abstract class InventoryException
       'code': code,
       'message': message,
       if (details != null) 'details': details?.toJson(),
-      if (accountId != null) 'accountId': accountId,
-      if (consumableType != null) 'consumableType': consumableType,
+      if (tag != null) 'tag': tag,
     };
   }
 
@@ -87,14 +80,13 @@ abstract class InventoryException
       'code': code,
       'message': message,
       if (details != null) 'details': details?.toJson(),
-      if (accountId != null) 'accountId': accountId,
-      if (consumableType != null) 'consumableType': consumableType,
+      if (tag != null) 'tag': tag,
     };
   }
 
   @override
   String toString() {
-    return 'InventoryException(code: $code, message: $message, details: $details, accountId: $accountId, consumableType: $consumableType)';
+    return 'InventoryException(code: $code, message: $message, details: $details, tag: $tag)';
   }
 }
 
@@ -105,14 +97,12 @@ class _InventoryExceptionImpl extends InventoryException {
     required String code,
     required String message,
     Map<String, String>? details,
-    int? accountId,
-    String? consumableType,
+    String? tag,
   }) : super._(
          code: code,
          message: message,
          details: details,
-         accountId: accountId,
-         consumableType: consumableType,
+         tag: tag,
        );
 
   /// Returns a shallow copy of this [InventoryException]
@@ -123,8 +113,7 @@ class _InventoryExceptionImpl extends InventoryException {
     String? code,
     String? message,
     Object? details = _Undefined,
-    Object? accountId = _Undefined,
-    Object? consumableType = _Undefined,
+    Object? tag = _Undefined,
   }) {
     return InventoryException(
       code: code ?? this.code,
@@ -140,10 +129,7 @@ class _InventoryExceptionImpl extends InventoryException {
                 value0,
               ),
             ),
-      accountId: accountId is int? ? accountId : this.accountId,
-      consumableType: consumableType is String?
-          ? consumableType
-          : this.consumableType,
+      tag: tag is String? ? tag : this.tag,
     );
   }
 }

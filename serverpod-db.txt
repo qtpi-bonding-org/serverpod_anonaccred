@@ -1,0 +1,486 @@
+One-to-one
+One-to-one (1:1) relationships represent a unique association between two entities, there is at most one model that can be connected on either side of the relation. This means we have to set a unique index on the foreign key in the database. Without the unique index the relation would be considered a one-to-many (1:n) relation.
+
+Defining the Relationship
+In the following examples we show how to configure a 1:1 relationship between User and Address.
+
+With an id field
+In the most simple case, all we have to do is add an id field on one of the models.
+
+# address.yaml
+class: Address
+table: address
+fields:
+  street: String
+
+# user.yaml
+class: User
+table: user
+fields:
+  addressId: int, relation(parent=address) // Foreign key field
+indexes:
+  user_address_unique_idx:
+    fields: addressId
+    unique: true
+
+In the example, the relation keyword annotates the addressId field to hold the foreign key. The field needs to be of type int and the relation keyword needs to specify the parent parameter. The parent parameter defines which table the relation is towards, in this case the Address table.
+
+The addressId is required in this example because the field is not nullable. That means that each User must have a related Address. If you want to make the relation optional, change the datatype from int to int?.
+
+When fetching a User from the database the addressId field will automatically be populated with the related Address object id.
+
+With an object
+While the previous example highlights manual handling of data, there's an alternative approach that simplifies data access using automated handling. By directly specifying the Address type in the User class, Serverpod can automatically handle the relation for you.
+
+# address.yaml
+class: Address
+table: address
+fields:
+  street: String
+
+# user.yaml
+class: User
+table: user
+fields:
+  address: Address?, relation // Object relation field
+indexes:
+  user_address_unique_idx:
+    fields: addressId
+    unique: true
+
+In this example, we define an object relation field by annotating the address field with the relation keyword where the type is another model, Address?.
+
+Serverpod then automatically generates a foreign key field (as seen in the last example) named addressId in the User class. This auto-generated field is non-nullable by default and is by default always named from the object relation field with the suffix Id.
+
+The object field, in this case address, must always be nullable (as indicated by Address?).
+
+An object relation field gives a big advantage when fetching data. Utilizing relational queries enables filtering based on relation attributes or optionally including the related data in the result.
+
+No parent keyword is needed here because the relational table is inferred from the type on the field.
+
+Optional relation
+# user.yaml
+class: User
+table: user
+fields:
+  address: Address?, relation(optional)
+indexes:
+  user_address_unique_idx:
+    fields: addressId
+    unique: true
+
+With the introduction of the optional keyword in the relation, the automatically generated addressId field becomes nullable. This means that the addressId can either hold a foreign key to the related address table or be set to null, indicating no associated address.
+
+Custom foreign key field
+Serverpod also provides a way to customize the name of the foreign key field used in an object relation.
+
+# user.yaml
+class: User
+table: user
+fields:
+  customIdField: int
+  address: Address?, relation(field=customIdField)
+indexes:
+  user_address_unique_idx:
+    fields: customIdField
+    unique: true
+
+In this example, we define a custom foreign key field with the field parameter. The argument defines what field that is used as the foreign key field. In this case, customIdField is used instead of the default auto-generated name.
+
+If you want the custom foreign key to be nullable, simply define its type as int?. Note that the field keyword cannot be used in conjunction with the optional keyword. Instead, directly mark the field as nullable.
+
+Generated SQL
+The following code block shows how to set up the same relation with raw SQL. Serverpod will generate this code behind the scenes.
+
+CREATE TABLE "address" (
+    "id" serial PRIMARY KEY,
+    "street" text NOT NULL
+);
+
+CREATE TABLE "user" (
+    "id" serial PRIMARY KEY,
+    "addressId" integer NOT NULL
+);
+
+
+CREATE UNIQUE INDEX "user_address_unique_idx" ON "user" USING btree ("addressId");
+
+ALTER TABLE ONLY "user"
+    ADD CONSTRAINT "user_fk_0"
+    FOREIGN KEY("addressId")
+    REFERENCES "address"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+
+Independent relations defined on both sides
+You are able to define as many independent relations as you wish on each side of the relation. This is useful when you want to have multiple relations between two entities.
+
+# user.yaml
+class: User
+table: user
+fields:
+  friendsAddress: Address?, relation
+indexes:
+  user_address_unique_idx:
+    fields: friendsAddressId
+    unique: true
+
+# address.yaml
+class: Address
+table: address
+fields:
+  street: String
+  resident: User?, relation
+indexes:
+  address_user_unique_idx:
+    fields: residentId
+    unique: true
+
+Both relations operate independently of each other, resulting in two distinct relationships with their respective unique indexes.
+
+Bidirectional relations
+If access to the same relation is desired from both sided, a bidirectional relation can be defined.
+
+# user.yaml
+class: User
+table: user
+fields:
+  addressId: int
+  address: Address?, relation(name=user_address, field=addressId)
+indexes:
+  user_address_unique_idx:
+    fields: addressId
+    unique: true
+
+# address.yaml
+class: Address
+table: address
+fields:
+  street: String
+  user: User?, relation(name=user_address)
+
+The example illustrates a 1:1 relationship between User and Address where both sides of the relationship are explicitly specified.
+
+Using the name parameter, we define a shared name for the relationship. It serves as the bridge connecting the address field in the User class to the user field in the Address class. Meaning that the same User referencing an Address is accessible from the Address as well.
+
+Without specifying the name parameter, you'd end up with two unrelated relationships.
+
+When the relationship is defined on both sides, it's required to specify the field keyword. This is because Serverpod cannot automatically determine which side should hold the foreign key field. You decide which side is most logical for your data.
+
+In a relationship where there is an object on both sides a unique index is always required on the foreign key field.
+
+Edit this page
+
+
+
+One-to-many
+One-to-many (1:n) relationships describes a scenario where multiple records from one table can relate to a single record in another table. An example of this would the relationship between a company and its employees, where multiple employees can be employed at a single company.
+
+The Serverpod framework provides versatility in establishing these relations. Depending on the specific use case and clarity desired, you can define the model relationship either from the 'many' side (like Employee) or the 'one' side (like Company).
+
+Defining the relationship
+In the following examples we show how to configure a 1:n relationship between Company and Employee.
+
+Implicit definition
+With an implicit setup, Serverpod determines and establishes the relationship based on the table and class structures.
+
+# company.yaml
+class: Company
+table: company
+fields:
+  name: String
+  employees: List<Employee>?, relation
+
+# employee.yaml
+class: Employee
+table: employee
+fields:
+  name: String
+
+In the example, we define a 1:n relation between Company and Employee by using the List<Employee> type on the employees field together with the relation keyword.
+
+The corresponding foreign key field is automatically integrated into the 'many' side (e.g., Employee) as a concealed column.
+
+When fetching companies it now becomes possible to include any or all employees in the query. 1:n relations also enables additional filtering and sorting operations for relational queries.
+
+Explicit definition
+In an explicit definition, you directly specify the relationship in a one-to-many relation.
+
+This can be done by through an object relation:
+
+# company.yaml
+class: Company
+table: company
+fields:
+  name: String
+
+# employee.yaml
+class: Employee
+table: employee
+fields:
+  name: String
+  company: Company?, relation
+
+Or through a foreign key field:
+
+# company.yaml
+class: Company
+table: company
+fields:
+  name: String
+
+# employee.yaml
+class: Employee
+table: employee
+fields:
+  name: String
+  companyId: int, relation
+
+The examples are 1:n relations because there is no unique index constraint on the foreign key field. This means that multiple employees can reference the same company.
+
+Bidirectional relations
+For a more comprehensive representation, you can define the relationship from both sides.
+
+Either through an object relation on the many side:
+
+# company.yaml
+class: Company
+table: company
+fields:
+  name: String
+  employees: List<Employee>?, relation(name=company_employees)
+
+# employee.yaml
+class: Employee
+table: employee
+fields:
+  name: String
+  company: Company?, relation(name=company_employees)
+
+Or through a foreign key field on the many side:
+
+# company.yaml
+class: Company
+table: company
+fields:
+  name: String
+  employees: List<Employee>?, relation(name=company_employees)
+
+# employee.yaml
+class: Employee
+table: employee
+fields:
+  name: String
+  companyId: int, relation(name=company_employees, parent=company)
+
+Just as in the 1:1 examples, the name parameter with a unique string that links both sides together.
+
+Edit this page
+
+
+
+Many-to-many
+Many-to-many (n:m) relationships describes a scenario where multiple records from a table can relate to multiple records in another table. An example of this would be the relationship between students and courses, where a single student can enroll in multiple courses, and a single course can have multiple students.
+
+The Serverpod framework supports these complex relationships by explicitly creating a separate model, often called a junction or bridge table, that records the relation.
+
+Overview
+In the context of many-to-many relationships, neither table contains a direct reference to the other. Instead, a separate table holds the foreign keys of both tables. This setup allows for a flexible and normalized approach to represent n:m relationships.
+
+Modeling the relationship between Student and Course, we would create an Enrollment model as a junction table to store the relationship explicitly.
+
+Defining the relationship
+In the following examples we show how to configure a n:m relationship between Student and Course.
+
+Many tables
+Both the Course and Student tables have a direct relationship with the Enrollment table but no direct relationship with each other.
+
+# course.yaml
+class: Course
+table: course
+fields:
+  name: String
+  enrollments: List<Enrollment>?, relation(name=course_enrollments)
+
+# student.yaml
+class: Student
+table: student
+fields:
+  name: String
+  enrollments: List<Enrollment>?, relation(name=student_enrollments)
+
+Note that the name argument is different, course_enrollments and student_enrollments, for the many tables. This is because each row in the junction table holds a relation to both many tables, Course and Student.
+
+Junction table
+The Enrollment table acts as the bridge between Course and Student. It contains foreign keys from both tables, representing the many-to-many relationship.
+
+# enrollment.yaml
+class: Enrollment
+table: enrollment
+fields:
+  student: Student?, relation(name=student_enrollments)
+  course: Course?, relation(name=course_enrollments)
+indexes:
+  enrollment_index_idx:
+    fields: studentId, courseId
+    unique: true
+
+The unique index on the combination of studentId and courseId ensures that a student can only be enrolled in a particular course once. If omitted a student would be allowed to be enrolled in the same course multiple times.
+
+Edit this page
+
+
+Self-relations
+A self-referential or self-relation occurs when a table has a foreign key that references its own primary key within the same table. This creates a relationship between different rows within the same table.
+
+One-to-one
+Imagine we have a blog and want to create links between our posts, where you can traverse forward and backward in the post history. Then we can create a self-referencing relation pointing to the next post in the chain.
+
+class: Post
+table: post
+fields:
+  content: String
+  previous: Post?, relation(name=next_previous_post)
+  nextId: int?
+  next: Post?, relation(name=next_previous_post, field=nextId, onDelete=SetNull)
+indexes:
+  next_unique_idx:
+    fields: nextId
+    unique: true
+
+In this example, there is a named relation holding the data on both sides of the relation. The field nextId is a nullable field that stores the id of the next post. It is nullable as it would be impossible to create the first entry if we already needed to have a post created. The next post represents the object on "this" side while the previous post is the corresponding object on the "other" side. Meaning that the previous post is connected to the nextId of the post that came before it.
+
+One-to-many
+In a one-to-many self-referenced relation there is one object field connected to a list field. In this example we have modeled the relationship between a cat and her potential kittens. Each cat has at most one mother but can have n kittens, for brevity, we have only modeled the mother.
+
+class: Cat
+table: cat
+fields:
+  name: String
+  mother: Cat?, relation(name=cat_kittens, optional, onDelete=SetNull)
+  kittens: List<Cat>?, relation(name=cat_kittens)
+
+The field motherId: int? is injected into the dart class, the field is nullable since we marked the field mother as an optional relation. We can now find all the kittens by looking at the motherId of other cats which should match the id field of the current cat. The other cat can instead be found by looking at the motherId of the current cat and matching it against one other cat id field.
+
+Many-to-many
+Let's imagine we have a system where we have members that can block other members. We would like to be able to query who I'm blocking and who is blocking me. This can be achieved by modeling the data as a many-to-many relation ship.
+
+Each member has a list of all other members they are blocking and another list of all members that are blocking them. But since the list side needs to point to a foreign key and cannot point to another list directly, we have to define a junction table that holds the connection between the rows.
+
+class: Member
+table: member
+fields:
+  name: String
+  blocking: List<Blocking>?, relation(name=member_blocked_by_me)
+  blockedBy: List<Blocking>?, relation(name=member_blocking_me)
+
+class: Blocking
+table: blocking
+fields:
+  blocked: Member?, relation(name=member_blocking_me, onDelete=Cascade)
+  blockedBy: Member?, relation(name=member_blocked_by_me, onDelete=Cascade)
+indexes:
+  blocking_blocked_unique_idx:
+    fields: blockedId, blockedById
+    unique: true
+
+The junction table has an entry for who is blocking and another for who is getting blocked. Notice that the blockedBy field in the junction table is linked to the blocking field in the member table. We have also added a combined unique constraint on both the blockedId and blockedById, this makes sure we only ever have one entry per relation, meaning I can only block one other member one time.
+
+The cascade delete means that if a member is deleted all the blocking entries are also removed for that member.
+
+Edit this page
+
+
+
+Referential actions
+In Serverpod, the behavior of update and delete for relations can be precisely defined using the onUpdate and onDelete properties. These properties map directly to the corresponding referential actions in PostgreSQL.
+
+Available referential actions
+Action	Description
+NoAction	If any constraint violation occurs, no action will be taken, and an error will be raised.
+Restrict	If any referencing rows still exist when the constraint is checked, an error is raised.
+SetDefault	The field will revert to its default value. Note: This action necessitates that a default value is configured for the field.
+Cascade	Any action taken on the parent (update/delete) will be mirrored in the child.
+SetNull	The field value is set to null. This action is permissible only if the field has been marked as optional.
+Syntax
+Use the following syntax to apply referential actions
+
+relation(onUpdate=<ACTION>, onDelete=<ACTION>)
+
+Default values
+If no referential actions are specified, the default behavior will be applied.
+
+If the relation is defined as an object relation, the default behavior is NoAction for both onUpdate and onDelete.
+
+parent: Model?, relation(onUpdate=NoAction, onDelete=NoAction)
+
+If the relation is defined as an id relation, the default behavior is NoAction for onUpdate and Cascade for onDelete.
+
+parentId: int?, relation(parent=model_table, onUpdate=NoAction, onDelete=Cascade)
+
+info
+The sequence of onUpdate and onDelete is interchangeable.
+
+Full example
+class: Example
+table: example
+fields:
+  parentId: int?, relation(parent=example, onUpdate=SetNull, onDelete=NoAction)
+
+In the given example, if the example parent is updated, the parentId will be set to null. If the parent is deleted, no action will be taken for parentId.
+
+
+
+
+Relations with modules
+Serverpod modules usually come with predefined tables and data structures. Sometimes it can be useful to extend them with your data structures by creating a relation to the module tables. Relations to modules come with some restrictions since you do not own the definition of the table, you cannot change the table structure of a module table.
+
+Since you do not directly control the models inside the modules it is recommended to create a so-called "bridge" table/model linking the module's model to your own. This can be done in the same way we normally would setup a one-to-one relation.
+
+class: User
+table: user
+fields:
+  userInfo: module:auth:UserInfo?, relation
+  age: int
+indexes:
+  user_info_id_unique_idx:
+    fields: userInfoId
+    unique: true
+
+Or by referencing the table name if you only want to access the id.
+
+class: User
+table: user
+fields:
+  userInfoId: int, relation(parent=serverpod_user_info)
+  age: int
+indexes:
+  user_info_id_unique_idx:
+    fields: userInfoId
+    unique: true
+
+It is now possible to make any other relation to our model as described in one-to-one, one-to-many, many-to-many and self-relations.
+
+Advanced example
+A one-to-many relation with the "bridge" table could look like this.
+
+class: User
+table: user
+fields:
+  userInfo: module:auth:UserInfo?, relation
+  age: int
+  company: Company?, relation(name=company_employee)
+indexes:
+  user_info_id_unique_idx:
+    fields: userInfoId
+    unique: true
+  company_unique_idx:
+    fields: companyId
+    unique: true
+
+class: Company
+table: company
+fields:
+  name: String
+  employees: List<User>?, relation(name=company_employee)
+

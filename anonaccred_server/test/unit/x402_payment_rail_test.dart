@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:serverpod/serverpod.dart';
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('X402PaymentRail', () {
@@ -21,11 +21,11 @@ void main() {
     test('should create payment request with correct data', () async {
       final paymentRequest = await rail.createPayment(
         amountUSD: 10.50,
-        orderId: 'test_order_123',
+        internalTransactionId: 'test_order_123',
       );
 
       expect(paymentRequest.amountUSD, equals(10.50));
-      expect(paymentRequest.orderId, equals('test_order_123'));
+      expect(paymentRequest.internalTransactionId, equals('test_order_123'));
       expect(paymentRequest.paymentRef, startsWith('x402_test_order_123_'));
 
       // Check rail data
@@ -40,21 +40,21 @@ void main() {
       );
       expect(railData['amount'], equals('10.5'));
       expect(railData['currency'], equals('USD'));
-      expect(railData['orderId'], equals('test_order_123'));
+      expect(railData['internalTransactionId'], equals('test_order_123'));
       expect(railData['protocol'], equals('x402'));
     });
 
     test('should process successful callback', () async {
       final callbackData = {
         'paymentRef': 'x402_test_123',
-        'orderId': 'test_order_123',
+        'internalTransactionId': 'test_order_123',
         'success': true,
       };
 
       final result = await rail.processCallback(callbackData);
 
       expect(result.success, isTrue);
-      expect(result.orderId, equals('test_order_123'));
+      expect(result.internalTransactionId, equals('test_order_123'));
       expect(result.transactionTimestamp, isNotNull);
       expect(result.transactionTimestamp, isNotNull);
       expect(result.errorMessage, isNull);
@@ -63,14 +63,14 @@ void main() {
     test('should process failed callback', () async {
       final callbackData = {
         'paymentRef': 'x402_test_123',
-        'orderId': 'test_order_123',
+        'internalTransactionId': 'test_order_123',
         'success': false,
       };
 
       final result = await rail.processCallback(callbackData);
 
       expect(result.success, isFalse);
-      expect(result.orderId, equals('test_order_123'));
+      expect(result.internalTransactionId, equals('test_order_123'));
       expect(result.transactionTimestamp, isNull);
       expect(result.errorMessage, equals('X402 payment verification failed'));
     });
@@ -86,9 +86,7 @@ void main() {
   });
 
   group('PaymentManager X402 Integration', () {
-    setUp(() {
-      PaymentManager.clearRails();
-    });
+    setUp(PaymentManager.clearRails);
 
     test('should initialize X402 payment rail', () {
       // Create a mock session for testing

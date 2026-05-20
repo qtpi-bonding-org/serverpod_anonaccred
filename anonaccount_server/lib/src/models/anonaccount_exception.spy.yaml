@@ -1,0 +1,6 @@
+# Base AnonAccount Exception
+exception: AnonAccountException
+fields:
+  code: String
+  message: String
+  details: Map<String, String>?

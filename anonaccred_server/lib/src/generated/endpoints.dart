@@ -11,302 +11,57 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import '../endpoints/account_endpoint.dart' as _i2;
-import '../endpoints/commerce_endpoint.dart' as _i3;
-import '../endpoints/device_endpoint.dart' as _i4;
-import '../endpoints/iap_endpoint.dart' as _i5;
-import '../endpoints/iap_webhook_endpoint.dart' as _i6;
-import '../endpoints/module_endpoint.dart' as _i7;
-import '../endpoints/payment_endpoint.dart' as _i8;
-import '../endpoints/x402_endpoint.dart' as _i9;
-import 'package:anonaccred_server/src/generated/payment_rail.dart' as _i10;
+import '../endpoints/commerce_endpoint.dart' as _i2;
+import '../endpoints/group_commerce_endpoint.dart' as _i3;
+import '../endpoints/iap_endpoint.dart' as _i4;
+import 'package:anonaccount_server/anonaccount_server.dart' as _i5;
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+    as _i6;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i7;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
   void initializeEndpoints(_i1.Server server) {
     var endpoints = <String, _i1.Endpoint>{
-      'account': _i2.AccountEndpoint()
-        ..initialize(
-          server,
-          'account',
-          'anonaccred',
-        ),
-      'commerce': _i3.CommerceEndpoint()
+      'commerce': _i2.CommerceEndpoint()
         ..initialize(
           server,
           'commerce',
           'anonaccred',
         ),
-      'device': _i4.DeviceEndpoint()
+      'groupCommerce': _i3.GroupCommerceEndpoint()
         ..initialize(
           server,
-          'device',
+          'groupCommerce',
           'anonaccred',
         ),
-      'iAP': _i5.IAPEndpoint()
+      'iAP': _i4.IAPEndpoint()
         ..initialize(
           server,
           'iAP',
           'anonaccred',
         ),
-      'iAPWebhook': _i6.IAPWebhookEndpoint()
-        ..initialize(
-          server,
-          'iAPWebhook',
-          'anonaccred',
-        ),
-      'module': _i7.ModuleEndpoint()
-        ..initialize(
-          server,
-          'module',
-          'anonaccred',
-        ),
-      'payment': _i8.PaymentEndpoint()
-        ..initialize(
-          server,
-          'payment',
-          'anonaccred',
-        ),
-      'x402': _i9.X402Endpoint()
-        ..initialize(
-          server,
-          'x402',
-          'anonaccred',
-        ),
     };
-    connectors['account'] = _i1.EndpointConnector(
-      name: 'account',
-      endpoint: endpoints['account']!,
-      methodConnectors: {
-        'createAccount': _i1.MethodConnector(
-          name: 'createAccount',
-          params: {
-            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'ultimateSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'encryptedDataKey': _i1.ParameterDescription(
-              name: 'encryptedDataKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'ultimatePublicKey': _i1.ParameterDescription(
-              name: 'ultimatePublicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['account'] as _i2.AccountEndpoint).createAccount(
-                    session,
-                    params['ultimateSigningPublicKeyHex'],
-                    params['encryptedDataKey'],
-                    params['ultimatePublicKey'],
-                  ),
-        ),
-        'getAccountById': _i1.MethodConnector(
-          name: 'getAccountById',
-          params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['account'] as _i2.AccountEndpoint).getAccountById(
-                    session,
-                    params['accountId'],
-                  ),
-        ),
-        'getAccountByPublicKey': _i1.MethodConnector(
-          name: 'getAccountByPublicKey',
-          params: {
-            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'ultimateSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['account'] as _i2.AccountEndpoint)
-                  .getAccountByPublicKey(
-                    session,
-                    params['ultimateSigningPublicKeyHex'],
-                  ),
-        ),
-        'getAccountForRecovery': _i1.MethodConnector(
-          name: 'getAccountForRecovery',
-          params: {
-            'ultimatePublicKey': _i1.ParameterDescription(
-              name: 'ultimatePublicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['account'] as _i2.AccountEndpoint)
-                  .getAccountForRecovery(
-                    session,
-                    params['ultimatePublicKey'],
-                  ),
-        ),
-      },
-    );
     connectors['commerce'] = _i1.EndpointConnector(
       name: 'commerce',
       endpoint: endpoints['commerce']!,
       methodConnectors: {
-        'registerProducts': _i1.MethodConnector(
-          name: 'registerProducts',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'products': _i1.ParameterDescription(
-              name: 'products',
-              type: _i1.getType<Map<String, double>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
-                  .registerProducts(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['products'],
-                  ),
-        ),
-        'getProductCatalog': _i1.MethodConnector(
-          name: 'getProductCatalog',
+        'getEntitlements': _i1.MethodConnector(
+          name: 'getEntitlements',
           params: {},
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
-                  .getProductCatalog(session),
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
+                  .getEntitlements(session),
         ),
-        'createOrder': _i1.MethodConnector(
-          name: 'createOrder',
+        'getEntitlementBalance': _i1.MethodConnector(
+          name: 'getEntitlementBalance',
           params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'items': _i1.ParameterDescription(
-              name: 'items',
-              type: _i1.getType<Map<String, double>>(),
-              nullable: false,
-            ),
-            'paymentRail': _i1.ParameterDescription(
-              name: 'paymentRail',
-              type: _i1.getType<_i10.PaymentRail>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['commerce'] as _i3.CommerceEndpoint).createOrder(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['accountId'],
-                    params['items'],
-                    params['paymentRail'],
-                  ),
-        ),
-        'getInventory': _i1.MethodConnector(
-          name: 'getInventory',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['commerce'] as _i3.CommerceEndpoint).getInventory(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['accountId'],
-                  ),
-        ),
-        'getBalance': _i1.MethodConnector(
-          name: 'getBalance',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'consumableType': _i1.ParameterDescription(
-              name: 'consumableType',
+            'tag': _i1.ParameterDescription(
+              name: 'tag',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -315,35 +70,17 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['commerce'] as _i3.CommerceEndpoint).getBalance(
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
+                  .getEntitlementBalance(
                     session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['accountId'],
-                    params['consumableType'],
+                    params['tag'],
                   ),
         ),
-        'consumeInventory': _i1.MethodConnector(
-          name: 'consumeInventory',
+        'consumeEntitlement': _i1.MethodConnector(
+          name: 'consumeEntitlement',
           params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'consumableType': _i1.ParameterDescription(
-              name: 'consumableType',
+            'tag': _i1.ParameterDescription(
+              name: 'tag',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -357,116 +94,49 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
-                  .consumeInventory(
+              ) async => (endpoints['commerce'] as _i2.CommerceEndpoint)
+                  .consumeEntitlement(
                     session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['accountId'],
-                    params['consumableType'],
+                    params['tag'],
                     params['quantity'],
-                  ),
-        ),
-        'getProductCatalogWithX402': _i1.MethodConnector(
-          name: 'getProductCatalogWithX402',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'headers': _i1.ParameterDescription(
-              name: 'headers',
-              type: _i1.getType<Map<String, String>?>(),
-              nullable: true,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
-                  .getProductCatalogWithX402(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    headers: params['headers'],
-                  ),
-        ),
-        'getBalanceWithX402': _i1.MethodConnector(
-          name: 'getBalanceWithX402',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'consumableType': _i1.ParameterDescription(
-              name: 'consumableType',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'headers': _i1.ParameterDescription(
-              name: 'headers',
-              type: _i1.getType<Map<String, String>?>(),
-              nullable: true,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['commerce'] as _i3.CommerceEndpoint)
-                  .getBalanceWithX402(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['accountId'],
-                    params['consumableType'],
-                    headers: params['headers'],
                   ),
         ),
       },
     );
-    connectors['device'] = _i1.EndpointConnector(
-      name: 'device',
-      endpoint: endpoints['device']!,
+    connectors['groupCommerce'] = _i1.EndpointConnector(
+      name: 'groupCommerce',
+      endpoint: endpoints['groupCommerce']!,
       methodConnectors: {
-        'registerDevice': _i1.MethodConnector(
-          name: 'registerDevice',
+        'getGroupEntitlements': _i1.MethodConnector(
+          name: 'getGroupEntitlements',
           params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
+            'shareGroupUuid': _i1.ParameterDescription(
+              name: 'shareGroupUuid',
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
-            'deviceSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'deviceSigningPublicKeyHex',
-              type: _i1.getType<String>(),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['groupCommerce'] as _i3.GroupCommerceEndpoint)
+                      .getGroupEntitlements(
+                        session,
+                        params['shareGroupUuid'],
+                      ),
+        ),
+        'getGroupEntitlementBalance': _i1.MethodConnector(
+          name: 'getGroupEntitlementBalance',
+          params: {
+            'shareGroupUuid': _i1.ParameterDescription(
+              name: 'shareGroupUuid',
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
-            'encryptedDataKey': _i1.ParameterDescription(
-              name: 'encryptedDataKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'label': _i1.ParameterDescription(
-              name: 'label',
+            'tag': _i1.ParameterDescription(
+              name: 'tag',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -476,55 +146,29 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['device'] as _i4.DeviceEndpoint).registerDevice(
-                    session,
-                    params['accountId'],
-                    params['deviceSigningPublicKeyHex'],
-                    params['encryptedDataKey'],
-                    params['label'],
-                  ),
+                  (endpoints['groupCommerce'] as _i3.GroupCommerceEndpoint)
+                      .getGroupEntitlementBalance(
+                        session,
+                        params['shareGroupUuid'],
+                        params['tag'],
+                      ),
         ),
-        'authenticateDevice': _i1.MethodConnector(
-          name: 'authenticateDevice',
+        'consumeGroupEntitlement': _i1.MethodConnector(
+          name: 'consumeGroupEntitlement',
           params: {
-            'challenge': _i1.ParameterDescription(
-              name: 'challenge',
+            'shareGroupUuid': _i1.ParameterDescription(
+              name: 'shareGroupUuid',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'tag': _i1.ParameterDescription(
+              name: 'tag',
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .authenticateDevice(
-                    session,
-                    params['challenge'],
-                    params['signature'],
-                  ),
-        ),
-        'generateAuthChallenge': _i1.MethodConnector(
-          name: 'generateAuthChallenge',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .generateAuthChallenge(session),
-        ),
-        'revokeDevice': _i1.MethodConnector(
-          name: 'revokeDevice',
-          params: {
-            'deviceId': _i1.ParameterDescription(
-              name: 'deviceId',
-              type: _i1.getType<int>(),
+            'quantity': _i1.ParameterDescription(
+              name: 'quantity',
+              type: _i1.getType<double>(),
               nullable: false,
             ),
           },
@@ -533,92 +177,13 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['device'] as _i4.DeviceEndpoint).revokeDevice(
-                    session,
-                    params['deviceId'],
-                  ),
-        ),
-        'listDevices': _i1.MethodConnector(
-          name: 'listDevices',
-          params: {},
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .listDevices(session),
-        ),
-        'registerDeviceForAccount': _i1.MethodConnector(
-          name: 'registerDeviceForAccount',
-          params: {
-            'newDeviceSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'newDeviceSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'newDeviceEncryptedDataKey': _i1.ParameterDescription(
-              name: 'newDeviceEncryptedDataKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'label': _i1.ParameterDescription(
-              name: 'label',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .registerDeviceForAccount(
-                    session,
-                    params['newDeviceSigningPublicKeyHex'],
-                    params['newDeviceEncryptedDataKey'],
-                    params['label'],
-                  ),
-        ),
-        'getDeviceBySigningKey': _i1.MethodConnector(
-          name: 'getDeviceBySigningKey',
-          params: {
-            'signingPublicKeyHex': _i1.ParameterDescription(
-              name: 'signingPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .getDeviceBySigningKey(
-                    session,
-                    params['signingPublicKeyHex'],
-                  ),
-        ),
-        'monitorRegistration': _i1.MethodStreamConnector(
-          name: 'monitorRegistration',
-          params: {
-            'signingKeyHex': _i1.ParameterDescription(
-              name: 'signingKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          streamParams: {},
-          returnType: _i1.MethodStreamReturnType.streamType,
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-                Map<String, Stream> streamParams,
-              ) => (endpoints['device'] as _i4.DeviceEndpoint)
-                  .monitorRegistration(
-                    session,
-                    params['signingKeyHex'],
-                  ),
+                  (endpoints['groupCommerce'] as _i3.GroupCommerceEndpoint)
+                      .consumeGroupEntitlement(
+                        session,
+                        params['shareGroupUuid'],
+                        params['tag'],
+                        params['quantity'],
+                      ),
         ),
       },
     );
@@ -626,74 +191,40 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'iAP',
       endpoint: endpoints['iAP']!,
       methodConnectors: {
-        'validateAppleReceipt': _i1.MethodConnector(
-          name: 'validateAppleReceipt',
+        'validateAppleTransaction': _i1.MethodConnector(
+          name: 'validateAppleTransaction',
           params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
+            'transactionId': _i1.ParameterDescription(
+              name: 'transactionId',
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'receiptData': _i1.ParameterDescription(
-              name: 'receiptData',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'orderId': _i1.ParameterDescription(
-              name: 'orderId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'consumableType': _i1.ParameterDescription(
-              name: 'consumableType',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'quantity': _i1.ParameterDescription(
-              name: 'quantity',
-              type: _i1.getType<double>(),
-              nullable: false,
+            'internalTransactionId': _i1.ParameterDescription(
+              name: 'internalTransactionId',
+              type: _i1.getType<String?>(),
+              nullable: true,
             ),
           },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['iAP'] as _i5.IAPEndpoint).validateAppleReceipt(
+              ) async => (endpoints['iAP'] as _i4.IAPEndpoint)
+                  .validateAppleTransaction(
                     session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['receiptData'],
-                    params['orderId'],
-                    params['accountId'],
-                    params['consumableType'],
-                    params['quantity'],
+                    params['transactionId'],
+                    params['productId'],
+                    internalTransactionId: params['internalTransactionId'],
                   ),
         ),
         'validateGooglePurchase': _i1.MethodConnector(
           name: 'validateGooglePurchase',
           params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
             'packageName': _i1.ParameterDescription(
               name: 'packageName',
               type: _i1.getType<String>(),
@@ -709,25 +240,10 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'orderId': _i1.ParameterDescription(
-              name: 'orderId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'consumableType': _i1.ParameterDescription(
-              name: 'consumableType',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'quantity': _i1.ParameterDescription(
-              name: 'quantity',
-              type: _i1.getType<double>(),
-              nullable: false,
+            'internalTransactionId': _i1.ParameterDescription(
+              name: 'internalTransactionId',
+              type: _i1.getType<String?>(),
+              nullable: true,
             ),
           },
           call:
@@ -735,510 +251,20 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['iAP'] as _i5.IAPEndpoint).validateGooglePurchase(
+                  (endpoints['iAP'] as _i4.IAPEndpoint).validateGooglePurchase(
                     session,
-                    params['publicKey'],
-                    params['signature'],
                     params['packageName'],
                     params['productId'],
                     params['purchaseToken'],
-                    params['orderId'],
-                    params['accountId'],
-                    params['consumableType'],
-                    params['quantity'],
-                  ),
-        ),
-        'handleAppleWebhook': _i1.MethodConnector(
-          name: 'handleAppleWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['iAP'] as _i5.IAPEndpoint).handleAppleWebhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
-        'handleGoogleWebhook': _i1.MethodConnector(
-          name: 'handleGoogleWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['iAP'] as _i5.IAPEndpoint).handleGoogleWebhook(
-                    session,
-                    params['webhookData'],
+                    internalTransactionId: params['internalTransactionId'],
                   ),
         ),
       },
     );
-    connectors['iAPWebhook'] = _i1.EndpointConnector(
-      name: 'iAPWebhook',
-      endpoint: endpoints['iAPWebhook']!,
-      methodConnectors: {
-        'handleAppleWebhook': _i1.MethodConnector(
-          name: 'handleAppleWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['iAPWebhook'] as _i6.IAPWebhookEndpoint)
-                  .handleAppleWebhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
-        'handleGoogleWebhook': _i1.MethodConnector(
-          name: 'handleGoogleWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['iAPWebhook'] as _i6.IAPWebhookEndpoint)
-                  .handleGoogleWebhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
-      },
-    );
-    connectors['module'] = _i1.EndpointConnector(
-      name: 'module',
-      endpoint: endpoints['module']!,
-      methodConnectors: {
-        'hello': _i1.MethodConnector(
-          name: 'hello',
-          params: {
-            'name': _i1.ParameterDescription(
-              name: 'name',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['module'] as _i7.ModuleEndpoint).hello(
-                session,
-                params['name'],
-              ),
-        ),
-        'authenticateUser': _i1.MethodConnector(
-          name: 'authenticateUser',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'challenge': _i1.ParameterDescription(
-              name: 'challenge',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['module'] as _i7.ModuleEndpoint).authenticateUser(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['challenge'],
-                  ),
-        ),
-        'processPayment': _i1.MethodConnector(
-          name: 'processPayment',
-          params: {
-            'orderId': _i1.ParameterDescription(
-              name: 'orderId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'paymentRail': _i1.ParameterDescription(
-              name: 'paymentRail',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'amount': _i1.ParameterDescription(
-              name: 'amount',
-              type: _i1.getType<double>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['module'] as _i7.ModuleEndpoint).processPayment(
-                    session,
-                    params['orderId'],
-                    params['paymentRail'],
-                    params['amount'],
-                  ),
-        ),
-        'manageInventory': _i1.MethodConnector(
-          name: 'manageInventory',
-          params: {
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'consumableType': _i1.ParameterDescription(
-              name: 'consumableType',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'operation': _i1.ParameterDescription(
-              name: 'operation',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'quantity': _i1.ParameterDescription(
-              name: 'quantity',
-              type: _i1.getType<int?>(),
-              nullable: true,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['module'] as _i7.ModuleEndpoint).manageInventory(
-                    session,
-                    params['accountId'],
-                    params['consumableType'],
-                    params['operation'],
-                    params['quantity'],
-                  ),
-        ),
-      },
-    );
-    connectors['payment'] = _i1.EndpointConnector(
-      name: 'payment',
-      endpoint: endpoints['payment']!,
-      methodConnectors: {
-        'initiatePayment': _i1.MethodConnector(
-          name: 'initiatePayment',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'orderId': _i1.ParameterDescription(
-              name: 'orderId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'railType': _i1.ParameterDescription(
-              name: 'railType',
-              type: _i1.getType<_i10.PaymentRail>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['payment'] as _i8.PaymentEndpoint).initiatePayment(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['orderId'],
-                    params['railType'],
-                  ),
-        ),
-        'checkPaymentStatus': _i1.MethodConnector(
-          name: 'checkPaymentStatus',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'orderId': _i1.ParameterDescription(
-              name: 'orderId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
-                  .checkPaymentStatus(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['orderId'],
-                  ),
-        ),
-        'processMoneroWebhook': _i1.MethodConnector(
-          name: 'processMoneroWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
-                  .processMoneroWebhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
-        'processX402Webhook': _i1.MethodConnector(
-          name: 'processX402Webhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
-                  .processX402Webhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
-        'processAppleIAPWebhook': _i1.MethodConnector(
-          name: 'processAppleIAPWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
-                  .processAppleIAPWebhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
-        'processGoogleIAPWebhook': _i1.MethodConnector(
-          name: 'processGoogleIAPWebhook',
-          params: {
-            'webhookData': _i1.ParameterDescription(
-              name: 'webhookData',
-              type: _i1.getType<Map<String, dynamic>>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
-                  .processGoogleIAPWebhook(
-                    session,
-                    params['webhookData'],
-                  ),
-        ),
-        'requestPaymentStatusWithX402': _i1.MethodConnector(
-          name: 'requestPaymentStatusWithX402',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'orderId': _i1.ParameterDescription(
-              name: 'orderId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'headers': _i1.ParameterDescription(
-              name: 'headers',
-              type: _i1.getType<Map<String, String>?>(),
-              nullable: true,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i8.PaymentEndpoint)
-                  .requestPaymentStatusWithX402(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['orderId'],
-                    headers: params['headers'],
-                  ),
-        ),
-      },
-    );
-    connectors['x402'] = _i1.EndpointConnector(
-      name: 'x402',
-      endpoint: endpoints['x402']!,
-      methodConnectors: {
-        'requestPaidResource': _i1.MethodConnector(
-          name: 'requestPaidResource',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'resourceId': _i1.ParameterDescription(
-              name: 'resourceId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'headers': _i1.ParameterDescription(
-              name: 'headers',
-              type: _i1.getType<Map<String, String>?>(),
-              nullable: true,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['x402'] as _i9.X402Endpoint).requestPaidResource(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['resourceId'],
-                    params['accountId'],
-                    headers: params['headers'],
-                  ),
-        ),
-        'requestConsumableAccess': _i1.MethodConnector(
-          name: 'requestConsumableAccess',
-          params: {
-            'publicKey': _i1.ParameterDescription(
-              name: 'publicKey',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'signature': _i1.ParameterDescription(
-              name: 'signature',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'consumableType': _i1.ParameterDescription(
-              name: 'consumableType',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'quantity': _i1.ParameterDescription(
-              name: 'quantity',
-              type: _i1.getType<double>(),
-              nullable: false,
-            ),
-            'accountId': _i1.ParameterDescription(
-              name: 'accountId',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'headers': _i1.ParameterDescription(
-              name: 'headers',
-              type: _i1.getType<Map<String, String>?>(),
-              nullable: true,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['x402'] as _i9.X402Endpoint)
-                  .requestConsumableAccess(
-                    session,
-                    params['publicKey'],
-                    params['signature'],
-                    params['consumableType'],
-                    params['quantity'],
-                    params['accountId'],
-                    headers: params['headers'],
-                  ),
-        ),
-      },
-    );
+    modules['anonaccount'] = _i5.Endpoints()..initializeEndpoints(server);
+    modules['serverpod_auth_idp'] = _i6.Endpoints()
+      ..initializeEndpoints(server);
+    modules['serverpod_auth_core'] = _i7.Endpoints()
+      ..initializeEndpoints(server);
   }
 }

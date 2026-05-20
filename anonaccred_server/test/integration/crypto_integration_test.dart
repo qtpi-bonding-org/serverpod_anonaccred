@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:anonaccred_server/src/crypto_utils.dart';
+import 'package:anonaccount_server/src/crypto_utils.dart';
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';
 
@@ -18,6 +18,8 @@ void main() {
       final publicKeyHex = publicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Step 3: Client signs the challenge (simulated)
+      // Do NOT pre-hash: both webcrypto signBytes(Hash.sha256) and
+      // PointyCastle ECDSASigner(SHA256Digest()) hash internally.
       final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
       final signatureBytes = await keyPair.privateKey.signBytes(challengeBytes, Hash.sha256);
       final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
@@ -45,6 +47,7 @@ void main() {
       final keyPairB = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
 
       // Client B signs the challenge with their key
+      // Do NOT pre-hash: signBytes and ECDSASigner both hash internally.
       final challengeBytes = Uint8List.fromList(utf8.encode(challenge));
       final signatureBytes = await keyPairB.privateKey.signBytes(challengeBytes, Hash.sha256);
       final signatureHex = signatureBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();

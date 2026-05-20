@@ -1,0 +1,6 @@
+class: RailProductGrant
+table: rail_product_grant
+fields:
+  railProductId: int, relation(parent=rail_product)
+  entitlementId: int, relation(parent=entitlement)
+  quantity: double # Amount to add to balance

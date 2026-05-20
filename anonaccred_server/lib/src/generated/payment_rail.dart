@@ -13,21 +13,27 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 enum PaymentRail implements _i1.SerializableModel {
-  monero,
-  x402_http,
   apple_iap,
-  google_iap;
+  google_iap,
+  monero,
+  manual,
+  stripe,
+  x402_http;
 
   static PaymentRail fromJson(String name) {
     switch (name) {
-      case 'monero':
-        return PaymentRail.monero;
-      case 'x402_http':
-        return PaymentRail.x402_http;
       case 'apple_iap':
         return PaymentRail.apple_iap;
       case 'google_iap':
         return PaymentRail.google_iap;
+      case 'monero':
+        return PaymentRail.monero;
+      case 'manual':
+        return PaymentRail.manual;
+      case 'stripe':
+        return PaymentRail.stripe;
+      case 'x402_http':
+        return PaymentRail.x402_http;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "PaymentRail"',

@@ -1,5 +1,6 @@
 import 'package:anonaccred_server/anonaccred_server.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 import '../integration/test_tools/serverpod_test_tools.dart';
 
 void main() {
@@ -12,6 +13,7 @@ void main() {
 
       // Create a test account for foreign key constraint
       testAccount = AnonAccount(
+        id: UuidValue.fromString(const Uuid().v4()),
         ultimateSigningPublicKeyHex:
             'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',
@@ -20,15 +22,27 @@ void main() {
       );
       testAccount = await AnonAccount.db.insertRow(session, testAccount);
 
-      // Create a test transaction for each test
+      // 1. Create a dummy RailProduct for testing
+      final railProduct = await RailProduct.db.insertRow(
+        session,
+        RailProduct(
+          rail: PaymentRail.x402_http,
+          storeProductId: 'test_sku',
+          isActive: true,
+        ),
+      );
+
+      // 2. Create a test transaction for each test
       testTransaction = TransactionPayment(
-        externalId: 'test-order-${DateTime.now().millisecondsSinceEpoch}',
-        accountId: testAccount.id!,
+        railProductId: railProduct.id!,
+        internalTransactionId:
+            'test-order-${DateTime.now().millisecondsSinceEpoch}',
         priceCurrency: Currency.USD,
         price: 10.0,
         paymentRail: PaymentRail.x402_http,
         paymentCurrency: Currency.USD,
         paymentAmount: 10.0,
+        transactionTimestamp: DateTime.now(),
         status: OrderStatus.pending,
       );
 
@@ -55,7 +69,7 @@ void main() {
       // Act
       await PaymentProcessor.updateTransactionStatus(
         session,
-        testTransaction.externalId,
+        testTransaction.internalTransactionId,
         OrderStatus.processing,
       );
 
@@ -74,7 +88,7 @@ void main() {
       // Act
       await PaymentProcessor.updatePaymentRef(
         session,
-        testTransaction.externalId,
+        testTransaction.internalTransactionId,
         paymentRef,
       );
 
@@ -95,7 +109,7 @@ void main() {
         // Act
         await PaymentProcessor.updateTransactionTimestamp(
           session,
-          testTransaction.externalId,
+          testTransaction.internalTransactionId,
           transactionTimestamp,
         );
 
@@ -117,7 +131,7 @@ void main() {
         // Act
         await PaymentProcessor.updateStatusAndPaymentRef(
           session,
-          testTransaction.externalId,
+          testTransaction.internalTransactionId,
           OrderStatus.paid,
           paymentRef,
         );
@@ -132,23 +146,23 @@ void main() {
       },
     );
 
-    test(
-      'getTransactionByExternalId retrieves transaction successfully',
-      () async {
-        final session = sessionBuilder.build();
+    test('getTransactionById retrieves transaction successfully', () async {
+      final session = sessionBuilder.build();
 
-        // Act
-        final retrieved = await PaymentProcessor.getTransactionByExternalId(
-          session,
-          testTransaction.externalId,
-        );
+      // Act
+      final retrieved = await PaymentProcessor.getTransactionById(
+        session,
+        testTransaction.internalTransactionId,
+      );
 
-        // Assert
-        expect(retrieved, isNotNull);
-        expect(retrieved?.id, equals(testTransaction.id));
-        expect(retrieved?.externalId, equals(testTransaction.externalId));
-      },
-    );
+      // Assert
+      expect(retrieved, isNotNull);
+      expect(retrieved?.id, equals(testTransaction.id));
+      expect(
+        retrieved?.internalTransactionId,
+        equals(testTransaction.internalTransactionId),
+      );
+    });
 
     test(
       'updateTransactionStatus throws exception for non-existent transaction',
@@ -185,12 +199,12 @@ void main() {
     );
 
     test(
-      'getTransactionByExternalId returns null for non-existent transaction',
+      'getTransactionById returns null for non-existent transaction',
       () async {
         final session = sessionBuilder.build();
 
         // Act
-        final retrieved = await PaymentProcessor.getTransactionByExternalId(
+        final retrieved = await PaymentProcessor.getTransactionById(
           session,
           'non-existent-order-id',
         );

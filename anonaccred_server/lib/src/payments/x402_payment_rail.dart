@@ -1,8 +1,7 @@
+import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
-import '../generated/payment_rail.dart';
-import '../generated/payment_request.dart';
-import '../generated/payment_result.dart';
 import '../generated/protocol.dart';
+import '../refund_event.dart';
 import 'payment_rail_interface.dart';
 
 /// X402 HTTP Payment Rail implementation
@@ -27,11 +26,11 @@ class X402PaymentRail implements PaymentRailInterface {
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     // Generate unique payment reference for X402
     final paymentRef =
-        'x402_${orderId}_${DateTime.now().millisecondsSinceEpoch}';
+        'x402_${internalTransactionId}_${DateTime.now().millisecondsSinceEpoch}';
 
     // Validate configuration
     if (_facilitatorUrl.isEmpty || _destinationAddress.isEmpty) {
@@ -40,7 +39,7 @@ class X402PaymentRail implements PaymentRailInterface {
         message:
             'X402 configuration missing: facilitator URL or destination address not set',
         paymentRail: 'x402_http',
-        orderId: orderId,
+        internalTransactionId: internalTransactionId,
         details: {
           'facilitatorUrl': _facilitatorUrl.isEmpty ? 'missing' : 'configured',
           'destinationAddress': _destinationAddress.isEmpty
@@ -58,7 +57,7 @@ class X402PaymentRail implements PaymentRailInterface {
       'destinationAddress': _destinationAddress,
       'amount': amountUSD.toString(),
       'currency': 'USD',
-      'orderId': orderId,
+      'internalTransactionId': internalTransactionId,
       'timestamp': DateTime.now().toIso8601String(),
       'protocol': 'x402',
     };
@@ -66,10 +65,14 @@ class X402PaymentRail implements PaymentRailInterface {
     return PaymentRequestExtension.withRailData(
       paymentRef: paymentRef,
       amountUSD: amountUSD,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       railData: railData,
     );
   }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) =>
+      null; // X402 does not support refund notifications
 
   @override
   Future<PaymentResult> processCallback(
@@ -81,14 +84,17 @@ class X402PaymentRail implements PaymentRailInterface {
       // in task 3 (X-PAYMENT header verification)
 
       final paymentRef = callbackData['paymentRef'] as String?;
-      final orderId = callbackData['orderId'] as String?;
+      final internalTransactionId =
+          callbackData['internalTransactionId'] as String? ??
+          callbackData['orderId'] as String?;
       final success = callbackData['success'] as bool? ?? false;
 
-      if (paymentRef == null || orderId == null) {
+      if (paymentRef == null || internalTransactionId == null) {
         throw AnonAccredExceptionFactory.createPaymentException(
           code: AnonAccredErrorCodes.paymentFailed,
-          message: 'Invalid X402 callback data: missing paymentRef or orderId',
-          orderId: orderId,
+          message:
+              'Invalid X402 callback data: missing paymentRef or internalTransactionId',
+          internalTransactionId: internalTransactionId,
           paymentRail: railType.toString(),
           details: {
             'error': 'missing_required_fields',
@@ -99,11 +105,11 @@ class X402PaymentRail implements PaymentRailInterface {
 
       return PaymentResult(
         success: success,
-        orderId: orderId,
+        internalTransactionId: internalTransactionId ?? '',
         transactionTimestamp: success ? DateTime.now() : null,
         errorMessage: success ? null : 'X402 payment verification failed',
       );
-    } on AnonAccredException {
+    } on AnonAccountException {
       // Re-throw AnonAccred exceptions as-is
       rethrow;
     } on PaymentException {

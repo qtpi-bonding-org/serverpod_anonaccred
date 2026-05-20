@@ -1,0 +1,10 @@
+class: GroupEntitlement
+table: group_entitlement
+fields:
+  shareGroupUuid: UuidValue
+  entitlement: Entitlement?, relation
+  balance: double
+indexes:
+  group_entitlement_idx:
+    fields: shareGroupUuid, entitlementId
+    unique: true

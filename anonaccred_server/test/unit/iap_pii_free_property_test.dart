@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
 import 'package:anonaccred_server/src/payments/rails/apple_iap_rail.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
+import 'package:test/test.dart';
 
 /// Property tests for PII-free transaction processing
 /// 
@@ -15,7 +15,7 @@ void main() {
     group('Apple Transaction Data Extraction', () {
       test('Property: Apple transaction extraction only includes safe data fields', () {
         // Test with 5 iterations as per development guidelines
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final mockReceiptData = {
             'receipt': {
               'bundle_id': 'com.example.app$i',
@@ -65,7 +65,8 @@ void main() {
     group('Google Transaction Data Extraction', () {
       test('Property: Google transaction extraction only includes safe data fields', () {
         // Test with 5 iterations as per development guidelines
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
+          // Use 'orderId' key to match what extractTransactionData expects
           final mockPurchaseData = {
             'orderId': 'order_${i}_001',
             'productId': 'product_$i',
@@ -107,7 +108,7 @@ void main() {
     group('PII-Free Data Validation', () {
       test('Property: Extracted data contains no personal identifiers', () {
         // Test that extracted data doesn't contain common PII patterns
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final appleData = {
             'receipt': {
               'bundle_id': 'com.example.app',
@@ -122,7 +123,7 @@ void main() {
           };
 
           final googleData = {
-            'orderId': 'safe_order_$i',
+            'internalTransactionId': 'safe_order_$i',
             'productId': 'safe_product_$i',
             'purchaseTimeMillis': 1699999990000,
           };

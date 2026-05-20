@@ -1,8 +1,8 @@
-import 'package:test/test.dart';
-import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
-import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/error_classification.dart';
+import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
+import 'package:test/test.dart';
 
 /// Test for X402 error handling improvements
 /// 
@@ -34,7 +34,7 @@ void main() {
       
       // Test missing X-PAYMENT header
       expect(
-        () async => await X402PaymentProcessor.verifyPaymentWithDetails({}),
+        () async => X402PaymentProcessor.verifyPaymentWithDetails({}),
         returnsNormally, // Missing header returns false, doesn't throw
       );
       
@@ -43,7 +43,7 @@ void main() {
 
       // Test facilitator unavailable (will throw exception)
       expect(
-        () async => await X402PaymentProcessor.verifyPaymentWithDetails({
+        () async => X402PaymentProcessor.verifyPaymentWithDetails({
           'X-PAYMENT': 'valid_looking_payload_123'
         }),
         throwsA(isA<PaymentException>()),
@@ -57,18 +57,18 @@ void main() {
       expect(
         () => X402PaymentProcessor.generatePaymentRequired(
           amount: 10.0,
-          orderId: 'test_order_123',
+          internalTransactionId: 'test_order_123',
         ),
         returnsNormally, // Should work with default config
       );
       
       final response = X402PaymentProcessor.generatePaymentRequired(
         amount: 10.0,
-        orderId: 'test_order_123',
+        internalTransactionId: 'test_order_123',
       );
       
       expect(response.amount, equals(10.0));
-      expect(response.orderId, equals('test_order_123'));
+      expect(response.internalTransactionId, equals('test_order_123'));
       expect(response.currency, equals('USD'));
       expect(response.protocol, equals('x402'));
     });
@@ -77,25 +77,25 @@ void main() {
       // Test that new X402 error codes are properly classified
       
       expect(
-        AnonAccredExceptionUtils.isRetryable(AnonAccredErrorCodes.x402FacilitatorUnavailable),
+        AnonAccountExceptionUtils.isRetryable(AnonAccredErrorCodes.x402FacilitatorUnavailable),
         isTrue,
         reason: 'Facilitator unavailable should be retryable',
       );
       
       expect(
-        AnonAccredExceptionUtils.isRetryable(AnonAccredErrorCodes.x402InvalidPaymentPayload),
+        AnonAccountExceptionUtils.isRetryable(AnonAccredErrorCodes.x402InvalidPaymentPayload),
         isFalse,
         reason: 'Invalid payment payload should not be retryable',
       );
       
       expect(
-        AnonAccredExceptionUtils.isRetryable(AnonAccredErrorCodes.x402ConfigurationMissing),
+        AnonAccountExceptionUtils.isRetryable(AnonAccredErrorCodes.x402ConfigurationMissing),
         isFalse,
         reason: 'Configuration missing should not be retryable',
       );
       
       expect(
-        AnonAccredExceptionUtils.isRetryable(AnonAccredErrorCodes.x402VerificationFailed),
+        AnonAccountExceptionUtils.isRetryable(AnonAccredErrorCodes.x402VerificationFailed),
         isFalse,
         reason: 'Verification failed should not be retryable',
       );
@@ -110,7 +110,7 @@ void main() {
         paymentRail: 'x402_http',
       );
       
-      final analysis = AnonAccredExceptionUtils.analyzeException(exception);
+      final analysis = AnonAccountExceptionUtils.analyzeException(exception);
       
       expect(analysis['code'], equals(AnonAccredErrorCodes.x402FacilitatorUnavailable));
       expect(analysis['message'], equals('Test facilitator unavailable'));

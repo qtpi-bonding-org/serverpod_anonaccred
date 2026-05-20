@@ -1,0 +1,24 @@
+class: GroupMember
+table: group_member
+indexes:
+  group_member_unique_idx:
+    fields: shareGroupId, anonAccountId
+    unique: true
+  group_member_account_idx:
+    fields: anonAccountId
+    unique: false
+fields:
+  id: UuidValue?, defaultPersist=random
+  shareGroup: ShareGroup?, relation(onDelete=Cascade)
+  anonAccount: AnonAccount?, relation(onDelete=Cascade)
+  role: GroupMemberRole
+  memberSigningPublicKeyHex: String
+  memberPublicKey: String
+  encryptedDataKey: String
+  joinedAt: DateTime, default=now
+  lastActive: DateTime, default=now
+  isRevoked: bool, default=false
+  addedBySignerPublicKeyHex: String?
+  addedByAttestation: String?
+  revokedBySignerPublicKeyHex: String?
+  revokedByAttestation: String?

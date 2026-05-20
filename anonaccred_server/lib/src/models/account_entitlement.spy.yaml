@@ -1,0 +1,10 @@
+class: AccountEntitlement
+table: account_entitlement
+fields:
+  accountUuid: UuidValue
+  entitlement: Entitlement?, relation
+  balance: double # Current running total
+indexes:
+  account_entitlement_idx:
+    fields: accountUuid, entitlementId
+    unique: true

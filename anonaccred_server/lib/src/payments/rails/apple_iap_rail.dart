@@ -3,46 +3,87 @@ import 'dart:io';
 
 import 'package:serverpod/serverpod.dart';
 
+import '../../entitlement_manager.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
+
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
+import '../../refund_event.dart';
+import '../../refund_manager.dart';
+import '../app_store_server_client.dart';
+import '../apple_jwt_auth_client.dart';
+import '../notification_signature_validator.dart';
 import '../payment_rail_interface.dart';
+import 'package:uuid/uuid.dart';
 
-/// Apple In-App Purchase payment rail implementation
+/// Apple In-App Purchase payment rail implementation using app_store_server_sdk.
 ///
-/// Provides server-side validation of Apple App Store receipts using Apple's
-/// verifyReceipt API. Maintains privacy-first architecture by extracting only
-/// transaction IDs and product information without storing PII.
+/// This implementation uses the App Store Server API with JWT authentication
+/// instead of the deprecated verifyReceipt API. It provides:
+/// - Transaction validation with idempotency guarantees
+/// - Consumable delivery tracking
+/// - Transaction history retrieval
+/// - Refund notification processing
 ///
-/// Requirements 2.1, 2.2, 2.3: Apple receipt validation with shared secret authentication
+/// Requirements 2.1, 2.2, 2.3: App Store Server SDK integration
 class AppleIAPRail implements PaymentRailInterface {
+  /// Creates a new AppleIAPRail instance.
+  ///
+  /// [client] - Optional AppStoreServerClient for dependency injection (defaults to production client)
+  AppleIAPRail({AppStoreServerClient? client}) : _client = client;
+
+  final AppStoreServerClient? _client;
+
+  /// Factory to create and initialize AppleIAPRail asynchronously.
+  ///
+  /// Reads `APPLE_ENVIRONMENT` env var to select sandbox or production API.
+  /// Defaults to production. Set `APPLE_ENVIRONMENT=sandbox` for TestFlight/dev testing.
+  static Future<AppleIAPRail> create() async {
+    final authClient = AppleJWTAuthClient.fromEnvironment();
+    final envStr = Platform.environment['APPLE_ENVIRONMENT'] ?? 'production';
+    final environment = envStr.toLowerCase() == 'sandbox'
+        ? AppStoreClientEnvironment.sandbox
+        : AppStoreClientEnvironment.production;
+    final client = AppStoreServerClient(authClient, environment: environment);
+    return AppleIAPRail(client: client);
+  }
+
+  /// Internal helper to get the client, throws if not initialized
+  AppStoreServerClient get _appStoreClient {
+    if (_client == null) {
+      throw AnonAccountException(
+        code: AnonAccredErrorCodes.configurationMissing,
+        message:
+            'Apple IAP rail not initialized. Use AppleIAPRail.create() or provide a client.',
+      );
+    }
+    return _client;
+  }
+
   @override
   PaymentRail get railType => PaymentRail.apple_iap;
-
-  /// Apple's receipt validation endpoints
-  static const String _productionUrl =
-      'https://buy.itunes.apple.com/verifyReceipt';
-  static const String _sandboxUrl =
-      'https://sandbox.itunes.apple.com/verifyReceipt';
 
   @override
   Future<PaymentRequest> createPayment({
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
   }) async {
     // For IAP, the payment request provides information for the mobile app
-    // The actual payment happens in the mobile app, then receipt is validated
+    // The actual payment happens in the mobile app, then transaction is validated
     return PaymentRequest(
-      paymentRef: orderId,
+      paymentRef: internalTransactionId,
       amountUSD: amountUSD,
-      orderId: orderId,
+      internalTransactionId: internalTransactionId,
       railDataJson: jsonEncode({
         'payment_rail': 'apple_iap',
-        'order_id': orderId,
+        'internal_transaction_id': internalTransactionId,
         'amount_usd': amountUSD,
         'validation_endpoint': '/api/iap/apple/validate',
         'instructions':
-            'Complete purchase in iOS app, then submit receipt for validation',
-        'expires_at': DateTime.now().add(Duration(hours: 24)).toIso8601String(),
+            'Complete purchase in iOS app, then submit transaction ID for validation',
+        'expires_at': DateTime.now()
+            .add(const Duration(hours: 24))
+            .toIso8601String(),
       }),
     );
   }
@@ -51,28 +92,74 @@ class AppleIAPRail implements PaymentRailInterface {
   Future<PaymentResult> processCallback(
     Map<String, dynamic> callbackData,
   ) async {
-    // Apple IAP uses receipt validation rather than callbacks
-    // This method handles webhook notifications if configured
+    // Apple IAP uses App Store Server Notifications V2
+    // This method handles webhook notifications with signature validation
     try {
-      final receiptData = callbackData['receipt_data'] as String?;
-      final orderId = callbackData['order_id'] as String?;
+      final requestBody = callbackData['request_body'] as String?;
+      final session = callbackData['session'] as Session?;
 
-      if (receiptData == null || orderId == null) {
+      // Validate required fields
+      if (requestBody == null || session == null) {
         return PaymentResult(
           success: false,
-          errorMessage: 'Missing receipt_data or order_id in callback',
+          errorMessage: 'Malformed payload: missing request_body or session',
         );
       }
 
-      final validationResult = await validateReceipt(receiptData);
+      // Extract signed payload from request body
+      final signedPayload = NotificationSignatureValidator.extractSignedPayload(
+        requestBody,
+      );
+      if (signedPayload == null) {
+        return PaymentResult(
+          success: false,
+          errorMessage: 'Malformed payload: missing signedPayload',
+        );
+      }
 
+      // Validate notification signature
+      try {
+        await NotificationSignatureValidator.validateSignatureOrThrow(
+          session: session,
+          signedPayload: signedPayload,
+        );
+      } on AnonAccountException catch (e) {
+        // Invalid signature - return HTTP 401
+        if (e.code == AnonAccountErrorCodes.authInvalidSignature) {
+          return PaymentResult(
+            success: false,
+            errorMessage: 'Invalid notification signature',
+          );
+        }
+        rethrow;
+      }
+
+      // Decode the signed payload to get notification data
+      final notificationData = _decodeNotificationPayload(signedPayload);
+      final notificationType = notificationData['notificationType'] as String?;
+
+      // Route refund notifications to RefundManager
+      if (notificationType == 'REFUND') {
+        final event = extractRefundEvent(notificationData);
+        if (event != null) {
+          await RefundManager.processRefund(session, event);
+        }
+        return PaymentResult(
+          success: true,
+          errorMessage: 'Refund notification acknowledged',
+        );
+      }
+
+      // Acknowledge other notification types
       return PaymentResult(
-        success: validationResult.isValid,
-        orderId: orderId,
-        transactionTimestamp: validationResult.purchaseDate,
-        errorMessage: validationResult.isValid
-            ? null
-            : 'Receipt validation failed',
+        success: true,
+        errorMessage: 'Notification acknowledged',
+      );
+    } on FormatException {
+      // Malformed JSON payload
+      return PaymentResult(
+        success: false,
+        errorMessage: 'Malformed payload: invalid JSON',
       );
     } catch (e) {
       return PaymentResult(
@@ -82,258 +169,393 @@ class AppleIAPRail implements PaymentRailInterface {
     }
   }
 
-  /// Validate Apple App Store receipt using verifyReceipt API
+  /// Validate transaction with idempotency check.
   ///
-  /// Sends receipt data to Apple's validation service and returns structured
-  /// validation result. Handles both production and sandbox environments.
+  /// This method:
+  /// 1. Checks for existing delivery (idempotency)
+  /// 2. Validates with Apple API
+  /// 3. Decodes and verifies the signed transaction
+  /// 4. Verifies product ID matches
+  /// 5. Gets product mapping
+  /// 6. Atomically creates delivery record and adds to inventory
   ///
-  /// Parameters:
-  /// - [receiptData]: Base64-encoded receipt from iOS app
+  /// [session] - The database session
+  /// [transactionId] - The Apple transaction ID
+  /// [productId] - The product ID to validate
+  /// [accountUuid] - The account UUID to deliver to
   ///
-  /// Returns: [AppleReceiptValidationResult] with validation status and transaction details
+  /// Returns [AppleTransactionValidationResult] with validation details.
   ///
-  /// Requirements 2.1: POST to Apple's verifyReceipt endpoint
-  /// Requirements 2.2: Use app-specific shared secret for authentication
-  /// Requirements 2.5: Support both production and sandbox environments
-  Future<AppleReceiptValidationResult> validateReceipt(
-    String receiptData,
-  ) async {
-    final sharedSecret = AppleIAPConfig.sharedSecret;
-    if (sharedSecret == null) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.configurationMissing,
-        message: 'Apple shared secret not configured',
-        details: {'requiredConfig': 'APPLE_SHARED_SECRET'},
-      );
-    }
+  /// Requirements 2.1, 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 5.2, 5.3
+  Future<AppleTransactionValidationResult> validateTransaction({
+    required Session session,
+    required String transactionId,
+    required String productId,
+    required UuidValue accountUuid,
+    String?
+    internalTransactionId, // Optional internal reference if provided by client
+  }) async {
+    // 1. Hash the transaction ID for blind idempotency
+    final transactionHash = CryptoUtils.sha256Hash(transactionId);
 
-    // Try production first, then sandbox if needed
-    var result = await _validateReceiptWithEndpoint(
-      receiptData,
-      sharedSecret,
-      _productionUrl,
+    // 2. Check for existing delivery via hash (idempotency)
+    final existingHash = await ReceiptHash.db.findFirstRow(
+      session,
+      where: (t) => t.hash.equals(transactionHash),
     );
 
-    // If production returns sandbox error (21007), try sandbox
-    if (result.status == 21007) {
-      result = await _validateReceiptWithEndpoint(
-        receiptData,
-        sharedSecret,
-        _sandboxUrl,
+    if (existingHash != null) {
+      // If we've seen this hash, it means coins were already delivered.
+      // We return success with fromCache=true to let the app know it's handled.
+      return AppleTransactionValidationResult(
+        isValid: true,
+        transactionId: transactionId,
+        productId: productId,
+        fromCache: true,
       );
     }
 
-    return result;
-  }
+    // 3. Validate with Apple API
+    final historyResponse = await _appStoreClient.getTransactionInfo(
+      transactionId,
+    );
 
-  /// Validate receipt with specific Apple endpoint
-  ///
-  /// Internal method that handles the actual HTTP request to Apple's validation service.
-  /// Parses response and creates structured validation result.
-  Future<AppleReceiptValidationResult> _validateReceiptWithEndpoint(
-    String receiptData,
-    String sharedSecret,
-    String endpoint,
-  ) async {
-    try {
-      final client = HttpClient();
-      final request = await client.postUrl(Uri.parse(endpoint));
-
-      request.headers.contentType = ContentType.json;
-
-      final requestBody = {
-        'receipt-data': receiptData,
-        'password': sharedSecret,
-        'exclude-old-transactions': true,
-      };
-
-      request.write(jsonEncode(requestBody));
-
-      final response = await request.close();
-      final responseBody = await response.transform(utf8.decoder).join();
-
-      client.close();
-
-      final responseData = jsonDecode(responseBody) as Map<String, dynamic>;
-
-      return AppleReceiptValidationResult.fromJson(responseData);
-    } catch (e) {
+    // 4. Decode signed transactions and find the one matching the requested ID.
+    //    getTransactionHistory returns ALL transactions for the customer, so we
+    //    must match on transactionId — taking .first returned the wrong product.
+    if (historyResponse.signedTransactions.isEmpty) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
-        message: 'Apple receipt validation network error: ${e.toString()}',
-        details: {'endpoint': endpoint, 'error': e.toString()},
+        message: 'No transactions found for transaction ID: $transactionId',
+        details: {'transactionId': transactionId},
       );
     }
-  }
 
-  /// Extract transaction information from validated Apple receipt
-  ///
-  /// Parses Apple receipt data to extract essential transaction details
-  /// without storing any PII. Only extracts transaction IDs and product information.
-  ///
-  /// Parameters:
-  /// - [receiptData]: Validated receipt data from Apple
-  ///
-  /// Returns: Map containing transaction details (transaction_id, product_id, etc.)
-  ///
-  /// Requirements 1.3: Extract transaction details without storing PII
-  /// Requirements 6.1: Extract only transaction IDs and product information
-  static Map<String, dynamic> extractTransactionData(
-    Map<String, dynamic> receiptData,
-  ) {
-    final receipt = receiptData['receipt'] as Map<String, dynamic>?;
-    if (receipt == null) {
+    final allDecoded = historyResponse.signedTransactions
+        .map(_decodeSignedTransaction)
+        .toList();
+    final decodedTransaction = allDecoded.cast<DecodedTransaction?>().firstWhere(
+          (t) => t!.transactionId == transactionId,
+          orElse: () => null,
+        );
+
+    if (decodedTransaction == null) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.paymentValidationFailed,
-        message: 'No receipt data found in Apple response',
-        details: {'responseKeys': receiptData.keys.join(', ')},
+        message:
+            'Transaction $transactionId not found in Apple history response '
+            '(got ${allDecoded.length} transactions: '
+            '${allDecoded.map((t) => '${t.transactionId}=${t.productId}').join(', ')})',
+        details: {'transactionId': transactionId},
       );
     }
 
-    final inAppPurchases = receipt['in_app'] as List<dynamic>? ?? [];
-    if (inAppPurchases.isEmpty) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.paymentValidationFailed,
-        message: 'No in-app purchases found in receipt',
-        details: {'receiptKeys': receipt.keys.join(', ')},
+    // 5. Apple receipt is the source of truth for product ID.
+    // The client may send a mismatched productId when Apple re-delivers
+    // a stale transaction from a previous purchase. Log and use Apple's value.
+    final resolvedProductId = decodedTransaction.productId;
+    if (resolvedProductId != productId) {
+      session.log(
+        'Product ID mismatch: client sent $productId, '
+        'Apple receipt has $resolvedProductId — using receipt value',
+        level: LogLevel.warning,
       );
     }
 
-    // Get the most recent purchase
-    final latestPurchase = inAppPurchases.last as Map<String, dynamic>;
+    // 6. Look up RailProduct from DB (replaces old env-var ProductMappingConfig)
+    final railProduct = await RailProduct.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.rail.equals(PaymentRail.apple_iap) &
+          t.storeProductId.equals(resolvedProductId),
+    );
 
-    return {
-      'transaction_id': latestPurchase['transaction_id'] as String?,
-      'original_transaction_id':
-          latestPurchase['original_transaction_id'] as String?,
-      'product_id': latestPurchase['product_id'] as String?,
-      'purchase_date': latestPurchase['purchase_date'] as String?,
-      'purchase_date_ms': latestPurchase['purchase_date_ms'] as String?,
-      'quantity': latestPurchase['quantity'] as String? ?? '1',
-      'is_trial_period':
-          latestPurchase['is_trial_period'] as String? ?? 'false',
-      'bundle_id': receipt['bundle_id'] as String?,
-      'application_version': receipt['application_version'] as String?,
-    };
-  }
-}
-
-/// Apple IAP configuration management
-///
-/// Handles Apple-specific configuration using environment variables.
-/// Provides validation and environment detection.
-///
-/// Requirements 5.1: Use environment variables for shared secret
-/// Requirements 5.3: Support sandbox/production configuration
-class AppleIAPConfig {
-  /// Apple shared secret for receipt validation
-  static String? get sharedSecret =>
-      Platform.environment['APPLE_SHARED_SECRET'];
-
-  /// Whether to use sandbox environment for testing
-  static bool get useSandbox =>
-      Platform.environment['APPLE_USE_SANDBOX'] == 'true';
-
-  /// Check if Apple IAP is properly configured
-  static bool get isConfigured => sharedSecret != null;
-
-  /// Validate Apple IAP configuration
-  ///
-  /// Throws configuration exception if required settings are missing.
-  ///
-  /// Requirements 5.4: Graceful handling of missing configuration
-  /// Requirements 5.5: Clear error messages for invalid configuration
-  static void validateConfiguration() {
-    if (!isConfigured) {
-      throw AnonAccredExceptionFactory.createException(
+    if (railProduct == null) {
+      throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
-        message: 'Apple IAP configuration missing',
-        details: {
-          'requiredConfig': 'APPLE_SHARED_SECRET',
-          'optionalConfig': 'APPLE_USE_SANDBOX',
-        },
+        message:
+            'No RailProduct found for Apple product ID: $resolvedProductId',
+        details: {'productId': resolvedProductId},
       );
     }
+
+    // 7. Atomic Transaction: Record permanent hash, ephemeral audit, delivery, and credit inventory
+    String? deliveredTag;
+    double? deliveredQuantity;
+
+    await session.db.transaction((dbTransaction) async {
+      // a. Record the transaction hash permanently (blind idempotency)
+      await ReceiptHash.db.insertRow(
+        session,
+        ReceiptHash(hash: transactionHash, paymentRail: PaymentRail.apple_iap),
+        transaction: dbTransaction,
+      );
+
+      // b. Record the EPHEMERAL accreditation (Bridge account to time for 7-day refund support)
+      final purchaseDate = DateTime.fromMillisecondsSinceEpoch(
+        decodedTransaction.purchaseDate,
+      );
+
+      await EphemeralAccreditation.db.insertRow(
+        session,
+        EphemeralAccreditation(
+          accountUuid: accountUuid,
+          transactionTimestamp: purchaseDate,
+        ),
+        transaction: dbTransaction,
+      );
+
+      // c. Create the PERMANENT financial record
+      final internalTxId = internalTransactionId ?? const Uuid().v4();
+
+      await TransactionPayment.db.insertRow(
+        session,
+        TransactionPayment(
+          railProductId: railProduct.id!,
+          internalTransactionId: internalTxId,
+          priceCurrency: Currency.USD,
+          price: 0.0,
+          paymentRail: PaymentRail.apple_iap,
+          paymentCurrency: Currency.USD,
+          paymentAmount: 0.0,
+          paymentRef: transactionId,
+          transactionTimestamp: purchaseDate,
+          clientReference: internalTxId,
+          status: OrderStatus.paid,
+        ),
+        transaction: dbTransaction,
+      );
+
+      // d. Credit user inventory based on grants
+      final grants = await RailProductGrant.db.find(
+        session,
+        where: (t) => t.railProductId.equals(railProduct.id!),
+        transaction: dbTransaction,
+      );
+
+      for (final grant in grants) {
+        await EntitlementManager.grantEntitlementById(
+          session,
+          accountUuid: accountUuid,
+          entitlementId: grant.entitlementId,
+          quantity: grant.quantity,
+          transaction: dbTransaction,
+        );
+      }
+
+      // Capture first grant info for the response
+      if (grants.isNotEmpty) {
+        final entitlement = await Entitlement.db.findById(
+          session,
+          grants.first.entitlementId,
+          transaction: dbTransaction,
+        );
+        deliveredTag = entitlement?.tag;
+        deliveredQuantity = grants.first.quantity;
+      }
+    });
+
+    return AppleTransactionValidationResult(
+      isValid: true,
+      transactionId: decodedTransaction.transactionId,
+      originalTransactionId: decodedTransaction.originalTransactionId,
+      productId: decodedTransaction.productId,
+      purchaseDate: DateTime.fromMillisecondsSinceEpoch(
+        decodedTransaction.purchaseDate,
+      ),
+      tag: deliveredTag,
+      quantity: deliveredQuantity,
+    );
+  }
+
+  /// Get transaction history for user.
+  ///
+  /// Retrieves all transactions for an original transaction ID with pagination support.
+  ///
+  /// [session] - The database session
+  /// [originalTransactionId] - The original transaction ID
+  ///
+  /// Returns a list of [DecodedTransaction] objects.
+  ///
+  /// Requirements 8.1, 8.2, 8.3, 8.5
+  Future<List<DecodedTransaction>> getTransactionHistory({
+    required Session session,
+    required String originalTransactionId,
+  }) async {
+    final history = await _appStoreClient.getTransactionHistory(
+      originalTransactionId: originalTransactionId,
+    );
+
+    return history.signedTransactions.map(_decodeSignedTransaction).toList();
+  }
+
+  @override
+  RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) {
+    try {
+      final data = notificationData['data'] as Map<String, dynamic>?;
+      if (data == null) return null;
+
+      final signedTransactionInfo = data['signedTransactionInfo'] as String?;
+      if (signedTransactionInfo == null) return null;
+
+      final transaction = _decodeSignedTransaction(signedTransactionInfo);
+      final transactionId = transaction.transactionId;
+
+      return RefundEvent(
+        rail: PaymentRail.apple_iap,
+        receiptHash: CryptoUtils.sha256Hash(transactionId),
+        paymentRef: transactionId,
+        productId: transaction.productId,
+        purchaseTimestamp: DateTime.fromMillisecondsSinceEpoch(
+          transaction.purchaseDate,
+        ),
+        rawData: notificationData,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Decode notification payload JWT.
+  ///
+  /// Decodes the signed notification payload to extract notification data.
+  /// Note that signature verification should be done before calling this method.
+  ///
+  /// [signedPayload] - The signed JWT from Apple notification
+  ///
+  /// Returns a Map with the decoded notification data.
+  Map<String, dynamic> _decodeNotificationPayload(String signedPayload) {
+    // Split JWT and decode payload (middle part)
+    final parts = signedPayload.split('.');
+    if (parts.length != 3) {
+      throw const FormatException('Invalid JWT format');
+    }
+
+    final payloadPart = parts[1];
+    final normalized = base64Url.normalize(payloadPart);
+    final decoded = utf8.decode(base64Url.decode(normalized));
+    return jsonDecode(decoded) as Map<String, dynamic>;
+  }
+
+  /// Decode signed transaction JWT.
+  ///
+  /// Decodes the JWT and extracts transaction data. Note that this does NOT
+  /// verify the signature - signature verification should be done separately
+  /// using Apple root certificates.
+  ///
+  /// [signedTransaction] - The signed JWT from Apple
+  ///
+  /// Returns a [DecodedTransaction] with all transaction details.
+  ///
+  /// Requirements 2.5, 7.2
+  DecodedTransaction _decodeSignedTransaction(String signedTransaction) =>
+      DecodedTransaction.fromJWT(signedTransaction);
+
+  /// Extract transaction information from validated Apple purchase
+  ///
+  /// Parses Apple purchase data to extract essential transaction details
+  /// without storing any PII. Only extracts transaction IDs and product information.
+  static Map<String, dynamic> extractTransactionData(
+    Map<String, dynamic> purchaseData,
+  ) {
+    if (purchaseData.containsKey('receipt')) {
+      final receipt = purchaseData['receipt'] as Map<String, dynamic>;
+      final inApp = receipt['in_app'] as List<dynamic>?;
+      final firstInApp = inApp != null && inApp.isNotEmpty
+          ? inApp.first as Map<String, dynamic>
+          : <String, dynamic>{};
+
+      return {
+        'transaction_id': firstInApp['transaction_id'] as String?,
+        'original_transaction_id':
+            firstInApp['original_transaction_id'] as String?,
+        'product_id': firstInApp['product_id'] as String?,
+        'purchase_date': firstInApp['purchase_date'] as String?,
+        'purchase_date_ms': firstInApp['purchase_date_ms'] as String?,
+        'quantity': firstInApp['quantity'] as String?,
+        'is_trial_period': firstInApp['is_trial_period'] as String?,
+        'bundle_id': receipt['bundle_id'] as String?,
+        'application_version': receipt['application_version'] as String?,
+      };
+    }
+    return purchaseData;
   }
 }
 
-/// Apple receipt validation result
+/// Decoded Apple transaction data.
 ///
-/// Structured representation of Apple's verifyReceipt API response.
-/// Provides convenient access to validation status and transaction details.
-class AppleReceiptValidationResult {
-  final int status;
-  final String? environment;
-  final Map<String, dynamic>? receipt;
-  final List<Map<String, dynamic>>? latestReceiptInfo;
-
-  AppleReceiptValidationResult({
-    required this.status,
-    this.environment,
-    this.receipt,
-    this.latestReceiptInfo,
+/// Contains details extracted from the signed transaction JWT.
+class DecodedTransaction {
+  DecodedTransaction({
+    required this.transactionId,
+    required this.originalTransactionId,
+    required this.productId,
+    required this.purchaseDate,
+    required this.quantity,
+    required this.type,
+    required this.inAppOwnershipType,
+    this.revocationDate,
+    this.revocationReason,
   });
 
-  /// Create from Apple API JSON response
-  factory AppleReceiptValidationResult.fromJson(Map<String, dynamic> json) {
-    return AppleReceiptValidationResult(
-      status: json['status'] as int,
-      environment: json['environment'] as String?,
-      receipt: json['receipt'] as Map<String, dynamic>?,
-      latestReceiptInfo: (json['latest_receipt_info'] as List<dynamic>?)
-          ?.cast<Map<String, dynamic>>(),
+  /// Create from signed JWT (unverified decode)
+  factory DecodedTransaction.fromJWT(String signedTransaction) {
+    final parts = signedTransaction.split('.');
+    if (parts.length != 3) {
+      throw const FormatException('Invalid JWT format');
+    }
+
+    final payloadPart = parts[1];
+    final normalized = base64Url.normalize(payloadPart);
+    final decoded = utf8.decode(base64Url.decode(normalized));
+    final json = jsonDecode(decoded) as Map<String, dynamic>;
+
+    return DecodedTransaction(
+      transactionId: json['transactionId'] as String,
+      originalTransactionId: json['originalTransactionId'] as String,
+      productId: json['productId'] as String,
+      purchaseDate: (json['purchaseDate'] as num).toInt(),
+      quantity: (json['quantity'] as num).toInt(),
+      type: json['type'] as String,
+      inAppOwnershipType: json['inAppOwnershipType'] as String,
+      revocationDate: (json['revocationDate'] as num?)?.toInt(),
+      revocationReason: (json['revocationReason'] as num?)?.toInt(),
     );
   }
+  final String transactionId;
+  final String originalTransactionId;
+  final String productId;
+  final int purchaseDate;
+  final int quantity;
+  final String type;
+  final String inAppOwnershipType;
+  final int? revocationDate;
+  final int? revocationReason;
+}
 
-  /// Whether the receipt validation was successful
-  bool get isValid => status == 0;
+/// Apple transaction validation result.
+///
+/// Contains validation status and delivery information.
+class AppleTransactionValidationResult {
+  AppleTransactionValidationResult({
+    required this.isValid,
+    this.transactionId,
+    this.originalTransactionId,
+    this.productId,
+    this.purchaseDate,
+    this.tag,
+    this.quantity,
+    this.fromCache = false,
+    this.deliveredAt,
+  });
 
-  /// Whether this is a sandbox receipt
-  bool get isSandbox => environment == 'Sandbox';
-
-  /// Get purchase date from receipt (for refund matching)
-  DateTime? get purchaseDate {
-    if (receipt == null) return null;
-
-    final inApp = receipt!['in_app'] as List<dynamic>?;
-    if (inApp == null || inApp.isEmpty) return null;
-
-    final latestPurchase = inApp.last as Map<String, dynamic>;
-    final purchaseDateMs = latestPurchase['purchase_date_ms'] as String?;
-    if (purchaseDateMs == null) return null;
-
-    return DateTime.fromMillisecondsSinceEpoch(int.parse(purchaseDateMs));
-  }
-
-  /// Get human-readable error message for status code
-  ///
-  /// Maps Apple's status codes to descriptive error messages.
-  ///
-  /// Requirements 7.1: Return specific error codes (21000-21010)
-  String get errorMessage {
-    switch (status) {
-      case 0:
-        return 'Receipt validation successful';
-      case 21000:
-        return 'App Store cannot read the JSON object';
-      case 21002:
-        return 'Receipt data property malformed or missing';
-      case 21003:
-        return 'Receipt could not be authenticated';
-      case 21004:
-        return 'Shared secret does not match';
-      case 21005:
-        return 'Receipt server temporarily unavailable';
-      case 21006:
-        return 'Receipt valid but subscription expired';
-      case 21007:
-        return 'Receipt from sandbox but sent to production';
-      case 21008:
-        return 'Receipt from production but sent to sandbox';
-      case 21010:
-        return 'Account not found or deleted';
-      default:
-        return 'Unknown receipt validation error: $status';
-    }
-  }
+  final bool isValid;
+  final String? transactionId;
+  final String? originalTransactionId;
+  final String? productId;
+  final DateTime? purchaseDate;
+  final String? tag;
+  final double? quantity;
+  final bool fromCache;
+  final DateTime? deliveredAt;
 }

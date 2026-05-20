@@ -5,8 +5,8 @@ fields:
   # Whether the payment operation was successful
   success: bool
   
-  # Associated order identifier (optional)
-  orderId: String?
+  # Associated internal transaction identifier (optional)
+  internalTransactionId: String?
   
   # Transaction timestamp from payment rail for matching (optional)
   transactionTimestamp: DateTime?

@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 /// **Feature: anonaccred-phase1, Property 1: Account creation privacy preservation**
 /// **Feature: anonaccred-phase1, Property 2: Device registration privacy preservation**
@@ -26,6 +28,7 @@ void main() {
 
           // Create account model
           final account = AnonAccount(
+            id: _generateRandomAccountUuid(),
             ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
             ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
@@ -62,7 +65,7 @@ void main() {
         // Run 5 iterations during development
         for (var i = 0; i < 5; i++) {
           // Generate random device data
-          final accountId = _generateRandomAccountId();
+          final accountUuid = _generateRandomAccountUuid();
           final deviceSigningPublicKeyHex = _generateRandomEcdsaP256PublicKey();
           final encryptedDataKey = _generateRandomEncryptedData();
           final label = _generateRandomDeviceLabel();
@@ -71,7 +74,7 @@ void main() {
 
           // Create device model
           final device = AccountDevice(
-            accountId: accountId,
+            anonAccountId: accountUuid,
             deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
             label: label,
@@ -80,7 +83,7 @@ void main() {
           );
 
           // Verify privacy preservation - only public key and encrypted data stored
-          expect(device.accountId, equals(accountId));
+          expect(device.anonAccountId, equals(accountUuid));
           expect(
             device.deviceSigningPublicKeyHex,
             equals(deviceSigningPublicKeyHex),
@@ -124,33 +127,38 @@ void main() {
             'mixedCaseProduct123',
           ];
 
-          final accountId = _generateRandomAccountId();
+          final accountUuid = _generateRandomAccountUuid();
           final consumableType =
               consumableTypes[random.nextInt(consumableTypes.length)];
           final quantity = _generateRandomQuantity();
-          final lastUpdated = DateTime.now();
 
-          // Create inventory model with flexible consumable type
-          final inventory = AccountInventory(
-            accountId: accountId,
-            consumableType: consumableType,
-            quantity: quantity,
-            lastUpdated: lastUpdated,
+          // Create entitlement registry entry (the flexible part)
+          final entitlement = Entitlement(
+            tag: consumableType,
+            name: 'Flexible Product',
+            type: EntitlementType.consumable,
+            serverValidated: true,
+          );
+          expect(entitlement.tag, equals(consumableType));
+
+          // Create account entitlement (the wallet part)
+          final accountEntitlement = AccountEntitlement(
+            accountUuid: accountUuid,
+            entitlementId: 100 + i, // Simulated ID
+            balance: quantity,
           );
 
-          // Verify flexible consumable type acceptance
-          expect(inventory.accountId, equals(accountId));
-          expect(inventory.consumableType, equals(consumableType));
-          expect(inventory.quantity, equals(quantity));
-          expect(inventory.lastUpdated, equals(lastUpdated));
+          // Verify entitlement balance
+          expect(accountEntitlement.accountUuid, equals(accountUuid));
+          expect(accountEntitlement.balance, equals(quantity));
 
-          // Verify no validation restrictions on consumable type
-          expect(inventory.consumableType, isA<String>());
-          expect(inventory.consumableType.isNotEmpty, isTrue);
+          // Verify no validation restrictions on entitlement tag
+          expect(entitlement.tag, isA<String>());
+          expect(entitlement.tag.isNotEmpty, isTrue);
 
-          // Verify serialization preserves arbitrary consumable types
-          final json = inventory.toJson();
-          expect(json['consumableType'], equals(consumableType));
+          // Verify serialization preserves arbitrary tags
+          final json = entitlement.toJson();
+          expect(json['tag'], equals(consumableType));
         }
       },
     );
@@ -161,8 +169,7 @@ void main() {
         // Run 5 iterations during development
         for (var i = 0; i < 5; i++) {
           // Generate random transaction data
-          final externalId = _generateRandomTransactionId();
-          final accountId = _generateRandomAccountId();
+          final internalTransactionId = _generateRandomTransactionId();
           final priceCurrency = _generateRandomCurrency();
           final price = _generateRandomPrice();
           final paymentRail = _generateRandomPaymentRail();
@@ -175,68 +182,44 @@ void main() {
 
           // Create transaction payment model
           final transaction = TransactionPayment(
-            externalId: externalId,
-            accountId: accountId,
+            railProductId: 123 + i, // Random product link
+            internalTransactionId: internalTransactionId,
             priceCurrency: priceCurrency,
             price: price,
             paymentRail: paymentRail,
             paymentCurrency: paymentCurrency,
             paymentAmount: paymentAmount,
             paymentRef: paymentRef,
-            transactionTimestamp: transactionTimestamp,
+            transactionTimestamp: transactionTimestamp ?? DateTime.now(),
             status: status,
-            timestamp: timestamp,
           );
 
           // Verify transaction completeness
-          expect(transaction.externalId, equals(externalId));
-          expect(transaction.accountId, equals(accountId));
+          expect(
+            transaction.internalTransactionId,
+            equals(internalTransactionId),
+          );
           expect(transaction.priceCurrency, equals(priceCurrency));
           expect(transaction.price, equals(price));
           expect(transaction.paymentRail, equals(paymentRail));
           expect(transaction.paymentCurrency, equals(paymentCurrency));
           expect(transaction.paymentAmount, equals(paymentAmount));
           expect(transaction.paymentRef, equals(paymentRef));
-          expect(
-            transaction.transactionTimestamp,
-            equals(transactionTimestamp),
-          );
           expect(transaction.status, equals(status));
-          expect(transaction.timestamp, equals(timestamp));
 
           // Verify complete payment receipt information
           expect(transaction.price, greaterThanOrEqualTo(0));
           expect(transaction.paymentAmount, greaterThanOrEqualTo(0));
 
-          // Create transaction consumable line items
-          final consumableType = _generateRandomConsumableType();
-          final quantity = _generateRandomQuantity();
-
-          // For testing purposes, simulate an ID that would be assigned by the database
-          final simulatedTransactionId = random.nextInt(10000) + 1;
-
-          final lineItem = TransactionConsumable(
-            transactionId: simulatedTransactionId,
-            consumableType: consumableType,
-            quantity: quantity,
-          );
-
-          // Verify line item completeness
-          expect(lineItem.transactionId, equals(simulatedTransactionId));
-          expect(lineItem.consumableType, equals(consumableType));
-          expect(lineItem.quantity, equals(quantity));
-          expect(lineItem.quantity, greaterThan(0));
-
           // Verify serialization preserves all transaction data
           final transactionJson = transaction.toJson();
-          expect(transactionJson['externalId'], equals(externalId));
+          expect(
+            transactionJson['internalTransactionId'],
+            equals(internalTransactionId),
+          );
           expect(transactionJson['priceCurrency'], equals(priceCurrency.name));
           expect(transactionJson['paymentRail'], equals(paymentRail.name));
           expect(transactionJson['status'], equals(status.name));
-
-          final lineItemJson = lineItem.toJson();
-          expect(lineItemJson['consumableType'], equals(consumableType));
-          expect(lineItemJson['quantity'], equals(quantity));
         }
       },
     );
@@ -266,7 +249,8 @@ String _generateRandomEncryptedData() {
   ).join();
 }
 
-int _generateRandomAccountId() => Random().nextInt(10000) + 1;
+UuidValue _generateRandomAccountUuid() =>
+    UuidValue.fromString(const Uuid().v4());
 
 String _generateRandomDeviceLabel() {
   final labels = [

@@ -1,0 +1,5 @@
+type: module
+nickname: anonaccount
+
+client_package_path: ../anonaccount_client
+server_test_tools_path: test/integration/test_tools

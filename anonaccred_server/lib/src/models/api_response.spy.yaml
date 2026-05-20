@@ -1,0 +1,8 @@
+# Generic API response with optional JSON data payload.
+# Used for endpoints that return variable-shape data (X402, etc).
+class: ApiResponse
+fields:
+  success: bool
+  jsonData: String?
+  httpStatus: int?
+  error: String?

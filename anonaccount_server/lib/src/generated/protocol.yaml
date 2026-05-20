@@ -1,0 +1,36 @@
+account:
+  - createAccount:
+  - getChallenge:
+  - verifySignedPow:
+  - verifyHashcash:
+dataKey:
+  - retrieveEncryptedDataKey:
+  - recoverEncryptedDataKey:
+  - getChallenge:
+  - verifySignedPow:
+  - verifyHashcash:
+device:
+  - registerDevice:
+  - signIn:
+  - monitorRegistration:
+  - getChallenge:
+  - verifySignedPow:
+  - verifyHashcash:
+deviceManagement:
+  - revokeDevice:
+  - listDevices:
+  - registerDeviceForAccount:
+  - getChallenge:
+  - verifySignedPow:
+  - verifyHashcash:
+entrypoint:
+  - getChallenge:
+  - verifyHashcash:
+group:
+  - createGroup:
+  - listMyGroups:
+  - addGroupMember:
+  - removeGroupMember:
+  - getChallenge:
+  - verifySignedPow:
+  - verifyHashcash:

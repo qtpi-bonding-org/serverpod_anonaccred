@@ -15,22 +15,23 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class PaymentResult implements _i1.SerializableModel {
   PaymentResult._({
     required this.success,
-    this.orderId,
+    this.internalTransactionId,
     this.transactionTimestamp,
     this.errorMessage,
   });
 
   factory PaymentResult({
     required bool success,
-    String? orderId,
+    String? internalTransactionId,
     DateTime? transactionTimestamp,
     String? errorMessage,
   }) = _PaymentResultImpl;
 
   factory PaymentResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return PaymentResult(
-      success: jsonSerialization['success'] as bool,
-      orderId: jsonSerialization['orderId'] as String?,
+      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      internalTransactionId:
+          jsonSerialization['internalTransactionId'] as String?,
       transactionTimestamp: jsonSerialization['transactionTimestamp'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
@@ -42,7 +43,7 @@ abstract class PaymentResult implements _i1.SerializableModel {
 
   bool success;
 
-  String? orderId;
+  String? internalTransactionId;
 
   DateTime? transactionTimestamp;
 
@@ -53,7 +54,7 @@ abstract class PaymentResult implements _i1.SerializableModel {
   @_i1.useResult
   PaymentResult copyWith({
     bool? success,
-    String? orderId,
+    String? internalTransactionId,
     DateTime? transactionTimestamp,
     String? errorMessage,
   });
@@ -62,7 +63,8 @@ abstract class PaymentResult implements _i1.SerializableModel {
     return {
       '__className__': 'anonaccred.PaymentResult',
       'success': success,
-      if (orderId != null) 'orderId': orderId,
+      if (internalTransactionId != null)
+        'internalTransactionId': internalTransactionId,
       if (transactionTimestamp != null)
         'transactionTimestamp': transactionTimestamp?.toJson(),
       if (errorMessage != null) 'errorMessage': errorMessage,
@@ -80,12 +82,12 @@ class _Undefined {}
 class _PaymentResultImpl extends PaymentResult {
   _PaymentResultImpl({
     required bool success,
-    String? orderId,
+    String? internalTransactionId,
     DateTime? transactionTimestamp,
     String? errorMessage,
   }) : super._(
          success: success,
-         orderId: orderId,
+         internalTransactionId: internalTransactionId,
          transactionTimestamp: transactionTimestamp,
          errorMessage: errorMessage,
        );
@@ -96,13 +98,15 @@ class _PaymentResultImpl extends PaymentResult {
   @override
   PaymentResult copyWith({
     bool? success,
-    Object? orderId = _Undefined,
+    Object? internalTransactionId = _Undefined,
     Object? transactionTimestamp = _Undefined,
     Object? errorMessage = _Undefined,
   }) {
     return PaymentResult(
       success: success ?? this.success,
-      orderId: orderId is String? ? orderId : this.orderId,
+      internalTransactionId: internalTransactionId is String?
+          ? internalTransactionId
+          : this.internalTransactionId,
       transactionTimestamp: transactionTimestamp is DateTime?
           ? transactionTimestamp
           : this.transactionTimestamp,

@@ -1,5 +1,7 @@
+import 'dart:convert';
+
 import 'package:serverpod/serverpod.dart';
-import '../config/header_config.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import 'x402_payment_processor.dart';
@@ -32,21 +34,21 @@ class X402Interceptor {
   /// Returns: Either payment requirement response or the result from onPaymentVerified
   ///
   /// Requirements 5.1: Standard client-server communication flow
-  /// Requirements 5.2: HTTP 402 response when payment required  
+  /// Requirements 5.2: HTTP 402 response when payment required
   /// Requirements 5.3: Verify payment and provide resource
-  static Future<Map<String, dynamic>> interceptRequest({
+  static Future<ApiResponse> interceptRequest({
     required Session session,
     required Map<String, String> headers,
     required String resourceId,
     required double amount,
-    required Future<Map<String, dynamic>> Function() onPaymentRequired,
-    required Future<Map<String, dynamic>> Function() onPaymentVerified,
+    required Future<ApiResponse> Function() onPaymentRequired,
+    required Future<ApiResponse> Function() onPaymentVerified,
   }) async {
     try {
       // Check if X-PAYMENT header is provided
-      final hasPayment = AnonAccredHeaderConfig.hasHeader(
+      final hasPayment = AnonAccountHeaderConfig.hasHeader(
         headers.map((key, value) => MapEntry(key, [value])),
-        AnonAccredHeaderConfig.paymentHeaderVariations,
+        AnonAccountHeaderConfig.paymentHeaderVariations,
       );
 
       if (!hasPayment) {
@@ -55,20 +57,20 @@ class X402Interceptor {
           'X402 interceptor: No payment header found for resource: $resourceId',
           level: LogLevel.info,
         );
-        
+
         return await onPaymentRequired();
       }
 
       // Payment provided - verify it
       final paymentVerified = await X402PaymentProcessor.verifyPayment(headers);
-      
+
       if (!paymentVerified) {
         // Payment verification failed - return HTTP 402 with payment requirements
         session.log(
           'X402 interceptor: Payment verification failed for resource: $resourceId',
           level: LogLevel.warning,
         );
-        
+
         return await onPaymentRequired();
       }
 
@@ -77,16 +79,15 @@ class X402Interceptor {
         'X402 interceptor: Payment verified for resource: $resourceId',
         level: LogLevel.info,
       );
-      
-      return await onPaymentVerified();
 
+      return await onPaymentVerified();
     } on Exception catch (e) {
       // Log error and return payment required as fallback
       session.log(
         'X402 interceptor error for resource $resourceId: ${e.toString()}',
         level: LogLevel.error,
       );
-      
+
       // Return payment required as safe fallback
       return onPaymentRequired();
     }
@@ -107,40 +108,44 @@ class X402Interceptor {
   /// Returns: HTTP 402 response with payment requirements
   ///
   /// Requirements 1.2, 1.4: HTTP 402 response with payment requirements
-  static Future<Map<String, dynamic>> generatePaymentRequired({
+  static Future<ApiResponse> generatePaymentRequired({
     required Session session,
     required String resourceId,
     required double amount,
     String? description,
   }) async {
     try {
-      // Generate unique order ID for this payment request
-      final orderId = 'x402_${resourceId}_${DateTime.now().millisecondsSinceEpoch}';
-      
+      // Generate unique transaction ID for this payment request
+      final internalTransactionId =
+          'x402_${resourceId}_${DateTime.now().millisecondsSinceEpoch}';
+
       // Generate X402 payment response
       final paymentResponse = X402PaymentProcessor.generatePaymentRequired(
         amount: amount,
-        orderId: orderId,
+        internalTransactionId: internalTransactionId,
       );
 
       session.log(
-        'Generated X402 payment requirement for resource: $resourceId, amount: \$${amount.toStringAsFixed(2)}, order: $orderId',
+        'Generated X402 payment requirement for resource: $resourceId, amount: \$${amount.toStringAsFixed(2)}, internalTx: $internalTransactionId',
         level: LogLevel.info,
       );
 
       // Return standardized HTTP 402 response
-      return {
-        'httpStatus': 402,
-        'message': 'Payment Required',
-        'resource': resourceId,
-        'description': description ?? 'Access to $resourceId',
-        'paymentRequired': paymentResponse.toJson(),
-      };
-
+      return ApiResponse(
+        success: false,
+        httpStatus: 402,
+        jsonData: jsonEncode({
+          'message': 'Payment Required',
+          'resource': resourceId,
+          'description': description ?? 'Access to $resourceId',
+          'paymentRequired': paymentResponse.toJson(),
+        }),
+      );
     } catch (e) {
       throw AnonAccredExceptionFactory.createPaymentException(
         code: AnonAccredErrorCodes.x402VerificationFailed,
-        message: 'Failed to generate X402 payment requirements: ${e.toString()}',
+        message:
+            'Failed to generate X402 payment requirements: ${e.toString()}',
         paymentRail: 'x402_http',
         details: {
           'resourceId': resourceId,
@@ -160,10 +165,10 @@ class X402Interceptor {
   /// - [headers]: HTTP headers from the request
   ///
   /// Returns: true if X-PAYMENT header is present, false otherwise
-  static bool hasPaymentHeader(Map<String, String> headers) => 
-      AnonAccredHeaderConfig.hasHeader(
+  static bool hasPaymentHeader(Map<String, String> headers) =>
+      AnonAccountHeaderConfig.hasHeader(
         headers.map((key, value) => MapEntry(key, [value])),
-        AnonAccredHeaderConfig.paymentHeaderVariations,
+        AnonAccountHeaderConfig.paymentHeaderVariations,
       );
 
   /// Extract X-PAYMENT header value
@@ -175,10 +180,10 @@ class X402Interceptor {
   /// - [headers]: HTTP headers from the request
   ///
   /// Returns: X-PAYMENT header value or null if not present
-  static String? getPaymentHeader(Map<String, String> headers) => 
-      AnonAccredHeaderConfig.getHeaderValue(
+  static String? getPaymentHeader(Map<String, String> headers) =>
+      AnonAccountHeaderConfig.getHeaderValue(
         headers.map((key, value) => MapEntry(key, [value])),
-        AnonAccredHeaderConfig.paymentHeaderVariations,
+        AnonAccountHeaderConfig.paymentHeaderVariations,
       );
 
   /// Validate X402 configuration
@@ -190,8 +195,10 @@ class X402Interceptor {
   /// - [PaymentException] if configuration is missing or invalid
   static void validateConfiguration() {
     const facilitatorUrl = String.fromEnvironment('X402_FACILITATOR_URL');
-    
-    const destinationAddress = String.fromEnvironment('X402_DESTINATION_ADDRESS');
+
+    const destinationAddress = String.fromEnvironment(
+      'X402_DESTINATION_ADDRESS',
+    );
 
     if (facilitatorUrl.isEmpty) {
       throw AnonAccredExceptionFactory.createPaymentException(

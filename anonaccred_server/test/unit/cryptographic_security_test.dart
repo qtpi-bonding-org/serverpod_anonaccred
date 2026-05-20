@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:anonaccred_server/anonaccred_server.dart';
+import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 /// **Feature: anonaccred-phase1, Property 5: Cryptographic data isolation**
 /// **Feature: anonaccred-phase1, Property 6: Encryption separation**
@@ -17,7 +19,7 @@ void main() {
       'Property 5: Cryptographic data isolation - For any account or device creation, the system should store only public keys and encrypted data keys, never private keys or unencrypted data',
       () {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random cryptographic data
           final publicMasterKey = _generateFakePublicKeyString();
           final encryptedMasterDataKey = _generateRandomEncryptedData();
@@ -26,6 +28,7 @@ void main() {
 
           // Create account with cryptographic data
           final account = AnonAccount(
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
             ultimatePublicKey: _generateFakePublicKeyString(),
@@ -34,7 +37,7 @@ void main() {
 
           // Create device with cryptographic data
           final device = AccountDevice(
-            accountId: random.nextInt(10000) + 1,
+            anonAccountId: UuidValue.fromString(const Uuid().v4()),
             deviceSigningPublicKeyHex: publicSubKey,
             encryptedDataKey: encryptedDeviceDataKey,
             label: 'Test Device',
@@ -88,12 +91,13 @@ void main() {
       'Property 6: Encryption separation - For any account with multiple devices, the system should maintain separate encrypted data keys for master account access and individual device access',
       () {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate master account data
           final publicMasterKey = _generateFakePublicKeyString();
           final encryptedMasterDataKey = _generateRandomEncryptedData();
 
           final account = AnonAccount(
+            id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
             ultimatePublicKey: _generateFakePublicKeyString(),
@@ -104,9 +108,9 @@ void main() {
           final devices = <AccountDevice>[];
           final deviceCount = 2 + random.nextInt(4); // 2-5 devices
 
-          for (int j = 0; j < deviceCount; j++) {
+          for (var j = 0; j < deviceCount; j++) {
             final device = AccountDevice(
-              accountId: random.nextInt(10000) + 1,
+              anonAccountId: UuidValue.fromString(const Uuid().v4()),
               deviceSigningPublicKeyHex: _generateFakePublicKeyString(),
               encryptedDataKey: _generateRandomEncryptedData(),
               label: 'Device $j',
@@ -126,8 +130,8 @@ void main() {
           }
 
           // Verify each device has unique encryption
-          for (int j = 0; j < devices.length; j++) {
-            for (int k = j + 1; k < devices.length; k++) {
+          for (var j = 0; j < devices.length; j++) {
+            for (var k = j + 1; k < devices.length; k++) {
               expect(
                 devices[j].encryptedDataKey,
                 isNot(equals(devices[k].encryptedDataKey)),
@@ -158,7 +162,7 @@ void main() {
       'Property 20: Signature verification support - For any valid ECDSA P-256 signature and public key pair, the system should correctly validate the signature',
       () async {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate valid ECDSA P-256 format data
           final publicKey = _generateFakePublicKeyString();
           final signature = _generateFakeSignatureString();
@@ -183,7 +187,7 @@ void main() {
             expect(result, isFalse);
           } on AuthenticationException catch (e) {
             // Expected behavior: fake keys cause verification failure
-            expect(e.code, equals(AnonAccredErrorCodes.cryptoVerificationFailed));
+            expect(e.code, equals(AnonAccountErrorCodes.cryptoVerificationFailed));
             expect(e.message, contains('ECDSA verification failed'));
           }
 
@@ -199,12 +203,12 @@ void main() {
             expect(result2, isFalse);
           } on AuthenticationException catch (e2) {
             // Should get the same type of error consistently
-            expect(e2.code, equals(AnonAccredErrorCodes.cryptoVerificationFailed));
+            expect(e2.code, equals(AnonAccountErrorCodes.cryptoVerificationFailed));
           }
 
           // Test format validation
           expect(
-            () async => await CryptoUtils.verifySignature(
+            () async => CryptoUtils.verifySignature(
               message: message,
               signature: 'invalid_signature',
               publicKey: publicKey,
@@ -213,7 +217,7 @@ void main() {
           );
 
           expect(
-            () async => await CryptoUtils.verifySignature(
+            () async => CryptoUtils.verifySignature(
               message: message,
               signature: signature,
               publicKey: 'invalid_key',
@@ -235,7 +239,7 @@ void main() {
       'Property 21: Cryptographic error security - For any cryptographic operation failure, error information should be provided without exposing key material',
       () async {
         // Run 5 iterations during development
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Test invalid public key format
           final invalidPublicKeys = [
             'too_short',
@@ -261,7 +265,7 @@ void main() {
               // Verify error provides information without exposing key material
               expect(
                 authException.code,
-                equals(AnonAccredErrorCodes.cryptoInvalidPublicKey),
+                equals(AnonAccountErrorCodes.cryptoInvalidPublicKey),
               );
               expect(
                 authException.message,
@@ -311,7 +315,7 @@ void main() {
               // Verify error provides information without exposing signature material
               expect(
                 authException.code,
-                equals(AnonAccredErrorCodes.cryptoInvalidSignature),
+                equals(AnonAccountErrorCodes.cryptoInvalidSignature),
               );
               expect(
                 authException.message,
@@ -353,7 +357,7 @@ void main() {
 
             expect(
               authException.code,
-              equals(AnonAccredErrorCodes.cryptoInvalidMessage),
+              equals(AnonAccountErrorCodes.cryptoInvalidMessage),
             );
             expect(authException.message, contains('Message cannot be empty'));
             expect(authException.operation, equals('verifySignature'));
@@ -370,7 +374,7 @@ void main() {
 
             expect(
               authException.code,
-              equals(AnonAccredErrorCodes.cryptoFormatError),
+              equals(AnonAccountErrorCodes.cryptoFormatError),
             );
             expect(
               authException.message,

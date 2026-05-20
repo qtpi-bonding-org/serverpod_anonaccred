@@ -1,6 +1,7 @@
 import 'dart:math';
-import 'package:test/test.dart';
+
 import 'package:anonaccred_server/src/payments/x402_payment_processor.dart';
+import 'package:test/test.dart';
 
 /// **Feature: anonaccred-phase5, Property 1: HTTP 402 Response Format**
 /// **Validates: Requirements 1.2, 1.4**
@@ -16,22 +17,22 @@ void main() {
       'Property 1: HTTP 402 Response Format - For any payment requirement, the HTTP 402 response should contain amount, destination address, and order ID',
       () {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Generate random test data
           final amount = (random.nextDouble() * 1000) + 0.01; // $0.01 to $1000
-          final orderId = 'order_${random.nextInt(999999)}';
+          final internalTransactionId = 'order_${random.nextInt(999999)}';
           
           // Generate HTTP 402 response data (Requirements 1.2, 1.4)
           final response = X402PaymentProcessor.generatePaymentRequired(
             amount: amount,
-            orderId: orderId,
+            internalTransactionId: internalTransactionId,
           );
           
           // Verify required fields are present (Requirement 1.4)
           expect(response.amount, equals(amount));
           expect(response.currency, equals('USD'));
           expect(response.destination, isNotEmpty);
-          expect(response.orderId, equals(orderId));
+          expect(response.internalTransactionId, equals(internalTransactionId));
           expect(response.facilitator, isNotEmpty);
           expect(response.protocol, equals('x402'));
           expect(response.timestamp, isNotNull);
@@ -50,13 +51,13 @@ void main() {
           expect(jsonMap['amount'], equals(amount));
           expect(jsonMap['currency'], equals('USD'));
           expect(jsonMap['destination'], equals(response.destination));
-          expect(jsonMap['orderId'], equals(orderId));
+          expect(jsonMap['internalTransactionId'], equals(internalTransactionId));
           expect(jsonMap['facilitator'], equals(response.facilitator));
           expect(jsonMap['protocol'], equals('x402'));
           expect(jsonMap['timestamp'], equals(response.timestamp));
           
           // Verify all information necessary for programmatic payment is present (Requirement 1.4)
-          final requiredFields = ['amount', 'currency', 'destination', 'orderId', 'facilitator', 'protocol'];
+          final requiredFields = ['amount', 'currency', 'destination', 'internalTransactionId', 'facilitator', 'protocol'];
           for (final field in requiredFields) {
             expect(jsonMap.containsKey(field), isTrue, 
                    reason: 'Response must contain $field for programmatic payment completion');
@@ -78,15 +79,15 @@ void main() {
         ];
         
         for (final amount in testAmounts) {
-          final orderId = 'order_amount_test_${amount.toString().replaceAll('.', '_')}';
+          final internalTransactionId = 'order_amount_test_${amount.toString().replaceAll('.', '_')}';
           
           final response = X402PaymentProcessor.generatePaymentRequired(
             amount: amount,
-            orderId: orderId,
+            internalTransactionId: internalTransactionId,
           );
           
           expect(response.amount, equals(amount));
-          expect(response.orderId, equals(orderId));
+          expect(response.internalTransactionId, equals(internalTransactionId));
           
           // Verify precision is preserved
           expect(response.amount.runtimeType, equals(double));
@@ -112,23 +113,23 @@ void main() {
           'very_long_order_id_with_many_characters_to_test_handling',
         ];
         
-        for (final orderId in testOrderIds) {
+        for (final internalTransactionId in testOrderIds) {
           const amount = 10.0;
           
           final response = X402PaymentProcessor.generatePaymentRequired(
             amount: amount,
-            orderId: orderId,
+            internalTransactionId: internalTransactionId,
           );
           
-          expect(response.orderId, equals(orderId));
+          expect(response.internalTransactionId, equals(internalTransactionId));
           expect(response.amount, equals(amount));
           
           // Verify order ID is preserved exactly as provided
-          expect(response.orderId.runtimeType, equals(String));
+          expect(response.internalTransactionId.runtimeType, equals(String));
           
           // Verify JSON serialization preserves order ID
           final jsonMap = response.toJson();
-          expect(jsonMap['orderId'], equals(orderId));
+          expect(jsonMap['internalTransactionId'], equals(internalTransactionId));
         }
       },
     );
@@ -136,13 +137,13 @@ void main() {
     test(
       'Property 1 Extension: JSON response structure validation',
       () {
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final amount = (random.nextDouble() * 100) + 1.0;
-          final orderId = 'json_test_${random.nextInt(1000)}';
+          final internalTransactionId = 'json_test_${random.nextInt(1000)}';
           
           final response = X402PaymentProcessor.generatePaymentRequired(
             amount: amount,
-            orderId: orderId,
+            internalTransactionId: internalTransactionId,
           );
           
           // Verify JSON serialization works
@@ -155,7 +156,7 @@ void main() {
           expect(jsonMap['amount'], isNotNull);
           expect(jsonMap['currency'], isNotNull);
           expect(jsonMap['destination'], isNotNull);
-          expect(jsonMap['orderId'], isNotNull);
+          expect(jsonMap['internalTransactionId'], isNotNull);
           expect(jsonMap['facilitator'], isNotNull);
           expect(jsonMap['protocol'], isNotNull);
           expect(jsonMap['timestamp'], isNotNull);
@@ -165,7 +166,7 @@ void main() {
           expect(reconstructed.amount, equals(response.amount));
           expect(reconstructed.currency, equals(response.currency));
           expect(reconstructed.destination, equals(response.destination));
-          expect(reconstructed.orderId, equals(response.orderId));
+          expect(reconstructed.internalTransactionId, equals(response.internalTransactionId));
           expect(reconstructed.facilitator, equals(response.facilitator));
           expect(reconstructed.protocol, equals(response.protocol));
           expect(reconstructed.timestamp, equals(response.timestamp));
@@ -177,7 +178,7 @@ void main() {
       'Property 3: Payment Verification - For any request with X-PAYMENT header, facilitator verification should determine access',
       () async {
         // Run 5 iterations during development (can be increased to 100+ for production)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           // Test case 1: Missing X-PAYMENT header should return false
           final emptyHeaders = <String, String>{};
           final resultEmpty = await X402PaymentProcessor.verifyPayment(emptyHeaders);
@@ -229,7 +230,7 @@ void main() {
       'Property 3 Extension: Payment verification header extraction consistency',
       () async {
         // Test that header extraction works consistently across different formats
-        final paymentPayload = 'test_payment_payload_123';
+        const paymentPayload = 'test_payment_payload_123';
         
         final headerFormats = [
           {'X-PAYMENT': paymentPayload},

@@ -1,0 +1,31 @@
+name: anonaccount_client
+description: AnonAccount Client - Client-side protocol classes for anonymous identity module. Provides generated Dart classes for ECDSA P-256 identity, device management, and encrypted data models.
+version: 0.1.0
+homepage: https://github.com/your-org/serverpod_anonaccred
+repository: https://github.com/your-org/serverpod_anonaccred
+
+topics:
+  - serverpod
+  - client
+  - protocol
+  - authentication
+  - privacy
+  - cryptography
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+
+environment:
+  sdk: '^3.8.0'
+
+dependencies:
+  serverpod_client: 3.4.1
+  crypto: ^3.0.3
+
+dev_dependencies:
+  test: ^1.25.5

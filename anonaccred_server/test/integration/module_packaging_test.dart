@@ -14,8 +14,8 @@ void main() {
 
       // Exception factory should be available
       expect(
-        () => AnonAccredExceptionFactory.createException(
-          code: AnonAccredErrorCodes.internalError,
+        () => AnonAccountExceptionFactory.createException(
+          code: AnonAccountErrorCodes.internalError,
           message: 'Test',
         ),
         returnsNormally,
@@ -23,44 +23,41 @@ void main() {
 
       // Error classification should be available
       expect(
-        () => AnonAccredExceptionUtils.isRetryable(
-          AnonAccredErrorCodes.internalError,
+        () => AnonAccountExceptionUtils.isRetryable(
+          AnonAccountErrorCodes.internalError,
         ),
         returnsNormally,
       );
 
       // Crypto utilities should be available
-      expect(
-        () => CryptoUtils.isValidPublicKey('invalid'),
-        returnsNormally,
-      );
+      expect(() => CryptoUtils.isValidPublicKey('invalid'), returnsNormally);
 
       // Privacy logger removed - using Serverpod built-in logging
     });
 
     test('exception factory creates consistent exception structures', () {
       // Test base exception
-      final baseException = AnonAccredExceptionFactory.createException(
-        code: AnonAccredErrorCodes.internalError,
+      final baseException = AnonAccountExceptionFactory.createException(
+        code: AnonAccountErrorCodes.internalError,
         message: 'Test message',
         details: {'key': 'value'},
       );
 
-      expect(baseException.code, equals(AnonAccredErrorCodes.internalError));
+      expect(baseException.code, equals(AnonAccountErrorCodes.internalError));
       expect(baseException.message, equals('Test message'));
       expect(baseException.details, equals({'key': 'value'}));
 
       // Test authentication exception
       final authException =
-          AnonAccredExceptionFactory.createAuthenticationException(
-            code: AnonAccredErrorCodes.authInvalidSignature,
+          AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authInvalidSignature,
             message: 'Auth test',
             operation: 'testOp',
           );
 
       expect(
         authException.code,
-        equals(AnonAccredErrorCodes.authInvalidSignature),
+        equals(AnonAccountErrorCodes.authInvalidSignature),
       );
       expect(authException.message, equals('Auth test'));
       expect(authException.operation, equals('testOp'));
@@ -70,7 +67,7 @@ void main() {
           AnonAccredExceptionFactory.createPaymentException(
             code: AnonAccredErrorCodes.paymentInsufficientFunds,
             message: 'Payment test',
-            orderId: 'order123',
+            internalTransactionId: 'order123',
             paymentRail: 'monero',
           );
 
@@ -78,7 +75,7 @@ void main() {
         paymentException.code,
         equals(AnonAccredErrorCodes.paymentInsufficientFunds),
       );
-      expect(paymentException.orderId, equals('order123'));
+      expect(paymentException.internalTransactionId, equals('order123'));
       expect(paymentException.paymentRail, equals('monero'));
 
       // Test inventory exception
@@ -86,32 +83,30 @@ void main() {
           AnonAccredExceptionFactory.createInventoryException(
             code: AnonAccredErrorCodes.inventoryInsufficientBalance,
             message: 'Inventory test',
-            accountId: 123,
-            consumableType: 'test_consumable',
+            tag: 'test_consumable',
           );
 
       expect(
         inventoryException.code,
         equals(AnonAccredErrorCodes.inventoryInsufficientBalance),
       );
-      expect(inventoryException.accountId, equals(123));
-      expect(inventoryException.consumableType, equals('test_consumable'));
+      expect(inventoryException.tag, equals('test_consumable'));
     });
 
     test('error classification provides comprehensive analysis', () {
       final exception =
-          AnonAccredExceptionFactory.createAuthenticationException(
-            code: AnonAccredErrorCodes.authInvalidSignature,
+          AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authInvalidSignature,
             message: 'Invalid signature',
             operation: 'authenticate',
           );
 
-      final analysis = AnonAccredExceptionUtils.analyzeException(exception);
+      final analysis = AnonAccountExceptionUtils.analyzeException(exception);
 
       // Verify all required analysis fields are present
       expect(
         analysis,
-        containsPair('code', AnonAccredErrorCodes.authInvalidSignature),
+        containsPair('code', AnonAccountErrorCodes.authInvalidSignature),
       );
       expect(analysis, containsPair('message', 'Invalid signature'));
       expect(analysis, contains('retryable'));
@@ -136,13 +131,15 @@ void main() {
       expect(CryptoUtils.isValidPublicKey('short'), isFalse);
 
       // Test with valid format (128 hex characters)
-      const validKey = 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
-                       'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      const validKey =
+          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       expect(CryptoUtils.isValidPublicKey(validKey), isTrue);
 
       // Test with invalid hex characters
-      const invalidHex = 'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
-                         'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      const invalidHex =
+          'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+          'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       expect(CryptoUtils.isValidPublicKey(invalidHex), isFalse);
     });
 
@@ -166,19 +163,19 @@ void main() {
 
     test('error codes are properly defined and accessible', () {
       // Test that all error code constants are accessible
-      expect(AnonAccredErrorCodes.internalError, isNotNull);
-      expect(AnonAccredErrorCodes.authInvalidSignature, isNotNull);
-      expect(AnonAccredErrorCodes.cryptoInvalidPublicKey, isNotNull);
+      expect(AnonAccountErrorCodes.internalError, isNotNull);
+      expect(AnonAccountErrorCodes.authInvalidSignature, isNotNull);
+      expect(AnonAccountErrorCodes.cryptoInvalidPublicKey, isNotNull);
       expect(AnonAccredErrorCodes.paymentInsufficientFunds, isNotNull);
       expect(AnonAccredErrorCodes.paymentInvalidRail, isNotNull);
       expect(AnonAccredErrorCodes.inventoryInsufficientBalance, isNotNull);
       expect(AnonAccredErrorCodes.inventoryInvalidConsumable, isNotNull);
-      expect(AnonAccredErrorCodes.networkTimeout, isNotNull);
-      expect(AnonAccredErrorCodes.databaseError, isNotNull);
+      expect(AnonAccountErrorCodes.networkTimeout, isNotNull);
+      expect(AnonAccountErrorCodes.databaseError, isNotNull);
 
       // Test that error codes are strings
-      expect(AnonAccredErrorCodes.internalError, isA<String>());
-      expect(AnonAccredErrorCodes.authInvalidSignature, isA<String>());
+      expect(AnonAccountErrorCodes.internalError, isA<String>());
+      expect(AnonAccountErrorCodes.authInvalidSignature, isA<String>());
     });
 
     test('module versioning is properly configured', () {
@@ -188,7 +185,7 @@ void main() {
 
       // The fact that we can import and use the module indicates proper versioning
       expect(
-        () => AnonAccredExceptionFactory.createException(
+        () => AnonAccountExceptionFactory.createException(
           code: 'test',
           message: 'test',
         ),
@@ -215,8 +212,8 @@ void main() {
     test('exception classes have proper Serverpod integration', () {
       // Test that exception classes work with Serverpod's serialization
       final exception =
-          AnonAccredExceptionFactory.createAuthenticationException(
-            code: AnonAccredErrorCodes.authInvalidSignature,
+          AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authInvalidSignature,
             message: 'Test exception',
             operation: 'test',
           );

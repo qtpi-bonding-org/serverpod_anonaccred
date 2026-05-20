@@ -4,5 +4,5 @@ fields:
   code: String
   message: String
   details: Map<String, String>?
-  orderId: String?
+  internalTransactionId: String?
   paymentRail: String?

@@ -17,14 +17,14 @@ abstract class PaymentRequest
   PaymentRequest._({
     required this.paymentRef,
     required this.amountUSD,
-    required this.orderId,
+    required this.internalTransactionId,
     required this.railDataJson,
   });
 
   factory PaymentRequest({
     required String paymentRef,
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
     required String railDataJson,
   }) = _PaymentRequestImpl;
 
@@ -32,7 +32,8 @@ abstract class PaymentRequest
     return PaymentRequest(
       paymentRef: jsonSerialization['paymentRef'] as String,
       amountUSD: (jsonSerialization['amountUSD'] as num).toDouble(),
-      orderId: jsonSerialization['orderId'] as String,
+      internalTransactionId:
+          jsonSerialization['internalTransactionId'] as String,
       railDataJson: jsonSerialization['railDataJson'] as String,
     );
   }
@@ -41,7 +42,7 @@ abstract class PaymentRequest
 
   double amountUSD;
 
-  String orderId;
+  String internalTransactionId;
 
   String railDataJson;
 
@@ -51,7 +52,7 @@ abstract class PaymentRequest
   PaymentRequest copyWith({
     String? paymentRef,
     double? amountUSD,
-    String? orderId,
+    String? internalTransactionId,
     String? railDataJson,
   });
   @override
@@ -60,7 +61,7 @@ abstract class PaymentRequest
       '__className__': 'anonaccred.PaymentRequest',
       'paymentRef': paymentRef,
       'amountUSD': amountUSD,
-      'orderId': orderId,
+      'internalTransactionId': internalTransactionId,
       'railDataJson': railDataJson,
     };
   }
@@ -71,7 +72,7 @@ abstract class PaymentRequest
       '__className__': 'anonaccred.PaymentRequest',
       'paymentRef': paymentRef,
       'amountUSD': amountUSD,
-      'orderId': orderId,
+      'internalTransactionId': internalTransactionId,
       'railDataJson': railDataJson,
     };
   }
@@ -86,12 +87,12 @@ class _PaymentRequestImpl extends PaymentRequest {
   _PaymentRequestImpl({
     required String paymentRef,
     required double amountUSD,
-    required String orderId,
+    required String internalTransactionId,
     required String railDataJson,
   }) : super._(
          paymentRef: paymentRef,
          amountUSD: amountUSD,
-         orderId: orderId,
+         internalTransactionId: internalTransactionId,
          railDataJson: railDataJson,
        );
 
@@ -102,13 +103,14 @@ class _PaymentRequestImpl extends PaymentRequest {
   PaymentRequest copyWith({
     String? paymentRef,
     double? amountUSD,
-    String? orderId,
+    String? internalTransactionId,
     String? railDataJson,
   }) {
     return PaymentRequest(
       paymentRef: paymentRef ?? this.paymentRef,
       amountUSD: amountUSD ?? this.amountUSD,
-      orderId: orderId ?? this.orderId,
+      internalTransactionId:
+          internalTransactionId ?? this.internalTransactionId,
       railDataJson: railDataJson ?? this.railDataJson,
     );
   }

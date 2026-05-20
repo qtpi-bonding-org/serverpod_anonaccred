@@ -1,0 +1,8 @@
+class: ShareGroup
+table: share_group
+fields:
+  id: UuidValue?, defaultPersist=random
+  ultimateSigningPublicKeyHex: String
+  ultimatePublicKey: String
+  encryptedDataKey: String
+  createdAt: DateTime, default=now

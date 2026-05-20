@@ -1,0 +1,6 @@
+enum: Currency
+serialized: byName
+values:
+  - USD
+  - XMR
+  - EUR
