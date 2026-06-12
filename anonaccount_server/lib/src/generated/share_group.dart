@@ -20,7 +20,9 @@ abstract class ShareGroup
     required this.ultimatePublicKey,
     required this.encryptedDataKey,
     DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+    int? keyEpoch,
+  }) : createdAt = createdAt ?? DateTime.now(),
+       keyEpoch = keyEpoch ?? 0;
 
   factory ShareGroup({
     _i1.UuidValue? id,
@@ -28,6 +30,7 @@ abstract class ShareGroup
     required String ultimatePublicKey,
     required String encryptedDataKey,
     DateTime? createdAt,
+    int? keyEpoch,
   }) = _ShareGroupImpl;
 
   factory ShareGroup.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -42,6 +45,7 @@ abstract class ShareGroup
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+      keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
 
@@ -60,6 +64,8 @@ abstract class ShareGroup
 
   DateTime createdAt;
 
+  int keyEpoch;
+
   @override
   _i1.Table<_i1.UuidValue?> get table => t;
 
@@ -72,6 +78,7 @@ abstract class ShareGroup
     String? ultimatePublicKey,
     String? encryptedDataKey,
     DateTime? createdAt,
+    int? keyEpoch,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -82,6 +89,7 @@ abstract class ShareGroup
       'ultimatePublicKey': ultimatePublicKey,
       'encryptedDataKey': encryptedDataKey,
       'createdAt': createdAt.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -94,6 +102,7 @@ abstract class ShareGroup
       'ultimatePublicKey': ultimatePublicKey,
       'encryptedDataKey': encryptedDataKey,
       'createdAt': createdAt.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -136,12 +145,14 @@ class _ShareGroupImpl extends ShareGroup {
     required String ultimatePublicKey,
     required String encryptedDataKey,
     DateTime? createdAt,
+    int? keyEpoch,
   }) : super._(
          id: id,
          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          ultimatePublicKey: ultimatePublicKey,
          encryptedDataKey: encryptedDataKey,
          createdAt: createdAt,
+         keyEpoch: keyEpoch,
        );
 
   /// Returns a shallow copy of this [ShareGroup]
@@ -154,6 +165,7 @@ class _ShareGroupImpl extends ShareGroup {
     String? ultimatePublicKey,
     String? encryptedDataKey,
     DateTime? createdAt,
+    int? keyEpoch,
   }) {
     return ShareGroup(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -162,6 +174,7 @@ class _ShareGroupImpl extends ShareGroup {
       ultimatePublicKey: ultimatePublicKey ?? this.ultimatePublicKey,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       createdAt: createdAt ?? this.createdAt,
+      keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }
 }
@@ -192,6 +205,11 @@ class ShareGroupUpdateTable extends _i1.UpdateTable<ShareGroupTable> {
         table.createdAt,
         value,
       );
+
+  _i1.ColumnValue<int, int> keyEpoch(int value) => _i1.ColumnValue(
+    table.keyEpoch,
+    value,
+  );
 }
 
 class ShareGroupTable extends _i1.Table<_i1.UuidValue?> {
@@ -214,6 +232,11 @@ class ShareGroupTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    keyEpoch = _i1.ColumnInt(
+      'keyEpoch',
+      this,
+      hasDefault: true,
+    );
   }
 
   late final ShareGroupUpdateTable updateTable;
@@ -226,6 +249,8 @@ class ShareGroupTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDateTime createdAt;
 
+  late final _i1.ColumnInt keyEpoch;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -233,6 +258,7 @@ class ShareGroupTable extends _i1.Table<_i1.UuidValue?> {
     ultimatePublicKey,
     encryptedDataKey,
     createdAt,
+    keyEpoch,
   ];
 }
 

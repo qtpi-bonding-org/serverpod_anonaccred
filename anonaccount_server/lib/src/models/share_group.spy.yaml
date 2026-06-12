@@ -6,3 +6,4 @@ fields:
   ultimatePublicKey: String
   encryptedDataKey: String
   createdAt: DateTime, default=now
+  keyEpoch: int, default=0

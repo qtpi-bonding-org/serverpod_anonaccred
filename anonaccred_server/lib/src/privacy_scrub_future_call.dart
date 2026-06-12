@@ -13,10 +13,10 @@ import 'privacy_scrub_config.dart';
 ///
 /// Call once from your server's run.dart after [Serverpod.start]:
 /// ```dart
-/// await PrivacyScrubFutureCall.schedule(pod, const PrivacyScrubConfig());
+/// await schedulePrivacyScrub(pod, const PrivacyScrubConfig());
 /// ```
 ///
-/// The job self-schedules on a 24-hour interval. On restart, [schedule]
+/// The job self-schedules on a 24-hour interval. On restart, [schedulePrivacyScrub]
 /// cancels any pending invocation and re-queues it, so startup is idempotent.
 /// Pass [PrivacyScrubConfig.disabled] (or omit the call entirely) to skip it.
 ///
@@ -67,34 +67,34 @@ class PrivacyScrubFutureCall extends FutureCall {
       level: LogLevel.info,
     );
   }
+}
 
-  /// Bootstraps the recurring scrub from the consuming server's run.dart.
-  ///
-  /// Cancels any existing scrub and re-queues it (idempotent on restart).
-  /// No-op if [config.enabled] is false.
-  ///
-  /// ```dart
-  /// await pod.start();
-  /// await PrivacyScrubFutureCall.schedule(pod, const PrivacyScrubConfig());
-  /// ```
-  static Future<void> schedule(
-    Serverpod pod,
-    PrivacyScrubConfig config,
-  ) async {
-    final futureCalls = pod.endpoints.futureCalls;
-    if (futureCalls == null) return;
+/// Bootstraps the recurring privacy scrub from the consuming server's run.dart.
+///
+/// Cancels any existing scrub and re-queues it (idempotent on restart).
+/// No-op if [config.enabled] is false.
+///
+/// ```dart
+/// await pod.start();
+/// await schedulePrivacyScrub(pod, const PrivacyScrubConfig());
+/// ```
+Future<void> schedulePrivacyScrub(
+  Serverpod pod,
+  PrivacyScrubConfig config,
+) async {
+  final futureCalls = pod.endpoints.futureCalls;
+  if (futureCalls == null) return;
 
-    // Cancel any pending scrub so we don't double-schedule on restart.
-    await futureCalls.cancel('anonaccred-privacy-scrub');
+  // Cancel any pending scrub so we don't double-schedule on restart.
+  await futureCalls.cancel('anonaccred-privacy-scrub');
 
-    if (!config.enabled) return;
+  if (!config.enabled) return;
 
-    await (futureCalls.callWithDelay(
-      Duration.zero,
-      identifier: 'anonaccred-privacy-scrub',
-    ) as dynamic)
-        .anonaccred
-        .privacyScrub
-        .scrub(config.retentionDays);
-  }
+  await (futureCalls.callWithDelay(
+    Duration.zero,
+    identifier: 'anonaccred-privacy-scrub',
+  ) as dynamic)
+      .anonaccred
+      .privacyScrub
+      .scrub(config.retentionDays);
 }

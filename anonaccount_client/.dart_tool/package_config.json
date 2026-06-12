@@ -38,6 +38,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "clock",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/clock-1.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "collection",
       "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/collection-1.19.1",
       "packageUri": "lib/",
@@ -162,6 +168,18 @@
       "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/pub_semver-2.2.0",
       "packageUri": "lib/",
       "languageVersion": "3.4"
+    },
+    {
+      "name": "serverpod_auth_core_client",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_core_client-3.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
+      "name": "serverpod_auth_idp_client",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_idp_client-3.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
     },
     {
       "name": "serverpod_client",
@@ -321,8 +339,8 @@
     }
   ],
   "generator": "pub",
-  "generatorVersion": "3.10.4",
+  "generatorVersion": "3.11.3",
   "flutterRoot": "file:///Users/aicoder/develop/flutter",
-  "flutterVersion": "3.38.5",
+  "flutterVersion": "3.41.5",
   "pubCache": "file:///Users/aicoder/.pub-cache"
 }

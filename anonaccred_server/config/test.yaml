@@ -70,7 +70,7 @@ anonaccred:
     destination_address: "bc1qtest123456789abcdef"
 
   # Ephemeral bridge privacy scrub job.
-  # Bootstrap in run.dart: await PrivacyScrubFutureCall.schedule(pod, config)
+  # Bootstrap in run.dart: await schedulePrivacyScrub(pod, config)
   # enabled: false disables the job (useful for testing or if managing externally)
   # retention_days: rows older than this are deleted on each 24-hour pass
   privacy_scrub:

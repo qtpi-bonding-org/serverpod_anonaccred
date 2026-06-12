@@ -53,7 +53,8 @@ library;
 // Re-export anonaccount identity types (hide generated classes that conflict)
 export 'package:anonaccount_server/anonaccount_server.dart'
     hide Protocol, Endpoints;
-// Privacy scrub job — delete ephemeral bridge rows older than retention window
+// Privacy scrub job — delete ephemeral bridge rows older than retention window.
+// Bootstrap: await schedulePrivacyScrub(pod, const PrivacyScrubConfig())
 export 'src/privacy_scrub_config.dart';
 export 'src/privacy_scrub_future_call.dart';
 // Commerce and Entitlement Management
