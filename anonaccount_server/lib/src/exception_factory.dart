@@ -49,6 +49,9 @@ class AnonAccountErrorCodes {
   static const String powVerificationFailed = 'POW_VERIFICATION_FAILED';
   static const String rateLimitExceeded = 'RATE_LIMIT_EXCEEDED';
 
+  // Group operation error codes
+  static const String groupOperationNotAllowed = 'GROUP_OPERATION_NOT_ALLOWED';
+
   // General error codes
   static const String networkTimeout = 'NETWORK_TIMEOUT';
   static const String databaseError = 'DATABASE_ERROR';
