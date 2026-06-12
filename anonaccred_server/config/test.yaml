@@ -68,3 +68,11 @@ anonaccred:
   x402:
     facilitator_url: "http://localhost:8090/verify"
     destination_address: "bc1qtest123456789abcdef"
+
+  # Ephemeral bridge privacy scrub job.
+  # Bootstrap in run.dart: await PrivacyScrubFutureCall.schedule(pod, config)
+  # enabled: false disables the job (useful for testing or if managing externally)
+  # retention_days: rows older than this are deleted on each 24-hour pass
+  privacy_scrub:
+    enabled: false  # disabled in test environment
+    retention_days: 7
