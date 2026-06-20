@@ -20,6 +20,9 @@ import 'package:anonaccred_server/src/generated/consume_result.dart' as _i5;
 import 'package:anonaccred_server/src/generated/group_entitlement.dart' as _i6;
 import 'package:anonaccred_server/src/generated/iap_validation_response.dart'
     as _i7;
+import 'package:anonaccred_server/src/generated/future_calls_generated_models/privacy_scrub_future_call_scrub_model.dart'
+    as _i8;
+import 'package:anonaccred_server/src/generated/future_calls.dart' as _i9;
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -127,6 +130,8 @@ void withServerpod(
 }
 
 class TestEndpoints {
+  late final futureCalls = _FutureCalls();
+
   late final _CommerceEndpoint commerce;
 
   late final _GroupCommerceEndpoint groupCommerce;
@@ -160,6 +165,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
   }
+}
+
+class _FutureCalls {
+  late final privacyScrub = _PrivacyScrubFutureCall();
 }
 
 class _CommerceEndpoint {
@@ -515,5 +524,26 @@ class _PolarEndpoint {
         await _localUniqueSession.close();
       }
     });
+  }
+}
+
+class _PrivacyScrubFutureCall {
+  Future<void> scrub(
+    _i1.TestSessionBuilder sessionBuilder,
+    int retentionDays,
+  ) async {
+    var object = _i8.PrivacyScrubFutureCallScrubModel(
+      retentionDays: retentionDays,
+    );
+    var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
+        .internalBuild();
+    try {
+      await _i9.PrivacyScrubScrubFutureCall().invoke(
+        _localUniqueSession,
+        object,
+      );
+    } finally {
+      await _localUniqueSession.close();
+    }
   }
 }

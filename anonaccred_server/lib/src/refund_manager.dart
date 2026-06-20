@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import 'entitlement_manager.dart';
 import 'generated/protocol.dart';
+import 'group_entitlement_manager.dart';
 import 'refund_event.dart';
 
 /// What action the library should take after a refund.
@@ -22,6 +23,7 @@ class RefundContext {
     this.receiptHash,
     this.payment,
     this.accountUuid,
+    this.shareGroupUuid,
     this.grants = const [],
     this.bridgeExpired = false,
   });
@@ -34,6 +36,10 @@ class RefundContext {
 
   /// Account UUID resolved via EphemeralAccreditation bridge. Null if expired.
   final UuidValue? accountUuid;
+
+  /// Group UUID resolved via EphemeralAccreditationGroup bridge.
+  /// Non-null when the purchase was a group entitlement grant.
+  final UuidValue? shareGroupUuid;
 
   /// What entitlement grants were associated with this product.
   final List<RailProductGrant> grants;
@@ -182,7 +188,19 @@ class RefundManager {
       accountUuid = accreditations.first.accountUuid;
     }
 
-    // 4. Get grants for the rail product
+    // 4. Check for group purchase via EphemeralAccreditationGroup bridge.
+    UuidValue? shareGroupUuid;
+    if (accountUuid != null) {
+      final groupBridge = await EphemeralAccreditationGroup.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.accountUuid.equals(accountUuid) &
+            t.transactionTimestamp.equals(timestamp),
+      );
+      shareGroupUuid = groupBridge?.shareGroupUuid;
+    }
+
+    // 5. Get grants for the rail product
     final grants = await RailProductGrant.db.find(
       session,
       where: (t) => t.railProductId.equals(railProductId),
@@ -192,6 +210,7 @@ class RefundManager {
       receiptHash: hashRecord,
       payment: payment,
       accountUuid: accountUuid,
+      shareGroupUuid: shareGroupUuid,
       grants: grants,
       bridgeExpired: bridgeExpired,
     );
@@ -213,9 +232,20 @@ class RefundManager {
         await _markRefunded(session, context.payment);
 
       case RefundAction.revokeAll:
-        // Revoke entitlements if we have an account, then mark refunded.
-        if (context.accountUuid != null && context.grants.isNotEmpty) {
-          final reason = 'REFUND:${event.rail.name}:${event.paymentRef}';
+        // Revoke entitlements, then mark refunded.
+        // Branch on whether this was a group purchase or individual.
+        final reason = 'REFUND:${event.rail.name}:${event.paymentRef}';
+        if (context.shareGroupUuid != null && context.grants.isNotEmpty) {
+          for (final grant in context.grants) {
+            await GroupEntitlementManager.revokeGroupEntitlement(
+              session,
+              shareGroupUuid: context.shareGroupUuid!,
+              entitlementId: grant.entitlementId,
+              quantity: grant.quantity,
+              reason: reason,
+            );
+          }
+        } else if (context.accountUuid != null && context.grants.isNotEmpty) {
           for (final grant in context.grants) {
             await EntitlementManager.revokeEntitlement(
               session,

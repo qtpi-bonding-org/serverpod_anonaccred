@@ -24,8 +24,10 @@ abstract class AccountDevice implements _i1.SerializableModel {
     required this.label,
     DateTime? lastActive,
     bool? isRevoked,
+    int? keyEpoch,
   }) : lastActive = lastActive ?? DateTime.now(),
-       isRevoked = isRevoked ?? false;
+       isRevoked = isRevoked ?? false,
+       keyEpoch = keyEpoch ?? 0;
 
   factory AccountDevice({
     _i1.UuidValue? id,
@@ -36,6 +38,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
     required String label,
     DateTime? lastActive,
     bool? isRevoked,
+    int? keyEpoch,
   }) = _AccountDeviceImpl;
 
   factory AccountDevice.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -61,6 +64,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
+      keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
 
@@ -83,6 +87,8 @@ abstract class AccountDevice implements _i1.SerializableModel {
 
   bool isRevoked;
 
+  int keyEpoch;
+
   /// Returns a shallow copy of this [AccountDevice]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -95,6 +101,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
     String? label,
     DateTime? lastActive,
     bool? isRevoked,
+    int? keyEpoch,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -108,6 +115,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
       'label': label,
       'lastActive': lastActive.toJson(),
       'isRevoked': isRevoked,
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -129,6 +137,7 @@ class _AccountDeviceImpl extends AccountDevice {
     required String label,
     DateTime? lastActive,
     bool? isRevoked,
+    int? keyEpoch,
   }) : super._(
          id: id,
          anonAccountId: anonAccountId,
@@ -138,6 +147,7 @@ class _AccountDeviceImpl extends AccountDevice {
          label: label,
          lastActive: lastActive,
          isRevoked: isRevoked,
+         keyEpoch: keyEpoch,
        );
 
   /// Returns a shallow copy of this [AccountDevice]
@@ -153,6 +163,7 @@ class _AccountDeviceImpl extends AccountDevice {
     String? label,
     DateTime? lastActive,
     bool? isRevoked,
+    int? keyEpoch,
   }) {
     return AccountDevice(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -166,6 +177,7 @@ class _AccountDeviceImpl extends AccountDevice {
       label: label ?? this.label,
       lastActive: lastActive ?? this.lastActive,
       isRevoked: isRevoked ?? this.isRevoked,
+      keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }
 }

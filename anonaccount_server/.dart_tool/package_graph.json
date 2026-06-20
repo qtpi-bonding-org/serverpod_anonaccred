@@ -13,6 +13,7 @@
         "serverpod_auth_idp_server"
       ],
       "devDependencies": [
+        "anonaccount_sdk",
         "lints",
         "serverpod_test",
         "test",
@@ -20,14 +21,39 @@
       ]
     },
     {
+      "name": "anonaccount_sdk",
+      "version": "0.1.0",
+      "dependencies": [
+        "anonaccount_client",
+        "crypto",
+        "dart_jwk_duo",
+        "freezed_annotation",
+        "json_annotation",
+        "meta",
+        "webcrypto"
+      ]
+    },
+    {
       "name": "webcrypto",
-      "version": "0.5.8",
+      "version": "0.6.0",
       "dependencies": [
         "ffi",
         "flutter",
         "flutter_web_plugins",
         "meta"
       ]
+    },
+    {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "ffi",
+      "version": "2.2.0",
+      "dependencies": []
     },
     {
       "name": "test",
@@ -136,6 +162,44 @@
       ]
     },
     {
+      "name": "meta",
+      "version": "1.18.0",
+      "dependencies": []
+    },
+    {
+      "name": "json_annotation",
+      "version": "4.12.0",
+      "dependencies": [
+        "meta"
+      ]
+    },
+    {
+      "name": "freezed_annotation",
+      "version": "2.4.4",
+      "dependencies": [
+        "collection",
+        "json_annotation",
+        "meta"
+      ]
+    },
+    {
+      "name": "dart_jwk_duo",
+      "version": "1.0.0",
+      "dependencies": [
+        "webcrypto"
+      ]
+    },
+    {
+      "name": "anonaccount_client",
+      "version": "0.1.0",
+      "dependencies": [
+        "crypto",
+        "serverpod_auth_core_client",
+        "serverpod_auth_idp_client",
+        "serverpod_client"
+      ]
+    },
+    {
       "name": "flutter",
       "version": "0.0.0",
       "dependencies": [
@@ -146,23 +210,6 @@
         "sky_engine",
         "vector_math"
       ]
-    },
-    {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
-      "name": "meta",
-      "version": "1.17.0",
-      "dependencies": []
-    },
-    {
-      "name": "ffi",
-      "version": "2.2.0",
-      "dependencies": []
     },
     {
       "name": "yaml",
@@ -609,9 +656,32 @@
       "dependencies": []
     },
     {
-      "name": "sky_engine",
-      "version": "0.0.0",
-      "dependencies": []
+      "name": "serverpod_client",
+      "version": "3.4.1",
+      "dependencies": [
+        "collection",
+        "http",
+        "meta",
+        "serverpod_serialization",
+        "web_socket",
+        "web_socket_channel"
+      ]
+    },
+    {
+      "name": "serverpod_auth_idp_client",
+      "version": "3.4.1",
+      "dependencies": [
+        "serverpod_auth_core_client",
+        "serverpod_client"
+      ]
+    },
+    {
+      "name": "serverpod_auth_core_client",
+      "version": "3.4.1",
+      "dependencies": [
+        "clock",
+        "serverpod_client"
+      ]
     },
     {
       "name": "vector_math",
@@ -619,15 +689,20 @@
       "dependencies": []
     },
     {
+      "name": "sky_engine",
+      "version": "0.0.0",
+      "dependencies": []
+    },
+    {
       "name": "material_color_utilities",
-      "version": "0.11.1",
+      "version": "0.13.0",
       "dependencies": [
         "collection"
       ]
     },
     {
       "name": "characters",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "dependencies": []
     },
     {

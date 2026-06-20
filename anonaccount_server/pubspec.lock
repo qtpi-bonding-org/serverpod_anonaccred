@@ -33,6 +33,20 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "10.0.1"
+  anonaccount_client:
+    dependency: transitive
+    description:
+      path: "../anonaccount_client"
+      relative: true
+    source: path
+    version: "0.1.0"
+  anonaccount_sdk:
+    dependency: "direct dev"
+    description:
+      path: "../anonaccount_sdk"
+      relative: true
+    source: path
+    version: "0.1.0"
   archive:
     dependency: transitive
     description:
@@ -161,6 +175,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.2"
+  dart_jwk_duo:
+    dependency: transitive
+    description:
+      path: "."
+      ref: e30f27c943a9c25ec6c7eaf70787f48998a7c113
+      resolved-ref: e30f27c943a9c25ec6c7eaf70787f48998a7c113
+      url: "https://github.com/qtpi-bonding-org/dart_jwk_duo.git"
+    source: git
+    version: "1.0.0"
   ed25519_edwards:
     dependency: transitive
     description:
@@ -219,6 +242,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.4"
   frontend_server_client:
     dependency: transitive
     description:
@@ -307,6 +338,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  json_annotation:
+    dependency: transitive
+    description:
+      name: json_annotation
+      sha256: "2a743920d81b7910627f68ee2c9ac1fc0bfee32b9fc3403587d7c6791ca12f80"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.12.0"
   lints:
     dependency: "direct dev"
     description:
@@ -343,10 +382,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
+      sha256: "1741988757a65eb6b36abe716829688cf01910bbf91c34354ff7ec1c3de2b349"
       url: "https://pub.dev"
     source: hosted
-    version: "1.17.0"
+    version: "1.18.0"
   mime:
     dependency: transitive
     description:
@@ -491,6 +530,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.1"
+  serverpod_auth_core_client:
+    dependency: transitive
+    description:
+      name: serverpod_auth_core_client
+      sha256: "21c569868c82fdceebe37fbdb0e0d1f4c96e98d836e9baa2f7930ee0850345aa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.1"
   serverpod_auth_core_server:
     dependency: transitive
     description:
@@ -499,11 +546,27 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.1"
+  serverpod_auth_idp_client:
+    dependency: transitive
+    description:
+      name: serverpod_auth_idp_client
+      sha256: b70f124b4f658a90c7d331a46119d2952e35f3d815ce8128def2fbd4a660dbe0
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.1"
   serverpod_auth_idp_server:
     dependency: "direct main"
     description:
       name: serverpod_auth_idp_server
       sha256: c6c9cdb47ed0186532a5f43b348eba172a99853d60186279aeec0c7891c12d2a
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.1"
+  serverpod_client:
+    dependency: transitive
+    description:
+      name: serverpod_client
+      sha256: "80778342a1c6572fd06f848b3eb54d8016c91ac3275c2526ca7d2eb0eabdb34d"
       url: "https://pub.dev"
     source: hosted
     version: "3.4.1"
@@ -756,10 +819,10 @@ packages:
     dependency: "direct dev"
     description:
       name: webcrypto
-      sha256: e393b3d0b01694a8f81efecf278ed7392877130e6e7b29f578863e4f2d0b2ebd
+      sha256: "6b43001c4110856ff7fa5e5e65e7b2d44bec1d8b54a4d84d5fa2c7622267c5c1"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.8"
+    version: "0.6.0"
   webkit_inspection_protocol:
     dependency: transitive
     description:
@@ -785,5 +848,5 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-  dart: ">=3.9.0 <4.0.0"
+  dart: ">=3.10.0-0 <4.0.0"
   flutter: ">=3.19.0"

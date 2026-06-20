@@ -8,6 +8,8 @@
       "version": "0.1.0",
       "dependencies": [
         "crypto",
+        "serverpod_auth_core_client",
+        "serverpod_auth_idp_client",
         "serverpod_client"
       ],
       "devDependencies": [
@@ -50,6 +52,22 @@
       "version": "3.0.7",
       "dependencies": [
         "typed_data"
+      ]
+    },
+    {
+      "name": "serverpod_auth_core_client",
+      "version": "3.4.1",
+      "dependencies": [
+        "clock",
+        "serverpod_client"
+      ]
+    },
+    {
+      "name": "serverpod_auth_idp_client",
+      "version": "3.4.1",
+      "dependencies": [
+        "serverpod_auth_core_client",
+        "serverpod_client"
       ]
     },
     {
@@ -482,6 +500,11 @@
     {
       "name": "fixnum",
       "version": "1.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "clock",
+      "version": "1.1.2",
       "dependencies": []
     }
   ],

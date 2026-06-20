@@ -564,6 +564,34 @@ class GroupEndpoint extends SignedPowEndpoint {
         attestationSig = memberAuthSignature;
       }
 
+      // Last-admin guard: if removing target would leave 0 admins, either
+      // dissolve (no other members remain) or reject (members would be orphaned).
+      var shouldDissolve = false;
+      if (target.role == GroupMemberRole.admin) {
+        final activeMembers = await GroupMember.db.find(
+          session,
+          where: (t) =>
+              t.shareGroupId.equals(target.shareGroupId) &
+              t.isRevoked.equals(false),
+        );
+        final activeAdmins =
+            activeMembers.where((m) => m.role == GroupMemberRole.admin).toList();
+        if (activeAdmins.length == 1 && activeAdmins.first.id == target.id) {
+          final otherMembers =
+              activeMembers.where((m) => m.id != target.id).toList();
+          if (otherMembers.isNotEmpty) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.groupOperationNotAllowed,
+              message: 'Cannot remove the last admin while other members remain. '
+                  'Promote another member to admin first.',
+              operation: 'removeGroupMember',
+              details: {'groupId': target.shareGroupId.toString()},
+            );
+          }
+          shouldDissolve = true;
+        }
+      }
+
       if (!target.isRevoked) {
         await GroupMember.db.updateRow(
           session,
@@ -574,6 +602,15 @@ class GroupEndpoint extends SignedPowEndpoint {
           ),
         );
       }
+
+      if (shouldDissolve) {
+        final group =
+            await ShareGroup.db.findById(session, target.shareGroupId);
+        if (group != null) {
+          await ShareGroup.db.deleteRow(session, group);
+        }
+      }
+
       return true;
     } on AuthenticationException {
       rethrow;
@@ -864,6 +901,34 @@ class GroupEndpoint extends SignedPowEndpoint {
         );
       }
 
+      // Last-admin guard: check before leaving so we can give a clear error
+      // rather than leaving the group in an adminless-but-not-dissolved state.
+      var shouldDissolve = false;
+      if (target.role == GroupMemberRole.admin) {
+        final activeMembers = await GroupMember.db.find(
+          session,
+          where: (t) =>
+              t.shareGroupId.equals(target.shareGroupId) &
+              t.isRevoked.equals(false),
+        );
+        final activeAdmins =
+            activeMembers.where((m) => m.role == GroupMemberRole.admin).toList();
+        if (activeAdmins.length == 1 && activeAdmins.first.id == target.id) {
+          final otherMembers =
+              activeMembers.where((m) => m.id != target.id).toList();
+          if (otherMembers.isNotEmpty) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.groupOperationNotAllowed,
+              message: 'Cannot leave as the last admin while other members remain. '
+                  'Promote another member to admin first.',
+              operation: 'leaveGroup',
+              details: {'groupId': target.shareGroupId.toString()},
+            );
+          }
+          shouldDissolve = true;
+        }
+      }
+
       await GroupMember.db.updateRow(
         session,
         target.copyWith(
@@ -873,16 +938,7 @@ class GroupEndpoint extends SignedPowEndpoint {
         ),
       );
 
-      // If no non-revoked admins remain, delete the group (cascades all members).
-      final allMembers = await GroupMember.db.find(
-        session,
-        where: (t) =>
-            t.shareGroupId.equals(target.shareGroupId) &
-            t.isRevoked.equals(false),
-      );
-      final remainingAdmins =
-          allMembers.where((m) => m.role == GroupMemberRole.admin).length;
-      if (remainingAdmins == 0) {
+      if (shouldDissolve) {
         final group = await ShareGroup.db.findById(session, target.shareGroupId);
         if (group != null) {
           await ShareGroup.db.deleteRow(session, group);

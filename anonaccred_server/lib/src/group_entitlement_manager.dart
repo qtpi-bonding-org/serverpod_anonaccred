@@ -111,11 +111,14 @@ class GroupEntitlementManager {
           transaction: transaction,
         );
 
+        // FOR UPDATE lock prevents concurrent consumptions from racing on the
+        // same balance row under Postgres READ COMMITTED isolation.
         final record = await GroupEntitlement.db.findFirstRow(
           session,
           where: (t) =>
               t.shareGroupUuid.equals(shareGroupUuid) &
               t.entitlementId.equals(entitlement.id),
+          lockMode: LockMode.forUpdate,
           transaction: transaction,
         );
 
@@ -172,11 +175,14 @@ class GroupEntitlementManager {
 
     try {
       await session.db.transaction((transaction) async {
+        // FOR UPDATE lock prevents concurrent revocations from racing on the
+        // same balance row under Postgres READ COMMITTED isolation.
         final record = await GroupEntitlement.db.findFirstRow(
           session,
           where: (t) =>
               t.shareGroupUuid.equals(shareGroupUuid) &
               t.entitlementId.equals(entitlementId),
+          lockMode: LockMode.forUpdate,
           transaction: transaction,
         );
         if (record == null) return;

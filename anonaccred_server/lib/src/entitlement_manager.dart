@@ -100,11 +100,14 @@ class EntitlementManager {
           transaction: transaction,
         );
 
+        // FOR UPDATE lock prevents concurrent reads from racing on the same
+        // balance row under Postgres READ COMMITTED isolation.
         final record = await AccountEntitlement.db.findFirstRow(
           session,
           where: (t) =>
               t.accountUuid.equals(accountUuid) &
               t.entitlementId.equals(entitlement.id),
+          lockMode: LockMode.forUpdate,
           transaction: transaction,
         );
 
@@ -160,11 +163,14 @@ class EntitlementManager {
 
     try {
       await session.db.transaction((transaction) async {
+        // FOR UPDATE lock prevents concurrent revocations from racing on the
+        // same balance row under Postgres READ COMMITTED isolation.
         final record = await AccountEntitlement.db.findFirstRow(
           session,
           where: (t) =>
               t.accountUuid.equals(accountUuid) &
               t.entitlementId.equals(entitlementId),
+          lockMode: LockMode.forUpdate,
           transaction: transaction,
         );
 

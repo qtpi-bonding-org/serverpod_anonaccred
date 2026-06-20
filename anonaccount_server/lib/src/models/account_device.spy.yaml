@@ -32,3 +32,7 @@ fields:
 
   # Revocation flag for device access control
   isRevoked: bool, default=false
+
+  # Monotonically increasing counter; clients compare against their cached
+  # value to detect when the account data key needs to be re-wrapped.
+  keyEpoch: int, default=0
