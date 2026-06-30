@@ -5,8 +5,7 @@ import 'package:anonaccount_client/src/protocol/client.dart'
 import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
     show PublicChallengeResponse;
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
-import 'package:anonaccount_sdk/src/auth/anonaccount_auth.dart';
-import 'package:anonaccount_sdk/src/crypto/key_gen.dart';
+import 'package:anonaccount_sdk/anonaccount_sdk.dart' show AnonaccountAuth, InMemoryAccountKeyStore;
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -45,15 +44,25 @@ void main() {
           deviceId: any(named: 'deviceId'),
         )).thenAnswer((_) async => true);
 
-    final ultimate = await KeyGen.generateUltimateKey();
-    final ultimateHex = await ultimate.signingKeyPair.exportPublicKeyHex();
-    final auth = AnonaccountAuth(caller);
+    // Generate a seed account and extract its ultimate key
+    final seedStore = InMemoryAccountKeyStore();
+    await seedStore.generateAccountKeys();
+    final seedUltimateJwk = (await seedStore.getUltimateKeyJwkOnce())!;
+
+    // Create auth with a fresh store
+    final authStore = InMemoryAccountKeyStore();
+    final auth = AnonaccountAuth(caller, authStore);
     final targetId =
         UuidValue.fromString('11111111-1111-4111-8111-111111111111');
 
+    // Compute expected ultimateHex by importing into throwaway store
+    final verifyStore = InMemoryAccountKeyStore();
+    final ultimate = await verifyStore.importUltimateKeyJwk(seedUltimateJwk);
+    final ultimateHex = await ultimate.signingKeyPair.exportPublicKeyHex();
+
     final ok = await auth.revokeDevice(
       deviceId: targetId,
-      ultimateKey: ultimate,
+      ultimateBackupJwk: seedUltimateJwk,
     );
     expect(ok, isTrue);
 

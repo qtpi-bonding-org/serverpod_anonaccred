@@ -7,10 +7,17 @@ class _FakeCaller extends Mock implements wire.Caller {}
 
 void main() {
   test('deleteAccount throws UnimplementedError (server endpoint not landed)', () async {
-    final ultimate = await KeyGen.generateUltimateKey();
-    final auth = AnonaccountAuth(_FakeCaller());
+    // Generate a seed account and extract its ultimate key
+    final seedStore = InMemoryAccountKeyStore();
+    await seedStore.generateAccountKeys();
+    final seedUltimateJwk = (await seedStore.getUltimateKeyJwkOnce())!;
+
+    // Create auth with a fresh store
+    final authStore = InMemoryAccountKeyStore();
+    final auth = AnonaccountAuth(_FakeCaller(), authStore);
+
     await expectLater(
-      auth.deleteAccount(ultimateKey: ultimate),
+      auth.deleteAccount(ultimateBackupJwk: seedUltimateJwk),
       throwsA(isA<UnimplementedError>()),
     );
   });

@@ -10,7 +10,6 @@ import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 // UuidValue comes from serverpod_client, re-exported by anonaccount_client.
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
-import 'package:dart_jwk_duo/dart_jwk_duo.dart' show KeyDuo;
 
 import '../crypto/asymmetric.dart';
 import '../models/account_creation_result.dart';
@@ -139,19 +138,20 @@ class AnonaccountAuth {
   /// signed by the ultimate key and resolves the account from it.
   ///
   /// [deviceId] is the UUID of the device row to revoke (not a pubkey hex).
-  /// [ultimateKey] is the account's ultimate key pair.
+  /// [ultimateBackupJwk] is the exported JWK of the account's ultimate key.
   ///
   /// Returns `true` if the device was successfully revoked.
   Future<bool> revokeDevice({
     required UuidValue deviceId,
-    required KeyDuo ultimateKey,
+    required String ultimateBackupJwk,
   }) async {
-    final ultimateHex = await ultimateKey.signingKeyPair.exportPublicKeyHex();
+    final ultimate = await _store.importUltimateKeyJwk(ultimateBackupJwk);
+    final ultimateHex = await ultimate.signingKeyPair.exportPublicKeyHex();
     final challengeResp = await _caller.entrypoint.getChallenge();
     final envelope = await PowSigner.build(
       challenge: challengeResp.challenge,
       methodName: 'revokeDevice',
-      signingKey: ultimateKey,
+      signingKey: ultimate,
       publicKeyHex: ultimateHex,
       difficulty: challengeResp.difficulty,
     );
@@ -167,12 +167,9 @@ class AnonaccountAuth {
   /// Server-side deleteAccount is not yet implemented. The SDK exposes this
   /// method so consumer code can wire it up now; the call will throw until
   /// the server endpoint lands. See spec section 6.6.
-  Future<void> deleteAccount({
-    required KeyDuo ultimateKey,
-  }) async {
+  Future<void> deleteAccount({required String ultimateBackupJwk}) async {
     throw UnimplementedError(
-      'deleteAccount: server-side endpoint not yet available. '
-      'Track follow-up in the anonaccount_server spec.',
+      'deleteAccount: server-side endpoint not yet available.',
     );
   }
 }
