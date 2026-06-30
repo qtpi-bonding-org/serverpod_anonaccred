@@ -45,3 +45,5 @@ export 'package:anonaccount_client/anonaccount_client.dart'
 export 'src/auth/anonaccount_auth.dart';
 export 'src/auth/pairing.dart';
 export 'src/auth/groups.dart';
+export 'src/auth/account_key_store.dart';
+export 'src/auth/in_memory_account_key_store.dart';
