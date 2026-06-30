@@ -1,54 +1,66 @@
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
-import 'package:dart_jwk_duo/dart_jwk_duo.dart';
+// ignore: implementation_imports
+import 'package:anonaccount_sdk/src/crypto/signing.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 class _FakeCaller extends Mock implements wire.Caller {}
 
-class _FakeEntrypoint extends Mock implements wire.EndpointEntrypoint {}
-
 void main() {
   test('recoverAccount produces fresh device key but reuses ultimate key',
       () async {
     final caller = _FakeCaller();
-    when(() => caller.entrypoint).thenReturn(_FakeEntrypoint());
 
-    final source = await KeyGen.generateAccountKeys();
-    final ultimateJwkSet =
-        await const KeyDuoSerializer().exportKeyDuo(source.ultimateKey);
+    // Generate a seed account and extract its ultimate key
+    final seedStore = InMemoryAccountKeyStore();
+    await seedStore.generateAccountKeys();
+    final seedUltimateJwk = (await seedStore.getUltimateKeyJwkOnce())!;
 
-    final auth = AnonaccountAuth(caller);
+    // Create auth with a fresh store and recover using the seed's ultimate key
+    final recoveryStore = InMemoryAccountKeyStore();
+    final auth = AnonaccountAuth(caller, recoveryStore);
+    final createdAt = DateTime.utc(2026, 1, 1);
     final recovered = await auth.recoverAccount(
-      ultimateKeyJwk: ultimateJwkSet,
-      deviceLabel: 'NewMacBook',
+      ultimateKeyJwk: seedUltimateJwk,
+      deviceLabel: 'd',
+      createdAt: createdAt,
     );
 
-    final originalUltimateHex =
-        await source.ultimateKey.signingKeyPair.exportPublicKeyHex();
-    final recoveredUltimateHex =
-        await recovered.keys.ultimateKey.signingKeyPair.exportPublicKeyHex();
-    final originalDeviceHex =
-        await source.deviceKey.signingKeyPair.exportPublicKeyHex();
-    final recoveredDeviceHex =
-        await recovered.keys.deviceKey.signingKeyPair.exportPublicKeyHex();
+    final p = recovered.payload;
 
-    expect(recoveredUltimateHex, originalUltimateHex);
-    expect(recoveredDeviceHex, isNot(originalDeviceHex));
-    expect(recovered.payload.devicePublicKeyHex, recoveredDeviceHex);
-    expect(recovered.payload.ultimatePublicKeyHex, originalUltimateHex);
-    expect(recovered.payload.recoveryBlob, isNotEmpty);
-    expect(recovered.payload.deviceBlob, isNotEmpty);
-    expect(recovered.payload.signature, isNotEmpty);
-    expect(recovered.payload.deviceKeyAttestation, isNotEmpty);
+    // structure
+    expect(p.devicePublicKeyHex, hasLength(128));
+    expect(p.ultimatePublicKeyHex, hasLength(128));
+    expect(p.createdAt, createdAt);
+
+    // signature verifies over the canonical signableData with the ultimate key
+    final signable =
+        '${p.devicePublicKeyHex}:${p.ultimatePublicKeyHex}:${p.recoveryBlob}:'
+        '${p.deviceBlob}:${createdAt.toIso8601String()}';
+
+    // Re-import the seed's ultimate key to verify signatures
+    final verifyStore = InMemoryAccountKeyStore();
+    final ultimate = await verifyStore.importUltimateKeyJwk(seedUltimateJwk);
+
+    expect(await SigningCrypto.verifyChallenge(signable, p.signature, ultimate),
+        isTrue);
+    expect(
+        await SigningCrypto.verifyChallenge(
+            p.devicePublicKeyHex, p.deviceKeyAttestation, ultimate),
+        isTrue);
   });
 
   test('recoverAccount throws InvalidUltimateKeyException on bad JWK', () async {
     final caller = _FakeCaller();
-    when(() => caller.entrypoint).thenReturn(_FakeEntrypoint());
-    final auth = AnonaccountAuth(caller);
+    final store = InMemoryAccountKeyStore();
+    final auth = AnonaccountAuth(caller, store);
     await expectLater(
-      auth.recoverAccount(ultimateKeyJwk: 'not-json', deviceLabel: 'x'),
+      auth.recoverAccount(
+        ultimateKeyJwk: 'not-json',
+        deviceLabel: 'x',
+        createdAt: DateTime.utc(2026, 1, 1),
+      ),
       throwsA(isA<InvalidUltimateKeyException>()),
     );
   });
