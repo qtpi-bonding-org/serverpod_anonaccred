@@ -17,7 +17,6 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$AccountCreationResult {
-  AccountKeys get keys => throw _privateConstructorUsedError;
   RegistrationPayload get payload => throw _privateConstructorUsedError;
 
   /// Create a copy of AccountCreationResult
@@ -34,9 +33,8 @@ abstract class $AccountCreationResultCopyWith<$Res> {
     $Res Function(AccountCreationResult) then,
   ) = _$AccountCreationResultCopyWithImpl<$Res, AccountCreationResult>;
   @useResult
-  $Res call({AccountKeys keys, RegistrationPayload payload});
+  $Res call({RegistrationPayload payload});
 
-  $AccountKeysCopyWith<$Res> get keys;
   $RegistrationPayloadCopyWith<$Res> get payload;
 }
 
@@ -57,13 +55,9 @@ class _$AccountCreationResultCopyWithImpl<
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? keys = null, Object? payload = null}) {
+  $Res call({Object? payload = null}) {
     return _then(
       _value.copyWith(
-            keys: null == keys
-                ? _value.keys
-                : keys // ignore: cast_nullable_to_non_nullable
-                      as AccountKeys,
             payload: null == payload
                 ? _value.payload
                 : payload // ignore: cast_nullable_to_non_nullable
@@ -71,16 +65,6 @@ class _$AccountCreationResultCopyWithImpl<
           )
           as $Val,
     );
-  }
-
-  /// Create a copy of AccountCreationResult
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $AccountKeysCopyWith<$Res> get keys {
-    return $AccountKeysCopyWith<$Res>(_value.keys, (value) {
-      return _then(_value.copyWith(keys: value) as $Val);
-    });
   }
 
   /// Create a copy of AccountCreationResult
@@ -103,10 +87,8 @@ abstract class _$$AccountCreationResultImplCopyWith<$Res>
   ) = __$$AccountCreationResultImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({AccountKeys keys, RegistrationPayload payload});
+  $Res call({RegistrationPayload payload});
 
-  @override
-  $AccountKeysCopyWith<$Res> get keys;
   @override
   $RegistrationPayloadCopyWith<$Res> get payload;
 }
@@ -125,13 +107,9 @@ class __$$AccountCreationResultImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? keys = null, Object? payload = null}) {
+  $Res call({Object? payload = null}) {
     return _then(
       _$AccountCreationResultImpl(
-        keys: null == keys
-            ? _value.keys
-            : keys // ignore: cast_nullable_to_non_nullable
-                  as AccountKeys,
         payload: null == payload
             ? _value.payload
             : payload // ignore: cast_nullable_to_non_nullable
@@ -144,19 +122,14 @@ class __$$AccountCreationResultImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$AccountCreationResultImpl implements _AccountCreationResult {
-  const _$AccountCreationResultImpl({
-    required this.keys,
-    required this.payload,
-  });
+  const _$AccountCreationResultImpl({required this.payload});
 
-  @override
-  final AccountKeys keys;
   @override
   final RegistrationPayload payload;
 
   @override
   String toString() {
-    return 'AccountCreationResult(keys: $keys, payload: $payload)';
+    return 'AccountCreationResult(payload: $payload)';
   }
 
   @override
@@ -164,12 +137,11 @@ class _$AccountCreationResultImpl implements _AccountCreationResult {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$AccountCreationResultImpl &&
-            (identical(other.keys, keys) || other.keys == keys) &&
             (identical(other.payload, payload) || other.payload == payload));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, keys, payload);
+  int get hashCode => Object.hash(runtimeType, payload);
 
   /// Create a copy of AccountCreationResult
   /// with the given fields replaced by the non-null parameter values.
@@ -186,12 +158,9 @@ class _$AccountCreationResultImpl implements _AccountCreationResult {
 
 abstract class _AccountCreationResult implements AccountCreationResult {
   const factory _AccountCreationResult({
-    required final AccountKeys keys,
     required final RegistrationPayload payload,
   }) = _$AccountCreationResultImpl;
 
-  @override
-  AccountKeys get keys;
   @override
   RegistrationPayload get payload;
 

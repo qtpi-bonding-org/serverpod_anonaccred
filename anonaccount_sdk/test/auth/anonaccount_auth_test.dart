@@ -9,6 +9,8 @@ import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
 // ignore: implementation_imports
 import 'package:anonaccount_sdk/src/auth/anonaccount_auth.dart';
+// ignore: implementation_imports
+import 'package:anonaccount_sdk/src/auth/in_memory_account_key_store.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -60,11 +62,12 @@ void main() {
   group('createAccount (local-only)', () {
     test('produces a complete AccountCreationResult without calling the wire',
         () async {
-      final auth = AnonaccountAuth(caller);
-      final result = await auth.createAccount(deviceLabel: 'iPhone-15');
+      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore());
+      final result = await auth.createAccount(
+        deviceLabel: 'iPhone-15',
+        createdAt: DateTime.utc(2026),
+      );
 
-      expect(result.keys.ultimateKey, isNotNull);
-      expect(result.keys.deviceKey, isNotNull);
       expect(result.payload.devicePublicKeyHex, hasLength(128));
       expect(result.payload.ultimatePublicKeyHex, hasLength(128));
       expect(result.payload.recoveryBlob, isNotEmpty);
@@ -91,11 +94,13 @@ void main() {
   group('registerAccount (wire submission)', () {
     test('calls account.createAccount with consistent pubkeys + deviceLabel',
         () async {
-      final auth = AnonaccountAuth(caller);
-      final created = await auth.createAccount(deviceLabel: 'iPhone-15');
+      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore());
+      final created = await auth.createAccount(
+        deviceLabel: 'iPhone-15',
+        createdAt: DateTime.utc(2026),
+      );
       await auth.registerAccount(
         created.payload,
-        keys: created.keys,
         deviceLabel: 'iPhone-15',
       );
       final captured = verify(() => account.createAccount(
