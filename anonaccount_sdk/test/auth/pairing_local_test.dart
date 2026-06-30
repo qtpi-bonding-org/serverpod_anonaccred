@@ -9,10 +9,10 @@ import 'package:test/test.dart';
 class _FakeCaller extends Mock implements wire.Caller {}
 
 void main() {
-  group('generateQr', () {
+  group('beginPairing', () {
     test('returns a fresh device key + parseable QR payload', () async {
-      final pairing = AnonaccountPairing(_FakeCaller());
-      final qr = await pairing.generateQr(deviceLabel: 'iPhone-15');
+      final pairing = AnonaccountPairing(_FakeCaller(), InMemoryAccountKeyStore());
+      final qr = await pairing.beginPairing(deviceLabel: 'iPhone-15');
       expect(qr.signingPubkeyHex, hasLength(128));
 
       final decoded = jsonDecode(qr.qrPayloadJson) as Map<String, dynamic>;
@@ -24,16 +24,16 @@ void main() {
   });
 
   group('parseQr', () {
-    test('round-trips with generateQr output', () async {
-      final pairing = AnonaccountPairing(_FakeCaller());
-      final qr = await pairing.generateQr(deviceLabel: 'iPhone-15');
+    test('round-trips with beginPairing output', () async {
+      final pairing = AnonaccountPairing(_FakeCaller(), InMemoryAccountKeyStore());
+      final qr = await pairing.beginPairing(deviceLabel: 'iPhone-15');
       final scanned = pairing.parseQr(qr.qrPayloadJson);
       expect(scanned.theirSigningPubkeyHex, qr.signingPubkeyHex);
       expect(scanned.label, 'iPhone-15');
     });
 
     test('throws on malformed JSON', () {
-      final pairing = AnonaccountPairing(_FakeCaller());
+      final pairing = AnonaccountPairing(_FakeCaller(), InMemoryAccountKeyStore());
       expect(
         () => pairing.parseQr('not-json'),
         throwsA(isA<FormatException>()),
@@ -42,21 +42,21 @@ void main() {
   });
 
   group('completePairing', () {
-    test('unwraps to a working AesGcmSecretKey', () async {
-      final pairing = AnonaccountPairing(_FakeCaller());
-      final myDeviceKey = await KeyGen.generateDeviceKey();
-      final originalJwk = await KeyGen.generateSymmetricKeyJwk();
+    test('unwraps to a working AesGcmSecretKey and persists it via the store',
+        () async {
+      final store = InMemoryAccountKeyStore();
+      final pairing = AnonaccountPairing(_FakeCaller(), store);
+      await store.generateAndStoreDeviceKey();
+      final originalJwk = await store.generateSymmetricKeyJwk();
 
       // Approver side wraps the JWK to our public encryption key.
       final blob = await AsymmetricCrypto.wrapForRecipient(
-        originalJwk,
-        myDeviceKey.encryptionKeyPair.publicKey,
-      );
+          originalJwk, (await store.getDevicePublicKey())!);
 
-      final aesKey = await pairing.completePairing(
-        wrappedKey: blob,
-        myDeviceKey: myDeviceKey,
-      );
+      final aesKey = await pairing.completePairing(wrappedKey: blob);
+
+      // The store now holds the symmetric key.
+      expect(await store.getSymmetricDataKeyJwk(), isNotNull);
 
       // Round-trip an arbitrary payload to confirm the imported key works.
       final ct = await SymmetricCrypto.encrypt(

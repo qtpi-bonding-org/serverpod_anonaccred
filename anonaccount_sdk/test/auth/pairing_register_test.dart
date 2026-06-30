@@ -52,19 +52,20 @@ void main() {
           label: any(named: 'label'),
         )).thenAnswer((_) async => stubResponse);
 
-    final ourDeviceKey = await KeyGen.generateDeviceKey();
-    final theirKey = await KeyGen.generateDeviceKey();
-    final ourSymKey = await AesGcmSecretKey.generateKey(256);
-    final ourDeviceHex = await ourDeviceKey.signingKeyPair.exportPublicKeyHex();
-    final theirHex = await theirKey.signingKeyPair.exportPublicKeyHex();
+    final ourStore = InMemoryAccountKeyStore();
+    await ourStore.generateAccountKeys();
+    final ourDeviceHex = (await ourStore.getDeviceSigningPublicKeyHex())!;
 
-    final pairing = AnonaccountPairing(caller, difficulty: 4);
+    final theirStore = InMemoryAccountKeyStore();
+    final theirPairing = AnonaccountPairing(_FakeCaller(), theirStore);
+    final theirQr = await theirPairing.beginPairing(deviceLabel: 'their-device');
+    final theirHex = theirQr.signingPubkeyHex;
+
+    final pairing = AnonaccountPairing(caller, ourStore, difficulty: 4);
+    final scanned = pairing.parseQr(theirQr.qrPayloadJson);
     final result = await pairing.registerPairedDevice(
-      ourDeviceKey: ourDeviceKey,
-      theirSigningPubkeyHex: theirHex,
-      theirEncryptionPubkey: theirKey.encryptionKeyPair.publicKey,
+      scanned: scanned,
       label: 'iPhone',
-      ourSymmetricKey: ourSymKey,
     );
     expect(result, stubResponse);
 

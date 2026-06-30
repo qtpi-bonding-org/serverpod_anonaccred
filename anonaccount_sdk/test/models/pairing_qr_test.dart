@@ -1,23 +1,19 @@
 import 'dart:convert';
-import 'package:anonaccount_sdk/src/crypto/key_gen.dart';
 import 'package:anonaccount_sdk/src/models/generated_pairing_qr.dart';
 import 'package:anonaccount_sdk/src/models/scanned_pairing_qr.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('GeneratedPairingQr exposes payload + keys + signing pubkey hex', () async {
-    final duo = await KeyGen.generateDeviceKey();
+  test('GeneratedPairingQr exposes payload + signing pubkey hex', () async {
     final qr = GeneratedPairingQr(
       qrPayloadJson: jsonEncode({
         'action': 'pair',
         'devicePublicKeyJwk': '{}',
         'label': 'iPhone',
       }),
-      deviceKey: duo,
       signingPubkeyHex: 'a' * 128,
     );
     expect(qr.signingPubkeyHex, 'a' * 128);
-    expect(qr.deviceKey, duo);
     expect(jsonDecode(qr.qrPayloadJson), isMap);
   });
 

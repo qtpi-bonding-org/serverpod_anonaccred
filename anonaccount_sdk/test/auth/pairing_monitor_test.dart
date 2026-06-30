@@ -45,15 +45,15 @@ void main() {
           signingKeyHex: any(named: 'signingKeyHex'),
         )).thenAnswer((_) => Stream.fromIterable([makeEvent('BLOB-A'), makeEvent('BLOB-B')]));
 
-    final key = await KeyGen.generateDeviceKey();
-    final hex = await key.signingKeyPair.exportPublicKeyHex();
-    final pairing = AnonaccountPairing(caller, difficulty: 4);
-    final values =
-        await pairing.monitorRegistration(hex, deviceKey: key).toList();
+    final store = InMemoryAccountKeyStore();
+    await store.generateAndStoreDeviceKey();
+    final hex = (await store.getDeviceSigningPublicKeyHex())!;
+    final pairing = AnonaccountPairing(caller, store, difficulty: 4);
+    final values = await pairing.monitorRegistration(hex).toList();
     expect(values, ['BLOB-A', 'BLOB-B']);
   });
 
-  test('awaitFirstRegistration returns just the first emission', () async {
+  test('yields a single emission when the server fires once', () async {
     when(() => device.monitorRegistration(
           challenge: any(named: 'challenge'),
           proofOfWork: any(named: 'proofOfWork'),
@@ -61,10 +61,11 @@ void main() {
           signingKeyHex: any(named: 'signingKeyHex'),
         )).thenAnswer((_) => Stream.fromIterable([makeEvent('ONLY')]));
 
-    final key = await KeyGen.generateDeviceKey();
-    final hex = await key.signingKeyPair.exportPublicKeyHex();
-    final pairing = AnonaccountPairing(caller, difficulty: 4);
-    final v = await pairing.awaitFirstRegistration(hex, deviceKey: key);
+    final store = InMemoryAccountKeyStore();
+    await store.generateAndStoreDeviceKey();
+    final hex = (await store.getDeviceSigningPublicKeyHex())!;
+    final pairing = AnonaccountPairing(caller, store, difficulty: 4);
+    final v = await pairing.monitorRegistration(hex).first;
     expect(v, 'ONLY');
   });
 }
