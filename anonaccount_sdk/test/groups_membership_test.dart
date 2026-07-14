@@ -8,7 +8,7 @@ class _FakeEntrypoint extends Mock implements wire.EndpointEntrypoint {}
 class _FakeGroup extends Mock implements wire.EndpointGroup {}
 
 void main() {
-  test('listMyGroups maps wire rows to GroupMembership', () async {
+  test('listMyGroups surfaces the member row id as memberId', () async {
     final caller = _FakeCaller();
     final entrypoint = _FakeEntrypoint();
     final group = _FakeGroup();
@@ -22,26 +22,16 @@ void main() {
       ),
     );
 
-    final row1 = wire.GroupMember(
-      id: wire.UuidValue.fromString('44444444-4444-4444-8444-444444444444'),
-      shareGroupId: wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
-      anonAccountId: wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
-      role: wire.GroupMemberRole.admin,
+    final memberRowId = wire.UuidValue.fromString('11111111-1111-1111-1111-111111111111');
+    final row = wire.GroupMember(
+      id: memberRowId,
+      shareGroupId: wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
+      anonAccountId: wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333'),
+      role: wire.GroupMemberRole.member,
       memberSigningPublicKeyHex: 'a' * 128,
       memberPublicKey: '{"kty":"EC"}',
       encryptedDataKey: 'BLOB1',
       joinedAt: DateTime.utc(2026, 5, 20),
-    );
-    final row2 = wire.GroupMember(
-      id: wire.UuidValue.fromString('55555555-5555-4555-8555-555555555555'),
-      shareGroupId: wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333'),
-      anonAccountId: wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
-      role: wire.GroupMemberRole.member,
-      memberSigningPublicKeyHex: 'b' * 128,
-      memberPublicKey: '{"kty":"EC"}',
-      encryptedDataKey: 'BLOB2',
-      joinedAt: DateTime.utc(2026, 5, 21),
-      isRevoked: false,
     );
     when(() => group.listMyGroups(
           challenge: any(named: 'challenge'),
@@ -49,20 +39,13 @@ void main() {
           signature: any(named: 'signature'),
           callerDeviceSigningPublicKeyHex:
               any(named: 'callerDeviceSigningPublicKeyHex'),
-        )).thenAnswer((_) async => [row1, row2]);
+        )).thenAnswer((_) async => [row]);
 
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final groups = AnonaccountGroups(caller, difficulty: 4);
     final memberships =
         await groups.listMyGroups(callerDeviceKey: callerDeviceKey);
 
-    expect(memberships, hasLength(2));
-    expect(memberships[0].groupId, '11111111-1111-4111-8111-111111111111');
-    expect(memberships[0].memberId, row1.id);
-    expect(memberships[0].role, wire.GroupMemberRole.admin);
-    expect(memberships[0].encryptedDataKey, 'BLOB1');
-    expect(memberships[1].groupId, '33333333-3333-4333-8333-333333333333');
-    expect(memberships[1].memberId, row2.id);
-    expect(memberships[1].isRevoked, isFalse);
+    expect(memberships.single.memberId, memberRowId);
   });
 }

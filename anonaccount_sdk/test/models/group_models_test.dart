@@ -1,4 +1,6 @@
 // ignore: implementation_imports
+import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
+// ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/group_member_role.dart'
     show GroupMemberRole;
 import 'package:anonaccount_sdk/src/crypto/key_gen.dart';
@@ -26,6 +28,7 @@ void main() {
   test('GroupMembership round-trips through JSON (sans runtime key)', () {
     final m = GroupMembership(
       groupId: '11111111-1111-4111-8111-111111111111',
+      memberId: UuidValue.fromString('66666666-6666-4666-8666-666666666666'),
       role: GroupMemberRole.admin,
       encryptedDataKey: 'BLOB',
       joinedAt: DateTime.utc(2026, 5, 20),

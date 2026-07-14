@@ -131,6 +131,7 @@ class AnonaccountGroups {
         .map(
           (r) => GroupMembership(
             groupId: r.shareGroupId.toString(),
+            memberId: r.id!, // server always returns a persisted row id
             role: r.role,
             encryptedDataKey: r.encryptedDataKey,
             joinedAt: r.joinedAt,

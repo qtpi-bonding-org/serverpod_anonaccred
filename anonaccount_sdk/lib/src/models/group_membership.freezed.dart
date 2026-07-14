@@ -22,6 +22,8 @@ GroupMembership _$GroupMembershipFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$GroupMembership {
   String get groupId => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
+  UuidValue get memberId => throw _privateConstructorUsedError; // NEW — the GroupMember row id, needed by leaveGroup/removeGroupMember
   @_GroupMemberRoleConverter()
   GroupMemberRole get role => throw _privateConstructorUsedError;
   String get encryptedDataKey => throw _privateConstructorUsedError;
@@ -47,6 +49,11 @@ abstract class $GroupMembershipCopyWith<$Res> {
   @useResult
   $Res call({
     String groupId,
+    @JsonKey(
+      fromJson: UuidValueJsonExtension.fromJson,
+      toJson: _uuidValueToJson,
+    )
+    UuidValue memberId,
     @_GroupMemberRoleConverter() GroupMemberRole role,
     String encryptedDataKey,
     DateTime joinedAt,
@@ -70,6 +77,7 @@ class _$GroupMembershipCopyWithImpl<$Res, $Val extends GroupMembership>
   @override
   $Res call({
     Object? groupId = null,
+    Object? memberId = null,
     Object? role = null,
     Object? encryptedDataKey = null,
     Object? joinedAt = null,
@@ -81,6 +89,10 @@ class _$GroupMembershipCopyWithImpl<$Res, $Val extends GroupMembership>
                 ? _value.groupId
                 : groupId // ignore: cast_nullable_to_non_nullable
                       as String,
+            memberId: null == memberId
+                ? _value.memberId
+                : memberId // ignore: cast_nullable_to_non_nullable
+                      as UuidValue,
             role: null == role
                 ? _value.role
                 : role // ignore: cast_nullable_to_non_nullable
@@ -114,6 +126,11 @@ abstract class _$$GroupMembershipImplCopyWith<$Res>
   @useResult
   $Res call({
     String groupId,
+    @JsonKey(
+      fromJson: UuidValueJsonExtension.fromJson,
+      toJson: _uuidValueToJson,
+    )
+    UuidValue memberId,
     @_GroupMemberRoleConverter() GroupMemberRole role,
     String encryptedDataKey,
     DateTime joinedAt,
@@ -136,6 +153,7 @@ class __$$GroupMembershipImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? groupId = null,
+    Object? memberId = null,
     Object? role = null,
     Object? encryptedDataKey = null,
     Object? joinedAt = null,
@@ -147,6 +165,10 @@ class __$$GroupMembershipImplCopyWithImpl<$Res>
             ? _value.groupId
             : groupId // ignore: cast_nullable_to_non_nullable
                   as String,
+        memberId: null == memberId
+            ? _value.memberId
+            : memberId // ignore: cast_nullable_to_non_nullable
+                  as UuidValue,
         role: null == role
             ? _value.role
             : role // ignore: cast_nullable_to_non_nullable
@@ -173,6 +195,11 @@ class __$$GroupMembershipImplCopyWithImpl<$Res>
 class _$GroupMembershipImpl implements _GroupMembership {
   const _$GroupMembershipImpl({
     required this.groupId,
+    @JsonKey(
+      fromJson: UuidValueJsonExtension.fromJson,
+      toJson: _uuidValueToJson,
+    )
+    required this.memberId,
     @_GroupMemberRoleConverter() required this.role,
     required this.encryptedDataKey,
     required this.joinedAt,
@@ -185,6 +212,10 @@ class _$GroupMembershipImpl implements _GroupMembership {
   @override
   final String groupId;
   @override
+  @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
+  final UuidValue memberId;
+  // NEW — the GroupMember row id, needed by leaveGroup/removeGroupMember
+  @override
   @_GroupMemberRoleConverter()
   final GroupMemberRole role;
   @override
@@ -196,7 +227,7 @@ class _$GroupMembershipImpl implements _GroupMembership {
 
   @override
   String toString() {
-    return 'GroupMembership(groupId: $groupId, role: $role, encryptedDataKey: $encryptedDataKey, joinedAt: $joinedAt, isRevoked: $isRevoked)';
+    return 'GroupMembership(groupId: $groupId, memberId: $memberId, role: $role, encryptedDataKey: $encryptedDataKey, joinedAt: $joinedAt, isRevoked: $isRevoked)';
   }
 
   @override
@@ -205,6 +236,8 @@ class _$GroupMembershipImpl implements _GroupMembership {
         (other.runtimeType == runtimeType &&
             other is _$GroupMembershipImpl &&
             (identical(other.groupId, groupId) || other.groupId == groupId) &&
+            (identical(other.memberId, memberId) ||
+                other.memberId == memberId) &&
             (identical(other.role, role) || other.role == role) &&
             (identical(other.encryptedDataKey, encryptedDataKey) ||
                 other.encryptedDataKey == encryptedDataKey) &&
@@ -219,6 +252,7 @@ class _$GroupMembershipImpl implements _GroupMembership {
   int get hashCode => Object.hash(
     runtimeType,
     groupId,
+    memberId,
     role,
     encryptedDataKey,
     joinedAt,
@@ -245,6 +279,11 @@ class _$GroupMembershipImpl implements _GroupMembership {
 abstract class _GroupMembership implements GroupMembership {
   const factory _GroupMembership({
     required final String groupId,
+    @JsonKey(
+      fromJson: UuidValueJsonExtension.fromJson,
+      toJson: _uuidValueToJson,
+    )
+    required final UuidValue memberId,
     @_GroupMemberRoleConverter() required final GroupMemberRole role,
     required final String encryptedDataKey,
     required final DateTime joinedAt,
@@ -256,6 +295,9 @@ abstract class _GroupMembership implements GroupMembership {
 
   @override
   String get groupId;
+  @override
+  @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
+  UuidValue get memberId; // NEW — the GroupMember row id, needed by leaveGroup/removeGroupMember
   @override
   @_GroupMemberRoleConverter()
   GroupMemberRole get role;
