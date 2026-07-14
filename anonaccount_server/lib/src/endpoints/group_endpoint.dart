@@ -564,52 +564,63 @@ class GroupEndpoint extends SignedPowEndpoint {
         attestationSig = memberAuthSignature;
       }
 
-      // Last-admin guard: if removing target would leave 0 admins, either
-      // dissolve (no other members remain) or reject (members would be orphaned).
-      var shouldDissolve = false;
-      if (target.role == GroupMemberRole.admin) {
-        final activeMembers = await GroupMember.db.find(
-          session,
-          where: (t) =>
-              t.shareGroupId.equals(target.shareGroupId) &
-              t.isRevoked.equals(false),
-        );
-        final activeAdmins =
-            activeMembers.where((m) => m.role == GroupMemberRole.admin).toList();
-        if (activeAdmins.length == 1 && activeAdmins.first.id == target.id) {
-          final otherMembers =
-              activeMembers.where((m) => m.id != target.id).toList();
-          if (otherMembers.isNotEmpty) {
-            throw AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.groupOperationNotAllowed,
-              message: 'Cannot remove the last admin while other members remain. '
-                  'Promote another member to admin first.',
-              operation: 'removeGroupMember',
-              details: {'groupId': target.shareGroupId.toString()},
-            );
+      // Last-admin guard: transactional + row-locked (same reasoning as
+      // leaveGroup above) so two concurrent removals/departures of a group's
+      // last two admins cannot both pass the check.
+      await session.db.transaction((tx) async {
+        var shouldDissolve = false;
+        if (target.role == GroupMemberRole.admin) {
+          final activeMembers = await GroupMember.db.find(
+            session,
+            where: (t) =>
+                t.shareGroupId.equals(target.shareGroupId) &
+                t.isRevoked.equals(false),
+            transaction: tx,
+            lockMode: LockMode.forUpdate,
+          );
+          final activeAdmins = activeMembers
+              .where((m) => m.role == GroupMemberRole.admin)
+              .toList();
+          if (activeAdmins.length == 1 && activeAdmins.first.id == target.id) {
+            final otherMembers =
+                activeMembers.where((m) => m.id != target.id).toList();
+            if (otherMembers.isNotEmpty) {
+              throw AnonAccountExceptionFactory.createAuthenticationException(
+                code: AnonAccountErrorCodes.groupOperationNotAllowed,
+                message:
+                    'Cannot remove the last admin while other members remain. '
+                    'Promote another member to admin first.',
+                operation: 'removeGroupMember',
+                details: {'groupId': target.shareGroupId.toString()},
+              );
+            }
+            shouldDissolve = true;
           }
-          shouldDissolve = true;
         }
-      }
 
-      if (!target.isRevoked) {
-        await GroupMember.db.updateRow(
-          session,
-          target.copyWith(
-            isRevoked: true,
-            revokedBySignerPublicKeyHex: attestingPubkey,
-            revokedByAttestation: attestationSig,
-          ),
-        );
-      }
-
-      if (shouldDissolve) {
-        final group =
-            await ShareGroup.db.findById(session, target.shareGroupId);
-        if (group != null) {
-          await ShareGroup.db.deleteRow(session, group);
+        if (!target.isRevoked) {
+          await GroupMember.db.updateRow(
+            session,
+            target.copyWith(
+              isRevoked: true,
+              revokedBySignerPublicKeyHex: attestingPubkey,
+              revokedByAttestation: attestationSig,
+            ),
+            transaction: tx,
+          );
         }
-      }
+
+        if (shouldDissolve) {
+          final group = await ShareGroup.db.findById(
+            session,
+            target.shareGroupId,
+            transaction: tx,
+          );
+          if (group != null) {
+            await ShareGroup.db.deleteRow(session, group, transaction: tx);
+          }
+        }
+      });
 
       return true;
     } on AuthenticationException {
@@ -901,49 +912,67 @@ class GroupEndpoint extends SignedPowEndpoint {
         );
       }
 
-      // Last-admin guard: check before leaving so we can give a clear error
-      // rather than leaving the group in an adminless-but-not-dissolved state.
-      var shouldDissolve = false;
-      if (target.role == GroupMemberRole.admin) {
-        final activeMembers = await GroupMember.db.find(
-          session,
-          where: (t) =>
-              t.shareGroupId.equals(target.shareGroupId) &
-              t.isRevoked.equals(false),
-        );
-        final activeAdmins =
-            activeMembers.where((m) => m.role == GroupMemberRole.admin).toList();
-        if (activeAdmins.length == 1 && activeAdmins.first.id == target.id) {
-          final otherMembers =
-              activeMembers.where((m) => m.id != target.id).toList();
-          if (otherMembers.isNotEmpty) {
-            throw AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.groupOperationNotAllowed,
-              message: 'Cannot leave as the last admin while other members remain. '
-                  'Promote another member to admin first.',
-              operation: 'leaveGroup',
-              details: {'groupId': target.shareGroupId.toString()},
-            );
+      // Last-admin guard: transactional + row-locked so two concurrent
+      // leaveGroup calls for the group's last two admins cannot both pass
+      // the check. session.db.transaction() alone is READ COMMITTED with no
+      // row lock — two racing SELECTs would both see "2 admins" and both
+      // proceed. Locking the active-member set with LockMode.forUpdate
+      // serializes the race: the second caller's SELECT blocks until the
+      // first caller's transaction commits, then re-reads the now-reduced
+      // admin set (Postgres re-fetches the current row versions once the
+      // lock is granted) and takes the correct branch.
+      await session.db.transaction((tx) async {
+        var shouldDissolve = false;
+        if (target.role == GroupMemberRole.admin) {
+          final activeMembers = await GroupMember.db.find(
+            session,
+            where: (t) =>
+                t.shareGroupId.equals(target.shareGroupId) &
+                t.isRevoked.equals(false),
+            transaction: tx,
+            lockMode: LockMode.forUpdate,
+          );
+          final activeAdmins = activeMembers
+              .where((m) => m.role == GroupMemberRole.admin)
+              .toList();
+          if (activeAdmins.length == 1 && activeAdmins.first.id == target.id) {
+            final otherMembers =
+                activeMembers.where((m) => m.id != target.id).toList();
+            if (otherMembers.isNotEmpty) {
+              throw AnonAccountExceptionFactory.createAuthenticationException(
+                code: AnonAccountErrorCodes.groupOperationNotAllowed,
+                message:
+                    'Cannot leave as the last admin while other members remain. '
+                    'Promote another member to admin first.',
+                operation: 'leaveGroup',
+                details: {'groupId': target.shareGroupId.toString()},
+              );
+            }
+            shouldDissolve = true;
           }
-          shouldDissolve = true;
         }
-      }
 
-      await GroupMember.db.updateRow(
-        session,
-        target.copyWith(
-          isRevoked: true,
-          revokedBySignerPublicKeyHex: memberSigningPublicKeyHex,
-          revokedByAttestation: memberAuthSignature,
-        ),
-      );
+        await GroupMember.db.updateRow(
+          session,
+          target.copyWith(
+            isRevoked: true,
+            revokedBySignerPublicKeyHex: memberSigningPublicKeyHex,
+            revokedByAttestation: memberAuthSignature,
+          ),
+          transaction: tx,
+        );
 
-      if (shouldDissolve) {
-        final group = await ShareGroup.db.findById(session, target.shareGroupId);
-        if (group != null) {
-          await ShareGroup.db.deleteRow(session, group);
+        if (shouldDissolve) {
+          final group = await ShareGroup.db.findById(
+            session,
+            target.shareGroupId,
+            transaction: tx,
+          );
+          if (group != null) {
+            await ShareGroup.db.deleteRow(session, group, transaction: tx);
+          }
         }
-      }
+      });
 
       return true;
     } on AuthenticationException {

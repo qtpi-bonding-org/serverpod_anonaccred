@@ -843,6 +843,123 @@ test('listGroupMembers: rejected when caller is not a member', () async {
   }
 });
 
+test('leaveGroup: last admin with other members present cannot leave (guard blocks)',
+    () async {
+  final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+  // Add a second (plain) member so the creator's admin seat is the sole
+  // admin while the group is non-empty otherwise.
+  final (_, m2UltPub) = SigningTestHelper.generateKeypair();
+  final m2 = await createTestAccount(
+    sessionBuilder,
+    ultimateSigningPublicKeyHex: m2UltPub,
+    ultimatePublicKey: m2UltPub,
+  );
+  final (_, m2DevicePub) = SigningTestHelper.generateKeypair();
+  await createTestDevice(
+    sessionBuilder,
+    anonAccountId: m2.id!,
+    deviceSigningPublicKeyHex: m2DevicePub,
+  );
+  final (_, m2MemberPub) = SigningTestHelper.generateKeypair();
+  final (_, m2MemberEnc) = SigningTestHelper.generateKeypair();
+
+  final outerAdd = await _outer(
+    sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
+  );
+  final addInner = GroupInnerPayloads.addGroupMember(
+    s.group.id!, m2.id!, GroupMemberRole.member, m2MemberPub, m2MemberEnc,
+  );
+  final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
+  await endpoints.group.addGroupMember(
+    sessionBuilder,
+    challenge: outerAdd.challenge,
+    proofOfWork: outerAdd.pow,
+    signature: outerAdd.signature,
+    callerDeviceSigningPublicKeyHex: s.devicePub,
+    groupId: s.group.id!,
+    newMemberAccountId: m2.id!,
+    role: GroupMemberRole.member,
+    memberSigningPublicKeyHex: m2MemberPub,
+    memberPublicKey: m2MemberEnc,
+    encryptedDataKey: 'wrapped',
+    callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
+    memberAuthSignature: addSig,
+  );
+
+  // Find the creator's (sole admin's) member row.
+  final lookupSession = (sessionBuilder as InternalTestSessionBuilder)
+      .internalBuild(endpoint: 'test', method: 'findCreator');
+  late final GroupMember creatorRow;
+  try {
+    creatorRow = (await GroupMember.db.findFirstRow(
+      lookupSession,
+      where: (t) =>
+          t.shareGroupId.equals(s.group.id!) &
+          t.anonAccountId.equals(s.account.id!),
+    ))!;
+  } finally {
+    await lookupSession.close();
+  }
+
+  final outer = await _outer(
+    sessionBuilder, endpoints, 'leaveGroup', s.devicePub, s.devicePriv,
+  );
+  final innerPayload = GroupInnerPayloads.leaveGroup(creatorRow.id!);
+  final innerSig = SigningTestHelper.signWith(innerPayload, s.creatorMemberSigPriv);
+
+  expect(
+    () => endpoints.group.leaveGroup(
+      sessionBuilder,
+      challenge: outer.challenge,
+      proofOfWork: outer.pow,
+      signature: outer.signature,
+      callerDeviceSigningPublicKeyHex: s.devicePub,
+      memberId: creatorRow.id!,
+      memberSigningPublicKeyHex: s.creatorMemberSigPub,
+      memberAuthSignature: innerSig,
+    ),
+    throwsA(isA<Exception>()),
+  );
+
+  // The group must still exist and the creator must still be active
+  // (unrevoked) — the guard must block before any mutation, not partially
+  // apply then throw.
+  final dbSession = (sessionBuilder as InternalTestSessionBuilder)
+      .internalBuild(endpoint: 'test', method: 'verify');
+  try {
+    final groupAfter = await ShareGroup.db.findById(dbSession, s.group.id!);
+    expect(groupAfter, isNotNull);
+    final creatorAfter = await GroupMember.db.findById(dbSession, creatorRow.id!);
+    expect(creatorAfter!.isRevoked, isFalse);
+  } finally {
+    await dbSession.close();
+  }
+});
+
+test(
+  'concurrent two-admin leaveGroup: exactly one wins, state stays consistent',
+  () async {},
+  skip: 'The serverpod_test harness (RollbackDatabase.afterEach by default) '
+      'serializes all DB calls through one TestDatabaseProxy and throws '
+      'InvalidConfigurationException on concurrent session.db.transaction() '
+      'calls within a single withServerpod test — so a real two-admin race '
+      'cannot be exercised in-pod without two independently-opened '
+      'connections/sessions bypassing the test proxy, which this harness '
+      'does not expose a supported way to do. The shipped guarantee is: (1) '
+      'the deterministic guard-logic tests above (blocked-with-members / '
+      'dissolved-when-sole-admin) pass both before and after the fix, and '
+      '(2) the fix itself uses LockMode.forUpdate on the active-admin read '
+      'inside session.db.transaction() in group_endpoint.dart, which is the '
+      'standard Postgres SELECT ... FOR UPDATE pattern for serializing a '
+      'check-then-act race — verified by code review against '
+      'serverpod-3.4.1\'s database.dart (LockMode.forUpdate requires a '
+      'transaction and blocks a second locker until the first commits, then '
+      're-reads the current row versions). Do not delete this test without '
+      'either standing up a real dual-connection harness or removing this '
+      'documented rationale along with it.',
+);
+
 test('leaveGroup: last admin leaving deletes the group and all members', () async {
   final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
 
