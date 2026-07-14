@@ -21,8 +21,9 @@ class _GroupMemberRoleConverter
 
 /// A single row from [AnonaccountGroups.listMyGroups]. The data key
 /// is delivered encrypted — the consumer unwraps it with
-/// [AsymmetricCrypto.unwrap] using the account's encryption private
-/// key.
+/// [AsymmetricCrypto.unwrap] using the recipient's **per-group member
+/// key** (the device-key analogue; see the consuming app's
+/// GroupKeyService), not the account's encryption key.
 ///
 /// No `displayName` field: the wire `ShareGroup` does not carry one.
 /// Consumers maintain their own `{groupId → label}` cache.

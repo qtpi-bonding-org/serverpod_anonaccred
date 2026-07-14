@@ -100,6 +100,7 @@ class AnonaccountGroups {
       groupId: share.id!.toString(),
       displayName: displayName,
       groupDataKey: dataKey,
+      memberKey: creatorMember, // was discarded; now surfaced for persistence
       createdAt: share.createdAt,
     );
   }
