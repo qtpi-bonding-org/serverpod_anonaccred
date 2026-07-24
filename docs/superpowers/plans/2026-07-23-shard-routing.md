@@ -13,8 +13,9 @@
 - Model lives in `anonaccount_server` (not `anonaccred_server`) — both consumers already depend on it directly. See spec §"Why `anonaccount_server` specifically."
 - `ShardRouting.tenantId` is a plain `UuidValue` with **no** `relation()` to `AnonAccount`/`ShareGroup`. `tenantType` is a plain `String`, not an enum. This is the entire point of the design — do not "improve" it into a typed relation.
 - `ShardTenantType` constants live in `anonaccount_server` (server-only), not `anonaccount_client` — there is no client-side consumer.
-- Follow this repo's flat-migration convention: delete nothing manually, just run `serverpod create-migration --force` to regenerate from scratch.
+- Follow this repo's flat-migration convention: exactly one migration directory should exist under `anonaccount_server/migrations/` at all times. `serverpod create-migration --force` only skips confirmation prompts — it does **not** delete prior migration directories, so the existing one must be removed manually first (see Task 1 Step 3).
 - Full spec: `docs/superpowers/specs/2026-07-23-shard-routing-design.md` — read it before starting if anything below is ambiguous.
+- If `dart test` fails with a native-asset/build error unrelated to `ShardRouting`/`ShardTenantType`, this is likely the known local webcrypto/BoringSSL P-256 build issue (unrelated to this plan — neither task touches P-256 crypto paths). Don't treat it as a regression introduced by this work.
 
 ---
 
@@ -74,11 +75,28 @@ Expected: command exits 0, and `anonaccount_server/lib/src/generated/shard_routi
 
 - [ ] **Step 3: Regenerate the flat migration**
 
+This repo keeps exactly one migration directory (flat migrations — no
+incremental history). `serverpod create-migration --force` only suppresses
+confirmation prompts; it does **not** delete the existing migration
+directory. Remove it first, or `create-migration` will add a second,
+incremental migration alongside it instead of regenerating a single flat one:
+
 ```bash
+rm -rf anonaccount_server/migrations/20260612014040715
 cd anonaccount_server && serverpod create-migration --force
 ```
 
-Expected: a new directory appears under `anonaccount_server/migrations/` (timestamp-named) containing `definition.sql`, `migration.sql`, `definition.json`, `definition_project.json`, `migration.json`.
+Expected: exactly one new timestamp-named directory appears under
+`anonaccount_server/migrations/`, containing `definition.sql`,
+`migration.sql`, `definition.json`, `definition_project.json`,
+`migration.json`.
+
+```bash
+ls anonaccount_server/migrations | wc -l
+```
+
+Expected: `1` — confirms the old directory was actually removed and this
+didn't turn into a second, incremental migration.
 
 - [ ] **Step 4: Verify the generated SQL uses `uuid`, not `bigint`/`bigserial`**
 
