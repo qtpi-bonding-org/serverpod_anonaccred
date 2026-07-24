@@ -223,6 +223,9 @@ serverpod migrate
 - Generate JWTs for services (parent project responsibility)
 - Decrement inventory (consumption is parent project's domain)
 - Make business logic decisions about access control
+- Decide shard/routing topology or perform shard lookups (provides only the
+  `ShardRouting` schema; parent project owns population, reads, and
+  shard-name → endpoint resolution)
 
 ## Interface Boundary
 ```
