@@ -28,6 +28,14 @@ shared `ShardRouting` model to `anonaccount_server`.
 copy-pasted. Putting it here means one migration, one model, no drift between
 the two copies.
 
+**Why `anonaccount_server` specifically:** the model itself is generic (see
+below — no relation to any account/group concept), so its placement here is
+pragmatic rather than semantic. Both quanitya and episutra already depend on
+`anonaccount_server` directly and already run its migrations into their own
+Postgres, so adding one more table to this module costs nothing extra for
+either consumer to pick up. There's no case for `anonaccred_server` instead —
+neither consumer depends on it for anything routing-related.
+
 **Why it doesn't couple to `ShareGroup`/`AnonAccount`:** anonaccred is a
 reusable, parent-agnostic module (see README's Interface Boundary section). If
 `ShardRouting` held a `relation()` to `ShareGroup` or `AnonAccount`, it would
@@ -100,18 +108,37 @@ fields:
   tenantType: String
 
   shardName: String, default='shard_01'
+
+  # NOT auto-updated on write — Serverpod's `default=now` only fires on
+  # insert. Callers that change shardName on an existing row must set this
+  # field explicitly; there is no ORM hook to bump it for you.
   updatedAt: DateTime, default=now
 ```
 
-No relation fields, so no cross-module UUID FK migration issue (the known
-`serverpod create-migration` bug only affects cross-module `relation()`
-fields — this model has none).
+No relation fields — but this does **not** avoid the known cross-module UUID
+FK migration bug. Regenerating `anonaccount_server`'s own migration is safe
+(module A generating migrations for its own model isn't the failure mode).
+The bug bites when `quanitya_cloud_server`/`episutra_cloud_server` regenerate
+their own *combined* migrations, which must cover every dependency module's
+tables — that's the existing, documented failure mode already affecting
+`anon_account`/`account_device` in both consumer repos (per quanitya's
+CLAUDE.md). `shard_routing.id` (`UuidValue?`) is a third table that will need
+the same manual `definition.sql`/`migration.sql`/`definition.json` patch in
+both consumer repos, every regeneration, indefinitely. This is a real,
+ongoing cost of adding any new UUID-PK model to this module — not unique to
+`ShardRouting`, but worth naming rather than asserting away.
+
+**Concurrent writes:** the unique index on `(tenantId, tenantType)` means a
+second insert for the same tenant throws rather than silently overwriting.
+Parent apps should upsert (find-then-update, or catch-and-retry-as-update)
+rather than blind-insert.
 
 ---
 
 ## Dart constants
 
-New file: `anonaccount_client/lib/src/shard_tenant_type.dart`
+New file: `anonaccount_server/lib/src/shard_tenant_type.dart` (server, not
+client — see rationale below).
 
 ```dart
 /// Shared `tenantType` values for `ShardRouting`.
@@ -127,8 +154,16 @@ abstract final class ShardTenantType {
 }
 ```
 
-Export from `anonaccount_client/lib/anonaccount_client.dart` alongside the
-existing `pow_methods.dart` export.
+Export from `anonaccount_server/lib/anonaccount_server.dart`.
+
+**Why `anonaccount_server`, not `anonaccount_client`:** sharding is decided
+server-side (JWT minting), and both quanitya and episutra already depend on
+`anonaccount_server` directly for exactly this kind of server-side helper —
+`pow_methods.dart`'s existing precedent already lives in both packages, and
+the server-side copy is the superset (the client copy is missing
+`GroupMethods`/`GroupInnerPayloads` entirely, i.e. already drifted). There's
+no Flutter/client-side consumer of `ShardTenantType` today, so putting it in
+`anonaccount_client` would add an import for no reader.
 
 ---
 
@@ -155,10 +190,15 @@ serverpod create-migration --force
 dart analyze
 ```
 
-Verify `definition.sql` creates `shard_routing` with a plain `uuid` column
-for `tenant_id` (not `bigint`) — this model has no cross-module relation, so
-the known UUID-FK generation bug should not apply, but confirm anyway since
-`create-migration` output isn't otherwise reviewed line-by-line.
+Verify `definition.sql` creates `shard_routing` with plain `uuid` columns for
+`id`/`tenant_id` (not `bigint`/`bigserial`) — this repo's own migration
+should generate correctly since `ShardRouting` is defined directly in
+`anonaccount_server`, not consumed cross-module here. The known bug is a risk
+for *quanitya*/*episutra*'s own migrations, not this one — see the Model
+section above. Flag to whoever wires this up in quanitya/episutra that
+`shard_routing` joins `anon_account`/`account_device` on the list of tables
+needing the manual UUID patch after `serverpod create-migration --force` in
+those repos.
 
 ---
 
@@ -176,8 +216,10 @@ final groupShard = await ShardRouting.db.findFirstRow(
   session,
   where: (t) => t.tenantId.equals(groupId) & t.tenantType.equals(ShardTenantType.group),
 );
-// shardName defaults to 'shard_01' if no row exists yet — parent app decides
-// whether "no row" means "default shard" or "not yet provisioned."
+// findFirstRow returns null if no row exists yet — 'shard_01' is only the
+// insert-time default, not a read-time fallback. Parent app must decide what
+// a null result means (treat as default shard? as not-yet-provisioned?) and
+// apply that fallback itself.
 ```
 
 ---
@@ -187,9 +229,10 @@ final groupShard = await ShardRouting.db.findFirstRow(
 | Item | Change |
 |---|---|
 | `anonaccount_server/lib/src/models/shard_routing.spy.yaml` | New model: `ShardRouting` |
-| `anonaccount_client/lib/src/shard_tenant_type.dart` | New: `ShardTenantType` constants |
-| `anonaccount_client/lib/anonaccount_client.dart` | Export new constants file |
+| `anonaccount_server/lib/src/shard_tenant_type.dart` | New: `ShardTenantType` constants |
+| `anonaccount_server/lib/anonaccount_server.dart` | Export new constants file |
 | `README.md` | Add one bullet to "What AnonAccred Does NOT Do" |
 | Migration | New flat migration via `serverpod create-migration --force` |
 | Endpoints | None added |
 | Auto-population | None — parent apps own row creation |
+| Known follow-up cost | `shard_routing` joins `anon_account`/`account_device` on the UUID-PK migration patch list in quanitya/episutra's own migrations |
