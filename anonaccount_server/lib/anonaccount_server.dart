@@ -39,3 +39,5 @@ export 'src/generated/protocol.dart';
 export 'src/helpers.dart';
 // PoW method name constants (shared between server and client)
 export 'src/pow_methods.dart';
+// ShardRouting tenantType constants (shared between quanitya/episutra)
+export 'src/shard_tenant_type.dart';
