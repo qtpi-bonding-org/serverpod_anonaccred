@@ -99,6 +99,20 @@ CREATE UNIQUE INDEX "public_challenges_challenge_idx" ON "public_challenges" USI
 CREATE INDEX "public_challenges_expires_idx" ON "public_challenges" USING btree ("expiresAt");
 
 --
+-- Class ShardRouting as table shard_routing
+--
+CREATE TABLE "shard_routing" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "tenantId" uuid NOT NULL,
+    "tenantType" text NOT NULL,
+    "shardName" text NOT NULL DEFAULT 'shard_01'::text,
+    "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "shard_routing_unique_idx" ON "shard_routing" USING btree ("tenantId", "tenantType");
+
+--
 -- Class ShareGroup as table share_group
 --
 CREATE TABLE "share_group" (
@@ -818,9 +832,9 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 -- MIGRATION VERSION FOR anonaccount
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccount', '20260612014040715', now())
+    VALUES ('anonaccount', '20260724051550202', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260612014040715', "timestamp" = now();
+    DO UPDATE SET "version" = '20260724051550202', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod

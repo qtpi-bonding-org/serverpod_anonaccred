@@ -1,0 +1,28 @@
+# ShardRouting: opaque tenant -> shard lookup for horizontally-scaled
+# PowerSync/Postgres deployments. AnonAccred does not read or write this
+# table itself — see docs/superpowers/specs/2026-07-23-shard-routing-design.md
+class: ShardRouting
+table: shard_routing
+indexes:
+  shard_routing_unique_idx:
+    fields: tenantId, tenantType
+    unique: true
+fields:
+  id: UuidValue?, defaultPersist=random
+
+  # Opaque — no relation() to AnonAccount or ShareGroup. The tenant unit is
+  # entirely consumer-defined; anonaccred does not assume what this ID refers to.
+  tenantId: UuidValue
+
+  # Free-text, consumer-defined label (e.g. "account", "group"). Not an enum —
+  # a fixed enum here would hardcode which sharding units are legal, which is
+  # exactly what this table exists to avoid. See ShardTenantType (Task 2) for
+  # the shared convention quanitya/episutra both use today.
+  tenantType: String
+
+  shardName: String, default='shard_01'
+
+  # NOT auto-updated on write — Serverpod's `default=now` only fires on
+  # insert. Callers that change shardName on an existing row must set this
+  # field explicitly; there is no ORM hook to bump it for you.
+  updatedAt: DateTime, default=now
