@@ -26,6 +26,7 @@ export 'package:anonaccount_client/anonaccount_client.dart'
     show
         Caller,
         EndpointAccount,
+        EndpointDataKey,
         EndpointDevice,
         EndpointDeviceManagement,
         EndpointEntrypoint,
@@ -35,6 +36,7 @@ export 'package:anonaccount_client/anonaccount_client.dart'
         DataKeyMethods,
         AccountDevice,
         AccountCreationResponse,
+        EncryptedDataKeyResponse,
         AuthenticationResult,
         PublicChallengeResponse,
         ShareGroup,
