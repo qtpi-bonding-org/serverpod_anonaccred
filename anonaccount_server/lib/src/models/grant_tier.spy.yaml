@@ -1,4 +1,0 @@
-enum: GrantTier
-values:
-  - root
-  - peer

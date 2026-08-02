@@ -11,7 +11,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'grant_tier.dart' as _i2;
+import 'grant_attestor.dart' as _i2;
 
 abstract class MemberDeviceGrant implements _i1.SerializableModel {
   MemberDeviceGrant._({
@@ -19,7 +19,7 @@ abstract class MemberDeviceGrant implements _i1.SerializableModel {
     required this.accountDeviceId,
     required this.encryptedDataKey,
     required this.attestorSigningPublicKeyHex,
-    required this.tier,
+    required this.attestor,
     required this.attestation,
   });
 
@@ -28,7 +28,7 @@ abstract class MemberDeviceGrant implements _i1.SerializableModel {
     required _i1.UuidValue accountDeviceId,
     required String encryptedDataKey,
     required String attestorSigningPublicKeyHex,
-    required _i2.GrantTier tier,
+    required _i2.GrantAttestor attestor,
     required String attestation,
   }) = _MemberDeviceGrantImpl;
 
@@ -43,7 +43,9 @@ abstract class MemberDeviceGrant implements _i1.SerializableModel {
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       attestorSigningPublicKeyHex:
           jsonSerialization['attestorSigningPublicKeyHex'] as String,
-      tier: _i2.GrantTier.fromJson((jsonSerialization['tier'] as String)),
+      attestor: _i2.GrantAttestor.fromJson(
+        (jsonSerialization['attestor'] as String),
+      ),
       attestation: jsonSerialization['attestation'] as String,
     );
   }
@@ -56,7 +58,7 @@ abstract class MemberDeviceGrant implements _i1.SerializableModel {
 
   String attestorSigningPublicKeyHex;
 
-  _i2.GrantTier tier;
+  _i2.GrantAttestor attestor;
 
   String attestation;
 
@@ -68,7 +70,7 @@ abstract class MemberDeviceGrant implements _i1.SerializableModel {
     _i1.UuidValue? accountDeviceId,
     String? encryptedDataKey,
     String? attestorSigningPublicKeyHex,
-    _i2.GrantTier? tier,
+    _i2.GrantAttestor? attestor,
     String? attestation,
   });
   @override
@@ -79,7 +81,7 @@ abstract class MemberDeviceGrant implements _i1.SerializableModel {
       'accountDeviceId': accountDeviceId.toJson(),
       'encryptedDataKey': encryptedDataKey,
       'attestorSigningPublicKeyHex': attestorSigningPublicKeyHex,
-      'tier': tier.toJson(),
+      'attestor': attestor.toJson(),
       'attestation': attestation,
     };
   }
@@ -96,14 +98,14 @@ class _MemberDeviceGrantImpl extends MemberDeviceGrant {
     required _i1.UuidValue accountDeviceId,
     required String encryptedDataKey,
     required String attestorSigningPublicKeyHex,
-    required _i2.GrantTier tier,
+    required _i2.GrantAttestor attestor,
     required String attestation,
   }) : super._(
          groupMemberId: groupMemberId,
          accountDeviceId: accountDeviceId,
          encryptedDataKey: encryptedDataKey,
          attestorSigningPublicKeyHex: attestorSigningPublicKeyHex,
-         tier: tier,
+         attestor: attestor,
          attestation: attestation,
        );
 
@@ -116,7 +118,7 @@ class _MemberDeviceGrantImpl extends MemberDeviceGrant {
     _i1.UuidValue? accountDeviceId,
     String? encryptedDataKey,
     String? attestorSigningPublicKeyHex,
-    _i2.GrantTier? tier,
+    _i2.GrantAttestor? attestor,
     String? attestation,
   }) {
     return MemberDeviceGrant(
@@ -125,7 +127,7 @@ class _MemberDeviceGrantImpl extends MemberDeviceGrant {
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       attestorSigningPublicKeyHex:
           attestorSigningPublicKeyHex ?? this.attestorSigningPublicKeyHex,
-      tier: tier ?? this.tier,
+      attestor: attestor ?? this.attestor,
       attestation: attestation ?? this.attestation,
     );
   }

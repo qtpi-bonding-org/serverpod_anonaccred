@@ -832,8 +832,8 @@ class EndpointGroup extends EndpointSignedPow {
   /// Grants one or more devices access to one or more memberships, by
   /// persisting the group data key wrapped to each grantee device.
   ///
-  /// Each item in [grants] is independently attested: `root` tier requires
-  /// the membership's own member signing key; `peer` tier requires an
+  /// Each item in [grants] is independently attested: `memberKey` requires
+  /// the membership's own member signing key; `grantedDevice` requires an
   /// already-granted device of the same membership. Validation and the
   /// batch insert share one transaction — unwrapped, a concurrent
   /// `revokeDevice` between the grantee-active check and the insert could

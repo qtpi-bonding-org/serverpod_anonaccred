@@ -1020,8 +1020,8 @@ class GroupEndpoint extends SignedPowEndpoint {
   /// Grants one or more devices access to one or more memberships, by
   /// persisting the group data key wrapped to each grantee device.
   ///
-  /// Each item in [grants] is independently attested: `root` tier requires
-  /// the membership's own member signing key; `peer` tier requires an
+  /// Each item in [grants] is independently attested: `memberKey` requires
+  /// the membership's own member signing key; `grantedDevice` requires an
   /// already-granted device of the same membership. Validation and the
   /// batch insert share one transaction — unwrapped, a concurrent
   /// `revokeDevice` between the grantee-active check and the insert could
@@ -1124,13 +1124,13 @@ class GroupEndpoint extends SignedPowEndpoint {
           }
 
           // 4. attestor standing.
-          if (g.tier == GrantTier.root) {
+          if (g.attestor == GrantAttestor.memberKey) {
             if (g.attestorSigningPublicKeyHex !=
                 member.memberSigningPublicKeyHex) {
               throw AnonAccountExceptionFactory.createAuthenticationException(
                 code: AnonAccountErrorCodes.authInvalidSignature,
                 message:
-                    'root-tier grant requires attestation by the membership '
+                    'memberKey-attested grant requires the membership '
                     'member key',
                 operation: 'grantMemberDevice',
               );
@@ -1145,7 +1145,7 @@ class GroupEndpoint extends SignedPowEndpoint {
             if (attestorDevice == null || attestorDevice.isRevoked) {
               throw AnonAccountExceptionFactory.createAuthenticationException(
                 code: AnonAccountErrorCodes.authDeviceRevoked,
-                message: 'peer-tier attestor device not found or revoked',
+                message: 'grantedDevice attestor not found or revoked',
                 operation: 'grantMemberDevice',
               );
             }
@@ -1161,7 +1161,7 @@ class GroupEndpoint extends SignedPowEndpoint {
               throw AnonAccountExceptionFactory.createAuthenticationException(
                 code: AnonAccountErrorCodes.authAccountNotFound,
                 message:
-                    'peer-tier attestor has no active grant for this '
+                    'grantedDevice attestor has no active grant for this '
                     'membership',
                 operation: 'grantMemberDevice',
               );

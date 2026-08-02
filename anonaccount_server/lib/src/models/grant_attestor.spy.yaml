@@ -1,0 +1,15 @@
+# Who signed a device's grant, and therefore which check the server runs on
+# the attestor:
+#
+#   memberKey     - the membership's own member signing key.
+#   grantedDevice - a device that already holds an active grant on this
+#                   same membership. Note it is the existing grant that is
+#                   required, not membership of any particular account.
+#
+# The server could infer this from the attestor's public key, but requiring
+# the caller to state it means a mismatch is a rejection rather than a
+# silent fall-through to the weaker check.
+enum: GrantAttestor
+values:
+  - memberKey
+  - grantedDevice

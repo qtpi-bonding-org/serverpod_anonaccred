@@ -10,20 +10,22 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
-enum GrantTier implements _i1.SerializableModel {
-  root,
-  peer;
+enum GrantAttestor implements _i1.SerializableModel {
+  memberKey,
+  grantedDevice;
 
-  static GrantTier fromJson(String name) {
+  static GrantAttestor fromJson(String name) {
     switch (name) {
-      case 'root':
-        return GrantTier.root;
-      case 'peer':
-        return GrantTier.peer;
+      case 'memberKey':
+        return GrantAttestor.memberKey;
+      case 'grantedDevice':
+        return GrantAttestor.grantedDevice;
       default:
-        throw ArgumentError('Value "$name" cannot be converted to "GrantTier"');
+        throw ArgumentError(
+          'Value "$name" cannot be converted to "GrantAttestor"',
+        );
     }
   }
 

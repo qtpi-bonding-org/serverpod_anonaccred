@@ -25,7 +25,7 @@ class _FakeUuid extends Fake implements wire.UuidValue {}
 void main() {
   setUpAll(() {
     registerFallbackValue(_FakeUuid());
-    registerFallbackValue(wire.GrantTier.root);
+    registerFallbackValue(wire.GrantAttestor.memberKey);
     registerFallbackValue(
       wire.PublicKeyDuo(
         signingPublicKeyHex: '04${'0' * 128}',
@@ -214,7 +214,7 @@ void main() {
         expect(g.accountDeviceId, isA<wire.UuidValue>());
         expect(g.encryptedDataKey, isNotEmpty);
         expect(g.attestorSigningPublicKeyHex, memberSigningPublicKeyHex);
-        expect(g.tier, wire.GrantTier.root);
+        expect(g.attestor, wire.GrantAttestor.memberKey);
         expect(g.attestation, isNotEmpty);
       }
 
@@ -386,13 +386,13 @@ void main() {
       );
       expect(ok, isTrue);
       expect(d2Grant.attestorSigningPublicKeyHex, memberSigningPublicKeyHex);
-      expect(d2Grant.tier, wire.GrantTier.root);
+      expect(d2Grant.attestor, wire.GrantAttestor.memberKey);
     },
   );
 
   test(
-    'grantNewDevice issues one batched grant per membership, root tier where '
-    'the caller holds the member key and peer tier where it holds only a '
+    'grantNewDevice issues one batched grant per membership, attested by the '
+    'member key where the caller holds it and by a granted device where it '
     'grant',
     () async {
       final caller = _FakeCaller();
@@ -410,7 +410,7 @@ void main() {
 
       // The new device is paired into the account. The caller has two
       // memberships to grant it: one where the caller holds the member key
-      // (root tier) and one where the caller holds only a grant (peer tier).
+      // (member key) and one where the caller holds only a grant.
       final callerKey = await KeyGen.generateDeviceKey();
       final callerHex =
           (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
@@ -551,8 +551,8 @@ void main() {
         (g) => g.groupMemberId == peerMemberId,
       );
 
-      // Root tier: signed by the corresponding member key.
-      expect(rootGrant.tier, wire.GrantTier.root);
+      // Attested by the corresponding member key.
+      expect(rootGrant.attestor, wire.GrantAttestor.memberKey);
       expect(
         rootGrant.attestorSigningPublicKeyHex,
         rootMemberSigningPublicKeyHex,
@@ -581,9 +581,9 @@ void main() {
       );
       expect(rootUnwrapped, rootDataKeyJwk);
 
-      // Peer tier: signed by the caller's device key — the only key the
+      // Attested by the caller's device key — the only key the
       // caller holds for that membership.
-      expect(peerGrant.tier, wire.GrantTier.peer);
+      expect(peerGrant.attestor, wire.GrantAttestor.grantedDevice);
       expect(peerGrant.attestorSigningPublicKeyHex, callerHex);
       final peerOk = await SigningCrypto.verifyChallenge(
         GroupInnerPayloads.grantMemberDevice(

@@ -26,8 +26,8 @@ import 'challenge_exists.dart' as _i11;
 import 'device_pairing_event.dart' as _i12;
 import 'device_pairing_info.dart' as _i13;
 import 'encrypted_data_key_response.dart' as _i14;
-import 'grant_member_device_result.dart' as _i15;
-import 'grant_tier.dart' as _i16;
+import 'grant_attestor.dart' as _i15;
+import 'grant_member_device_result.dart' as _i16;
 import 'group_member.dart' as _i17;
 import 'group_member_device.dart' as _i18;
 import 'group_member_role.dart' as _i19;
@@ -56,8 +56,8 @@ export 'challenge_exists.dart';
 export 'device_pairing_event.dart';
 export 'device_pairing_info.dart';
 export 'encrypted_data_key_response.dart';
+export 'grant_attestor.dart';
 export 'grant_member_device_result.dart';
-export 'grant_tier.dart';
 export 'group_member.dart';
 export 'group_member_device.dart';
 export 'group_member_role.dart';
@@ -895,11 +895,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i14.EncryptedDataKeyResponse) {
       return _i14.EncryptedDataKeyResponse.fromJson(data) as T;
     }
-    if (t == _i15.GrantMemberDeviceResult) {
-      return _i15.GrantMemberDeviceResult.fromJson(data) as T;
+    if (t == _i15.GrantAttestor) {
+      return _i15.GrantAttestor.fromJson(data) as T;
     }
-    if (t == _i16.GrantTier) {
-      return _i16.GrantTier.fromJson(data) as T;
+    if (t == _i16.GrantMemberDeviceResult) {
+      return _i16.GrantMemberDeviceResult.fromJson(data) as T;
     }
     if (t == _i17.GroupMember) {
       return _i17.GroupMember.fromJson(data) as T;
@@ -975,12 +975,12 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == _i1.getType<_i15.GrantMemberDeviceResult?>()) {
-      return (data != null ? _i15.GrantMemberDeviceResult.fromJson(data) : null)
-          as T;
+    if (t == _i1.getType<_i15.GrantAttestor?>()) {
+      return (data != null ? _i15.GrantAttestor.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i16.GrantTier?>()) {
-      return (data != null ? _i16.GrantTier.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i16.GrantMemberDeviceResult?>()) {
+      return (data != null ? _i16.GrantMemberDeviceResult.fromJson(data) : null)
+          as T;
     }
     if (t == _i1.getType<_i17.GroupMember?>()) {
       return (data != null ? _i17.GroupMember.fromJson(data) : null) as T;
@@ -1092,8 +1092,8 @@ class Protocol extends _i1.SerializationManagerServer {
       _i12.DevicePairingEvent => 'DevicePairingEvent',
       _i13.DevicePairingInfo => 'DevicePairingInfo',
       _i14.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
-      _i15.GrantMemberDeviceResult => 'GrantMemberDeviceResult',
-      _i16.GrantTier => 'GrantTier',
+      _i15.GrantAttestor => 'GrantAttestor',
+      _i16.GrantMemberDeviceResult => 'GrantMemberDeviceResult',
       _i17.GroupMember => 'GroupMember',
       _i18.GroupMemberDevice => 'GroupMemberDevice',
       _i19.GroupMemberRole => 'GroupMemberRole',
@@ -1140,10 +1140,10 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'DevicePairingInfo';
       case _i14.EncryptedDataKeyResponse():
         return 'EncryptedDataKeyResponse';
-      case _i15.GrantMemberDeviceResult():
+      case _i15.GrantAttestor():
+        return 'GrantAttestor';
+      case _i16.GrantMemberDeviceResult():
         return 'GrantMemberDeviceResult';
-      case _i16.GrantTier():
-        return 'GrantTier';
       case _i17.GroupMember():
         return 'GroupMember';
       case _i18.GroupMemberDevice():
@@ -1220,11 +1220,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'EncryptedDataKeyResponse') {
       return deserialize<_i14.EncryptedDataKeyResponse>(data['data']);
     }
-    if (dataClassName == 'GrantMemberDeviceResult') {
-      return deserialize<_i15.GrantMemberDeviceResult>(data['data']);
+    if (dataClassName == 'GrantAttestor') {
+      return deserialize<_i15.GrantAttestor>(data['data']);
     }
-    if (dataClassName == 'GrantTier') {
-      return deserialize<_i16.GrantTier>(data['data']);
+    if (dataClassName == 'GrantMemberDeviceResult') {
+      return deserialize<_i16.GrantMemberDeviceResult>(data['data']);
     }
     if (dataClassName == 'GroupMember') {
       return deserialize<_i17.GroupMember>(data['data']);

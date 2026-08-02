@@ -4,5 +4,5 @@ fields:
   accountDeviceId: UuidValue
   encryptedDataKey: String
   attestorSigningPublicKeyHex: String
-  tier: GrantTier
+  attestor: GrantAttestor
   attestation: String

@@ -15,7 +15,7 @@ void main() {
     registerFallbackValue(
       wire.UuidValue.fromString('00000000-0000-4000-8000-000000000000'),
     );
-    registerFallbackValue(wire.GrantTier.root);
+    registerFallbackValue(wire.GrantAttestor.memberKey);
     registerFallbackValue(
       wire.PublicKeyDuo(
         signingPublicKeyHex: '04${'0' * 128}',
@@ -100,7 +100,7 @@ void main() {
             accountDeviceId: granteeDeviceId,
             encryptedDataKey: wrappedBlob,
             attestorSigningPublicKeyHex: memberSigningPublicKeyHex,
-            tier: wire.GrantTier.root,
+            attestor: wire.GrantAttestor.memberKey,
             attestation: realAttestation,
           ),
         ],

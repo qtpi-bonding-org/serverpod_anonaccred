@@ -11,8 +11,8 @@ import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 import 'package:anonaccount_client/src/protocol/grant_member_device_result.dart'
     show GrantMemberDeviceResult;
 // ignore: implementation_imports
-import 'package:anonaccount_client/src/protocol/grant_tier.dart'
-    show GrantTier;
+import 'package:anonaccount_client/src/protocol/grant_attestor.dart'
+    show GrantAttestor;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/group_member.dart'
     show GroupMember;
@@ -308,8 +308,8 @@ class AnonaccountGroups {
   /// [MemberDeviceGrant]s to the server.
   ///
   /// Each grant's `attestation` must already be signed by the appropriate
-  /// key (the membership's member key for `root` tier, or an already-
-  /// granted device's key for `peer` tier) over
+  /// key (the membership's member key, or an already-granted device's
+  /// key) over
   /// `GroupInnerPayloads.grantMemberDevice(groupMemberId, deviceKeys,
   /// encryptedDataKey)` — this method does not build or alter attestations,
   /// since it never receives the per-membership member key. [grantAllDevices]
@@ -343,8 +343,8 @@ class AnonaccountGroups {
   /// Join-time fan-out: wraps the group data key to every non-revoked
   /// device on the account, **including the caller itself** (the
   /// self-grant invariant — see spec §"The two grant moments"), and
-  /// sends one batched `grantMemberDevice` call attested at `root`
-  /// tier by [memberKey].
+  /// sends one batched `grantMemberDevice` call attested by
+  /// [memberKey].
   ///
   /// `listDevices` does not filter revoked devices
   /// (`device_management_endpoint.dart:114-119`), so this method does.
@@ -415,7 +415,7 @@ class AnonaccountGroups {
           accountDeviceId: deviceId,
           encryptedDataKey: wrappedBlob,
           attestorSigningPublicKeyHex: memberSigningPublicKeyHex,
-          tier: GrantTier.root,
+          attestor: GrantAttestor.memberKey,
           attestation: attestation,
         ),
       );
@@ -431,10 +431,10 @@ class AnonaccountGroups {
   /// Pair-time fan-out: grant one [newDevice] access to every
   /// membership the caller holds.
   ///
-  /// For each membership, the tier is per item: `root` when the caller
+  /// For each membership, the attestor is per item: `memberKey` when the caller
   /// holds that membership's member key (look it up in [memberKeys] by
-  /// the membership's id), and `peer` when the caller only holds a
-  /// device-level grant (i.e., no member key). The `peer` attestation
+  /// the membership's id), and `grantedDevice` when the caller only holds
+  /// a device-level grant (i.e., no member key). That attestation
   /// is signed by [callerDeviceKey] — the only key the caller has
   /// standing in for that membership.
   ///
@@ -503,24 +503,24 @@ class AnonaccountGroups {
       );
 
       final memberKey = memberKeys[m.memberId];
-      final GrantTier tier;
-      final KeyDuo attestor;
+      final GrantAttestor attestor;
+      final KeyDuo attestorKey;
       if (memberKey != null) {
-        tier = GrantTier.root;
-        attestor = memberKey;
+        attestor = GrantAttestor.memberKey;
+        attestorKey = memberKey;
       } else {
-        tier = GrantTier.peer;
-        attestor = callerDeviceKey;
+        attestor = GrantAttestor.grantedDevice;
+        attestorKey = callerDeviceKey;
       }
       final attestorSigningPublicKeyHex =
-          (await attestor.signingKeyPair.exportPublicKeySec1Hex()).value;
+          (await attestorKey.signingKeyPair.exportPublicKeySec1Hex()).value;
       final attestation = await SigningCrypto.signChallenge(
         GroupInnerPayloads.grantMemberDevice(
           m.memberId,
           newDeviceDuo,
           newWrapped,
         ),
-        attestor,
+        attestorKey,
       );
       grants.add(
         MemberDeviceGrant(
@@ -528,7 +528,7 @@ class AnonaccountGroups {
           accountDeviceId: newDevice.id!,
           encryptedDataKey: newWrapped,
           attestorSigningPublicKeyHex: attestorSigningPublicKeyHex,
-          tier: tier,
+          attestor: attestor,
           attestation: attestation,
         ),
       );
