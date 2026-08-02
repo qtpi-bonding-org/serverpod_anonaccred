@@ -1,4 +1,5 @@
 // anonaccount_server/test/unit/key_format_test.dart
+import 'package:anonaccount_server/src/crypto_utils.dart';
 import 'package:anonaccount_server/src/key_format.dart';
 import '../test_helpers/signing_test_helper.dart';
 import 'package:test/test.dart';
@@ -51,5 +52,10 @@ void main() {
       expect(PublicKeyFormat.isValid(SigningTestHelper.testPublicKeyHex),
           isTrue);
     });
+  });
+
+  test('CryptoUtils.isValidPublicKey no longer accepts the 128-hex form', () {
+    expect(CryptoUtils.isValidPublicKey(_validKey.substring(2)), isFalse);
+    expect(CryptoUtils.isValidPublicKey(_validKey), isTrue);
   });
 }

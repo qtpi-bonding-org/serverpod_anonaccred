@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:pointycastle/export.dart';
 import 'exception_factory.dart';
+import 'key_format.dart';
 
 /// Cryptographic utilities for ECDSA P-256 signature verification.
 ///
@@ -19,30 +20,13 @@ class CryptoUtils {
 
   /// Validates that a string represents a valid ECDSA P-256 public key format.
   ///
-  /// ECDSA P-256 public keys can be:
-  /// - 128 hex chars (64 bytes): raw x||y coordinates
-  /// - 130 hex chars (65 bytes): uncompressed format with 04 prefix
+  /// SEC1 uncompressed P-256: `04 || x || y`, exactly 130 lowercase hex
+  /// characters. Single definition lives in [PublicKeyFormat]; this stays
+  /// as the established call site for existing code.
   ///
   /// Returns true if the key format is valid, false otherwise.
-  static bool isValidPublicKey(String publicKey) {
-    // Accept both raw (128 hex) and uncompressed with prefix (130 hex)
-    if (publicKey.length != 128 && publicKey.length != 130) {
-      return false;
-    }
-
-    // Check if all characters are valid hexadecimal
-    final hexPattern = RegExp(r'^[0-9a-fA-F]+$');
-    if (!hexPattern.hasMatch(publicKey)) {
-      return false;
-    }
-
-    // If 130 chars, must start with '04' (uncompressed point indicator)
-    if (publicKey.length == 130 && !publicKey.startsWith('04')) {
-      return false;
-    }
-
-    return true;
-  }
+  static bool isValidPublicKey(String publicKey) =>
+      PublicKeyFormat.isValid(publicKey);
 
   /// Validates ECDSA P-256 signature format.
   ///
@@ -85,7 +69,7 @@ class CryptoUtils {
         operation: 'verifySignature',
         details: {
           'publicKeyLength': publicKey.length.toString(),
-          'expectedLength': '128 or 130',
+          'expectedLength': '130',
         },
       );
     }

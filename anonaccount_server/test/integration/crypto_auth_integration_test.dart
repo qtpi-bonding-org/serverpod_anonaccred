@@ -11,8 +11,10 @@ void main() {
       final keyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
       final publicKey = await keyPair.publicKey.exportRawKey();
 
-      // Convert to hex format (remove 04 prefix, use x||y format)
-      final publicKeyHex = publicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      // Convert to hex format. CryptoUtils.isValidPublicKey accepts only
+      // SEC1 uncompressed (`04 || x || y`, 130 hex chars) after Task 3 of
+      // the principal-parity plan, so keep the leading 04 tag here.
+      final publicKeyHex = publicKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Create a test message
       const message = 'test challenge message';
@@ -61,7 +63,7 @@ void main() {
       // Generate a real ECDSA P-256 key pair for testing
       final keyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
       final publicKey = await keyPair.publicKey.exportRawKey();
-      final publicKeyHex = publicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      final publicKeyHex = publicKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Generate a proper challenge
       final challenge = CryptoUtils.generateChallenge();
@@ -108,8 +110,9 @@ void main() {
     });
 
     test('public key validation works correctly', () {
-      // Valid 128-character hex string
-      const validKey = 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+      // Valid SEC1 130-hex public key (the only format CryptoUtils.isValidPublicKey
+      // accepts after Task 3 of the principal-parity plan).
+      const validKey = '04a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
                        'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       expect(CryptoUtils.isValidPublicKey(validKey), isTrue);
 

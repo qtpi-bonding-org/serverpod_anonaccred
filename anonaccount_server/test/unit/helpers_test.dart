@@ -67,8 +67,9 @@ void main() {
 
     group('validatePublicKey', () {
       test('should pass for valid ECDSA P-256 public key', () {
-        // Valid 128-character hex string (64 bytes for ECDSA P-256)
-        final validKey = 'a' * 128;
+        // Real SEC1 130-hex public key (the only format CryptoUtils.isValidPublicKey
+        // accepts after Task 3 of the principal-parity plan).
+        final validKey = _generateFakePublicKeyString(random);
         expect(
           () => AnonAccountHelpers.validatePublicKey(validKey, 'testOp'),
           returnsNormally,
@@ -168,9 +169,9 @@ void main() {
       test('should return account when not null', () {
         final account = AnonAccount(
           id: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-          ultimateSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
+          ultimateSigningPublicKeyHex: _generateFakePublicKeyString(random),
           encryptedDataKey: 'encrypted',
-          ultimatePublicKey: 'b' * 128,
+          ultimatePublicKey: _generateFakePublicKeyString(random),
         );
 
         final result = AnonAccountHelpers.requireAccount(account, '1', 'testOp');
@@ -204,21 +205,24 @@ void main() {
 
     group('requireDevice', () {
       test('should return device when not null', () {
+        final deviceSigningKey = _generateFakePublicKeyString(random);
         final device = AccountDevice(
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-          deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
+          deviceSigningPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
         );
 
-        final result = AnonAccountHelpers.requireDevice(device, 'a' * 128, 'testOp');
+        final result =
+            AnonAccountHelpers.requireDevice(device, deviceSigningKey, 'testOp');
         expect(result, equals(device));
       });
 
       test('should throw when device is null', () {
+        final publicKey = _generateFakePublicKeyString(random);
         expect(
-          () => AnonAccountHelpers.requireDevice(null, 'a' * 128, 'testOp'),
+          () => AnonAccountHelpers.requireDevice(null, publicKey, 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
@@ -244,38 +248,43 @@ void main() {
 
     group('requireActiveDevice', () {
       test('should return device when not null and not revoked', () {
+        final deviceSigningKey = _generateFakePublicKeyString(random);
         final device = AccountDevice(
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-          deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
+          deviceSigningPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
           isRevoked: false,
         );
 
-        final result = AnonAccountHelpers.requireActiveDevice(device, 'a' * 128, 'testOp');
+        final result = AnonAccountHelpers.requireActiveDevice(
+            device, deviceSigningKey, 'testOp');
         expect(result, equals(device));
       });
 
       test('should throw when device is null', () {
+        final publicKey = _generateFakePublicKeyString(random);
         expect(
-          () => AnonAccountHelpers.requireActiveDevice(null, 'a' * 128, 'testOp'),
+          () => AnonAccountHelpers.requireActiveDevice(null, publicKey, 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
 
       test('should throw when device is revoked', () {
+        final deviceSigningKey = _generateFakePublicKeyString(random);
         final device = AccountDevice(
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000003'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-          deviceSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
+          deviceSigningPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
           isRevoked: true,
         );
 
         expect(
-          () => AnonAccountHelpers.requireActiveDevice(device, 'a' * 128, 'testOp'),
+          () => AnonAccountHelpers.requireActiveDevice(
+              device, deviceSigningKey, 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
@@ -331,9 +340,13 @@ String _generateRandomNonEmptyString(Random random) {
 }
 
 String _generateFakePublicKeyString(Random random) {
-  // Generate a fake 128-character hex string for testing (not a real ECDSA P-256 key)
+  // Generate a fake SEC1 uncompressed public key (130 lowercase hex chars,
+  // starting with '04') — CryptoUtils.isValidPublicKey no longer accepts
+  // the legacy 128-hex bare form (Task 3 of the principal parity plan).
   const chars = '0123456789abcdef';
-  return List.generate(128, (index) => chars[random.nextInt(chars.length)]).join();
+  final body =
+      List.generate(128, (index) => chars[random.nextInt(chars.length)]).join();
+  return '04$body';
 }
 
 String _generateInvalidPublicKey(Random random) {

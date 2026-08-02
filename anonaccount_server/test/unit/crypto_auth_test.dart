@@ -4,18 +4,20 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
 
+import '../test_helpers/signing_test_helper.dart';
+
 void main() {
   group('CryptoAuth', () {
     test('isValidPublicKey validates ECDSA P-256 public key format', () {
-      // Valid 128-character hex string (64 bytes = 32 bytes x + 32 bytes y)
-      const validKey =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      // Generate a real keypair (the helper emits 130-char SEC1 keys).
+      final (_, validKey) = SigningTestHelper.generateKeypair();
       expect(CryptoAuth.isValidPublicKey(validKey), isTrue);
 
-      // Valid 130-character hex string with 04 prefix
-      const validKeyWithPrefix =
-          '04a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
-      expect(CryptoAuth.isValidPublicKey(validKeyWithPrefix), isTrue);
+      // A 130-char SEC1 string with the test helper's pre-generated key
+      // (kept as a check that testPublicKeyHex conforms).
+      final preGeneratedValid = SigningTestHelper.testPublicKeyHex;
+      expect(preGeneratedValid.length, 130);
+      expect(CryptoAuth.isValidPublicKey(preGeneratedValid), isTrue);
 
       // Invalid length (Ed25519 format - too short)
       const ed25519Key = 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
@@ -54,26 +56,19 @@ void main() {
     });
 
     test('verifySignature validates input formats', () async {
-      // Valid ECDSA P-256 public key (128 hex chars)
-      const validKey =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      // Use a real keypair for the format check (must be SEC1 130-hex now).
+      final (privKey, validKey) = SigningTestHelper.generateKeypair();
       final data = Uint8List.fromList(utf8.encode('test message'));
-      // Valid ECDSA P-256 signature format (128 hex chars = r + s)
-      const validSignature =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      // Real signature, signed by the matching private key, so we get past
+      // format checks and verify verification works (it will succeed here).
+      final validSignature = SigningTestHelper.signWith(
+        'test message',
+        privKey,
+      );
 
-      // This will fail signature verification but should not throw format errors
-      // We expect it to return false or throw a verification error, not a format error
-      try {
-        await CryptoAuth.verifySignature(validKey, data, validSignature);
-        // If it doesn't throw, that's fine - it just means verification completed
-      } on AuthenticationException catch (e) {
-        // Should be a verification failure, not a format error
-        expect(e.code, anyOf([
-          AnonAccountErrorCodes.cryptoVerificationFailed,
-          AnonAccountErrorCodes.authInvalidSignature,
-        ]));
-      }
+      // Successful verification — should not throw.
+      final ok = await CryptoAuth.verifySignature(validKey, data, validSignature);
+      expect(ok, isTrue);
 
       // Invalid public key format should throw
       expect(
@@ -90,14 +85,11 @@ void main() {
     });
 
     test('verifyChallengeResponse handles invalid inputs gracefully', () async {
-      // Valid ECDSA P-256 public key (128 hex chars)
-      const validKey =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      final (privKey, validKey) = SigningTestHelper.generateKeypair();
       // Generate a valid challenge format for testing
       final validChallenge = CryptoAuth.generateChallenge();
       // Valid ECDSA P-256 signature format (128 hex chars)
-      const validSignature =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      final validSignature = SigningTestHelper.signWith(validChallenge, privKey);
 
       // Invalid public key should return failure result
       final result1 = await CryptoAuth.verifyChallengeResponse(
@@ -128,29 +120,17 @@ void main() {
     });
 
     test('verifyMessageSignature delegates to CryptoUtils', () async {
-      // Valid ECDSA P-256 public key (128 hex chars)
-      const validKey =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      final (privKey, validKey) = SigningTestHelper.generateKeypair();
       const message = 'test message';
-      // Valid ECDSA P-256 signature format (128 hex chars)
-      const validSignature =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+      final validSignature = SigningTestHelper.signWith(message, privKey);
 
-      // This will fail signature verification but should not throw format errors
-      try {
-        await CryptoAuth.verifyMessageSignature(
-          validKey,
-          message,
-          validSignature,
-        );
-        // If it doesn't throw, that's fine - it just means verification completed
-      } on AuthenticationException catch (e) {
-        // Should be a verification failure, not a format error
-        expect(e.code, anyOf([
-          AnonAccountErrorCodes.cryptoVerificationFailed,
-          AnonAccountErrorCodes.authInvalidSignature,
-        ]));
-      }
+      // Successful verification — should not throw.
+      final ok = await CryptoAuth.verifyMessageSignature(
+        validKey,
+        message,
+        validSignature,
+      );
+      expect(ok, isTrue);
 
       // Invalid public key format should throw
       expect(

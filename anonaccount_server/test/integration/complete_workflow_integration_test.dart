@@ -26,7 +26,7 @@ void main() {
         // Step 2: Create account via PoW-protected endpoint
         const encryptedDataKey = 'encrypted_account_data_key_12345';
         const ultimatePublicKey =
-            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+            '04aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
         final challengeResponse =
@@ -151,7 +151,7 @@ void main() {
         final (_, pubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'encrypted_account_data_key_lookup';
         const ultimatePublicKey =
-            'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+            '04bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
             'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
         final account = await createTestAccount(
@@ -179,7 +179,7 @@ void main() {
 
           // Non-existent key returns null
           const nonExistent =
-              'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+              '04cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
               'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
           final notFound = await AccountQueryService.getAccountByPublicKey(
             session,

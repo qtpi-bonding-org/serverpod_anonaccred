@@ -40,7 +40,7 @@ void main() {
       final signature = SigningTestHelper.signWith(payload, privKey);
 
       const ultimatePublicKey =
-          'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          '04b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
           'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
       // Generate device keypair and attestation
@@ -79,7 +79,7 @@ void main() {
         sessionBuilder,
         ultimateSigningPublicKeyHex: pubKey,
         ultimatePublicKey:
-            'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+            '04c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       );
 
@@ -107,7 +107,7 @@ void main() {
           ultimateSigningPublicKeyHex: pubKey,
           encryptedDataKey: 'test-encrypted-data-key-2',
           ultimatePublicKey:
-              'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+              '04d123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
               'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
           deviceKeyAttestation: deviceAttestation2,
           deviceSigningPublicKeyHex: devicePubKey2,
@@ -120,7 +120,7 @@ void main() {
 
     test('AccountQueryService.getAccountByPublicKey lookups work', () async {
       const validPublicKey =
-          '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          '041123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
           '1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
       final created = await createTestAccount(
@@ -151,7 +151,7 @@ void main() {
     test('encrypted data preservation - data stored without decryption',
         () async {
       const validPublicKey =
-          '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          '047123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
           '7123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
       const originalEncryptedData =
           r'complex_encrypted_data_with_special_chars_!@#$%^&*()';
