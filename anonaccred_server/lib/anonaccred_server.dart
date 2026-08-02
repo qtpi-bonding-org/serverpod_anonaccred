@@ -68,6 +68,8 @@ export 'src/entitlement_core.dart';
 // Exception handling and error classification system
 export 'src/error_classification.dart';
 export 'src/exception_factory.dart';
+// Protocol failure adapters — see anonaccount_server for the shared boundary.
+export 'src/protocol_failures.dart';
 // Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';
