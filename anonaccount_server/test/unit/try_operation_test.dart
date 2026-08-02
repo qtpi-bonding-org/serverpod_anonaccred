@@ -168,4 +168,22 @@ void main() {
       );
     });
   });
+
+  group('crypto helpers do not leak library internals', () {
+    test('verifySignature reports the type, not the pointycastle message',
+        () async {
+      try {
+        await CryptoUtils.verifySignature(
+          // parameter names per crypto_utils.dart:59
+          message: 'm',
+          signature: 'not-hex',
+          publicKey: 'also-not-hex',
+        );
+        fail('expected a throw');
+      } on AuthenticationException catch (e) {
+        expect(e.message, isNot(contains('pointycastle')));
+        expect(e.details?['pointyCastleError'], isNull);
+      }
+    });
+  });
 }

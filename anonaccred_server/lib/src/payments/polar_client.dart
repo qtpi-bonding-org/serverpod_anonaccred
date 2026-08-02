@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
+import '../protocol_failures.dart';
 import '../generated/protocol.dart';
 import 'polar_http_client.dart';
 
@@ -73,7 +75,7 @@ class PolarLicenseValidation {
 /// and response parsing.
 class PolarClient {
   PolarClient({required this.organizationId, required PolarHttpClient http})
-      : _http = http;
+    : _http = http;
 
   /// Build from env vars: see [PolarHttpClient.fromEnvironment] for
   /// the transport-level vars, plus `POLAR_ORGANIZATION_ID`.
@@ -123,16 +125,24 @@ class PolarClient {
     );
 
     final PolarLicenseValidation validation;
-    try {
-      validation = PolarLicenseValidation.fromJson(response.body);
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.polarApiUnavailable,
-        message: 'Failed to parse Polar license validation response',
-        paymentRail: PaymentRail.polar.name,
-        details: {'error': e.toString()},
-      );
-    }
+    validation = await tryOperation(
+      null,
+      'validateLicenseKey',
+      () async => PolarLicenseValidation.fromJson(response.body),
+      onFailure:
+          ({
+            required String code,
+            required String message,
+            required String operation,
+            required Map<String, String> details,
+          }) => PaymentException(
+            code: code,
+            message: message,
+            paymentRail: PaymentRail.polar.name,
+            details: details,
+          ),
+      code: AnonAccredErrorCodes.polarApiUnavailable,
+    );
 
     if (!validation.isGranted) {
       throw AnonAccredExceptionFactory.createPaymentException(

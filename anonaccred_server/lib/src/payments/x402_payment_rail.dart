@@ -1,5 +1,6 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
+import '../protocol_failures.dart';
 import '../generated/protocol.dart';
 import '../refund_event.dart';
 import 'payment_rail_interface.dart';
@@ -78,54 +79,55 @@ class X402PaymentRail implements PaymentRailInterface {
   Future<PaymentResult> processCallback(
     Map<String, dynamic> callbackData,
   ) async {
-    try {
-      // For X402, the callback would typically be the X-PAYMENT header verification
-      // This is a placeholder implementation - actual verification will be implemented
-      // in task 3 (X-PAYMENT header verification)
+    return tryOperation(
+      null,
+      'processCallback',
+      () async {
+        // For X402, the callback would typically be the X-PAYMENT header verification
+        // This is a placeholder implementation - actual verification will be implemented
+        // in task 3 (X-PAYMENT header verification)
 
-      final paymentRef = callbackData['paymentRef'] as String?;
-      final internalTransactionId =
-          callbackData['internalTransactionId'] as String? ??
-          callbackData['orderId'] as String?;
-      final success = callbackData['success'] as bool? ?? false;
+        final paymentRef = callbackData['paymentRef'] as String?;
+        final internalTransactionId =
+            callbackData['internalTransactionId'] as String? ??
+            callbackData['orderId'] as String?;
+        final success = callbackData['success'] as bool? ?? false;
 
-      if (paymentRef == null || internalTransactionId == null) {
-        throw AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.paymentFailed,
-          message:
-              'Invalid X402 callback data: missing paymentRef or internalTransactionId',
-          internalTransactionId: internalTransactionId,
-          paymentRail: railType.toString(),
-          details: {
-            'error': 'missing_required_fields',
-            'receivedFields': callbackData.keys.join(', '),
-          },
+        if (paymentRef == null || internalTransactionId == null) {
+          throw AnonAccredExceptionFactory.createPaymentException(
+            code: AnonAccredErrorCodes.paymentFailed,
+            message:
+                'Invalid X402 callback data: missing paymentRef or internalTransactionId',
+            internalTransactionId: internalTransactionId,
+            paymentRail: railType.toString(),
+            details: {
+              'error': 'missing_required_fields',
+              'receivedFields': callbackData.keys.join(', '),
+            },
+          );
+        }
+
+        return PaymentResult(
+          success: success,
+          internalTransactionId: internalTransactionId ?? '',
+          transactionTimestamp: success ? DateTime.now() : null,
+          errorMessage: success ? null : 'X402 payment verification failed',
         );
-      }
-
-      return PaymentResult(
-        success: success,
-        internalTransactionId: internalTransactionId ?? '',
-        transactionTimestamp: success ? DateTime.now() : null,
-        errorMessage: success ? null : 'X402 payment verification failed',
-      );
-    } on AnonAccountException {
-      // Re-throw AnonAccred exceptions as-is
-      rethrow;
-    } on PaymentException {
-      // Re-throw Payment exceptions as-is
-      rethrow;
-    } catch (e) {
-      // Wrap unexpected errors in PaymentException
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.paymentFailed,
-        message: 'X402 callback processing failed: ${e.toString()}',
-        paymentRail: railType.toString(),
-        details: {
-          'error': e.toString(),
-          'callbackData': callbackData.toString(),
-        },
-      );
-    }
+      },
+      onFailure:
+          ({
+            required String code,
+            required String message,
+            required String operation,
+            required Map<String, String> details,
+          }) => PaymentException(
+            code: code,
+            message: message,
+            paymentRail: railType.toString(),
+            details: details,
+          ),
+      code: AnonAccredErrorCodes.paymentFailed,
+      extraDetails: {'callbackData': callbackData.toString()},
+    );
   }
 }

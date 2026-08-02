@@ -38,11 +38,11 @@ class GoogleAuthClient {
       try {
         final file = File(filePath);
         credentialsJson = await file.readAsString();
-      } catch (e) {
+      } catch (_) {
         throw AnonAccountExceptionFactory.createException(
           code: AnonAccredErrorCodes.configurationMissing,
-          message: 'Failed to read Google service account file: $filePath',
-          details: {'filePath': filePath, 'error': e.toString()},
+          message: 'Failed to read Google service account file',
+          details: {'filePath': filePath},
         );
       }
     }
@@ -65,12 +65,13 @@ class GoogleAuthClient {
           jsonDecode(credentialsJson) as Map<String, dynamic>;
       final credentials = ServiceAccountCredentials.fromJson(credentialsMap);
       return GoogleAuthClient(credentials: credentials);
-    } catch (e) {
+    } on AuthenticationException {
+      rethrow;
+    } catch (_) {
       throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
         message: 'Invalid Google service account credentials format',
         details: {
-          'error': e.toString(),
           'hint':
               'Ensure credentials are valid JSON with required fields: type, project_id, private_key_id, private_key, client_email, client_id, auth_uri, token_uri, auth_provider_x509_cert_url, client_x509_cert_url',
         },
@@ -100,15 +101,13 @@ class GoogleAuthClient {
       return await clientViaServiceAccount(credentials, [
         'https://www.googleapis.com/auth/androidpublisher',
       ]);
-    } catch (e) {
+    } on AuthenticationException {
+      rethrow;
+    } catch (_) {
       throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
-        message:
-            'Failed to create Google authenticated client: ${e.toString()}',
-        details: {
-          'error': e.toString(),
-          'hint': 'Verify service account credentials are valid',
-        },
+        message: 'Failed to create Google authenticated client',
+        details: {'hint': 'Verify service account credentials are valid'},
       );
     }
   }
@@ -136,12 +135,13 @@ class GoogleAuthClient {
       authClient.close();
 
       return accessToken.data;
-    } catch (e) {
+    } on AuthenticationException {
+      rethrow;
+    } catch (_) {
       throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
-        message: 'Failed to refresh Google access token: ${e.toString()}',
+        message: 'Failed to refresh Google access token',
         details: {
-          'error': e.toString(),
           'hint':
               'Verify service account credentials are valid and have access to Google Play Developer API',
         },

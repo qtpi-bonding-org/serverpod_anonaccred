@@ -1,6 +1,7 @@
 import 'package:app_store_server_sdk/app_store_server_sdk.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
-import '../../anonaccred_server.dart' show PaymentException, AnonAccountException;
+import '../../anonaccred_server.dart'
+    show PaymentException, AnonAccountException;
 import '../exception_factory.dart';
 import '../generated/protocol.dart' show PaymentException, AnonAccountException;
 import 'apple_jwt_auth_client.dart';
@@ -33,31 +34,31 @@ import 'apple_jwt_auth_client.dart';
 /// );
 /// ```
 class AppStoreServerClient {
-
   /// Creates a new AppStoreServerClient instance.
   ///
   /// [authClient] - The Apple JWT authentication client
   /// [environment] - The Apple environment to connect to (sandbox or production)
   AppStoreServerClient(
     AppleJWTAuthClient authClient, {
-    AppStoreClientEnvironment environment = AppStoreClientEnvironment.production,
-  })  : _api = AppStoreServerAPI(
-          AppStoreServerHttpClient(
-            environment == AppStoreClientEnvironment.production
-                ? AppStoreEnvironment.live(
-                    bundleId: authClient.bundleId,
-                    issuerId: authClient.issuerId,
-                    keyId: authClient.keyId,
-                    privateKey: authClient.privateKey,
-                  )
-                : AppStoreEnvironment.sandbox(
-                    bundleId: authClient.bundleId,
-                    issuerId: authClient.issuerId,
-                    keyId: authClient.keyId,
-                    privateKey: authClient.privateKey,
-                  ),
-          ),
-        );
+    AppStoreClientEnvironment environment =
+        AppStoreClientEnvironment.production,
+  }) : _api = AppStoreServerAPI(
+         AppStoreServerHttpClient(
+           environment == AppStoreClientEnvironment.production
+               ? AppStoreEnvironment.live(
+                   bundleId: authClient.bundleId,
+                   issuerId: authClient.issuerId,
+                   keyId: authClient.keyId,
+                   privateKey: authClient.privateKey,
+                 )
+               : AppStoreEnvironment.sandbox(
+                   bundleId: authClient.bundleId,
+                   issuerId: authClient.issuerId,
+                   keyId: authClient.keyId,
+                   privateKey: authClient.privateKey,
+                 ),
+         ),
+       );
   final AppStoreServerAPI _api;
 
   /// Get transaction information for a given transaction ID.
@@ -78,40 +79,45 @@ class AppStoreServerClient {
   ///
   /// Returns a [HistoryResponse] with the complete list of signed transactions
   /// across all pages.
-  Future<HistoryResponse> getTransactionInfo(
-    String transactionId,
-  ) async {
-    try {
-      var response = await _api.getTransactionHistory(transactionId);
-      final allTransactions = List<String>.from(response.signedTransactions);
+  Future<HistoryResponse> getTransactionInfo(String transactionId) async {
+    return tryOperation<HistoryResponse, AnonAccountException>(
+      null,
+      'getTransactionInfo',
+      () async {
+        try {
+          var response = await _api.getTransactionHistory(transactionId);
+          final allTransactions = List<String>.from(
+            response.signedTransactions,
+          );
 
-      // Paginate through all remaining pages
-      while (response.hasMore) {
-        response = await _api.getTransactionHistory(
-          transactionId,
-          revision: response.revision,
-        );
-        allTransactions.addAll(response.signedTransactions);
-      }
+          // Paginate through all remaining pages
+          while (response.hasMore) {
+            response = await _api.getTransactionHistory(
+              transactionId,
+              revision: response.revision,
+            );
+            allTransactions.addAll(response.signedTransactions);
+          }
 
-      return HistoryResponse(
-        response.environment,
-        response.appAppleId,
-        response.bundleId,
-        false,
-        response.revision,
-        allTransactions,
-      );
-    } on ApiException catch (e) {
-      _handleApiException(e, 'getTransactionInfo', {'transactionId': transactionId});
-      rethrow;
-    } on Exception catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Failed to get transaction info: ${e.toString()}',
-        details: {'transactionId': transactionId, 'operation': 'getTransactionInfo'},
-      );
-    }
+          return HistoryResponse(
+            response.environment,
+            response.appAppleId,
+            response.bundleId,
+            false,
+            response.revision,
+            allTransactions,
+          );
+        } on ApiException catch (e) {
+          _handleApiException(e, 'getTransactionInfo', {
+            'transactionId': transactionId,
+          });
+          rethrow;
+        }
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+      extraDetails: {'transactionId': transactionId},
+    );
   }
 
   /// Get transaction history for an original transaction ID.
@@ -129,28 +135,27 @@ class AppStoreServerClient {
     required String originalTransactionId,
     String? revision,
   }) async {
-    try {
-      return await _api.getTransactionHistory(
-        originalTransactionId,
-        revision: revision,
-      );
-    } on ApiException catch (e) {
-      _handleApiException(
-        e,
-        'getTransactionHistory',
-        {'originalTransactionId': originalTransactionId, 'revision': revision ?? 'null'},
-      );
-      rethrow;
-    } on Exception catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Failed to get transaction history: ${e.toString()}',
-        details: {
-          'originalTransactionId': originalTransactionId,
-          'operation': 'getTransactionHistory',
-        },
-      );
-    }
+    return tryOperation<HistoryResponse, AnonAccountException>(
+      null,
+      'getTransactionHistory',
+      () async {
+        try {
+          return await _api.getTransactionHistory(
+            originalTransactionId,
+            revision: revision,
+          );
+        } on ApiException catch (e) {
+          _handleApiException(e, 'getTransactionHistory', {
+            'originalTransactionId': originalTransactionId,
+            'revision': revision ?? 'null',
+          });
+          rethrow;
+        }
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+      extraDetails: {'originalTransactionId': originalTransactionId},
+    );
   }
 
   /// Look up an order ID for a given transaction.
@@ -163,18 +168,21 @@ class AppStoreServerClient {
   /// - [PaymentException] with code PAYMENT_VALIDATION_FAILED if order not found
   /// - [AnonAccountException] for other API errors
   Future<OrderLookupResponse> lookUpOrderId(String orderId) async {
-    try {
-      return await _api.lookUpOrderId(orderId);
-    } on ApiException catch (e) {
-      _handleApiException(e, 'lookUpOrderId', {'orderId': orderId});
-      rethrow;
-    } on Exception catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Failed to look up order ID: ${e.toString()}',
-        details: {'orderId': orderId, 'operation': 'lookUpOrderId'},
-      );
-    }
+    return tryOperation<OrderLookupResponse, AnonAccountException>(
+      null,
+      'lookUpOrderId',
+      () async {
+        try {
+          return await _api.lookUpOrderId(orderId);
+        } on ApiException catch (e) {
+          _handleApiException(e, 'lookUpOrderId', {'orderId': orderId});
+          rethrow;
+        }
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+      extraDetails: {'orderId': orderId},
+    );
   }
 
   /// Handles ApiException from the app_store_server_sdk and converts to appropriate domain exceptions.
@@ -242,6 +250,7 @@ class AppStoreServerClient {
 enum AppStoreClientEnvironment {
   /// Production environment
   production,
+
   /// Sandbox environment for testing
   sandbox,
 }

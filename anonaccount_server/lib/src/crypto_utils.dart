@@ -4,7 +4,10 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:pointycastle/export.dart';
 import 'exception_factory.dart';
+import 'generated/protocol.dart';
 import 'key_format.dart';
+import 'protocol_failures.dart';
+import 'try_operation.dart';
 
 /// Cryptographic utilities for ECDSA P-256 signature verification.
 ///
@@ -95,85 +98,83 @@ class CryptoUtils {
       );
     }
 
-    try {
-      final messageBytes = utf8.encode(message);
-      final signatureBytes = hexToBytes(signature);
+    return tryOperation<bool, AuthenticationException>(
+      null,
+      'verifySignature',
+      () async {
+        final messageBytes = utf8.encode(message);
+        final signatureBytes = hexToBytes(signature);
 
-      // Normalize public key to raw format (remove 04 prefix if present)
-      var normalizedKey = publicKey;
-      if (publicKey.length == 130 && publicKey.startsWith('04')) {
-        normalizedKey = publicKey.substring(2);
-      }
-      final publicKeyBytes = hexToBytes(normalizedKey);
+        // Normalize public key to raw format (remove 04 prefix if present)
+        var normalizedKey = publicKey;
+        if (publicKey.length == 130 && publicKey.startsWith('04')) {
+          normalizedKey = publicKey.substring(2);
+        }
+        final publicKeyBytes = hexToBytes(normalizedKey);
 
-      // Validate key length
-      if (publicKeyBytes.length != 64) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
-          message: 'Invalid public key length after normalization',
-          operation: 'verifySignature',
-          details: {
-            'normalizedKeyLength': publicKeyBytes.length.toString(),
-            'expectedLength': '64',
-          },
-        );
-      }
+        // Validate key length
+        if (publicKeyBytes.length != 64) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
+            message: 'Invalid public key length after normalization',
+            operation: 'verifySignature',
+            details: {
+              'normalizedKeyLength': publicKeyBytes.length.toString(),
+              'expectedLength': '64',
+            },
+          );
+        }
 
-      // Validate signature length
-      if (signatureBytes.length != 64) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.cryptoInvalidSignature,
-          message: 'Invalid signature length',
-          operation: 'verifySignature',
-          details: {
-            'signatureLength': signatureBytes.length.toString(),
-            'expectedLength': '64',
-          },
-        );
-      }
+        // Validate signature length
+        if (signatureBytes.length != 64) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidSignature,
+            message: 'Invalid signature length',
+            operation: 'verifySignature',
+            details: {
+              'signatureLength': signatureBytes.length.toString(),
+              'expectedLength': '64',
+            },
+          );
+        }
 
-      // Create P-256 curve parameters
-      final domainParams = ECDomainParameters('secp256r1');
+        // Create P-256 curve parameters
+        final domainParams = ECDomainParameters('secp256r1');
 
-      // Extract x and y coordinates from public key
-      final x = publicKeyBytes.sublist(0, 32);
-      final y = publicKeyBytes.sublist(32, 64);
+        // Extract x and y coordinates from public key
+        final x = publicKeyBytes.sublist(0, 32);
+        final y = publicKeyBytes.sublist(32, 64);
 
-      // Convert to BigInt
-      final xBigInt = _bytesToBigInt(x);
-      final yBigInt = _bytesToBigInt(y);
+        // Convert to BigInt
+        final xBigInt = _bytesToBigInt(x);
+        final yBigInt = _bytesToBigInt(y);
 
-      // Create EC point
-      final point = domainParams.curve.createPoint(xBigInt, yBigInt);
+        // Create EC point
+        final point = domainParams.curve.createPoint(xBigInt, yBigInt);
 
-      // Create public key
-      final ecPublicKey = ECPublicKey(point, domainParams);
+        // Create public key
+        final ecPublicKey = ECPublicKey(point, domainParams);
 
-      // Extract r and s from signature
-      final r = _bytesToBigInt(signatureBytes.sublist(0, 32));
-      final s = _bytesToBigInt(signatureBytes.sublist(32, 64));
+        // Extract r and s from signature
+        final r = _bytesToBigInt(signatureBytes.sublist(0, 32));
+        final s = _bytesToBigInt(signatureBytes.sublist(32, 64));
 
-      // Create signature object
-      final ecSignature = ECSignature(r, s);
+        // Create signature object
+        final ecSignature = ECSignature(r, s);
 
-      // Create and initialize ECDSA signer for verification
-      // ECDSASigner(SHA256Digest()) hashes the message internally,
-      // matching webcrypto's signBytes(data, Hash.sha256) which also
-      // single-hashes before signing.
-      final signer = ECDSASigner(SHA256Digest());
-      signer.init(false, PublicKeyParameter<ECPublicKey>(ecPublicKey));
+        // Create and initialize ECDSA signer for verification
+        // ECDSASigner(SHA256Digest()) hashes the message internally,
+        // matching webcrypto's signBytes(data, Hash.sha256) which also
+        // single-hashes before signing.
+        final signer = ECDSASigner(SHA256Digest());
+        signer.init(false, PublicKeyParameter<ECPublicKey>(ecPublicKey));
 
-      // Verify signature — pass raw message bytes, signer hashes internally
-      return signer.verifySignature(messageBytes, ecSignature);
-
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.cryptoVerificationFailed,
-        message: 'ECDSA verification failed: ${e.toString()}',
-        operation: 'verifySignature',
-        details: {'pointyCastleError': e.toString()},
-      );
-    }
+        // Verify signature — pass raw message bytes, signer hashes internally
+        return signer.verifySignature(messageBytes, ecSignature);
+      },
+      onFailure: authFailure,
+      code: AnonAccountErrorCodes.cryptoVerificationFailed,
+    );
   }
 
   /// Converts bytes to BigInt (big-endian)
@@ -209,12 +210,14 @@ class CryptoUtils {
         bytes[i ~/ 2] = int.parse(hexByte, radix: 16);
       }
       return bytes;
-    } catch (e) {
+    } on AuthenticationException {
+      rethrow;
+    } catch (_) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
         code: AnonAccountErrorCodes.cryptoFormatError,
         message: 'Invalid hexadecimal string format',
         operation: 'hexToBytes',
-        details: {'error': e.toString()},
+        details: {'hexLength': hex.length.toString()},
       );
     }
   }

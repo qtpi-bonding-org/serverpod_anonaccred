@@ -97,127 +97,121 @@ class X402PaymentProcessor {
   static Future<bool> _verifyPaymentInternal(
     Map<String, String> headers,
   ) async {
-    try {
-      // Extract X-PAYMENT header (case-insensitive)
-      final xPaymentHeader =
-          headers['X-PAYMENT'] ?? headers['x-payment'] ?? headers['X-Payment'];
+    return tryOperation<bool, PaymentException>(
+      null,
+      '_verifyPaymentInternal',
+      () async {
+        // Extract X-PAYMENT header (case-insensitive)
+        final xPaymentHeader =
+            headers['X-PAYMENT'] ??
+            headers['x-payment'] ??
+            headers['X-Payment'];
 
-      // Missing or empty X-PAYMENT header means no payment provided (not an error)
-      if (xPaymentHeader == null || xPaymentHeader.isEmpty) {
-        return false;
-      }
+        // Missing or empty X-PAYMENT header means no payment provided (not an error)
+        if (xPaymentHeader == null || xPaymentHeader.isEmpty) {
+          return false;
+        }
 
-      // Validate configuration
-      if (_facilitatorUrl.isEmpty) {
-        throw AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.x402ConfigurationMissing,
-          message: 'X402 facilitator URL not configured',
-          paymentRail: 'x402_http',
-          details: {
-            'facilitatorUrl': 'missing',
-            'environmentVariable': 'X402_FACILITATOR_URL',
-          },
-        );
-      }
-
-      // Prepare facilitator verification request
-      final verificationRequest = {
-        'payment_payload': xPaymentHeader,
-        'timestamp': DateTime.now().toIso8601String(),
-      };
-
-      // Send verification request to facilitator
-      final response = await http.post(
-        Uri.parse(_facilitatorUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(verificationRequest),
-      );
-
-      // Check if facilitator confirms payment
-      if (response.statusCode == 200) {
-        try {
-          final responseData =
-              jsonDecode(response.body) as Map<String, dynamic>;
-          final verified = responseData['verified'] as bool? ?? false;
-          return verified;
-        } on FormatException catch (e) {
-          // Invalid JSON response from facilitator
+        // Validate configuration
+        if (_facilitatorUrl.isEmpty) {
           throw AnonAccredExceptionFactory.createPaymentException(
-            code: AnonAccredErrorCodes.x402VerificationFailed,
-            message: 'Facilitator returned invalid JSON response',
+            code: AnonAccredErrorCodes.x402ConfigurationMissing,
+            message: 'X402 facilitator URL not configured',
             paymentRail: 'x402_http',
             details: {
-              'facilitatorUrl': _facilitatorUrl,
-              'responseBody': response.body.length > 200
-                  ? '${response.body.substring(0, 200)}...'
-                  : response.body,
-              'parseError': e.toString(),
+              'facilitatorUrl': 'missing',
+              'environmentVariable': 'X402_FACILITATOR_URL',
             },
           );
         }
-      }
 
-      // Handle specific HTTP error codes from facilitator
-      if (response.statusCode >= 500) {
-        // Server errors are retryable
-        throw AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.x402FacilitatorUnavailable,
-          message:
-              'Facilitator service unavailable (HTTP ${response.statusCode})',
-          paymentRail: 'x402_http',
-          details: {
-            'facilitatorUrl': _facilitatorUrl,
-            'statusCode': response.statusCode.toString(),
-            'responseBody': response.body.length > 200
-                ? '${response.body.substring(0, 200)}...'
-                : response.body,
+        // Prepare facilitator verification request
+        final verificationRequest = {
+          'payment_payload': xPaymentHeader,
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+
+        // Send verification request to facilitator
+        final response = await http.post(
+          Uri.parse(_facilitatorUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
+          body: jsonEncode(verificationRequest),
         );
-      } else {
-        // Client errors (4xx) indicate payment verification failed
-        throw AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.x402VerificationFailed,
-          message: 'Payment verification failed (HTTP ${response.statusCode})',
-          paymentRail: 'x402_http',
-          details: {
-            'facilitatorUrl': _facilitatorUrl,
-            'statusCode': response.statusCode.toString(),
-            'responseBody': response.body.length > 200
-                ? '${response.body.substring(0, 200)}...'
-                : response.body,
-          },
-        );
-      }
-    } on AnonAccountException {
-      // Re-throw AnonAccred exceptions as-is
-      rethrow;
-    } on PaymentException {
-      // Re-throw Payment exceptions as-is
-      rethrow;
-    } on http.ClientException catch (e) {
-      // Network connectivity issues
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.x402FacilitatorUnavailable,
-        message: 'Failed to connect to facilitator service',
-        paymentRail: 'x402_http',
-        details: {
-          'facilitatorUrl': _facilitatorUrl,
-          'networkError': e.toString(),
-        },
-      );
-    } catch (e) {
-      // Wrap any other unexpected errors
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.x402VerificationFailed,
-        message:
-            'Unexpected error during payment verification: ${e.toString()}',
-        paymentRail: 'x402_http',
-        details: {'facilitatorUrl': _facilitatorUrl, 'error': e.toString()},
-      );
-    }
+
+        // Check if facilitator confirms payment
+        if (response.statusCode == 200) {
+          try {
+            final responseData =
+                jsonDecode(response.body) as Map<String, dynamic>;
+            final verified = responseData['verified'] as bool? ?? false;
+            return verified;
+          } on FormatException {
+            // Invalid JSON response from facilitator
+            throw AnonAccredExceptionFactory.createPaymentException(
+              code: AnonAccredErrorCodes.x402VerificationFailed,
+              message: 'Facilitator returned invalid JSON response',
+              paymentRail: 'x402_http',
+              details: {
+                'facilitatorUrl': _facilitatorUrl,
+                'responseBody': response.body.length > 200
+                    ? '${response.body.substring(0, 200)}...'
+                    : response.body,
+              },
+            );
+          }
+        }
+
+        // Handle specific HTTP error codes from facilitator
+        if (response.statusCode >= 500) {
+          // Server errors are retryable
+          throw AnonAccredExceptionFactory.createPaymentException(
+            code: AnonAccredErrorCodes.x402FacilitatorUnavailable,
+            message:
+                'Facilitator service unavailable (HTTP ${response.statusCode})',
+            paymentRail: 'x402_http',
+            details: {
+              'facilitatorUrl': _facilitatorUrl,
+              'statusCode': response.statusCode.toString(),
+              'responseBody': response.body.length > 200
+                  ? '${response.body.substring(0, 200)}...'
+                  : response.body,
+            },
+          );
+        } else {
+          // Client errors (4xx) indicate payment verification failed
+          throw AnonAccredExceptionFactory.createPaymentException(
+            code: AnonAccredErrorCodes.x402VerificationFailed,
+            message:
+                'Payment verification failed (HTTP ${response.statusCode})',
+            paymentRail: 'x402_http',
+            details: {
+              'facilitatorUrl': _facilitatorUrl,
+              'statusCode': response.statusCode.toString(),
+              'responseBody': response.body.length > 200
+                  ? '${response.body.substring(0, 200)}...'
+                  : response.body,
+            },
+          );
+        }
+      },
+      onFailure:
+          ({
+            required String code,
+            required String message,
+            required String operation,
+            required Map<String, String> details,
+          }) => AnonAccredExceptionFactory.createPaymentException(
+            code: code,
+            message: message,
+            paymentRail: 'x402_http',
+            details: details,
+          ),
+      code: AnonAccredErrorCodes.x402VerificationFailed,
+      extraDetails: {'facilitatorUrl': _facilitatorUrl},
+    );
   }
 }
 

@@ -59,9 +59,8 @@ class PriceRegistry {
     } catch (e) {
       throw AnonAccredExceptionFactory.createPriceRegistryException(
         code: AnonAccredErrorCodes.priceRegistryOperationFailed,
-        message: 'Failed to register product: ${e.toString()}',
+        message: 'Failed to register product: ${e.runtimeType}',
         sku: sku,
-        details: {'error': e.toString()},
       );
     }
   }
