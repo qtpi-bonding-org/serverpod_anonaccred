@@ -238,7 +238,7 @@ class AnonAccountHelpers {
     required PublicKeyDuo deviceKeys,
     required String encryptedDataKey,
     required String label,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     required String operation,
     Transaction? transaction,
@@ -246,7 +246,7 @@ class AnonAccountHelpers {
     final keys = validateKeyDuo(deviceKeys, operation);
     validateNonEmpty(encryptedDataKey, 'encryptedDataKey', operation);
     validateNonEmpty(label, 'label', operation);
-    validateNonEmpty(addedBySignerPublicKeyHex, 'addedBySignerPublicKeyHex', operation);
+    validateNonEmpty(addedByAttestorPublicKeyHex, 'addedByAttestorPublicKeyHex', operation);
     validateNonEmpty(addedByAttestation, 'addedByAttestation', operation);
 
     final existing = await AllRows.deviceBySigningKeyIncludingRevoked(
@@ -274,7 +274,7 @@ class AnonAccountHelpers {
         deviceEncryptionPublicKeyHex: keys.encryptionPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         label: label,
-        addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+        addedByAttestorPublicKeyHex: addedByAttestorPublicKeyHex,
         addedByAttestation: addedByAttestation,
         createdAt: now,
         lastActive: now,

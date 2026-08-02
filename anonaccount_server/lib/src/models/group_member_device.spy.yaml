@@ -17,8 +17,10 @@ fields:
   groupMember: GroupMember?, relation(onDelete=Cascade)
   accountDevice: AccountDevice?, relation(onDelete=Cascade)
   encryptedDataKey: String
-  addedBySignerPublicKeyHex: String
+  addedByAttestorPublicKeyHex: String
   addedByAttestation: String
   createdAt: DateTime, default=now
   isRevoked: bool, default=false
   revokedAt: DateTime?
+  # Reserved for key rotation. No endpoint reads it yet.
+  keyEpoch: int, default=0
