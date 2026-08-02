@@ -67,50 +67,81 @@ void main() {
   });
 
   group('structural guard', () {
-    // A model gaining a raw secret field is how this happens again. Names
-    // that have meant "raw secret material" in this SDK so far.
-    const secretish = ['symmetricKey', 'privateKey', 'secret', 'seed'];
+    // Field names that have meant raw secret material in this SDK.
+    const secretish = [
+      'symmetricKey',
+      'privateKey',
+      'secret',
+      'seed',
+      'KeyJwk',
+    ];
 
-    test('a model holding a raw secret field defines its own toString', () {
+    bool holdsSecret(String text) => secretish.any((needle) =>
+        RegExp('(required |final )[A-Za-z<>?]+ *\\w*$needle\\w*',
+                caseSensitive: false)
+            .hasMatch(text));
+
+    Iterable<File> sourceFiles() => Directory('lib/src')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.dart'))
+        .where((f) => !f.path.endsWith('.freezed.dart'))
+        .where((f) => !f.path.endsWith('.g.dart'));
+
+    test('a codegen class holding secret material defines its own toString',
+        () {
+      // Only codegen-annotated classes are at risk: a plain class inherits
+      // Object.toString, which prints no fields.
       final offenders = <String>[];
 
-      for (final file in Directory('lib/src/models')
-          .listSync()
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'))
-          .where((f) => !f.path.endsWith('.freezed.dart'))
-          .where((f) => !f.path.endsWith('.g.dart'))) {
+      for (final file in sourceFiles()) {
         final text = file.readAsStringSync();
+        final generated =
+            text.contains('@freezed') || text.contains('@JsonSerializable');
+        if (!generated || !holdsSecret(text)) continue;
+        if (!text.contains('String toString()')) offenders.add(file.path);
+      }
 
-        final holdsSecret = secretish.any(
-          (needle) => RegExp('(required |final )[A-Za-z<>?]+ *\\w*$needle\\w*',
-                  caseSensitive: false)
-              .hasMatch(text),
-        );
-        if (!holdsSecret) continue;
+      expect(offenders, isEmpty,
+          reason: 'These hold secret material and inherit a generated '
+              'toString that prints every field:\n${offenders.join('\n')}');
+    });
 
-        if (!text.contains('String toString()')) {
+    test('nothing holding secret material is JSON-serializable', () {
+      // toJson is the worse half of this: toString leaks to logs, toJson
+      // leaks to whatever the caller transmits or persists.
+      final offenders = <String>[];
+
+      for (final file in sourceFiles()) {
+        final text = file.readAsStringSync();
+        if (!holdsSecret(text)) continue;
+        if (text.contains('@JsonSerializable') ||
+            text.contains('fromJson(Map<String, dynamic>')) {
           offenders.add(file.path);
         }
       }
 
       expect(offenders, isEmpty,
-          reason: 'These hold raw secret material and inherit a generated '
-              'toString that prints every field:\n${offenders.join('\n')}');
+          reason: 'Secret material must not have a JSON encoding:\n'
+              '${offenders.join('\n')}');
     });
 
     test('the guard actually detects a model that holds a secret', () {
-      // A guard that matches nothing passes forever. account_keys.dart holds
-      // symmetricKeyJwk, so it must be in the set the guard examines.
-      final text =
-          File('lib/src/models/account_keys.dart').readAsStringSync();
+      // A guard that matches nothing passes forever.
       expect(
-        RegExp('(required |final )[A-Za-z<>?]+ *\\w*symmetricKey\\w*',
-                caseSensitive: false)
-            .hasMatch(text),
+        holdsSecret(File('lib/src/models/account_keys.dart').readAsStringSync()),
         isTrue,
         reason: 'the secret-field pattern no longer matches a known secret '
-            'field — the structural guard has gone blind',
+            'field \u2014 the structural guard has gone blind',
+      );
+    });
+
+    test('the guard scans more than the models directory', () {
+      // in_memory_account_key_store.dart holds raw key material and lives
+      // outside lib/src/models; a scan that misses it is scoped too narrowly.
+      expect(
+        sourceFiles().map((f) => f.path),
+        contains(contains('in_memory_account_key_store.dart')),
       );
     });
   });
