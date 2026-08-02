@@ -1,4 +1,6 @@
 import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
+import '../protocol_failures.dart';
+import '../try_operation.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import '../crypto_auth.dart';
@@ -39,93 +41,88 @@ class DeviceEndpoint extends SignedPowEndpoint {
     required String encryptedDataKey,
     required String label,
   }) async {
-    try {
-      final keys = AnonAccountHelpers.validateKeyDuo(deviceKeys, 'registerDevice');
-      final deviceSigningPublicKeyHex = keys.signingPublicKeyHex;
+    return tryOperation(
+      session,
+      'registerDevice',
+      () async {
+        final keys = AnonAccountHelpers.validateKeyDuo(
+          deviceKeys,
+          'registerDevice',
+        );
+        final deviceSigningPublicKeyHex = keys.signingPublicKeyHex;
 
-      // 1. Verify attestation: ultimate key authorized this device key pair.
-      // Covers BOTH halves — the encryption key becomes a wrap target, so
-      // it must be inside the signature rather than beside it.
-      final attestationValid = await CryptoUtils.verifySignature(
-        message: AccountInnerPayloads.registerDevice(keys),
-        signature: deviceKeyAttestation,
-        publicKey: ultimateSigningPublicKeyHex,
-      );
-      if (!attestationValid) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.cryptoInvalidSignature,
-          message:
-              'Invalid device key attestation — ultimate key did not authorize this device',
+        // 1. Verify attestation: ultimate key authorized this device key pair.
+        // Covers BOTH halves — the encryption key becomes a wrap target, so
+        // it must be inside the signature rather than beside it.
+        final attestationValid = await CryptoUtils.verifySignature(
+          message: AccountInnerPayloads.registerDevice(keys),
+          signature: deviceKeyAttestation,
+          publicKey: ultimateSigningPublicKeyHex,
+        );
+        if (!attestationValid) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidSignature,
+            message:
+                'Invalid device key attestation — ultimate key did not authorize this device',
+            operation: 'registerDevice',
+          );
+        }
+
+        // 2. Verify PoW + signature + rate limit (device key proves liveness)
+        final payload =
+            '$challenge:${DeviceMethods.registerDevice}:$deviceSigningPublicKeyHex';
+
+        await verifySignedPow(
+          session,
+          challenge,
+          proofOfWork,
+          deviceSigningPublicKeyHex,
+          signature,
+          payload,
+        );
+
+        // Validate ultimate key and resolve account.
+        AnonAccountHelpers.validatePublicKey(
+          ultimateSigningPublicKeyHex,
+          'registerDevice',
+        );
+
+        final account = await AnonAccount.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
+        );
+        if (account == null) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authAccountNotFound,
+            message: 'Account not found for ultimate signing key',
+            operation: 'registerDevice',
+            details: {
+              'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+            },
+          );
+        }
+
+        final insertedDevice = await AnonAccountHelpers.insertDevice(
+          session,
+          accountId: account.id!,
+          deviceKeys: keys,
+          encryptedDataKey: encryptedDataKey,
+          label: label,
+          addedByAttestorPublicKeyHex: ultimateSigningPublicKeyHex,
+          addedByAttestation: deviceKeyAttestation,
           operation: 'registerDevice',
         );
-      }
 
-      // 2. Verify PoW + signature + rate limit (device key proves liveness)
-      final payload =
-          '$challenge:${DeviceMethods.registerDevice}:$deviceSigningPublicKeyHex';
-
-      await verifySignedPow(
-        session,
-        challenge,
-        proofOfWork,
-        deviceSigningPublicKeyHex,
-        signature,
-        payload,
-      );
-
-      // Validate ultimate key and resolve account.
-      AnonAccountHelpers.validatePublicKey(
-        ultimateSigningPublicKeyHex,
-        'registerDevice',
-      );
-
-      final account = await AnonAccount.db.findFirstRow(
-        session,
-        where: (t) => t.ultimateSigningPublicKeyHex
-            .equals(ultimateSigningPublicKeyHex),
-      );
-      if (account == null) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authAccountNotFound,
-          message: 'Account not found for ultimate signing key',
-          operation: 'registerDevice',
-          details: {
-            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
-          },
+        session.log(
+          'DeviceEndpoint: Device registered successfully with ID: ${insertedDevice.id}',
+          level: LogLevel.info,
         );
-      }
-
-      final insertedDevice = await AnonAccountHelpers.insertDevice(
-        session,
-        accountId: account.id!,
-        deviceKeys: keys,
-        encryptedDataKey: encryptedDataKey,
-        label: label,
-        addedByAttestorPublicKeyHex: ultimateSigningPublicKeyHex,
-        addedByAttestation: deviceKeyAttestation,
-        operation: 'registerDevice',
-      );
-
-      session.log(
-        'DeviceEndpoint: Device registered successfully with ID: ${insertedDevice.id}',
-        level: LogLevel.info,
-      );
-      return insertedDevice;
-    } on AuthenticationException {
-      rethrow;
-    } catch (e, stackTrace) {
-      session.log(
-        'DeviceEndpoint: Unexpected error: $e\n$stackTrace',
-        level: LogLevel.error,
-      );
-
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to register device: ${e.toString()}',
-        operation: 'registerDevice',
-        details: {'error': e.toString()},
-      );
-    }
+        return insertedDevice;
+      },
+      onFailure: authFailure,
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 
   /// Sign in with a registered device (PoW-protected).
@@ -141,81 +138,75 @@ class DeviceEndpoint extends SignedPowEndpoint {
     required String signature,
     required String devicePublicKeyHex,
   }) async {
-    try {
-      // Verify PoW + signature + rate limit
-      final payload = '$challenge:${DeviceMethods.signIn}:$devicePublicKeyHex';
+    return tryOperation(
+      session,
+      'signIn',
+      () async {
+        // Verify PoW + signature + rate limit
+        final payload =
+            '$challenge:${DeviceMethods.signIn}:$devicePublicKeyHex';
 
-      await verifySignedPow(
-        session,
-        challenge,
-        proofOfWork,
-        devicePublicKeyHex,
-        signature,
-        payload,
-      );
+        await verifySignedPow(
+          session,
+          challenge,
+          proofOfWork,
+          devicePublicKeyHex,
+          signature,
+          payload,
+        );
 
-      // Look up device and verify it's active
-      final device = await AllRows.deviceBySigningKeyIncludingRevoked(
-        session,
-        devicePublicKeyHex,
-      );
+        // Look up device and verify it's active
+        final device = await AllRows.deviceBySigningKeyIncludingRevoked(
+          session,
+          devicePublicKeyHex,
+        );
 
-      final activeDevice = AnonAccountHelpers.requireActiveDevice(
-        device,
-        devicePublicKeyHex,
-        'signIn',
-      );
+        final activeDevice = AnonAccountHelpers.requireActiveDevice(
+          device,
+          devicePublicKeyHex,
+          'signIn',
+        );
 
-      // Update last active timestamp
-      await AccountDevice.db.updateRow(
-        session,
-        activeDevice.copyWith(
-          lastActive: AnonAccountHelpers.roundToMinute(DateTime.now()),
-        ),
-      );
+        // Update last active timestamp
+        await AccountDevice.db.updateRow(
+          session,
+          activeDevice.copyWith(
+            lastActive: AnonAccountHelpers.roundToMinute(DateTime.now()),
+          ),
+        );
 
-      // Look up account to get ultimate public key hex for client
-      final account = await AnonAccount.db.findById(
-        session,
-        activeDevice.anonAccountId,
-      );
+        // Look up account to get ultimate public key hex for client
+        final account = await AnonAccount.db.findById(
+          session,
+          activeDevice.anonAccountId,
+        );
 
-      // Issue JWT via Serverpod's built-in token manager
-      final authSuccess = await AuthServices.instance.tokenManager.issueToken(
-        session,
-        authUserId: activeDevice.anonAccountId,
-        method: 'anonaccount',
-        scopes: {Scope('device:$devicePublicKeyHex')},
-      );
+        // Issue JWT via Serverpod's built-in token manager
+        final authSuccess = await AuthServices.instance.tokenManager.issueToken(
+          session,
+          authUserId: activeDevice.anonAccountId,
+          method: 'anonaccount',
+          scopes: {Scope('device:$devicePublicKeyHex')},
+        );
 
-      return AuthenticationResultFactory.success(
-        deviceId: activeDevice.id,
-        accountPublicKeyHex: account?.ultimateSigningPublicKeyHex,
-        details: {
-          'token': authSuccess.token,
-          if (authSuccess.tokenExpiresAt != null)
-            'tokenExpiresAt': authSuccess.tokenExpiresAt!.toIso8601String(),
-          if (authSuccess.refreshToken != null)
-            'refreshToken': authSuccess.refreshToken!,
-          'authUserId': activeDevice.anonAccountId.toString(),
-          'authStrategy': authSuccess.authStrategy,
-          'deviceSigningPublicKeyHex': devicePublicKeyHex,
-        },
-      );
-    } on AuthenticationException {
-      rethrow;
-    } catch (e, stackTrace) {
-      session.log(
-        'DeviceEndpoint: signIn error: $e\n$stackTrace',
-        level: LogLevel.error,
-      );
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Sign in failed: ${e.toString()}',
-        operation: 'signIn',
-        details: {'error': e.toString()},
-      );
-    }
+        return AuthenticationResultFactory.success(
+          deviceId: activeDevice.id,
+          accountPublicKeyHex: account?.ultimateSigningPublicKeyHex,
+          details: {
+            'token': authSuccess.token,
+            if (authSuccess.tokenExpiresAt != null)
+              'tokenExpiresAt': authSuccess.tokenExpiresAt!.toIso8601String(),
+            if (authSuccess.refreshToken != null)
+              'refreshToken': authSuccess.refreshToken!,
+            'authUserId': activeDevice.anonAccountId.toString(),
+            'authStrategy': authSuccess.authStrategy,
+            'deviceSigningPublicKeyHex': devicePublicKeyHex,
+          },
+        );
+      },
+      onFailure: authFailure,
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 
   /// Monitor registration status for a specific signing key (PoW-protected).

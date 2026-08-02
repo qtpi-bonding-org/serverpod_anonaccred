@@ -1,4 +1,6 @@
 import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
+import '../protocol_failures.dart';
+import '../try_operation.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import '../crypto_utils.dart';
@@ -43,155 +45,149 @@ class AccountEndpoint extends SignedPowEndpoint {
     required String deviceEncryptedDataKey,
     required String deviceLabel,
   }) async {
-    try {
-      final ultimateKeysValidated = AnonAccountHelpers.validateKeyDuo(
-        ultimateKeys,
-        'createAccount',
-      );
-      final deviceKeysValidated = AnonAccountHelpers.validateKeyDuo(
-        deviceKeys,
-        'createAccount',
-      );
-      final ultimateSigningPublicKeyHex =
-          ultimateKeysValidated.signingPublicKeyHex;
-      final ultimateEncryptionPublicKeyHex =
-          ultimateKeysValidated.encryptionPublicKeyHex;
-
-      // The envelope is signed by the device key (publicKeyHex, proven live
-      // by the outer PoW+signature below) — name it accordingly. It was
-      // previously built naming the ultimate key but verified against the
-      // device key, so the SDK — which signs over the device key — could
-      // never verify.
-      final payload =
-          '$challenge:${AccountMethods.createAccount}:$publicKeyHex';
-
-      await verifySignedPow(
-        session,
-        challenge,
-        proofOfWork,
-        publicKeyHex,
-        signature,
-        payload,
-      );
-
-      // Account param validation (format already checked by validateKeyDuo
-      // above).
-      AnonAccountHelpers.validateNonEmpty(
-        encryptedDataKey,
-        'encryptedDataKey',
-        'createAccount',
-      );
-
-      // Verify attestation: ultimate key authorized this device key pair.
-      // Covers BOTH halves of deviceKeys — the encryption key becomes a
-      // wrap target, so it must be inside the signature rather than beside
-      // it, or it can be substituted.
-      final attestationValid = await CryptoUtils.verifySignature(
-        message: AccountInnerPayloads.registerDevice(deviceKeysValidated),
-        signature: deviceKeyAttestation,
-        publicKey: ultimateSigningPublicKeyHex,
-      );
-      if (!attestationValid) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.cryptoInvalidSignature,
-          message:
-              'Invalid device key attestation — ultimate key did not authorize this device',
-          operation: 'createAccount',
+    return tryOperation(
+      session,
+      'createAccount',
+      () async {
+        final ultimateKeysValidated = AnonAccountHelpers.validateKeyDuo(
+          ultimateKeys,
+          'createAccount',
         );
-      }
-
-      // Check for duplicate account (using the renamed encryption field).
-      final existingByDevice = await AnonAccount.db.findFirstRow(
-        session,
-        where: (t) => t.ultimateSigningPublicKeyHex
-            .equals(ultimateSigningPublicKeyHex),
-      );
-
-      if (existingByDevice != null) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authDuplicateDevice,
-          message: 'Account with this device public key already exists',
-          operation: 'createAccount',
-          details: {
-            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
-          },
+        final deviceKeysValidated = AnonAccountHelpers.validateKeyDuo(
+          deviceKeys,
+          'createAccount',
         );
-      }
+        final ultimateSigningPublicKeyHex =
+            ultimateKeysValidated.signingPublicKeyHex;
+        final ultimateEncryptionPublicKeyHex =
+            ultimateKeysValidated.encryptionPublicKeyHex;
 
-      final existingByUltimate = await AnonAccount.db.findFirstRow(
-        session,
-        where: (t) => t.ultimateEncryptionPublicKeyHex.equals(
-          ultimateEncryptionPublicKeyHex,
-        ),
-      );
+        // The envelope is signed by the device key (publicKeyHex, proven live
+        // by the outer PoW+signature below) — name it accordingly. It was
+        // previously built naming the ultimate key but verified against the
+        // device key, so the SDK — which signs over the device key — could
+        // never verify.
+        final payload =
+            '$challenge:${AccountMethods.createAccount}:$publicKeyHex';
 
-      if (existingByUltimate != null) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authDuplicateDevice,
-          message: 'Account with this ultimate key already exists',
-          operation: 'createAccount',
-          details: {
-            'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
-          },
-        );
-      }
-
-      // Create Serverpod AuthUser (generates UUID for JWT identity)
-      final authUser = await AuthServices.instance.authUsers.create(session);
-
-      final now = DateTime.now();
-      final newAccount = AnonAccount(
-        id: authUser.id,
-        ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
-        encryptedDataKey: encryptedDataKey,
-        ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
-        createdAt: now,
-      );
-
-      // Account + first device insert atomically — a failed device insert
-      // (e.g. the device signing key collides with an existing device) must
-      // not leave an orphan AnonAccount row behind.
-      await session.db.transaction((transaction) async {
-        await AnonAccount.db.insertRow(
+        await verifySignedPow(
           session,
-          newAccount,
-          transaction: transaction,
+          challenge,
+          proofOfWork,
+          publicKeyHex,
+          signature,
+          payload,
         );
-        await AnonAccountHelpers.insertDevice(
-          session,
-          accountId: authUser.id,
-          deviceKeys: deviceKeysValidated,
-          encryptedDataKey: deviceEncryptedDataKey,
-          label: deviceLabel,
-          addedByAttestorPublicKeyHex: ultimateSigningPublicKeyHex,
-          addedByAttestation: deviceKeyAttestation,
-          operation: 'createAccount',
-          transaction: transaction,
-        );
-      });
 
-      session.log(
-        'AccountEndpoint: Account + first device created successfully',
-        level: LogLevel.info,
-      );
-      return AccountCreationResponse(
-        ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
-        encryptedDataKey: encryptedDataKey,
-        ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
-        createdAt: now,
-      );
-    } on AuthenticationException {
-      rethrow;
-    } catch (e, stackTrace) {
-      session.log(
-        'AccountEndpoint: Unexpected error: $e\n$stackTrace',
-        level: LogLevel.error,
-      );
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Unexpected error during account creation: ${e.toString()}',
-        details: {'error': e.toString()},
-      );
-    }
+        // Account param validation (format already checked by validateKeyDuo
+        // above).
+        AnonAccountHelpers.validateNonEmpty(
+          encryptedDataKey,
+          'encryptedDataKey',
+          'createAccount',
+        );
+
+        // Verify attestation: ultimate key authorized this device key pair.
+        // Covers BOTH halves of deviceKeys — the encryption key becomes a
+        // wrap target, so it must be inside the signature rather than beside
+        // it, or it can be substituted.
+        final attestationValid = await CryptoUtils.verifySignature(
+          message: AccountInnerPayloads.registerDevice(deviceKeysValidated),
+          signature: deviceKeyAttestation,
+          publicKey: ultimateSigningPublicKeyHex,
+        );
+        if (!attestationValid) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidSignature,
+            message:
+                'Invalid device key attestation — ultimate key did not authorize this device',
+            operation: 'createAccount',
+          );
+        }
+
+        // Check for duplicate account (using the renamed encryption field).
+        final existingByDevice = await AnonAccount.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
+        );
+
+        if (existingByDevice != null) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authDuplicateDevice,
+            message: 'Account with this device public key already exists',
+            operation: 'createAccount',
+            details: {
+              'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+            },
+          );
+        }
+
+        final existingByUltimate = await AnonAccount.db.findFirstRow(
+          session,
+          where: (t) => t.ultimateEncryptionPublicKeyHex.equals(
+            ultimateEncryptionPublicKeyHex,
+          ),
+        );
+
+        if (existingByUltimate != null) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authDuplicateDevice,
+            message: 'Account with this ultimate key already exists',
+            operation: 'createAccount',
+            details: {
+              'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+            },
+          );
+        }
+
+        // Create Serverpod AuthUser (generates UUID for JWT identity)
+        final authUser = await AuthServices.instance.authUsers.create(session);
+
+        final now = DateTime.now();
+        final newAccount = AnonAccount(
+          id: authUser.id,
+          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
+          createdAt: now,
+        );
+
+        // Account + first device insert atomically — a failed device insert
+        // (e.g. the device signing key collides with an existing device) must
+        // not leave an orphan AnonAccount row behind.
+        await session.db.transaction((transaction) async {
+          await AnonAccount.db.insertRow(
+            session,
+            newAccount,
+            transaction: transaction,
+          );
+          await AnonAccountHelpers.insertDevice(
+            session,
+            accountId: authUser.id,
+            deviceKeys: deviceKeysValidated,
+            encryptedDataKey: deviceEncryptedDataKey,
+            label: deviceLabel,
+            addedByAttestorPublicKeyHex: ultimateSigningPublicKeyHex,
+            addedByAttestation: deviceKeyAttestation,
+            operation: 'createAccount',
+            transaction: transaction,
+          );
+        });
+
+        session.log(
+          'AccountEndpoint: Account + first device created successfully',
+          level: LogLevel.info,
+        );
+        return AccountCreationResponse(
+          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
+          encryptedDataKey: encryptedDataKey,
+          ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
+          createdAt: now,
+        );
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+    );
   }
 }

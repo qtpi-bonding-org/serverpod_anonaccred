@@ -1,4 +1,6 @@
 import 'package:serverpod/serverpod.dart';
+import 'protocol_failures.dart';
+import 'try_operation.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
 import 'helpers.dart';
@@ -15,22 +17,20 @@ class AccountQueryService {
     Session session,
     UuidValue accountId,
   ) async {
-    try {
-      final account = await AnonAccount.db.findById(session, accountId);
-      return AnonAccountHelpers.requireAccount(
-        account,
-        accountId.toString(),
-        'getAccountById',
-      );
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Unexpected error during account lookup: ${e.toString()}',
-        details: {'error': e.toString()},
-      );
-    }
+    return tryOperation(
+      session,
+      'getAccountById',
+      () async {
+        final account = await AnonAccount.db.findById(session, accountId);
+        return AnonAccountHelpers.requireAccount(
+          account,
+          accountId.toString(),
+          'getAccountById',
+        );
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+    );
   }
 
   /// Get account by public master key lookup.
@@ -38,25 +38,22 @@ class AccountQueryService {
     Session session,
     String ultimateSigningPublicKeyHex,
   ) async {
-    try {
-      AnonAccountHelpers.validatePublicKey(
-        ultimateSigningPublicKeyHex,
-        'getAccountByPublicKey',
-      );
-      return await AnonAccount.db.findFirstRow(
-        session,
-        where: (t) => t.ultimateSigningPublicKeyHex
-            .equals(ultimateSigningPublicKeyHex),
-      );
-    } on AuthenticationException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Unexpected error during account lookup: ${e.toString()}',
-        details: {'error': e.toString()},
-      );
-    }
+    return tryOperation(
+      session,
+      'getAccountByPublicKey',
+      () async {
+        AnonAccountHelpers.validatePublicKey(
+          ultimateSigningPublicKeyHex,
+          'getAccountByPublicKey',
+        );
+        return await AnonAccount.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.ultimateSigningPublicKeyHex.equals(ultimateSigningPublicKeyHex),
+        );
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+    );
   }
-
 }
