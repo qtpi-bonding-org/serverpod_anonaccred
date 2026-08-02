@@ -28,6 +28,8 @@ dependencies:
   serverpod_auth_idp_client: 3.4.1
   serverpod_auth_core_client: 3.4.1
   crypto: ^3.0.3
+  anonaccount_protocol:
+    path: ../anonaccount_protocol
 
 dev_dependencies:
   test: ^1.25.5

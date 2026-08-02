@@ -46,6 +46,7 @@ import 'package:anonaccount_server/src/generated/group_membership_view.dart'
 import 'package:anonaccount_server/src/generated/group_member.dart' as _i31;
 import 'package:anonaccount_server/src/generated/member_device_grant.dart'
     as _i32;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' as _i33;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -1073,6 +1074,9 @@ class Protocol extends _i1.SerializationManagerServer {
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i4.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i33.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i2.Protocol().deserialize<T>(data, t);

@@ -44,6 +44,7 @@ import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i29;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i30;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' as _i31;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -306,6 +307,9 @@ class Protocol extends _i1.SerializationManager {
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i30.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i31.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }

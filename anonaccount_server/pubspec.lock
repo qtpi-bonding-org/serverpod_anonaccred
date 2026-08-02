@@ -40,6 +40,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  anonaccount_protocol:
+    dependency: "direct main"
+    description:
+      path: "../anonaccount_protocol"
+      relative: true
+    source: path
+    version: "1.0.0"
   anonaccount_sdk:
     dependency: "direct dev"
     description:
@@ -179,8 +186,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "99356e83bfcfa1a777a70c1763179e1d6a4d618a"
-      resolved-ref: "99356e83bfcfa1a777a70c1763179e1d6a4d618a"
+      ref: "09d89c590ea89be22d36c2942ec339296b6aefd7"
+      resolved-ref: "09d89c590ea89be22d36c2942ec339296b6aefd7"
       url: "https://github.com/qtpi-bonding-org/dart_jwk_duo.git"
     source: git
     version: "2.0.0"
