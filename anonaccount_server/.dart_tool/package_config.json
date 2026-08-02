@@ -32,6 +32,12 @@
       "languageVersion": "3.8"
     },
     {
+      "name": "anonaccount_protocol",
+      "rootUri": "../../anonaccount_protocol",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
       "name": "anonaccount_sdk",
       "rootUri": "../../anonaccount_sdk",
       "packageUri": "lib/",
@@ -135,7 +141,7 @@
     },
     {
       "name": "dart_jwk_duo",
-      "rootUri": "file:///Users/aicoder/.pub-cache/git/dart_jwk_duo-99356e83bfcfa1a777a70c1763179e1d6a4d618a/",
+      "rootUri": "file:///Users/aicoder/.pub-cache/git/dart_jwk_duo-09d89c590ea89be22d36c2942ec339296b6aefd7/",
       "packageUri": "lib/",
       "languageVersion": "3.3"
     },

@@ -17,6 +17,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "10.2.0"
+  anonaccount_protocol:
+    dependency: "direct main"
+    description:
+      path: "../anonaccount_protocol"
+      relative: true
+    source: path
+    version: "1.0.0"
   args:
     dependency: transitive
     description:

@@ -1,7 +1,7 @@
-import 'protocol/public_key_duo.dart';
+import 'package:serverpod_serialization/serverpod_serialization.dart'
+    show UuidValue;
 
-import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
-import 'protocol/group_member_role.dart';
+import 'generated/public_key_duo.dart';
 
 /// Method name constants for PoW payload construction.
 ///
@@ -66,13 +66,18 @@ abstract final class GroupInnerPayloads {
       ':${creatorMemberKeys.signingPublicKeyHex}'
       ':${creatorMemberKeys.encryptionPublicKeyHex}';
 
+  /// Takes the role's `.name` rather than GroupMemberRole: that enum is a
+  /// column type on group_member and stays in anonaccount_server, because
+  /// moving a DB-backed enum across packages is migration risk for no gain.
+  /// Role is a single value, not a transposition hazard — unlike the key
+  /// pair, which keeps its type.
   static String addGroupMember(
     UuidValue groupId,
     UuidValue newMemberAccountId,
-    GroupMemberRole role,
+    String roleName,
     PublicKeyDuo memberKeys,
   ) =>
-      'addGroupMember:$groupId:$newMemberAccountId:${role.name}'
+      'addGroupMember:$groupId:$newMemberAccountId:$roleName'
       ':${memberKeys.signingPublicKeyHex}'
       ':${memberKeys.encryptionPublicKeyHex}';
 

@@ -7,6 +7,7 @@
       "name": "anonaccount_client",
       "version": "0.1.0",
       "dependencies": [
+        "anonaccount_protocol",
         "crypto",
         "serverpod_auth_core_client",
         "serverpod_auth_idp_client",
@@ -45,6 +46,13 @@
         "web_socket_channel",
         "webkit_inspection_protocol",
         "yaml"
+      ]
+    },
+    {
+      "name": "anonaccount_protocol",
+      "version": "1.0.0",
+      "dependencies": [
+        "serverpod_serialization"
       ]
     },
     {
@@ -331,19 +339,24 @@
       ]
     },
     {
-      "name": "web_socket",
-      "version": "1.0.1",
-      "dependencies": [
-        "web"
-      ]
-    },
-    {
       "name": "serverpod_serialization",
       "version": "3.4.1",
       "dependencies": [
         "meta",
         "uuid",
         "yaml"
+      ]
+    },
+    {
+      "name": "clock",
+      "version": "1.1.2",
+      "dependencies": []
+    },
+    {
+      "name": "web_socket",
+      "version": "1.0.1",
+      "dependencies": [
+        "web"
       ]
     },
     {
@@ -500,11 +513,6 @@
     {
       "name": "fixnum",
       "version": "1.1.1",
-      "dependencies": []
-    },
-    {
-      "name": "clock",
-      "version": "1.1.2",
       "dependencies": []
     }
   ],

@@ -1,5 +1,5 @@
-import 'package:anonaccount_server/src/generated/protocol.dart';
-import 'package:anonaccount_server/src/pow_methods.dart';
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
+import 'package:anonaccount_server/src/generated/authentication_exception.dart';
 import 'package:test/test.dart';
 import '../test_helpers/auth_services_test_helper.dart';
 import '../test_helpers/pow_test_helper.dart';

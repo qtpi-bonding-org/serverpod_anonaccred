@@ -2,17 +2,18 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 // ignore: implementation_imports
-import 'package:anonaccount_client/src/pow_methods.dart'
-    show AccountMethods, AccountInnerPayloads, DataKeyMethods, DeviceMethods;
-// ignore: implementation_imports
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
     show KeyDuo, EncryptionKeyPair;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
-// ignore: implementation_imports
-import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
-    show PublicKeyDuo;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
+    show
+        AccountMethods,
+        AccountInnerPayloads,
+        DataKeyMethods,
+        DeviceMethods,
+        PublicKeyDuo;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 // UuidValue comes from serverpod_client, re-exported by anonaccount_client.

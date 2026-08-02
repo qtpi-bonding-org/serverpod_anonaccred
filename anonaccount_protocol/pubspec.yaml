@@ -1,0 +1,17 @@
+name: anonaccount_protocol
+description: >
+  Wire types and signed-payload builders shared by anonaccount_server and
+  anonaccount_client. Exists so the two cannot disagree about the bytes
+  being signed.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: '^3.8.0'
+
+dependencies:
+  serverpod_serialization: 3.4.1
+
+dev_dependencies:
+  lints: '>=3.0.0 <7.0.0'
+  test: ^1.25.5

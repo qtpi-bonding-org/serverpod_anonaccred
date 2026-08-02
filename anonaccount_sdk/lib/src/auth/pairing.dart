@@ -1,16 +1,12 @@
 import 'dart:convert';
 
 // ignore: implementation_imports
-import 'package:anonaccount_client/src/pow_methods.dart'
-    show AccountInnerPayloads, DeviceMethods;
-// ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/account_device.dart'
     show AccountDevice;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
-// ignore: implementation_imports
-import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
-    show PublicKeyDuo;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
+    show AccountInnerPayloads, DeviceMethods, PublicKeyDuo;
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
     show EncryptionKeyPair, EncryptionPublicKeyHex;
 import 'package:webcrypto/webcrypto.dart';

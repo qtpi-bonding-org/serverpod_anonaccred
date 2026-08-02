@@ -3,9 +3,6 @@ import 'dart:convert';
 // ignore: implementation_imports
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 // ignore: implementation_imports
-import 'package:anonaccount_client/src/pow_methods.dart'
-    show GroupMethods, GroupInnerPayloads;
-// ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/grant_member_device_result.dart'
@@ -22,9 +19,8 @@ import 'package:anonaccount_client/src/protocol/group_member_role.dart'
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
     show MemberDeviceGrant;
-// ignore: implementation_imports
-import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
-    show PublicKeyDuo;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
+    show GroupMethods, GroupInnerPayloads, PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
     show
@@ -87,12 +83,8 @@ class AnonaccountGroups {
     );
 
     // Inner attestation: group's ultimate key signs the inner payload.
-    // Matches GroupInnerPayloads.createGroup on the server byte-for-byte.
     final innerPayload =
-        'createGroup:${groupKeysWire.signingPublicKeyHex}'
-        ':${groupKeysWire.encryptionPublicKeyHex}'
-        ':${memberKeysWire.signingPublicKeyHex}'
-        ':${memberKeysWire.encryptionPublicKeyHex}';
+        GroupInnerPayloads.createGroup(groupKeysWire, memberKeysWire);
     final groupUltimateAttestation =
         await SigningCrypto.signChallenge(innerPayload, groupUltimate);
 
@@ -191,12 +183,13 @@ class AnonaccountGroups {
       encryptionPublicKeyHex: newMemberEncryptionPublicKeyHex,
     );
 
-    // Inner payload — signed by the caller's member key. Matches
-    // GroupInnerPayloads.addGroupMember on the server byte-for-byte.
-    final innerPayload =
-        'addGroupMember:$groupId:$newMemberAccountId:${role.name}'
-        ':${memberKeysWire.signingPublicKeyHex}'
-        ':${memberKeysWire.encryptionPublicKeyHex}';
+    // Inner payload — signed by the caller's member key.
+    final innerPayload = GroupInnerPayloads.addGroupMember(
+      groupId,
+      newMemberAccountId,
+      role.name,
+      memberKeysWire,
+    );
     final memberAuthSignature =
         await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
 
@@ -241,7 +234,7 @@ class AnonaccountGroups {
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Inner payload — signed by the caller's member key.
-    final innerPayload = 'removeGroupMember:$memberId';
+    final innerPayload = GroupInnerPayloads.removeGroupMember(memberId);
     final memberAuthSignature =
         await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
 
@@ -279,7 +272,7 @@ class AnonaccountGroups {
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Inner payload — signed by the caller's member key.
-    final innerPayload = 'leaveGroup:$memberId';
+    final innerPayload = GroupInnerPayloads.leaveGroup(memberId);
     final memberAuthSignature =
         await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
 

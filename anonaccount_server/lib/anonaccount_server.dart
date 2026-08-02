@@ -35,9 +35,13 @@ export 'src/endpoints/device_management_endpoint.dart';
 // Generated Serverpod protocol classes and endpoints
 export 'src/generated/endpoints.dart';
 export 'src/generated/protocol.dart';
+// Shared wire types and signed-payload builders (PublicKeyDuo and
+// pow_methods.dart's builders both live here now; no longer generated or
+// hand-maintained locally, see anonaccount_protocol package). `Protocol`
+// is hidden: anonaccount_server's own generated Protocol is the one this
+// barrel already exports, and the two names collide otherwise.
+export 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 // Helper utilities
 export 'src/helpers.dart';
-// PoW method name constants (shared between server and client)
-export 'src/pow_methods.dart';
 // ShardRouting tenantType constants (shared between quanitya/episutra)
 export 'src/shard_tenant_type.dart';

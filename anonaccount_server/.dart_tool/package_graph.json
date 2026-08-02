@@ -7,6 +7,7 @@
       "name": "anonaccount_server",
       "version": "0.1.0",
       "dependencies": [
+        "anonaccount_protocol",
         "crypto",
         "pointycastle",
         "serverpod",
@@ -25,6 +26,7 @@
       "version": "0.1.0",
       "dependencies": [
         "anonaccount_client",
+        "anonaccount_protocol",
         "crypto",
         "dart_jwk_duo",
         "freezed_annotation",
@@ -89,6 +91,13 @@
       "name": "lints",
       "version": "6.1.0",
       "dependencies": []
+    },
+    {
+      "name": "anonaccount_protocol",
+      "version": "1.0.0",
+      "dependencies": [
+        "serverpod_serialization"
+      ]
     },
     {
       "name": "crypto",
@@ -181,6 +190,7 @@
       "name": "anonaccount_client",
       "version": "0.1.0",
       "dependencies": [
+        "anonaccount_protocol",
         "crypto",
         "serverpod_auth_core_client",
         "serverpod_auth_idp_client",
@@ -473,6 +483,15 @@
       ]
     },
     {
+      "name": "serverpod_serialization",
+      "version": "3.4.1",
+      "dependencies": [
+        "meta",
+        "uuid",
+        "yaml"
+      ]
+    },
+    {
       "name": "convert",
       "version": "3.1.2",
       "dependencies": [
@@ -601,15 +620,6 @@
       "version": "2.2.2",
       "dependencies": [
         "ffi"
-      ]
-    },
-    {
-      "name": "serverpod_serialization",
-      "version": "3.4.1",
-      "dependencies": [
-        "meta",
-        "uuid",
-        "yaml"
       ]
     },
     {

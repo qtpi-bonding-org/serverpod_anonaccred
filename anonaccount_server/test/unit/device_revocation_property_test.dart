@@ -1,5 +1,4 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
-import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:test/test.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';

@@ -1,5 +1,4 @@
-// ignore: implementation_imports
-import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
     show PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';

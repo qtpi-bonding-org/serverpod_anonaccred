@@ -2,7 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import '../pow_methods.dart';
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 import 'signed_pow_endpoint.dart';
 
 /// PoW-protected endpoint for fetching a device's encrypted data key.

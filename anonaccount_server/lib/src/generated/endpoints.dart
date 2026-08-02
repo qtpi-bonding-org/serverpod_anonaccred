@@ -17,7 +17,7 @@ import '../endpoints/device_endpoint.dart' as _i4;
 import '../endpoints/device_management_endpoint.dart' as _i5;
 import '../endpoints/entrypoint_endpoint.dart' as _i6;
 import '../endpoints/group_endpoint.dart' as _i7;
-import 'package:anonaccount_server/src/generated/public_key_duo.dart' as _i8;
+import 'package:anonaccount_protocol/src/generated/public_key_duo.dart' as _i8;
 import 'package:anonaccount_server/src/generated/group_member_role.dart' as _i9;
 import 'package:anonaccount_server/src/generated/member_device_grant.dart'
     as _i10;
