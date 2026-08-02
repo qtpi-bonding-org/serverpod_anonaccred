@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import 'generated/group_member_role.dart';
+import 'generated/public_key_duo.dart';
 
 /// Method name constants for PoW payload construction.
 ///
@@ -40,8 +41,25 @@ abstract final class AccountInnerPayloads {
   /// The attestation payload IS the raw device public key hex — no prefix or
   /// wrapper. This method exists solely to give both callers a named,
   /// findable reference point rather than an ad-hoc inline string.
+  ///
+  /// SUPERSEDED by [registerDevice]; retired in Task 8 once both call sites
+  /// have moved. Returns the bare device pubkey hex, no domain separation.
   static String deviceAttestation(String deviceSigningPublicKeyHex) =>
       deviceSigningPublicKeyHex;
+
+  /// The ultimate key attests to a new device's key pair.
+  /// Used identically by createAccount and registerDevice.
+  ///
+  /// Covers BOTH halves: the encryption key becomes a wrap target, so it must
+  /// be inside the signature rather than beside it, or it can be substituted.
+  static String registerDevice(PublicKeyDuo deviceKeys) =>
+      'registerDevice:${deviceKeys.signingPublicKeyHex}'
+      ':${deviceKeys.encryptionPublicKeyHex}';
+
+  /// An existing paired device attests to a newly paired device's key pair.
+  static String pairDevice(PublicKeyDuo newDeviceKeys) =>
+      'pairDevice:${newDeviceKeys.signingPublicKeyHex}'
+      ':${newDeviceKeys.encryptionPublicKeyHex}';
 }
 
 abstract final class GroupInnerPayloads {
