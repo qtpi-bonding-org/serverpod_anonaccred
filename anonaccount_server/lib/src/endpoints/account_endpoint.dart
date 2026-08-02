@@ -44,17 +44,26 @@ class AccountEndpoint extends SignedPowEndpoint {
     required String deviceLabel,
   }) async {
     try {
-      // Task 6 widens the parameter shape to PublicKeyDuo for both ultimate
-      // and device keys. The single-signing-key envelope/attestation logic
-      // stays exactly as-is for now — Tasks 7-9 will upgrade it to sign
-      // over both halves of the duo.
-      final ultimateSigningPublicKeyHex = ultimateKeys.signingPublicKeyHex;
+      final ultimateKeysValidated = AnonAccountHelpers.validateKeyDuo(
+        ultimateKeys,
+        'createAccount',
+      );
+      final deviceKeysValidated = AnonAccountHelpers.validateKeyDuo(
+        deviceKeys,
+        'createAccount',
+      );
+      final ultimateSigningPublicKeyHex =
+          ultimateKeysValidated.signingPublicKeyHex;
       final ultimateEncryptionPublicKeyHex =
-          ultimateKeys.encryptionPublicKeyHex;
-      final deviceSigningPublicKeyHex = deviceKeys.signingPublicKeyHex;
+          ultimateKeysValidated.encryptionPublicKeyHex;
 
+      // The envelope is signed by the device key (publicKeyHex, proven live
+      // by the outer PoW+signature below) — name it accordingly. It was
+      // previously built naming the ultimate key but verified against the
+      // device key, so the SDK — which signs over the device key — could
+      // never verify.
       final payload =
-          '$challenge:${AccountMethods.createAccount}:$ultimateSigningPublicKeyHex';
+          '$challenge:${AccountMethods.createAccount}:$publicKeyHex';
 
       await verifySignedPow(
         session,
@@ -65,26 +74,20 @@ class AccountEndpoint extends SignedPowEndpoint {
         payload,
       );
 
-      // Validate account params
-      AnonAccountHelpers.validatePublicKey(
-        ultimateSigningPublicKeyHex,
-        'createAccount',
-      );
-      AnonAccountHelpers.validatePublicKey(
-        ultimateEncryptionPublicKeyHex,
-        'createAccount',
-      );
+      // Account param validation (format already checked by validateKeyDuo
+      // above).
       AnonAccountHelpers.validateNonEmpty(
         encryptedDataKey,
         'encryptedDataKey',
         'createAccount',
       );
 
-      // Verify attestation: ultimate key authorized this device key
-      // Task 7 upgrades this to verify over both halves of deviceKeys; for
-      // now the existing single-signing-key check stands.
+      // Verify attestation: ultimate key authorized this device key pair.
+      // Covers BOTH halves of deviceKeys — the encryption key becomes a
+      // wrap target, so it must be inside the signature rather than beside
+      // it, or it can be substituted.
       final attestationValid = await CryptoUtils.verifySignature(
-        message: AccountInnerPayloads.deviceAttestation(deviceSigningPublicKeyHex),
+        message: AccountInnerPayloads.registerDevice(deviceKeysValidated),
         signature: deviceKeyAttestation,
         publicKey: ultimateSigningPublicKeyHex,
       );
@@ -145,23 +148,27 @@ class AccountEndpoint extends SignedPowEndpoint {
         createdAt: now,
       );
 
-      await AnonAccount.db.insertRow(session, newAccount);
-
-      // Insert the first device via the shared helper. Task 6 widens the
-      // helper's required parameters (now also accepts the encryption key,
-      // signer pubkey, and attestation); the atomic-write path that signs
-      // over the actual duo belongs to Tasks 7-9. For Task 6 we just
-      // thread the duo through unchanged.
-      await AnonAccountHelpers.insertDevice(
-        session,
-        accountId: authUser.id,
-        deviceKeys: deviceKeys,
-        encryptedDataKey: deviceEncryptedDataKey,
-        label: deviceLabel,
-        addedBySignerPublicKeyHex: ultimateSigningPublicKeyHex,
-        addedByAttestation: deviceKeyAttestation,
-        operation: 'createAccount',
-      );
+      // Account + first device insert atomically — a failed device insert
+      // (e.g. the device signing key collides with an existing device) must
+      // not leave an orphan AnonAccount row behind.
+      await session.db.transaction((transaction) async {
+        await AnonAccount.db.insertRow(
+          session,
+          newAccount,
+          transaction: transaction,
+        );
+        await AnonAccountHelpers.insertDevice(
+          session,
+          accountId: authUser.id,
+          deviceKeys: deviceKeysValidated,
+          encryptedDataKey: deviceEncryptedDataKey,
+          label: deviceLabel,
+          addedBySignerPublicKeyHex: ultimateSigningPublicKeyHex,
+          addedByAttestation: deviceKeyAttestation,
+          operation: 'createAccount',
+          transaction: transaction,
+        );
+      });
 
       session.log(
         'AccountEndpoint: Account + first device created successfully',

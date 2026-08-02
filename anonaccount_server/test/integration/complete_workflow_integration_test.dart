@@ -42,8 +42,16 @@ void main() {
         // the wire shape to a PublicKeyDuo with two distinct halves.
         final (_, firstDevicePubKey) = SigningTestHelper.generateKeypair();
         final (_, firstDeviceEncPubKey) = SigningTestHelper.generateKeypair();
-        final firstDeviceAttestation =
-            SigningTestHelper.signWith(firstDevicePubKey, privKey);
+        // Attestation covers BOTH halves of the device duo (Task 7).
+        final firstDeviceAttestation = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: firstDevicePubKey,
+              encryptionPublicKeyHex: firstDeviceEncPubKey,
+            ),
+          ),
+          privKey,
+        );
 
         final accountResponse = await endpoints.account.createAccount(
           sessionBuilder,
