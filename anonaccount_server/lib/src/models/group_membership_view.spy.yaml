@@ -1,0 +1,14 @@
+# `listMyGroups` row — what the SDK actually consumes.
+#
+# No `isRevoked`: `listMyGroups` already filters it, so the field would
+# be a constant, and a hardcoded security flag is worse than an absent
+# one.
+class: GroupMembershipView
+fields:
+  memberId: UuidValue
+  shareGroupId: UuidValue
+  role: GroupMemberRole
+  memberSigningPublicKeyHex: String
+  memberEncryptedDataKey: String
+  deviceEncryptedDataKey: String?
+  joinedAt: DateTime

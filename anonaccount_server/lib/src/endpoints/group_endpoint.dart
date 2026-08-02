@@ -153,8 +153,17 @@ class GroupEndpoint extends SignedPowEndpoint {
     }
   }
 
-  /// List the caller's non-revoked group memberships.
-  Future<List<GroupMember>> listMyGroups(
+  /// List the caller's non-revoked group memberships, each joined with
+  /// the per-device wrapped data key when the calling device has been
+  /// granted access to that membership.
+  ///
+  /// The `deviceEncryptedDataKey` field is `null` for a device that has
+  /// not yet been granted access to a given membership — that is the
+  /// expected state for a freshly-paired device, not an error. A revoked
+  /// device, by contrast, is rejected with `AuthenticationException`
+  /// before any data leaves the server: it would otherwise recover
+  /// group data keys for every group it was ever granted.
+  Future<List<GroupMembershipView>> listMyGroups(
     Session session, {
     required String challenge,
     required String proofOfWork,
@@ -173,19 +182,50 @@ class GroupEndpoint extends SignedPowEndpoint {
         outerPayload,
       );
 
-      final accountId = await AnonAccountHelpers.resolveAccountUuid(
+      // The caller must be an ACTIVE device — the returned blob is now
+      // wrapped to the caller's own encryption key, so a revoked device
+      // must not be able to fetch it.
+      final callerDeviceRow = await AccountDevice.db.findFirstRow(
         session,
+        where: (t) =>
+            t.deviceSigningPublicKeyHex.equals(callerDeviceSigningPublicKeyHex),
+      );
+      final activeCaller = AnonAccountHelpers.requireActiveDevice(
+        callerDeviceRow,
         callerDeviceSigningPublicKeyHex,
         'listMyGroups',
       );
 
-      return await GroupMember.db.find(
+      final members = await GroupMember.db.find(
         session,
         where: (t) =>
-            t.anonAccountId.equals(accountId) & t.isRevoked.equals(false),
+            t.anonAccountId.equals(activeCaller.anonAccountId) &
+            t.isRevoked.equals(false),
         orderBy: (t) => t.joinedAt,
         orderDescending: true,
       );
+
+      final grants = await GroupMemberDevice.db.find(
+        session,
+        where: (t) =>
+            t.accountDeviceId.equals(activeCaller.id!) &
+            t.isRevoked.equals(false),
+      );
+      final grantByMemberId = {for (final g in grants) g.groupMemberId: g};
+
+      return [
+        for (final m in members)
+          GroupMembershipView(
+            memberId: m.id!,
+            shareGroupId: m.shareGroupId,
+            role: m.role,
+            memberSigningPublicKeyHex: m.memberSigningPublicKeyHex,
+            memberEncryptedDataKey: m.encryptedDataKey,
+            deviceEncryptedDataKey:
+                grantByMemberId[m.id]?.encryptedDataKey,
+            joinedAt: m.joinedAt,
+          ),
+      ];
     } on AuthenticationException {
       rethrow;
     } catch (e, stackTrace) {

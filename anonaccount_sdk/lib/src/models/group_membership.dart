@@ -1,3 +1,18 @@
+// A single row from [AnonaccountGroups.listMyGroups] — the *view* the
+// server returns. The data key is delivered in two wrapped forms:
+//
+// - `memberEncryptedDataKey`: wrapped to the *member* key (the per-group
+//   identity root). Useful only to a device that holds the member key
+//   — e.g. the joining device, when it's also the holder.
+// - `deviceEncryptedDataKey`: wrapped to the *calling device*'s own
+//   encryption key. Null for a device that has not yet been granted
+//   access to this membership — and that is no longer an error, the
+//   state the SDK now has to handle. Wrapped to different keys; the
+//   two blobs are not interchangeable.
+//
+// No `displayName` field: the wire `ShareGroup` does not carry one.
+// Consumers maintain their own `{groupId → label}` cache.
+
 // ignore: implementation_imports
 import 'package:anonaccount_client/anonaccount_client.dart'
     show UuidValue, UuidValueJsonExtension;
@@ -22,19 +37,11 @@ class _GroupMemberRoleConverter
   String toJson(GroupMemberRole object) => object.toJson();
 }
 
-/// Top-level wrapper for [UuidValueJsonExtension.toJson] — `@JsonKey(toJson:)`
+/// Top-level wrapper for [UuidValueJsonExtension.toJson] — `@JsonKey(toJson:)`>
 /// needs a tear-off-able function; the extension method itself is an
 /// instance method, not a static one.
 String _uuidValueToJson(UuidValue value) => value.toJson();
 
-/// A single row from [AnonaccountGroups.listMyGroups]. The data key
-/// is delivered encrypted — the consumer unwraps it with
-/// [AsymmetricCrypto.unwrap] using the recipient's **per-group member
-/// key** (the device-key analogue; see the consuming app's
-/// GroupKeyService), not the account's encryption key.
-///
-/// No `displayName` field: the wire `ShareGroup` does not carry one.
-/// Consumers maintain their own `{groupId → label}` cache.
 @freezed
 class GroupMembership with _$GroupMembership {
   const factory GroupMembership({
@@ -43,11 +50,12 @@ class GroupMembership with _$GroupMembership {
       fromJson: UuidValueJsonExtension.fromJson,
       toJson: _uuidValueToJson,
     )
-    required UuidValue memberId, // NEW — the GroupMember row id, needed by leaveGroup/removeGroupMember
+    required UuidValue memberId,
     @_GroupMemberRoleConverter() required GroupMemberRole role,
-    required String encryptedDataKey,
+    required String memberSigningPublicKeyHex,
+    required String memberEncryptedDataKey,
+    required String? deviceEncryptedDataKey,
     required DateTime joinedAt,
-    required bool isRevoked,
   }) = _GroupMembership;
 
   factory GroupMembership.fromJson(Map<String, dynamic> json) =>

@@ -135,11 +135,12 @@ class AnonaccountGroups {
         .map(
           (r) => GroupMembership(
             groupId: r.shareGroupId.toString(),
-            memberId: r.id!, // server always returns a persisted row id
+            memberId: r.memberId,
             role: r.role,
-            encryptedDataKey: r.encryptedDataKey,
+            memberSigningPublicKeyHex: r.memberSigningPublicKeyHex,
+            memberEncryptedDataKey: r.memberEncryptedDataKey,
+            deviceEncryptedDataKey: r.deviceEncryptedDataKey,
             joinedAt: r.joinedAt,
-            isRevoked: r.isRevoked,
           ),
         )
         .toList();

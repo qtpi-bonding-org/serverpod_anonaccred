@@ -7,6 +7,8 @@ class _FakeCaller extends Mock implements wire.Caller {}
 class _FakeEntrypoint extends Mock implements wire.EndpointEntrypoint {}
 class _FakeGroup extends Mock implements wire.EndpointGroup {}
 
+// The wire now returns `GroupMembershipView` rows (not `GroupMember`).
+// We need to use the new view's fields when mocking.
 void main() {
   test('listMyGroups surfaces the member row id as memberId', () async {
     final caller = _FakeCaller();
@@ -22,18 +24,17 @@ void main() {
       ),
     );
 
-    final memberRowId = wire.UuidValue.fromString('11111111-1111-1111-1111-111111111111');
-    final row = wire.GroupMember(
-      id: memberRowId,
-      shareGroupId: wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
-      anonAccountId: wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333'),
+    final memberRowId =
+        wire.UuidValue.fromString('11111111-1111-1111-1111-111111111111');
+    final row = wire.GroupMembershipView(
+      memberId: memberRowId,
+      shareGroupId:
+          wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
       role: wire.GroupMemberRole.member,
       memberSigningPublicKeyHex: '04${'a' * 128}',
-      memberEncryptionPublicKeyHex: '04${'b' * 128}',
-      encryptedDataKey: 'BLOB1',
+      memberEncryptedDataKey: 'BLOB1',
+      deviceEncryptedDataKey: 'device-blob',
       joinedAt: DateTime.utc(2026, 5, 20),
-      addedBySignerPublicKeyHex: '04${'c' * 128}',
-      addedByAttestation: 'test-attestation',
     );
     when(() => group.listMyGroups(
           challenge: any(named: 'challenge'),

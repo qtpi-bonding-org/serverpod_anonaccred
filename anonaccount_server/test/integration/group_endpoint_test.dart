@@ -134,6 +134,194 @@ void main() {
     sessionBuilder,
     endpoints,
   ) {
+    test('listMyGroups: returns THIS device\'s grant, not a sibling\'s',
+        () async {
+      // Two devices of the same account, each granted on the same
+      // membership with a DIFFERENT wrapped blob. The single most
+      // important assertion in the unit — without it, the read test
+      // passes even if the server returns an arbitrary grant row.
+      final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+      // Second device of the same account, set up directly.
+      final (m2DevicePriv, m2DevicePub) = SigningTestHelper.generateKeypair();
+      final m2Device = await createTestDevice(
+        sessionBuilder,
+        anonAccountId: s.account.id!,
+        deviceSigningPublicKeyHex: m2DevicePub,
+      );
+
+      // Insert the two GroupMemberDevice grants directly via DB, the same
+      // way `grant_member_device_test.dart` does. We bypass the
+      // attestation flow because the read-side bug is independent of how
+      // the row got there.
+      final setupSession =
+          (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+        endpoint: 'test',
+        method: 'setupGrants',
+      );
+      try {
+        // Find the creator's GroupMember row (the only membership for
+        // this account after _bootstrapOwnerWithGroup).
+        final creatorMember = (await GroupMember.db.findFirstRow(
+          setupSession,
+          where: (t) =>
+              t.shareGroupId.equals(s.group.id!) &
+              t.anonAccountId.equals(s.account.id!),
+        ))!;
+        // Find the creator's own AccountDevice row (s.devicePub was
+        // registered by _bootstrapOwnerWithGroup).
+        final creatorDevice = (await AccountDevice.db.findFirstRow(
+          setupSession,
+          where: (t) =>
+              t.deviceSigningPublicKeyHex.equals(s.devicePub),
+        ))!;
+
+        await GroupMemberDevice.db.insertRow(
+          setupSession,
+          GroupMemberDevice(
+            groupMemberId: creatorMember.id!,
+            accountDeviceId: creatorDevice.id!,
+            encryptedDataKey: 'blob-for-d1',
+            addedBySignerPublicKeyHex: s.creatorMemberSigPub,
+            addedByAttestation: 'attestation-d1',
+          ),
+        );
+        await GroupMemberDevice.db.insertRow(
+          setupSession,
+          GroupMemberDevice(
+            groupMemberId: creatorMember.id!,
+            accountDeviceId: m2Device.id!,
+            encryptedDataKey: 'blob-for-d2',
+            addedBySignerPublicKeyHex: s.creatorMemberSigPub,
+            addedByAttestation: 'attestation-d2',
+          ),
+        );
+      } finally {
+        await setupSession.close();
+      }
+
+      // Caller D1 — should see its own blob, not the sibling's.
+      final outerD1 = await _outer(
+        sessionBuilder,
+        endpoints,
+        'listMyGroups',
+        s.devicePub,
+        s.devicePriv,
+      );
+      final asD1 = await endpoints.group.listMyGroups(
+        sessionBuilder,
+        challenge: outerD1.challenge,
+        proofOfWork: outerD1.pow,
+        signature: outerD1.signature,
+        callerDeviceSigningPublicKeyHex: s.devicePub,
+      );
+      expect(asD1, hasLength(1));
+      expect(asD1.single.deviceEncryptedDataKey, equals('blob-for-d1'));
+
+      // Caller D2 — should see its own blob, not D1's.
+      final outerD2 = await _outer(
+        sessionBuilder,
+        endpoints,
+        'listMyGroups',
+        m2DevicePub,
+        m2DevicePriv,
+      );
+      final asD2 = await endpoints.group.listMyGroups(
+        sessionBuilder,
+        challenge: outerD2.challenge,
+        proofOfWork: outerD2.pow,
+        signature: outerD2.signature,
+        callerDeviceSigningPublicKeyHex: m2DevicePub,
+      );
+      expect(asD2, hasLength(1));
+      expect(asD2.single.deviceEncryptedDataKey, equals('blob-for-d2'));
+    });
+
+    test('listMyGroups: an ungranted device gets null, not an error',
+        () async {
+      // A device that has not been granted access to the membership
+      // receives `deviceEncryptedDataKey == null` — that is the expected
+      // state for a freshly-paired device, not an error. The member-level
+      // blob (memberEncryptedDataKey) is still returned because that one
+      // is identity-bound to the membership, not the device.
+      final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+      final (siblingPriv, siblingPub) = SigningTestHelper.generateKeypair();
+      await createTestDevice(
+        sessionBuilder,
+        anonAccountId: s.account.id!,
+        deviceSigningPublicKeyHex: siblingPub,
+      );
+
+      final outer = await _outer(
+        sessionBuilder,
+        endpoints,
+        'listMyGroups',
+        siblingPub,
+        siblingPriv,
+      );
+      final rows = await endpoints.group.listMyGroups(
+        sessionBuilder,
+        challenge: outer.challenge,
+        proofOfWork: outer.pow,
+        signature: outer.signature,
+        callerDeviceSigningPublicKeyHex: siblingPub,
+      );
+      expect(rows, hasLength(1));
+      expect(rows.single.deviceEncryptedDataKey, isNull);
+      // Member-level blob is still present — that one is identity-bound
+      // to the membership, not the device.
+      expect(rows.single.memberEncryptedDataKey, isNotNull);
+    });
+
+    test('listMyGroups: a revoked device is rejected', () async {
+      // Unit A creates this hole: the returned blob is now wrapped to the
+      // CALLING device's own key, so a revoked device would otherwise
+      // recover group data keys for every group it was ever granted.
+      final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+      // Mark the creator's device as revoked.
+      final revokeSession =
+          (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+        endpoint: 'test',
+        method: 'revokeCreatorDevice',
+      );
+      try {
+        final creatorDevice = (await AccountDevice.db.findFirstRow(
+          revokeSession,
+          where: (t) =>
+              t.deviceSigningPublicKeyHex.equals(s.devicePub),
+        ))!;
+        await AccountDevice.db.updateRow(
+          revokeSession,
+          creatorDevice.copyWith(
+            isRevoked: true,
+            revokedAt: DateTime.now(),
+          ),
+        );
+      } finally {
+        await revokeSession.close();
+      }
+
+      final outer = await _outer(
+        sessionBuilder,
+        endpoints,
+        'listMyGroups',
+        s.devicePub,
+        s.devicePriv,
+      );
+      await expectLater(
+        endpoints.group.listMyGroups(
+          sessionBuilder,
+          challenge: outer.challenge,
+          proofOfWork: outer.pow,
+          signature: outer.signature,
+          callerDeviceSigningPublicKeyHex: s.devicePub,
+        ),
+        throwsA(isA<AuthenticationException>()),
+      );
+    });
+
     test('createGroup happy path: creator becomes admin', () async {
       final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
       expect(s.group.id, isNotNull);
@@ -154,11 +342,29 @@ void main() {
       );
       expect(memberships, hasLength(1));
       expect(memberships.single.role, equals(GroupMemberRole.admin));
-      expect(
-        memberships.single.addedBySignerPublicKeyHex,
-        equals(s.groupUltSigPub),
+
+      // addedBySignerPublicKeyHex/addedByAttestation are not part of
+      // GroupMembershipView (Task 5) — verify attestation provenance
+      // directly against the underlying GroupMember row instead.
+      final verifySession =
+          (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+        endpoint: 'test',
+        method: 'verifyCreatorMember',
       );
-      expect(memberships.single.addedByAttestation, isNotNull);
+      try {
+        final memberRow = await GroupMember.db.findById(
+          verifySession,
+          memberships.single.memberId,
+        );
+        expect(memberRow, isNotNull);
+        expect(
+          memberRow!.addedBySignerPublicKeyHex,
+          equals(s.groupUltSigPub),
+        );
+        expect(memberRow.addedByAttestation, isNotNull);
+      } finally {
+        await verifySession.close();
+      }
     });
 
     test('createGroup rejects a member duo whose halves are the same key',

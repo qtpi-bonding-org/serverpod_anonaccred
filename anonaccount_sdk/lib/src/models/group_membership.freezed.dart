@@ -22,13 +22,13 @@ GroupMembership _$GroupMembershipFromJson(Map<String, dynamic> json) {
 mixin _$GroupMembership {
   String get groupId => throw _privateConstructorUsedError;
   @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-  UuidValue get memberId =>
-      throw _privateConstructorUsedError; // NEW — the GroupMember row id, needed by leaveGroup/removeGroupMember
+  UuidValue get memberId => throw _privateConstructorUsedError;
   @_GroupMemberRoleConverter()
   GroupMemberRole get role => throw _privateConstructorUsedError;
-  String get encryptedDataKey => throw _privateConstructorUsedError;
+  String get memberSigningPublicKeyHex => throw _privateConstructorUsedError;
+  String get memberEncryptedDataKey => throw _privateConstructorUsedError;
+  String? get deviceEncryptedDataKey => throw _privateConstructorUsedError;
   DateTime get joinedAt => throw _privateConstructorUsedError;
-  bool get isRevoked => throw _privateConstructorUsedError;
 
   /// Serializes this GroupMembership to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -52,9 +52,10 @@ abstract class $GroupMembershipCopyWith<$Res> {
           fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
       UuidValue memberId,
       @_GroupMemberRoleConverter() GroupMemberRole role,
-      String encryptedDataKey,
-      DateTime joinedAt,
-      bool isRevoked});
+      String memberSigningPublicKeyHex,
+      String memberEncryptedDataKey,
+      String? deviceEncryptedDataKey,
+      DateTime joinedAt});
 }
 
 /// @nodoc
@@ -75,9 +76,10 @@ class _$GroupMembershipCopyWithImpl<$Res, $Val extends GroupMembership>
     Object? groupId = null,
     Object? memberId = null,
     Object? role = null,
-    Object? encryptedDataKey = null,
+    Object? memberSigningPublicKeyHex = null,
+    Object? memberEncryptedDataKey = null,
+    Object? deviceEncryptedDataKey = freezed,
     Object? joinedAt = null,
-    Object? isRevoked = null,
   }) {
     return _then(_value.copyWith(
       groupId: null == groupId
@@ -92,18 +94,22 @@ class _$GroupMembershipCopyWithImpl<$Res, $Val extends GroupMembership>
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
               as GroupMemberRole,
-      encryptedDataKey: null == encryptedDataKey
-          ? _value.encryptedDataKey
-          : encryptedDataKey // ignore: cast_nullable_to_non_nullable
+      memberSigningPublicKeyHex: null == memberSigningPublicKeyHex
+          ? _value.memberSigningPublicKeyHex
+          : memberSigningPublicKeyHex // ignore: cast_nullable_to_non_nullable
               as String,
+      memberEncryptedDataKey: null == memberEncryptedDataKey
+          ? _value.memberEncryptedDataKey
+          : memberEncryptedDataKey // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceEncryptedDataKey: freezed == deviceEncryptedDataKey
+          ? _value.deviceEncryptedDataKey
+          : deviceEncryptedDataKey // ignore: cast_nullable_to_non_nullable
+              as String?,
       joinedAt: null == joinedAt
           ? _value.joinedAt
           : joinedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      isRevoked: null == isRevoked
-          ? _value.isRevoked
-          : isRevoked // ignore: cast_nullable_to_non_nullable
-              as bool,
     ) as $Val);
   }
 }
@@ -122,9 +128,10 @@ abstract class _$$GroupMembershipImplCopyWith<$Res>
           fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
       UuidValue memberId,
       @_GroupMemberRoleConverter() GroupMemberRole role,
-      String encryptedDataKey,
-      DateTime joinedAt,
-      bool isRevoked});
+      String memberSigningPublicKeyHex,
+      String memberEncryptedDataKey,
+      String? deviceEncryptedDataKey,
+      DateTime joinedAt});
 }
 
 /// @nodoc
@@ -143,9 +150,10 @@ class __$$GroupMembershipImplCopyWithImpl<$Res>
     Object? groupId = null,
     Object? memberId = null,
     Object? role = null,
-    Object? encryptedDataKey = null,
+    Object? memberSigningPublicKeyHex = null,
+    Object? memberEncryptedDataKey = null,
+    Object? deviceEncryptedDataKey = freezed,
     Object? joinedAt = null,
-    Object? isRevoked = null,
   }) {
     return _then(_$GroupMembershipImpl(
       groupId: null == groupId
@@ -160,18 +168,22 @@ class __$$GroupMembershipImplCopyWithImpl<$Res>
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
               as GroupMemberRole,
-      encryptedDataKey: null == encryptedDataKey
-          ? _value.encryptedDataKey
-          : encryptedDataKey // ignore: cast_nullable_to_non_nullable
+      memberSigningPublicKeyHex: null == memberSigningPublicKeyHex
+          ? _value.memberSigningPublicKeyHex
+          : memberSigningPublicKeyHex // ignore: cast_nullable_to_non_nullable
               as String,
+      memberEncryptedDataKey: null == memberEncryptedDataKey
+          ? _value.memberEncryptedDataKey
+          : memberEncryptedDataKey // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceEncryptedDataKey: freezed == deviceEncryptedDataKey
+          ? _value.deviceEncryptedDataKey
+          : deviceEncryptedDataKey // ignore: cast_nullable_to_non_nullable
+              as String?,
       joinedAt: null == joinedAt
           ? _value.joinedAt
           : joinedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      isRevoked: null == isRevoked
-          ? _value.isRevoked
-          : isRevoked // ignore: cast_nullable_to_non_nullable
-              as bool,
     ));
   }
 }
@@ -185,9 +197,10 @@ class _$GroupMembershipImpl implements _GroupMembership {
           fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
       required this.memberId,
       @_GroupMemberRoleConverter() required this.role,
-      required this.encryptedDataKey,
-      required this.joinedAt,
-      required this.isRevoked});
+      required this.memberSigningPublicKeyHex,
+      required this.memberEncryptedDataKey,
+      required this.deviceEncryptedDataKey,
+      required this.joinedAt});
 
   factory _$GroupMembershipImpl.fromJson(Map<String, dynamic> json) =>
       _$$GroupMembershipImplFromJson(json);
@@ -197,20 +210,21 @@ class _$GroupMembershipImpl implements _GroupMembership {
   @override
   @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
   final UuidValue memberId;
-// NEW — the GroupMember row id, needed by leaveGroup/removeGroupMember
   @override
   @_GroupMemberRoleConverter()
   final GroupMemberRole role;
   @override
-  final String encryptedDataKey;
+  final String memberSigningPublicKeyHex;
+  @override
+  final String memberEncryptedDataKey;
+  @override
+  final String? deviceEncryptedDataKey;
   @override
   final DateTime joinedAt;
-  @override
-  final bool isRevoked;
 
   @override
   String toString() {
-    return 'GroupMembership(groupId: $groupId, memberId: $memberId, role: $role, encryptedDataKey: $encryptedDataKey, joinedAt: $joinedAt, isRevoked: $isRevoked)';
+    return 'GroupMembership(groupId: $groupId, memberId: $memberId, role: $role, memberSigningPublicKeyHex: $memberSigningPublicKeyHex, memberEncryptedDataKey: $memberEncryptedDataKey, deviceEncryptedDataKey: $deviceEncryptedDataKey, joinedAt: $joinedAt)';
   }
 
   @override
@@ -222,18 +236,28 @@ class _$GroupMembershipImpl implements _GroupMembership {
             (identical(other.memberId, memberId) ||
                 other.memberId == memberId) &&
             (identical(other.role, role) || other.role == role) &&
-            (identical(other.encryptedDataKey, encryptedDataKey) ||
-                other.encryptedDataKey == encryptedDataKey) &&
+            (identical(other.memberSigningPublicKeyHex,
+                    memberSigningPublicKeyHex) ||
+                other.memberSigningPublicKeyHex == memberSigningPublicKeyHex) &&
+            (identical(other.memberEncryptedDataKey, memberEncryptedDataKey) ||
+                other.memberEncryptedDataKey == memberEncryptedDataKey) &&
+            (identical(other.deviceEncryptedDataKey, deviceEncryptedDataKey) ||
+                other.deviceEncryptedDataKey == deviceEncryptedDataKey) &&
             (identical(other.joinedAt, joinedAt) ||
-                other.joinedAt == joinedAt) &&
-            (identical(other.isRevoked, isRevoked) ||
-                other.isRevoked == isRevoked));
+                other.joinedAt == joinedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, groupId, memberId, role,
-      encryptedDataKey, joinedAt, isRevoked);
+  int get hashCode => Object.hash(
+      runtimeType,
+      groupId,
+      memberId,
+      role,
+      memberSigningPublicKeyHex,
+      memberEncryptedDataKey,
+      deviceEncryptedDataKey,
+      joinedAt);
 
   /// Create a copy of GroupMembership
   /// with the given fields replaced by the non-null parameter values.
@@ -259,9 +283,10 @@ abstract class _GroupMembership implements GroupMembership {
           fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
       required final UuidValue memberId,
       @_GroupMemberRoleConverter() required final GroupMemberRole role,
-      required final String encryptedDataKey,
-      required final DateTime joinedAt,
-      required final bool isRevoked}) = _$GroupMembershipImpl;
+      required final String memberSigningPublicKeyHex,
+      required final String memberEncryptedDataKey,
+      required final String? deviceEncryptedDataKey,
+      required final DateTime joinedAt}) = _$GroupMembershipImpl;
 
   factory _GroupMembership.fromJson(Map<String, dynamic> json) =
       _$GroupMembershipImpl.fromJson;
@@ -270,17 +295,18 @@ abstract class _GroupMembership implements GroupMembership {
   String get groupId;
   @override
   @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-  UuidValue
-      get memberId; // NEW — the GroupMember row id, needed by leaveGroup/removeGroupMember
+  UuidValue get memberId;
   @override
   @_GroupMemberRoleConverter()
   GroupMemberRole get role;
   @override
-  String get encryptedDataKey;
+  String get memberSigningPublicKeyHex;
+  @override
+  String get memberEncryptedDataKey;
+  @override
+  String? get deviceEncryptedDataKey;
   @override
   DateTime get joinedAt;
-  @override
-  bool get isRevoked;
 
   /// Create a copy of GroupMembership
   /// with the given fields replaced by the non-null parameter values.

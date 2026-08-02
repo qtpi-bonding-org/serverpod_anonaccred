@@ -25,12 +25,14 @@ import 'package:anonaccount_client/src/protocol/authentication_result.dart'
 import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
     as _i9;
 import 'package:anonaccount_client/src/protocol/share_group.dart' as _i10;
-import 'package:anonaccount_client/src/protocol/group_member.dart' as _i11;
-import 'package:anonaccount_client/src/protocol/group_member_role.dart' as _i12;
+import 'package:anonaccount_client/src/protocol/group_membership_view.dart'
+    as _i11;
+import 'package:anonaccount_client/src/protocol/group_member.dart' as _i12;
+import 'package:anonaccount_client/src/protocol/group_member_role.dart' as _i13;
 import 'package:anonaccount_client/src/protocol/grant_member_device_result.dart'
-    as _i13;
-import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
     as _i14;
+import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
+    as _i15;
 
 /// Account endpoint with PoW + signature protection.
 ///
@@ -641,13 +643,22 @@ class EndpointGroup extends EndpointSignedPow {
     },
   );
 
-  /// List the caller's non-revoked group memberships.
-  _i2.Future<List<_i11.GroupMember>> listMyGroups({
+  /// List the caller's non-revoked group memberships, each joined with
+  /// the per-device wrapped data key when the calling device has been
+  /// granted access to that membership.
+  ///
+  /// The `deviceEncryptedDataKey` field is `null` for a device that has
+  /// not yet been granted access to a given membership — that is the
+  /// expected state for a freshly-paired device, not an error. A revoked
+  /// device, by contrast, is rejected with `AuthenticationException`
+  /// before any data leaves the server: it would otherwise recover
+  /// group data keys for every group it was ever granted.
+  _i2.Future<List<_i11.GroupMembershipView>> listMyGroups({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-  }) => caller.callServerEndpoint<List<_i11.GroupMember>>(
+  }) => caller.callServerEndpoint<List<_i11.GroupMembershipView>>(
     'anonaccount.group',
     'listMyGroups',
     {
@@ -668,20 +679,20 @@ class EndpointGroup extends EndpointSignedPow {
   /// - `admin`: requires `groupUltimateSignature`. Verified against
   ///   `share_group.ultimateSigningPublicKeyHex`. Member-tier params
   ///   are ignored.
-  _i2.Future<_i11.GroupMember> addGroupMember({
+  _i2.Future<_i12.GroupMember> addGroupMember({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
     required _i1.UuidValue groupId,
     required _i1.UuidValue newMemberAccountId,
-    required _i12.GroupMemberRole role,
+    required _i13.GroupMemberRole role,
     required _i4.PublicKeyDuo memberKeys,
     required String encryptedDataKey,
     String? callerMemberSigningPublicKeyHex,
     String? memberAuthSignature,
     String? groupUltimateSignature,
-  }) => caller.callServerEndpoint<_i11.GroupMember>(
+  }) => caller.callServerEndpoint<_i12.GroupMember>(
     'anonaccount.group',
     'addGroupMember',
     {
@@ -729,7 +740,7 @@ class EndpointGroup extends EndpointSignedPow {
     },
   );
 
-  _i2.Stream<_i11.GroupMember> monitorGroupMembership({
+  _i2.Stream<_i12.GroupMember> monitorGroupMembership({
     required String challenge,
     required String proofOfWork,
     required String signature,
@@ -737,8 +748,8 @@ class EndpointGroup extends EndpointSignedPow {
     required String memberSigningKeyHex,
   }) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i11.GroupMember>,
-        _i11.GroupMember
+        _i2.Stream<_i12.GroupMember>,
+        _i12.GroupMember
       >(
         'anonaccount.group',
         'monitorGroupMembership',
@@ -774,7 +785,7 @@ class EndpointGroup extends EndpointSignedPow {
     },
   );
 
-  _i2.Future<List<_i11.GroupMember>> listGroupMembers({
+  _i2.Future<List<_i12.GroupMember>> listGroupMembers({
     required String challenge,
     required String proofOfWork,
     required String signature,
@@ -782,7 +793,7 @@ class EndpointGroup extends EndpointSignedPow {
     required _i1.UuidValue groupId,
     required String callerMemberSigningPublicKeyHex,
     required String memberAuthSignature,
-  }) => caller.callServerEndpoint<List<_i11.GroupMember>>(
+  }) => caller.callServerEndpoint<List<_i12.GroupMember>>(
     'anonaccount.group',
     'listGroupMembers',
     {
@@ -828,13 +839,13 @@ class EndpointGroup extends EndpointSignedPow {
   /// `revokeDevice` between the grantee-active check and the insert could
   /// persist a signed record certifying a grant the system should have
   /// refused.
-  _i2.Future<_i13.GrantMemberDeviceResult> grantMemberDevice({
+  _i2.Future<_i14.GrantMemberDeviceResult> grantMemberDevice({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required List<_i14.MemberDeviceGrant> grants,
-  }) => caller.callServerEndpoint<_i13.GrantMemberDeviceResult>(
+    required List<_i15.MemberDeviceGrant> grants,
+  }) => caller.callServerEndpoint<_i14.GrantMemberDeviceResult>(
     'anonaccount.group',
     'grantMemberDevice',
     {

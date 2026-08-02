@@ -12,9 +12,10 @@ _$GroupMembershipImpl _$$GroupMembershipImplFromJson(
       groupId: json['groupId'] as String,
       memberId: UuidValueJsonExtension.fromJson(json['memberId']),
       role: const _GroupMemberRoleConverter().fromJson(json['role'] as String),
-      encryptedDataKey: json['encryptedDataKey'] as String,
+      memberSigningPublicKeyHex: json['memberSigningPublicKeyHex'] as String,
+      memberEncryptedDataKey: json['memberEncryptedDataKey'] as String,
+      deviceEncryptedDataKey: json['deviceEncryptedDataKey'] as String?,
       joinedAt: DateTime.parse(json['joinedAt'] as String),
-      isRevoked: json['isRevoked'] as bool,
     );
 
 Map<String, dynamic> _$$GroupMembershipImplToJson(
@@ -23,7 +24,8 @@ Map<String, dynamic> _$$GroupMembershipImplToJson(
       'groupId': instance.groupId,
       'memberId': _uuidValueToJson(instance.memberId),
       'role': const _GroupMemberRoleConverter().toJson(instance.role),
-      'encryptedDataKey': instance.encryptedDataKey,
+      'memberSigningPublicKeyHex': instance.memberSigningPublicKeyHex,
+      'memberEncryptedDataKey': instance.memberEncryptedDataKey,
+      'deviceEncryptedDataKey': instance.deviceEncryptedDataKey,
       'joinedAt': instance.joinedAt.toIso8601String(),
-      'isRevoked': instance.isRevoked,
     };

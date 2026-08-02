@@ -22,30 +22,23 @@ void main() {
       ),
     );
 
-    final row1 = wire.GroupMember(
-      id: wire.UuidValue.fromString('44444444-4444-4444-8444-444444444444'),
+    final row1 = wire.GroupMembershipView(
+      memberId: wire.UuidValue.fromString('44444444-4444-4444-8444-444444444444'),
       shareGroupId: wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
-      anonAccountId: wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
       role: wire.GroupMemberRole.admin,
       memberSigningPublicKeyHex: '04${'a' * 128}',
-      memberEncryptionPublicKeyHex: '04${'e' * 128}',
-      encryptedDataKey: 'BLOB1',
+      memberEncryptedDataKey: 'BLOB1',
+      deviceEncryptedDataKey: null,
       joinedAt: DateTime.utc(2026, 5, 20),
-      addedBySignerPublicKeyHex: '04${'f' * 128}',
-      addedByAttestation: 'test-attestation',
     );
-    final row2 = wire.GroupMember(
-      id: wire.UuidValue.fromString('55555555-5555-4555-8555-555555555555'),
+    final row2 = wire.GroupMembershipView(
+      memberId: wire.UuidValue.fromString('55555555-5555-4555-8555-555555555555'),
       shareGroupId: wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333'),
-      anonAccountId: wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
       role: wire.GroupMemberRole.member,
       memberSigningPublicKeyHex: '04${'b' * 128}',
-      memberEncryptionPublicKeyHex: '04${'d' * 128}',
-      encryptedDataKey: 'BLOB2',
+      memberEncryptedDataKey: 'BLOB2',
+      deviceEncryptedDataKey: 'DEVICE-BLOB2',
       joinedAt: DateTime.utc(2026, 5, 21),
-      isRevoked: false,
-      addedBySignerPublicKeyHex: '04${'f' * 128}',
-      addedByAttestation: 'test-attestation',
     );
     when(() => group.listMyGroups(
           challenge: any(named: 'challenge'),
@@ -62,11 +55,12 @@ void main() {
 
     expect(memberships, hasLength(2));
     expect(memberships[0].groupId, '11111111-1111-4111-8111-111111111111');
-    expect(memberships[0].memberId, row1.id);
+    expect(memberships[0].memberId, row1.memberId);
     expect(memberships[0].role, wire.GroupMemberRole.admin);
-    expect(memberships[0].encryptedDataKey, 'BLOB1');
+    expect(memberships[0].memberEncryptedDataKey, 'BLOB1');
+    expect(memberships[0].deviceEncryptedDataKey, isNull);
     expect(memberships[1].groupId, '33333333-3333-4333-8333-333333333333');
-    expect(memberships[1].memberId, row2.id);
-    expect(memberships[1].isRevoked, isFalse);
+    expect(memberships[1].memberId, row2.memberId);
+    expect(memberships[1].deviceEncryptedDataKey, 'DEVICE-BLOB2');
   });
 }

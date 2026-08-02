@@ -30,9 +30,10 @@ void main() {
       groupId: '11111111-1111-4111-8111-111111111111',
       memberId: UuidValue.fromString('66666666-6666-4666-8666-666666666666'),
       role: GroupMemberRole.admin,
-      encryptedDataKey: 'BLOB',
+      memberSigningPublicKeyHex: '04${'a' * 128}',
+      memberEncryptedDataKey: 'BLOB',
+      deviceEncryptedDataKey: 'device-blob',
       joinedAt: DateTime.utc(2026, 5, 20),
-      isRevoked: false,
     );
     final back = GroupMembership.fromJson(m.toJson());
     expect(back, m);
