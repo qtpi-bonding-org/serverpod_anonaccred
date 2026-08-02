@@ -5,6 +5,7 @@ import 'crypto_auth.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
 import 'key_format.dart';
+import 'queries/active_rows.dart';
 
 /// Simple static helper functions to reduce code duplication
 /// No complex abstractions, caching, or infrastructure
@@ -19,9 +20,9 @@ class AnonAccountHelpers {
     String identifier,
     String operation,
   ) async {
-    final device = await AccountDevice.db.findFirstRow(
+    final device = await AllRows.deviceBySigningKeyIncludingRevoked(
       session,
-      where: (t) => t.deviceSigningPublicKeyHex.equals(identifier),
+      identifier,
     );
     if (device == null) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -71,9 +72,9 @@ class AnonAccountHelpers {
     String operation,
   ) async {
     // Try device key first
-    final device = await AccountDevice.db.findFirstRow(
+    final device = await AllRows.deviceBySigningKeyIncludingRevoked(
       session,
-      where: (t) => t.deviceSigningPublicKeyHex.equals(publicKeyHex),
+      publicKeyHex,
     );
     if (device != null) {
       return device.anonAccountId;
@@ -248,10 +249,9 @@ class AnonAccountHelpers {
     validateNonEmpty(addedBySignerPublicKeyHex, 'addedBySignerPublicKeyHex', operation);
     validateNonEmpty(addedByAttestation, 'addedByAttestation', operation);
 
-    final existing = await AccountDevice.db.findFirstRow(
+    final existing = await AllRows.deviceBySigningKeyIncludingRevoked(
       session,
-      where: (t) =>
-          t.deviceSigningPublicKeyHex.equals(keys.signingPublicKeyHex),
+      keys.signingPublicKeyHex,
       transaction: transaction,
     );
     if (existing != null) {
