@@ -976,4 +976,232 @@ class GroupEndpoint extends SignedPowEndpoint {
       );
     }
   }
+
+  /// Grants one or more devices access to one or more memberships, by
+  /// persisting the group data key wrapped to each grantee device.
+  ///
+  /// Each item in [grants] is independently attested: `root` tier requires
+  /// the membership's own member signing key; `peer` tier requires an
+  /// already-granted device of the same membership. Validation and the
+  /// batch insert share one transaction — unwrapped, a concurrent
+  /// `revokeDevice` between the grantee-active check and the insert could
+  /// persist a signed record certifying a grant the system should have
+  /// refused.
+  Future<GrantMemberDeviceResult> grantMemberDevice(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required List<MemberDeviceGrant> grants,
+  }) async {
+    try {
+      final outerPayload =
+          '$challenge:${GroupMethods.grantMemberDevice}:$callerDeviceSigningPublicKeyHex';
+      await verifySignedPow(
+        session,
+        challenge,
+        proofOfWork,
+        callerDeviceSigningPublicKeyHex,
+        signature,
+        outerPayload,
+      );
+
+      // The caller must be an ACTIVE device — this endpoint writes grants
+      // and the result is readable by the grantee.
+      final callerDevice = await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.deviceSigningPublicKeyHex.equals(callerDeviceSigningPublicKeyHex),
+      );
+      AnonAccountHelpers.requireActiveDevice(
+        callerDevice,
+        callerDeviceSigningPublicKeyHex,
+        'grantMemberDevice',
+      );
+
+      return await session.db.transaction((tx) async {
+        // No duplicate pairs within the batch. Postgres resolves
+        // intra-command duplicates under DO NOTHING, but which one wins is
+        // not something to build on, and it makes the granted/alreadyGranted
+        // split ambiguous.
+        final seen = <String>{};
+        for (final g in grants) {
+          if (!seen.add('${g.groupMemberId}:${g.accountDeviceId}')) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authDuplicateDevice,
+              message: 'Duplicate (groupMemberId, accountDeviceId) in batch',
+              operation: 'grantMemberDevice',
+            );
+          }
+        }
+
+        final rows = <GroupMemberDevice>[];
+        for (final g in grants) {
+          // 1. membership exists and is active.
+          final member = await GroupMember.db.findById(
+            session,
+            g.groupMemberId,
+            transaction: tx,
+          );
+          if (member == null || member.isRevoked) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authAccountNotFound,
+              message: 'Membership not found or revoked',
+              operation: 'grantMemberDevice',
+              details: {'groupMemberId': g.groupMemberId.toString()},
+            );
+          }
+
+          // 2. THE binding check: the grantee must be a device of the
+          //    account that owns this membership. Without it a member
+          //    could push the group data key to an arbitrary device
+          //    through a server-persisted, member-attested channel
+          //    co-members cannot see.
+          final grantee = await AccountDevice.db.findById(
+            session,
+            g.accountDeviceId,
+            transaction: tx,
+          );
+          if (grantee == null || grantee.anonAccountId != member.anonAccountId) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authInvalidSignature,
+              message:
+                  'Grantee device does not belong to the membership account',
+              operation: 'grantMemberDevice',
+              details: {'accountDeviceId': g.accountDeviceId.toString()},
+            );
+          }
+
+          // 3. grantee device is active.
+          if (grantee.isRevoked) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authDeviceRevoked,
+              message: 'Grantee device is revoked',
+              operation: 'grantMemberDevice',
+              details: {'accountDeviceId': g.accountDeviceId.toString()},
+            );
+          }
+
+          // 4. attestor standing.
+          if (g.tier == GrantTier.root) {
+            if (g.attestorSigningPublicKeyHex !=
+                member.memberSigningPublicKeyHex) {
+              throw AnonAccountExceptionFactory.createAuthenticationException(
+                code: AnonAccountErrorCodes.authInvalidSignature,
+                message:
+                    'root-tier grant requires attestation by the membership '
+                    'member key',
+                operation: 'grantMemberDevice',
+              );
+            }
+          } else {
+            final attestorDevice = await AccountDevice.db.findFirstRow(
+              session,
+              where: (t) => t.deviceSigningPublicKeyHex
+                  .equals(g.attestorSigningPublicKeyHex),
+              transaction: tx,
+            );
+            if (attestorDevice == null || attestorDevice.isRevoked) {
+              throw AnonAccountExceptionFactory.createAuthenticationException(
+                code: AnonAccountErrorCodes.authDeviceRevoked,
+                message: 'peer-tier attestor device not found or revoked',
+                operation: 'grantMemberDevice',
+              );
+            }
+            final attestorGrant = await GroupMemberDevice.db.findFirstRow(
+              session,
+              where: (t) =>
+                  t.groupMemberId.equals(g.groupMemberId) &
+                  t.accountDeviceId.equals(attestorDevice.id!) &
+                  t.isRevoked.equals(false),
+              transaction: tx,
+            );
+            if (attestorGrant == null) {
+              throw AnonAccountExceptionFactory.createAuthenticationException(
+                code: AnonAccountErrorCodes.authAccountNotFound,
+                message:
+                    'peer-tier attestor has no active grant for this '
+                    'membership',
+                operation: 'grantMemberDevice',
+              );
+            }
+          }
+
+          // 5. the attestation covers the device duo AND the wrapped key.
+          final ok = await CryptoUtils.verifySignature(
+            message: GroupInnerPayloads.grantMemberDevice(
+              g.groupMemberId,
+              PublicKeyDuo(
+                signingPublicKeyHex: grantee.deviceSigningPublicKeyHex,
+                encryptionPublicKeyHex: grantee.deviceEncryptionPublicKeyHex,
+              ),
+              g.encryptedDataKey,
+            ),
+            signature: g.attestation,
+            publicKey: g.attestorSigningPublicKeyHex,
+          );
+          if (!ok) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.cryptoInvalidSignature,
+              message: 'Invalid grant attestation',
+              operation: 'grantMemberDevice',
+            );
+          }
+
+          // Scalar FKs only — a populated relation object silently
+          // degrades the batch insert to N single-row inserts.
+          rows.add(GroupMemberDevice(
+            groupMemberId: g.groupMemberId,
+            accountDeviceId: g.accountDeviceId,
+            encryptedDataKey: g.encryptedDataKey,
+            addedBySignerPublicKeyHex: g.attestorSigningPublicKeyHex,
+            addedByAttestation: g.attestation,
+          ));
+        }
+
+        final inserted = await GroupMemberDevice.db.insert(
+          session,
+          rows,
+          transaction: tx,
+          ignoreConflicts: true,
+        );
+
+        final landed = inserted
+            .map((r) => '${r.groupMemberId}:${r.accountDeviceId}')
+            .toSet();
+        return GrantMemberDeviceResult(
+          granted: [
+            for (final g in grants)
+              if (landed.contains('${g.groupMemberId}:${g.accountDeviceId}'))
+                MemberDeviceGrantOutcome(
+                  groupMemberId: g.groupMemberId,
+                  accountDeviceId: g.accountDeviceId,
+                ),
+          ],
+          alreadyGranted: [
+            for (final g in grants)
+              if (!landed.contains('${g.groupMemberId}:${g.accountDeviceId}'))
+                MemberDeviceGrantOutcome(
+                  groupMemberId: g.groupMemberId,
+                  accountDeviceId: g.accountDeviceId,
+                ),
+          ],
+        );
+      });
+    } on AuthenticationException {
+      rethrow;
+    } catch (e, stackTrace) {
+      session.log(
+        'GroupEndpoint: grantMemberDevice error: $e\n$stackTrace',
+        level: LogLevel.error,
+      );
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.databaseError,
+        message: 'grantMemberDevice failed: ${e.toString()}',
+        operation: 'grantMemberDevice',
+        details: {'error': e.toString()},
+      );
+    }
+  }
 }

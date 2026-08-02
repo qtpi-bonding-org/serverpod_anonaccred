@@ -19,10 +19,12 @@ import '../endpoints/entrypoint_endpoint.dart' as _i6;
 import '../endpoints/group_endpoint.dart' as _i7;
 import 'package:anonaccount_server/src/generated/public_key_duo.dart' as _i8;
 import 'package:anonaccount_server/src/generated/group_member_role.dart' as _i9;
-import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+import 'package:anonaccount_server/src/generated/member_device_grant.dart'
     as _i10;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i11;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i12;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -1310,6 +1312,50 @@ class Endpoints extends _i1.EndpointDispatch {
                 memberAuthSignature: params['memberAuthSignature'],
               ),
         ),
+        'grantMemberDevice': _i1.MethodConnector(
+          name: 'grantMemberDevice',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'grants': _i1.ParameterDescription(
+              name: 'grants',
+              type: _i1.getType<List<_i10.MemberDeviceGrant>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['group'] as _i7.GroupEndpoint).grantMemberDevice(
+                    session,
+                    challenge: params['challenge'],
+                    proofOfWork: params['proofOfWork'],
+                    signature: params['signature'],
+                    callerDeviceSigningPublicKeyHex:
+                        params['callerDeviceSigningPublicKeyHex'],
+                    grants: params['grants'],
+                  ),
+        ),
         'getChallenge': _i1.MethodConnector(
           name: 'getChallenge',
           params: {},
@@ -1438,9 +1484,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i10.Endpoints()
+    modules['serverpod_auth_idp'] = _i11.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i11.Endpoints()
+    modules['serverpod_auth_core'] = _i12.Endpoints()
       ..initializeEndpoints(server);
   }
 }

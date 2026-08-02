@@ -1,0 +1,4 @@
+class: GrantMemberDeviceResult
+fields:
+  granted: List<MemberDeviceGrantOutcome>
+  alreadyGranted: List<MemberDeviceGrantOutcome>

@@ -27,6 +27,10 @@ import 'package:anonaccount_client/src/protocol/device_pairing_event.dart'
 import 'package:anonaccount_client/src/protocol/share_group.dart' as _i10;
 import 'package:anonaccount_client/src/protocol/group_member.dart' as _i11;
 import 'package:anonaccount_client/src/protocol/group_member_role.dart' as _i12;
+import 'package:anonaccount_client/src/protocol/grant_member_device_result.dart'
+    as _i13;
+import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
+    as _i14;
 
 /// Account endpoint with PoW + signature protection.
 ///
@@ -811,6 +815,34 @@ class EndpointGroup extends EndpointSignedPow {
       'memberId': memberId,
       'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
       'memberAuthSignature': memberAuthSignature,
+    },
+  );
+
+  /// Grants one or more devices access to one or more memberships, by
+  /// persisting the group data key wrapped to each grantee device.
+  ///
+  /// Each item in [grants] is independently attested: `root` tier requires
+  /// the membership's own member signing key; `peer` tier requires an
+  /// already-granted device of the same membership. Validation and the
+  /// batch insert share one transaction — unwrapped, a concurrent
+  /// `revokeDevice` between the grantee-active check and the insert could
+  /// persist a signed record certifying a grant the system should have
+  /// refused.
+  _i2.Future<_i13.GrantMemberDeviceResult> grantMemberDevice({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required List<_i14.MemberDeviceGrant> grants,
+  }) => caller.callServerEndpoint<_i13.GrantMemberDeviceResult>(
+    'anonaccount.group',
+    'grantMemberDevice',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+      'grants': grants,
     },
   );
 

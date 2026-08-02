@@ -30,6 +30,10 @@ import 'package:anonaccount_server/src/generated/share_group.dart' as _i11;
 import 'package:anonaccount_server/src/generated/group_member.dart' as _i12;
 import 'package:anonaccount_server/src/generated/group_member_role.dart'
     as _i13;
+import 'package:anonaccount_server/src/generated/grant_member_device_result.dart'
+    as _i14;
+import 'package:anonaccount_server/src/generated/member_device_grant.dart'
+    as _i15;
 import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -1482,6 +1486,47 @@ class _GroupEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i14.GrantMemberDeviceResult> grantMemberDevice(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required List<_i15.MemberDeviceGrant> grants,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'grantMemberDevice',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'grantMemberDevice',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+            'grants': grants,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i14.GrantMemberDeviceResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

@@ -1,0 +1,4 @@
+class: MemberDeviceGrantOutcome
+fields:
+  groupMemberId: UuidValue
+  accountDeviceId: UuidValue
