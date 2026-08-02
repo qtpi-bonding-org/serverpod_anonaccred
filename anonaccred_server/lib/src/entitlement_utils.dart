@@ -65,7 +65,7 @@ class EntitlementUtils {
       return ConsumeResult(
         success: false,
         availableBalance: 0.0,
-        errorMessage: 'Consumption operation failed: ${e.toString()}',
+        errorMessage: 'Consumption operation failed: ${e.runtimeType}',
       );
     }
   }

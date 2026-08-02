@@ -19,8 +19,7 @@ import '../payments/payment_rail_interface.dart';
 /// [WebhookSignatureValidator].
 class GoogleWebhookRoute extends Route {
   /// Creates a Google webhook route that accepts POST requests.
-  GoogleWebhookRoute({super.host})
-      : super(methods: {Method.post}, path: '/');
+  GoogleWebhookRoute({super.host}) : super(methods: {Method.post}, path: '/');
 
   @override
   FutureOr<Result> handleCall(Session session, Request request) async {
@@ -29,34 +28,27 @@ class GoogleWebhookRoute extends Route {
 
       final body = await request.readAsString();
       if (body.isEmpty) {
-        return Response.badRequest(
-          body: Body.fromString('Empty request body'),
-        );
+        return Response.badRequest(body: Body.fromString('Empty request body'));
       }
 
       final Map<String, dynamic> webhookData;
       try {
         webhookData = jsonDecode(body) as Map<String, dynamic>;
       } on FormatException {
-        return Response.badRequest(
-          body: Body.fromString('Invalid JSON'),
-        );
+        return Response.badRequest(body: Body.fromString('Invalid JSON'));
       }
 
       // Extract signature from headers for verification
       final signature =
-          request.headers['x-goog-iam-authority-selector']?.first
-          ?? request.headers['x-signature']?.first;
+          request.headers['x-goog-iam-authority-selector']?.first ??
+          request.headers['x-signature']?.first;
 
       final rail = PaymentManager.getRail(PaymentRail.google_iap);
       if (rail == null) {
         await PaymentManager.initializeGoogleIAPRail(session);
         final retryRail = PaymentManager.getRail(PaymentRail.google_iap);
         if (retryRail == null) {
-          session.log(
-            'Google IAP rail not available',
-            level: LogLevel.error,
-          );
+          session.log('Google IAP rail not available', level: LogLevel.error);
           return Response.internalServerError(
             body: Body.fromString('Google IAP rail not available'),
           );
@@ -66,10 +58,7 @@ class GoogleWebhookRoute extends Route {
 
       return _process(session, rail, webhookData, body, signature);
     } catch (e) {
-      session.log(
-        'Google webhook error: ${e.toString()}',
-        level: LogLevel.error,
-      );
+      session.log('Google webhook error: $e', level: LogLevel.error);
       return Response.internalServerError(
         body: Body.fromString('Internal error'),
       );

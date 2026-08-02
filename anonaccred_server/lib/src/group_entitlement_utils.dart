@@ -39,11 +39,12 @@ class GroupEntitlementUtils {
         consumingAccountUuid: consumingAccountUuid,
       );
 
-      final newBalance = await GroupEntitlementManager.getGroupEntitlementBalance(
-        session,
-        shareGroupUuid: shareGroupUuid,
-        tag: tag,
-      );
+      final newBalance =
+          await GroupEntitlementManager.getGroupEntitlementBalance(
+            session,
+            shareGroupUuid: shareGroupUuid,
+            tag: tag,
+          );
 
       return ConsumeResult(success: true, availableBalance: newBalance);
     } on InventoryException catch (e) {
@@ -56,7 +57,7 @@ class GroupEntitlementUtils {
       return ConsumeResult(
         success: false,
         availableBalance: 0.0,
-        errorMessage: 'Group consumption operation failed: ${e.toString()}',
+        errorMessage: 'Group consumption operation failed: ${e.runtimeType}',
       );
     }
   }

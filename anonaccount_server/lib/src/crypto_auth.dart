@@ -128,8 +128,7 @@ class CryptoAuth {
     } on Exception catch (e) {
       return AuthenticationResultFactory.failure(
         errorCode: AnonAccountErrorCodes.cryptoVerificationFailed,
-        errorMessage: 'Cryptographic verification failed: ${e.toString()}',
-        details: {'error': e.toString()},
+        errorMessage: 'Cryptographic verification failed: ${e.runtimeType}',
       );
     }
   }

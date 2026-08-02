@@ -18,8 +18,7 @@ import '../payments/payment_rail_interface.dart';
 /// [NotificationSignatureValidator].
 class AppleWebhookRoute extends Route {
   /// Creates an Apple webhook route that accepts POST requests.
-  AppleWebhookRoute({super.host})
-      : super(methods: {Method.post}, path: '/');
+  AppleWebhookRoute({super.host}) : super(methods: {Method.post}, path: '/');
 
   @override
   FutureOr<Result> handleCall(Session session, Request request) async {
@@ -28,9 +27,7 @@ class AppleWebhookRoute extends Route {
 
       final body = await request.readAsString();
       if (body.isEmpty) {
-        return Response.badRequest(
-          body: Body.fromString('Empty request body'),
-        );
+        return Response.badRequest(body: Body.fromString('Empty request body'));
       }
 
       final rail = PaymentManager.getRail(PaymentRail.apple_iap);
@@ -38,10 +35,7 @@ class AppleWebhookRoute extends Route {
         await PaymentManager.initializeAppleIAPRail(session);
         final retryRail = PaymentManager.getRail(PaymentRail.apple_iap);
         if (retryRail == null) {
-          session.log(
-            'Apple IAP rail not available',
-            level: LogLevel.error,
-          );
+          session.log('Apple IAP rail not available', level: LogLevel.error);
           return Response.internalServerError(
             body: Body.fromString('Apple IAP rail not available'),
           );
@@ -51,10 +45,7 @@ class AppleWebhookRoute extends Route {
 
       return _process(session, rail, body);
     } catch (e) {
-      session.log(
-        'Apple webhook error: ${e.toString()}',
-        level: LogLevel.error,
-      );
+      session.log('Apple webhook error: $e', level: LogLevel.error);
       return Response.internalServerError(
         body: Body.fromString('Internal error'),
       );
