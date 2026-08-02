@@ -32,6 +32,7 @@ abstract final class GroupMethods {
   static const getGroup = 'getGroup';
   static const listGroupMembers = 'listGroupMembers';
   static const leaveGroup = 'leaveGroup';
+  static const grantMemberDevice = 'grantMemberDevice';
 }
 
 abstract final class AccountInnerPayloads {
@@ -85,4 +86,19 @@ abstract final class GroupInnerPayloads {
 
   static String listGroupMembers(UuidValue groupId) =>
       'listGroupMembers:$groupId';
+
+  /// A grant of one device's access to one membership.
+  ///
+  /// Covers the wrapped key as well as the device's two public halves. Round 1
+  /// puts both key halves inside the device attestation so the wrap *target*
+  /// cannot be substituted; the wrapped *value* needs the same protection, or a
+  /// server can hand a device a blob containing an attacker-chosen key and that
+  /// device then encrypts group content nobody else can read.
+  static String grantMemberDevice(
+    UuidValue memberId,
+    PublicKeyDuo deviceKeys,
+    String encryptedDataKey,
+  ) =>
+      'grantMemberDevice:$memberId:${deviceKeys.signingPublicKeyHex}'
+      ':${deviceKeys.encryptionPublicKeyHex}:$encryptedDataKey';
 }
