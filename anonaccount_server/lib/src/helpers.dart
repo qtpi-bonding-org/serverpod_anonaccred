@@ -3,6 +3,7 @@ import 'package:serverpod/serverpod.dart';
 import 'crypto_auth.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
+import 'key_format.dart';
 
 /// Simple static helper functions to reduce code duplication
 /// No complex abstractions, caching, or infrastructure
@@ -120,6 +121,48 @@ class AnonAccountHelpers {
           'publicKeyLength': publicKey.length.toString(),
           'expectedLength': '128 or 130',
         },
+      );
+    }
+  }
+
+  /// Validates both halves of a principal's key pair and returns the
+  /// normalised duo.
+  ///
+  /// The distinctness check is the one that catches the realistic mistake:
+  /// the same key pasted into both slots. It cannot catch some *other* wrong
+  /// key — nothing can, since the two key types are byte-indistinguishable.
+  static PublicKeyDuo validateKeyDuo(PublicKeyDuo duo, String operation) {
+    final signing =
+        _normalizeKey(duo.signingPublicKeyHex, 'signingPublicKeyHex', operation);
+    final encryption = _normalizeKey(
+        duo.encryptionPublicKeyHex, 'encryptionPublicKeyHex', operation);
+
+    if (signing == encryption) {
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
+        message:
+            'signingPublicKeyHex and encryptionPublicKeyHex must be different '
+            'keys',
+        operation: operation,
+      );
+    }
+
+    return PublicKeyDuo(
+      signingPublicKeyHex: signing,
+      encryptionPublicKeyHex: encryption,
+    );
+  }
+
+  static String _normalizeKey(
+      String value, String fieldName, String operation) {
+    try {
+      return PublicKeyFormat.normalize(value);
+    } on FormatException catch (e) {
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
+        message: '$fieldName is not a valid public key: ${e.message}',
+        operation: operation,
+        details: {'field': fieldName},
       );
     }
   }

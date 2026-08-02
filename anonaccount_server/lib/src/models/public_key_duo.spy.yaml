@@ -1,0 +1,14 @@
+# anonaccount_server/lib/src/models/public_key_duo.spy.yaml
+# A principal's two public keys, together.
+#
+# ECDSA and ECDH P-256 public keys are the same mathematical object — no
+# validator can tell them apart. Passing them as two loose strings at
+# separate argument positions means every call site must reassemble them
+# correctly; naming the slots makes that impossible to get wrong.
+#
+# Field names match dart_jwk_duo's PublicKeyDuo.toJson() so the SDK can
+# serialise straight across.
+class: PublicKeyDuo
+fields:
+  signingPublicKeyHex: String
+  encryptionPublicKeyHex: String

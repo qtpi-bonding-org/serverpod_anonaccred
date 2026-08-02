@@ -44,18 +44,6 @@
       ]
     },
     {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
-      "name": "ffi",
-      "version": "2.2.0",
-      "dependencies": []
-    },
-    {
       "name": "test",
       "version": "1.30.0",
       "dependencies": [
@@ -210,6 +198,18 @@
         "sky_engine",
         "vector_math"
       ]
+    },
+    {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "ffi",
+      "version": "2.2.0",
+      "dependencies": []
     },
     {
       "name": "yaml",
@@ -656,6 +656,22 @@
       "dependencies": []
     },
     {
+      "name": "serverpod_auth_core_client",
+      "version": "3.4.1",
+      "dependencies": [
+        "clock",
+        "serverpod_client"
+      ]
+    },
+    {
+      "name": "serverpod_auth_idp_client",
+      "version": "3.4.1",
+      "dependencies": [
+        "serverpod_auth_core_client",
+        "serverpod_client"
+      ]
+    },
+    {
       "name": "serverpod_client",
       "version": "3.4.1",
       "dependencies": [
@@ -668,29 +684,13 @@
       ]
     },
     {
-      "name": "serverpod_auth_idp_client",
-      "version": "3.4.1",
-      "dependencies": [
-        "serverpod_auth_core_client",
-        "serverpod_client"
-      ]
-    },
-    {
-      "name": "serverpod_auth_core_client",
-      "version": "3.4.1",
-      "dependencies": [
-        "clock",
-        "serverpod_client"
-      ]
+      "name": "sky_engine",
+      "version": "0.0.0",
+      "dependencies": []
     },
     {
       "name": "vector_math",
       "version": "2.2.0",
-      "dependencies": []
-    },
-    {
-      "name": "sky_engine",
-      "version": "0.0.0",
       "dependencies": []
     },
     {
