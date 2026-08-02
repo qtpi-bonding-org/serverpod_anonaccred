@@ -35,18 +35,6 @@ abstract final class GroupMethods {
 }
 
 abstract final class AccountInnerPayloads {
-  /// Ultimate key attests to a new device signing key.
-  /// Used identically in createAccount and registerDevice.
-  ///
-  /// The attestation payload IS the raw device public key hex — no prefix or
-  /// wrapper. This method exists solely to give both callers a named,
-  /// findable reference point rather than an ad-hoc inline string.
-  ///
-  /// SUPERSEDED by [registerDevice]; retired in Task 8 once both call sites
-  /// have moved. Returns the bare device pubkey hex, no domain separation.
-  static String deviceAttestation(String deviceSigningPublicKeyHex) =>
-      deviceSigningPublicKeyHex;
-
   /// The ultimate key attests to a new device's key pair.
   /// Used identically by createAccount and registerDevice.
   ///

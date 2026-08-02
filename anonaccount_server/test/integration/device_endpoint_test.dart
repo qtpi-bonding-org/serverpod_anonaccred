@@ -32,8 +32,16 @@ void main() {
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
-        // Attestation: ultimate key signs device public key (authorization)
-        final deviceKeyAttestation = SigningTestHelper.signWith(devicePubKey, ultimatePrivKey);
+        // Attestation covers BOTH halves of the device duo (Task 8).
+        final deviceKeyAttestation = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
 
         // PoW for registerDevice (signed with device key — proves liveness)
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
@@ -91,14 +99,14 @@ void main() {
         const encryptedDataKey = 'device_encrypted_data_key_roundtrip';
         const label = 'Roundtrip Test Device';
 
-        // Task 6 only widens the persisted schema and the endpoint's
-        // parameter shape to PublicKeyDuo — the attestation check itself
-        // still verifies the legacy single-key payload (deviceAttestation)
-        // until Task 8 upgrades it to cover both halves. Sign accordingly so
-        // this test exercises the round-trip, not Task 8's not-yet-landed
-        // behaviour.
+        // Attestation covers BOTH halves of the device duo (Task 8).
         final deviceKeyAttestation = SigningTestHelper.signWith(
-          devicePubKey,
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
+          ),
           ultimatePrivKey,
         );
 
@@ -136,6 +144,66 @@ void main() {
     );
 
     test(
+      'rejects an attestation that covers a different encryption key',
+      () async {
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
+        final testAccount = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+          encryptedDataKey: 'encrypted_test_data_key_mismatch',
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
+        );
+
+        final (devicePrivKey, devicePubKey) =
+            SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
+        // Attestation computed over the real duo...
+        final deviceKeyAttestation = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
+        // ...but a THIRD key is sent as the encryption half in the request.
+        final (_, substitutedEncPubKey) = SigningTestHelper.generateKeypair();
+
+        final regChallenge =
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload =
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature =
+            SigningTestHelper.signWith(regPayload, devicePrivKey);
+
+        await expectLater(
+          endpoints.device.registerDevice(
+            sessionBuilder,
+            challenge: regChallenge.challenge,
+            proofOfWork: regPow,
+            signature: regSignature,
+            deviceKeyAttestation: deviceKeyAttestation,
+            ultimateSigningPublicKeyHex:
+                testAccount.ultimateSigningPublicKeyHex,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: substitutedEncPubKey,
+            ),
+            encryptedDataKey: 'device_encrypted_data_key_mismatch',
+            label: 'Mismatch Test Device',
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      },
+    );
+
+    test(
       'registerDevice - should reject duplicate public subkey registration',
       () async {
         // Create a test account with a real keypair
@@ -154,7 +222,15 @@ void main() {
         const label = 'Test Device';
 
         // Attestation: ultimate key signs device public key
-        final deviceKeyAttestation = SigningTestHelper.signWith(devicePubKey, ultimatePrivKey);
+        final deviceKeyAttestation = SigningTestHelper.signWith(
+        AccountInnerPayloads.registerDevice(
+          PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
+        ),
+        ultimatePrivKey,
+      );
 
         // Register device first time - should succeed
         final regChallenge1 = await endpoints.entrypoint.getChallenge(sessionBuilder);
@@ -362,7 +438,15 @@ void main() {
       const label = 'Challenge Test Device';
 
       // Attestation + PoW for device registration
-      final deviceKeyAttestation = SigningTestHelper.signWith(devicePubKey, ultimatePrivKey);
+      final deviceKeyAttestation = SigningTestHelper.signWith(
+        AccountInnerPayloads.registerDevice(
+          PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
+        ),
+        ultimatePrivKey,
+      );
       final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
       final regPow = await PowTestHelper.mint(
         regChallenge.challenge,

@@ -158,9 +158,13 @@ void main() {
             allOf(
               isA<AuthenticationException>(),
               predicate<AuthenticationException>(
+                // Task 8: validateKeyDuo now runs before attestation
+                // verification, so a malformed/empty key is rejected as a
+                // format error rather than reaching signature verification
+                // (which used to fail on an empty message first).
                 (e) =>
-                    e.toString().contains('CRYPTO_INVALID_MESSAGE') &&
-                    e.toString().contains('Message cannot be empty'),
+                    e.toString().contains('CRYPTO_INVALID_PUBLIC_KEY') &&
+                    e.toString().contains('is not a valid public key'),
               ),
             ),
           ),
@@ -214,7 +218,7 @@ void main() {
               predicate<AuthenticationException>(
                 (e) =>
                     e.toString().contains('CRYPTO_INVALID_PUBLIC_KEY') &&
-                    e.toString().contains('Invalid public key format'),
+                    e.toString().contains('is not a valid public key'),
               ),
             ),
           ),
@@ -245,8 +249,15 @@ void main() {
             '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$validDevicePubKey';
         final regSignature1 =
             SigningTestHelper.signWith(regPayload1, validDevicePrivKey);
-        final deviceKeyAttestation1 =
-            SigningTestHelper.signWith(validDevicePubKey, ultimatePrivKey);
+        final deviceKeyAttestation1 = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: validDevicePubKey,
+              encryptionPublicKeyHex: validDeviceEncPubKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
 
         await endpoints.device.registerDevice(
           sessionBuilder,
@@ -275,8 +286,15 @@ void main() {
             '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$validDevicePubKey';
         final regSignature2 =
             SigningTestHelper.signWith(regPayload2, validDevicePrivKey);
-        final deviceKeyAttestation2 =
-            SigningTestHelper.signWith(validDevicePubKey, ultimatePrivKey);
+        final deviceKeyAttestation2 = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: validDevicePubKey,
+              encryptionPublicKeyHex: validDeviceEncPubKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
 
         expect(
           () => endpoints.device.registerDevice(

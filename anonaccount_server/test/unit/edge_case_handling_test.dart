@@ -33,7 +33,15 @@ void main() {
         );
         final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$emptyDeviceKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
-        final deviceKeyAttestation = SigningTestHelper.signWith(emptyDeviceKey, ultimatePrivKey);
+        final deviceKeyAttestation = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: emptyDeviceKey,
+              encryptionPublicKeyHex: emptyDeviceKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
 
         expect(
           () => endpoints.device.registerDevice(
@@ -74,7 +82,15 @@ void main() {
         );
         final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$invalidDeviceKey';
         final regSignature = SigningTestHelper.signWith(regPayload, ultimatePrivKey);
-        final deviceKeyAttestation = SigningTestHelper.signWith(invalidDeviceKey, ultimatePrivKey);
+        final deviceKeyAttestation = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: invalidDeviceKey,
+              encryptionPublicKeyHex: invalidDeviceKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
 
         expect(
           () => endpoints.device.registerDevice(

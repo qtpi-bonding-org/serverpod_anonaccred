@@ -111,7 +111,15 @@ void main() {
         );
         final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
         final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
-        final deviceKeyAttestation = SigningTestHelper.signWith(devicePubKey, privKey);
+        final deviceKeyAttestation = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
+          ),
+          privKey,
+        );
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
@@ -269,7 +277,15 @@ void main() {
         );
         final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
         final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
-        final deviceKeyAttestation = SigningTestHelper.signWith(devicePubKey, ultimatePrivKey);
+        final deviceKeyAttestation = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
 
         final device = await endpoints.device.registerDevice(
           sessionBuilder,
@@ -309,7 +325,15 @@ void main() {
         );
         final regPayload1 = '${regChallenge1.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
         final regSignature1 = SigningTestHelper.signWith(regPayload1, devicePrivKey);
-        final deviceKeyAttestation1 = SigningTestHelper.signWith(devicePubKey, ultimatePrivKey);
+        final deviceKeyAttestation1 = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
 
         await endpoints.device.registerDevice(
           sessionBuilder,
@@ -334,7 +358,15 @@ void main() {
         );
         final regPayload2 = '${regChallenge2.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
         final regSignature2 = SigningTestHelper.signWith(regPayload2, devicePrivKey);
-        final deviceKeyAttestation2 = SigningTestHelper.signWith(devicePubKey, ultimatePrivKey);
+        final deviceKeyAttestation2 = SigningTestHelper.signWith(
+          AccountInnerPayloads.registerDevice(
+            PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
+          ),
+          ultimatePrivKey,
+        );
 
         expect(
           () => endpoints.device.registerDevice(
