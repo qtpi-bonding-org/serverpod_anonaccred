@@ -60,3 +60,6 @@ example/
 
 # Test results and generated files
 test-results.json
+
+# Git worktrees
+.worktrees/
