@@ -23,24 +23,21 @@ class GroupCommerceEndpoint extends JwtEndpoint {
     Session session,
     UuidValue shareGroupUuid,
   ) async {
-    try {
-      final accountUuid = getAccountUuid(session);
-      await _requireGroupMember(session, accountUuid, shareGroupUuid);
+    return tryOperation(
+      session,
+      'getGroupEntitlements',
+      () async {
+        final accountUuid = getAccountUuid(session);
+        await _requireGroupMember(session, accountUuid, shareGroupUuid);
 
-      return await GroupEntitlementManager.getGroupEntitlements(
-        session,
-        shareGroupUuid: shareGroupUuid,
-      );
-    } on AuthenticationException {
-      rethrow;
-    } on InventoryException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Unexpected error getting group entitlements: ${e.toString()}',
-      );
-    }
+        return await GroupEntitlementManager.getGroupEntitlements(
+          session,
+          shareGroupUuid: shareGroupUuid,
+        );
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+    );
   }
 
   /// Get the balance for a single entitlement tag in this group. Caller
@@ -50,26 +47,22 @@ class GroupCommerceEndpoint extends JwtEndpoint {
     UuidValue shareGroupUuid,
     String tag,
   ) async {
-    try {
-      final accountUuid = getAccountUuid(session);
-      await _requireGroupMember(session, accountUuid, shareGroupUuid);
+    return tryOperation(
+      session,
+      'getGroupEntitlementBalance',
+      () async {
+        final accountUuid = getAccountUuid(session);
+        await _requireGroupMember(session, accountUuid, shareGroupUuid);
 
-      return await GroupEntitlementManager.getGroupEntitlementBalance(
-        session,
-        shareGroupUuid: shareGroupUuid,
-        tag: tag,
-      );
-    } on AuthenticationException {
-      rethrow;
-    } on InventoryException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message:
-            'Unexpected error getting group entitlement balance: ${e.toString()}',
-      );
-    }
+        return await GroupEntitlementManager.getGroupEntitlementBalance(
+          session,
+          shareGroupUuid: shareGroupUuid,
+          tag: tag,
+        );
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+    );
   }
 
   /// Consume from a group's entitlement balance.
@@ -83,28 +76,24 @@ class GroupCommerceEndpoint extends JwtEndpoint {
     String tag,
     double quantity,
   ) async {
-    try {
-      final accountUuid = getAccountUuid(session);
-      await _requireGroupMember(session, accountUuid, shareGroupUuid);
+    return tryOperation(
+      session,
+      'consumeGroupEntitlement',
+      () async {
+        final accountUuid = getAccountUuid(session);
+        await _requireGroupMember(session, accountUuid, shareGroupUuid);
 
-      return await GroupEntitlementUtils.tryConsumeGroup(
-        session,
-        shareGroupUuid: shareGroupUuid,
-        tag: tag,
-        quantity: quantity,
-        consumingAccountUuid: accountUuid,
-      );
-    } on AuthenticationException {
-      rethrow;
-    } on InventoryException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message:
-            'Unexpected error during group entitlement consumption: ${e.toString()}',
-      );
-    }
+        return await GroupEntitlementUtils.tryConsumeGroup(
+          session,
+          shareGroupUuid: shareGroupUuid,
+          tag: tag,
+          quantity: quantity,
+          consumingAccountUuid: accountUuid,
+        );
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+    );
   }
 
   Future<void> _requireGroupMember(

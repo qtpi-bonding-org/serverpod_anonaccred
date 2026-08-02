@@ -84,7 +84,7 @@ class X402Interceptor {
     } on Exception catch (e) {
       // Log error and return payment required as fallback
       session.log(
-        'X402 interceptor error for resource $resourceId: ${e.toString()}',
+        'X402 interceptor error for resource $resourceId: $e',
         level: LogLevel.error,
       );
 
@@ -114,46 +114,53 @@ class X402Interceptor {
     required double amount,
     String? description,
   }) async {
-    try {
-      // Generate unique transaction ID for this payment request
-      final internalTransactionId =
-          'x402_${resourceId}_${DateTime.now().millisecondsSinceEpoch}';
+    PaymentException x402Failure({
+      required String code,
+      required String message,
+      required String operation,
+      required Map<String, String> details,
+    }) => PaymentException(
+      code: code,
+      message: message,
+      paymentRail: 'x402_http',
+      details: {'operation': operation, ...details},
+    );
 
-      // Generate X402 payment response
-      final paymentResponse = X402PaymentProcessor.generatePaymentRequired(
-        amount: amount,
-        internalTransactionId: internalTransactionId,
-      );
+    return tryOperation(
+      session,
+      'generatePaymentRequired',
+      () async {
+        // Generate unique transaction ID for this payment request
+        final internalTransactionId =
+            'x402_${resourceId}_${DateTime.now().millisecondsSinceEpoch}';
 
-      session.log(
-        'Generated X402 payment requirement for resource: $resourceId, amount: \$${amount.toStringAsFixed(2)}, internalTx: $internalTransactionId',
-        level: LogLevel.info,
-      );
+        // Generate X402 payment response
+        final paymentResponse = X402PaymentProcessor.generatePaymentRequired(
+          amount: amount,
+          internalTransactionId: internalTransactionId,
+        );
 
-      // Return standardized HTTP 402 response
-      return ApiResponse(
-        success: false,
-        httpStatus: 402,
-        jsonData: jsonEncode({
-          'message': 'Payment Required',
-          'resource': resourceId,
-          'description': description ?? 'Access to $resourceId',
-          'paymentRequired': paymentResponse.toJson(),
-        }),
-      );
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.x402VerificationFailed,
-        message:
-            'Failed to generate X402 payment requirements: ${e.toString()}',
-        paymentRail: 'x402_http',
-        details: {
-          'resourceId': resourceId,
-          'amount': amount.toString(),
-          'error': e.toString(),
-        },
-      );
-    }
+        session.log(
+          'Generated X402 payment requirement for resource: $resourceId, amount: \$${amount.toStringAsFixed(2)}, internalTx: $internalTransactionId',
+          level: LogLevel.info,
+        );
+
+        // Return standardized HTTP 402 response
+        return ApiResponse(
+          success: false,
+          httpStatus: 402,
+          jsonData: jsonEncode({
+            'message': 'Payment Required',
+            'resource': resourceId,
+            'description': description ?? 'Access to $resourceId',
+            'paymentRequired': paymentResponse.toJson(),
+          }),
+        );
+      },
+      onFailure: x402Failure,
+      code: AnonAccredErrorCodes.x402VerificationFailed,
+      extraDetails: {'resourceId': resourceId, 'amount': amount.toString()},
+    );
   }
 
   /// Check if request has X402 payment header

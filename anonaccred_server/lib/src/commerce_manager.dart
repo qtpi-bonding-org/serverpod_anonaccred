@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'protocol_failures.dart';
 import 'entitlement_manager.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
@@ -270,20 +271,19 @@ class CommerceManager {
     Session session, {
     required UuidValue accountUuid,
     required DateTime transactionTimestamp,
-  }) async {
-    try {
-      await EphemeralAccreditation.db.insertRow(
+  }) async => tryOperation(
         session,
-        EphemeralAccreditation(
-          accountUuid: accountUuid,
-          transactionTimestamp: transactionTimestamp,
-        ),
-      );
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createPaymentException(
+        'accreditTransaction',
+        () async {
+          await EphemeralAccreditation.db.insertRow(
+            session,
+            EphemeralAccreditation(
+              accountUuid: accountUuid,
+              transactionTimestamp: transactionTimestamp,
+            ),
+          );
+        },
+        onFailure: paymentFailure,
         code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to create accreditation bridge: ${e.toString()}',
       );
-    }
-  }
 }

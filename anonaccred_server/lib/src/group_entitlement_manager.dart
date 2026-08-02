@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'protocol_failures.dart';
 import 'entitlement_core.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
@@ -28,10 +29,7 @@ class GroupEntitlementManager {
     required double quantity,
     required Transaction transaction,
   }) async {
-    EntitlementCore.requirePositiveAmount(
-      quantity,
-      operation: 'Group grant',
-    );
+    EntitlementCore.requirePositiveAmount(quantity, operation: 'Group grant');
 
     final existing = await GroupEntitlement.db.findFirstRow(
       session,
@@ -103,61 +101,70 @@ class GroupEntitlementManager {
       operation: 'Group consumption',
     );
 
-    try {
-      await session.db.transaction((transaction) async {
-        final entitlement = await EntitlementCore.requireByTag(
-          session,
-          tag,
-          transaction: transaction,
-        );
-
-        // FOR UPDATE lock prevents concurrent consumptions from racing on the
-        // same balance row under Postgres READ COMMITTED isolation.
-        final record = await GroupEntitlement.db.findFirstRow(
-          session,
-          where: (t) =>
-              t.shareGroupUuid.equals(shareGroupUuid) &
-              t.entitlementId.equals(entitlement.id),
-          lockMode: LockMode.forUpdate,
-          transaction: transaction,
-        );
-
-        if (record == null || record.balance < amount) {
-          throw EntitlementCore.insufficientBalance(
-            currentBalance: record?.balance ?? 0.0,
-            requested: amount,
-            tag: tag,
+    return tryOperation(
+      session,
+      'consumeGroupEntitlement',
+      () async {
+        await session.db.transaction((transaction) async {
+          final entitlement = await EntitlementCore.requireByTag(
+            session,
+            tag,
+            transaction: transaction,
           );
-        }
 
-        await GroupEntitlement.db.updateRow(
-          session,
-          record.copyWith(balance: record.balance - amount),
-          transaction: transaction,
-        );
+          // FOR UPDATE lock prevents concurrent consumptions from racing on the
+          // same balance row under Postgres READ COMMITTED isolation.
+          final record = await GroupEntitlement.db.findFirstRow(
+            session,
+            where: (t) =>
+                t.shareGroupUuid.equals(shareGroupUuid) &
+                t.entitlementId.equals(entitlement.id),
+            lockMode: LockMode.forUpdate,
+            transaction: transaction,
+          );
 
-        await GroupConsumptionLog.db.insertRow(
-          session,
-          GroupConsumptionLog(
-            shareGroupUuid: shareGroupUuid,
-            entitlementId: entitlement.id!,
-            amount: amount,
-            reason: reason,
-            timestamp: DateTime.now(),
-            consumingAccountUuid: consumingAccountUuid,
+          if (record == null || record.balance < amount) {
+            throw EntitlementCore.insufficientBalance(
+              currentBalance: record?.balance ?? 0.0,
+              requested: amount,
+              tag: tag,
+            );
+          }
+
+          await GroupEntitlement.db.updateRow(
+            session,
+            record.copyWith(balance: record.balance - amount),
+            transaction: transaction,
+          );
+
+          await GroupConsumptionLog.db.insertRow(
+            session,
+            GroupConsumptionLog(
+              shareGroupUuid: shareGroupUuid,
+              entitlementId: entitlement.id!,
+              amount: amount,
+              reason: reason,
+              timestamp: DateTime.now(),
+              consumingAccountUuid: consumingAccountUuid,
+            ),
+            transaction: transaction,
+          );
+        });
+      },
+      onFailure:
+          ({
+            required String code,
+            required String message,
+            required String operation,
+            required Map<String, String> details,
+          }) => InventoryException(
+            code: code,
+            message: message,
+            tag: tag,
+            details: details,
           ),
-          transaction: transaction,
-        );
-      });
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to consume group entitlement: ${e.toString()}',
-        tag: tag,
-        details: {'error': e.toString()},
-      );
-    }
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 
   /// Revokes a group entitlement balance.
@@ -173,53 +180,50 @@ class GroupEntitlementManager {
   }) async {
     if (quantity <= 0) return;
 
-    try {
-      await session.db.transaction((transaction) async {
-        // FOR UPDATE lock prevents concurrent revocations from racing on the
-        // same balance row under Postgres READ COMMITTED isolation.
-        final record = await GroupEntitlement.db.findFirstRow(
-          session,
-          where: (t) =>
-              t.shareGroupUuid.equals(shareGroupUuid) &
-              t.entitlementId.equals(entitlementId),
-          lockMode: LockMode.forUpdate,
-          transaction: transaction,
-        );
-        if (record == null) return;
+    return tryOperation(
+      session,
+      'revokeGroupEntitlement',
+      () async {
+        await session.db.transaction((transaction) async {
+          // FOR UPDATE lock prevents concurrent revocations from racing on the
+          // same balance row under Postgres READ COMMITTED isolation.
+          final record = await GroupEntitlement.db.findFirstRow(
+            session,
+            where: (t) =>
+                t.shareGroupUuid.equals(shareGroupUuid) &
+                t.entitlementId.equals(entitlementId),
+            lockMode: LockMode.forUpdate,
+            transaction: transaction,
+          );
+          if (record == null) return;
 
-        final debit = quantity > record.balance ? record.balance : quantity;
-        if (debit <= 0) return;
+          final debit = quantity > record.balance ? record.balance : quantity;
+          if (debit <= 0) return;
 
-        await GroupEntitlement.db.updateRow(
-          session,
-          record.copyWith(balance: record.balance - debit),
-          transaction: transaction,
-        );
+          await GroupEntitlement.db.updateRow(
+            session,
+            record.copyWith(balance: record.balance - debit),
+            transaction: transaction,
+          );
 
-        await GroupConsumptionLog.db.insertRow(
-          session,
-          GroupConsumptionLog(
-            shareGroupUuid: shareGroupUuid,
-            entitlementId: entitlementId,
-            amount: debit,
-            reason: reason,
-            timestamp: DateTime.now(),
-            consumingAccountUuid: consumingAccountUuid,
-          ),
-          transaction: transaction,
-        );
-      });
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to revoke group entitlement: ${e.toString()}',
-        details: {
-          'error': e.toString(),
-          'entitlementId': entitlementId.toString(),
-        },
-      );
-    }
+          await GroupConsumptionLog.db.insertRow(
+            session,
+            GroupConsumptionLog(
+              shareGroupUuid: shareGroupUuid,
+              entitlementId: entitlementId,
+              amount: debit,
+              reason: reason,
+              timestamp: DateTime.now(),
+              consumingAccountUuid: consumingAccountUuid,
+            ),
+            transaction: transaction,
+          );
+        });
+      },
+      onFailure: inventoryFailure,
+      code: AnonAccountErrorCodes.databaseError,
+      extraDetails: {'entitlementId': entitlementId.toString()},
+    );
   }
 
   /// Gets the current balance for a group entitlement by tag.
@@ -228,28 +232,39 @@ class GroupEntitlementManager {
     required UuidValue shareGroupUuid,
     required String tag,
   }) async {
-    try {
-      final entitlement = await Entitlement.db.findFirstRow(
-        session,
-        where: (t) => t.tag.equals(tag),
-      );
-      if (entitlement == null) return 0.0;
+    return tryOperation(
+      session,
+      'getGroupEntitlementBalance',
+      () async {
+        final entitlement = await Entitlement.db.findFirstRow(
+          session,
+          where: (t) => t.tag.equals(tag),
+        );
+        if (entitlement == null) return 0.0;
 
-      final record = await GroupEntitlement.db.findFirstRow(
-        session,
-        where: (t) =>
-            t.shareGroupUuid.equals(shareGroupUuid) &
-            t.entitlementId.equals(entitlement.id),
-      );
+        final record = await GroupEntitlement.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.shareGroupUuid.equals(shareGroupUuid) &
+              t.entitlementId.equals(entitlement.id),
+        );
 
-      return record?.balance ?? 0.0;
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to get group entitlement balance: ${e.toString()}',
-        tag: tag,
-      );
-    }
+        return record?.balance ?? 0.0;
+      },
+      onFailure:
+          ({
+            required String code,
+            required String message,
+            required String operation,
+            required Map<String, String> details,
+          }) => InventoryException(
+            code: code,
+            message: message,
+            tag: tag,
+            details: details,
+          ),
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 
   /// Gets all entitlement balances for a group.
@@ -257,19 +272,18 @@ class GroupEntitlementManager {
     Session session, {
     required UuidValue shareGroupUuid,
   }) async {
-    try {
-      return await GroupEntitlement.db.find(
-        session,
-        where: (t) => t.shareGroupUuid.equals(shareGroupUuid),
-        include: GroupEntitlement.include(
-          entitlement: Entitlement.include(),
-        ),
-      );
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to get group entitlements: ${e.toString()}',
-      );
-    }
+    return tryOperation(
+      session,
+      'getGroupEntitlements',
+      () async {
+        return await GroupEntitlement.db.find(
+          session,
+          where: (t) => t.shareGroupUuid.equals(shareGroupUuid),
+          include: GroupEntitlement.include(entitlement: Entitlement.include()),
+        );
+      },
+      onFailure: inventoryFailure,
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 }

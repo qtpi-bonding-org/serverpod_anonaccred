@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import 'package:anonaccount_server/anonaccount_server.dart';
 
+import '../protocol_failures.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../payments/rails/apple_iap_rail.dart';
@@ -29,67 +30,60 @@ class IAPEndpoint extends JwtEndpoint {
     String productId, {
     String? internalTransactionId,
   }) async {
-    try {
-      final accountUuid = getAccountUuid(session);
+    return tryOperation(
+      session,
+      'validateAppleTransaction',
+      () async {
+        final accountUuid = getAccountUuid(session);
 
-      // Validate parameters
-      if (transactionId.isEmpty || productId.isEmpty) {
-        throw AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.paymentValidationFailed,
-          message: 'Transaction ID and product ID are required',
+        // Validate parameters
+        if (transactionId.isEmpty || productId.isEmpty) {
+          throw AnonAccredExceptionFactory.createPaymentException(
+            code: AnonAccredErrorCodes.paymentValidationFailed,
+            message: 'Transaction ID and product ID are required',
+            internalTransactionId: internalTransactionId,
+            details: {
+              'transactionId': transactionId.isEmpty ? 'empty' : 'provided',
+              'productId': productId.isEmpty ? 'empty' : 'provided',
+            },
+          );
+        }
+
+        // Create Apple IAP rail and validate transaction
+        final appleRail = await AppleIAPRail.create();
+        final result = await appleRail.validateTransaction(
+          session: session,
+          transactionId: transactionId,
+          productId: productId,
+          accountUuid: accountUuid,
           internalTransactionId: internalTransactionId,
-          details: {
-            'transactionId': transactionId.isEmpty ? 'empty' : 'provided',
-            'productId': productId.isEmpty ? 'empty' : 'provided',
-          },
         );
-      }
 
-      // Create Apple IAP rail and validate transaction
-      final appleRail = await AppleIAPRail.create();
-      final result = await appleRail.validateTransaction(
-        session: session,
-        transactionId: transactionId,
-        productId: productId,
-        accountUuid: accountUuid,
-        internalTransactionId: internalTransactionId,
-      );
+        if (!result.isValid) {
+          return IapValidationResponse(
+            success: false,
+            fromCache: result.fromCache,
+            error: 'Apple transaction validation failed',
+          );
+        }
 
-      if (!result.isValid) {
+        session.log(
+          'Apple IAP fulfilled: ${result.transactionId} (${result.productId})',
+          level: LogLevel.info,
+        );
+
         return IapValidationResponse(
-          success: false,
+          success: true,
+          productId: result.productId,
+          tag: result.tag,
+          amount: result.quantity,
           fromCache: result.fromCache,
-          error: 'Apple transaction validation failed',
         );
-      }
-
-      session.log(
-        'Apple IAP fulfilled: ${result.transactionId} (${result.productId})',
-        level: LogLevel.info,
-      );
-
-      return IapValidationResponse(
-        success: true,
-        productId: result.productId,
-        tag: result.tag,
-        amount: result.quantity,
-        fromCache: result.fromCache,
-      );
-    } on AuthenticationException {
-      rethrow;
-    } on PaymentException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message:
-            'Unexpected error validating Apple transaction: ${e.toString()}',
-        details: {
-          'error': e.toString(),
-          'transactionId': transactionId,
-        },
-      );
-    }
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+      extraDetails: {'transactionId': transactionId},
+    );
   }
 
   /// Validate Google Play purchase and fulfill purchase.
@@ -109,62 +103,57 @@ class IAPEndpoint extends JwtEndpoint {
     String purchaseToken, {
     String? internalTransactionId,
   }) async {
-    try {
-      final accountUuid = getAccountUuid(session);
+    return tryOperation(
+      session,
+      'validateGooglePurchase',
+      () async {
+        final accountUuid = getAccountUuid(session);
 
-      // Validate parameters
-      if (packageName.isEmpty || productId.isEmpty || purchaseToken.isEmpty) {
-        throw AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.paymentValidationFailed,
-          message: 'Package name, product ID, and purchase token are required',
+        // Validate parameters
+        if (packageName.isEmpty || productId.isEmpty || purchaseToken.isEmpty) {
+          throw AnonAccredExceptionFactory.createPaymentException(
+            code: AnonAccredErrorCodes.paymentValidationFailed,
+            message:
+                'Package name, product ID, and purchase token are required',
+            internalTransactionId: internalTransactionId,
+          );
+        }
+
+        // Create Google IAP rail and validate purchase
+        final googleRail = await GoogleIAPRail.create();
+        final result = await googleRail.validatePurchase(
+          session: session,
+          packageName: packageName,
+          productId: productId,
+          purchaseToken: purchaseToken,
+          accountUuid: accountUuid,
           internalTransactionId: internalTransactionId,
         );
-      }
 
-      // Create Google IAP rail and validate purchase
-      final googleRail = await GoogleIAPRail.create();
-      final result = await googleRail.validatePurchase(
-        session: session,
-        packageName: packageName,
-        productId: productId,
-        purchaseToken: purchaseToken,
-        accountUuid: accountUuid,
-        internalTransactionId: internalTransactionId,
-      );
+        if (!result.isValid) {
+          return IapValidationResponse(
+            success: false,
+            fromCache: result.fromCache,
+            error: result.errorMessage,
+          );
+        }
 
-      if (!result.isValid) {
-        return IapValidationResponse(
-          success: false,
-          fromCache: result.fromCache,
-          error: result.errorMessage,
+        session.log(
+          'Google IAP fulfilled: ${result.internalTransactionId} ($productId)',
+          level: LogLevel.info,
         );
-      }
 
-      session.log(
-        'Google IAP fulfilled: ${result.internalTransactionId} ($productId)',
-        level: LogLevel.info,
-      );
-
-      return IapValidationResponse(
-        success: true,
-        productId: productId,
-        tag: result.tag,
-        amount: result.quantity,
-        fromCache: result.fromCache,
-      );
-    } on AuthenticationException {
-      rethrow;
-    } on PaymentException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccountErrorCodes.internalError,
-        message: 'Unexpected error validating Google purchase: ${e.toString()}',
-        details: {
-          'error': e.toString(),
-          'productId': productId,
-        },
-      );
-    }
+        return IapValidationResponse(
+          success: true,
+          productId: productId,
+          tag: result.tag,
+          amount: result.quantity,
+          fromCache: result.fromCache,
+        );
+      },
+      onFailure: accountFailure,
+      code: AnonAccountErrorCodes.internalError,
+      extraDetails: {'productId': productId},
+    );
   }
 }

@@ -3,11 +3,13 @@ import 'package:serverpod/serverpod.dart';
 import '../exception_factory.dart';
 import '../generated/payment_rail.dart';
 import '../generated/payment_request.dart';
+import '../generated/protocol.dart';
 import 'payment_rail_interface.dart';
 import 'rails/apple_iap_rail.dart';
 import 'rails/google_iap_rail.dart';
 import 'rails/polar_rail.dart';
 import 'x402_payment_rail.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 
 /// Payment Manager factory for routing payment requests to appropriate rails
 ///
@@ -80,35 +82,40 @@ class PaymentManager {
       );
     }
 
-    try {
-      final paymentRequest = await rail.createPayment(
-        amountUSD: amountUSD,
-        internalTransactionId: internalTransactionId,
-      );
+    PaymentException createPaymentFailure({
+      required String code,
+      required String message,
+      required String operation,
+      required Map<String, String> details,
+    }) => PaymentException(
+      code: code,
+      message: message,
+      internalTransactionId: internalTransactionId,
+      paymentRail: railType.toString(),
+      details: details,
+    );
 
-      // Log successful payment creation (Requirement 9.1)
-      session?.log(
-        'Payment created successfully - TxId: $internalTransactionId, PaymentRef: ${paymentRequest.paymentRef}, Rail: $railType',
-        level: LogLevel.info,
-      );
+    return tryOperation(
+      session,
+      'createPayment',
+      () async {
+        final paymentRequest = await rail.createPayment(
+          amountUSD: amountUSD,
+          internalTransactionId: internalTransactionId,
+        );
 
-      return paymentRequest;
-    } catch (e) {
-      // Log error with complete error details and operation context (Requirement 9.3)
-      session?.log(
-        'Payment creation failed - TxId: $internalTransactionId, Rail: $railType, Error: ${e.toString()}',
-        level: LogLevel.error,
-      );
+        // Log successful payment creation (Requirement 9.1)
+        session?.log(
+          'Payment created successfully - TxId: $internalTransactionId, PaymentRef: ${paymentRequest.paymentRef}, Rail: $railType',
+          level: LogLevel.info,
+        );
 
-      // Wrap unexpected errors in PaymentException
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.paymentFailed,
-        message: 'Payment creation failed: ${e.toString()}',
-        internalTransactionId: internalTransactionId,
-        paymentRail: railType.toString(),
-        details: {'error': e.toString(), 'railType': railType.toString()},
-      );
-    }
+        return paymentRequest;
+      },
+      onFailure: createPaymentFailure,
+      code: AnonAccredErrorCodes.paymentFailed,
+      extraDetails: {'railType': railType.toString()},
+    );
   }
 
   /// Get all registered payment rail types

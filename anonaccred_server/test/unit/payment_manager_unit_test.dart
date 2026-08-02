@@ -203,14 +203,14 @@ void main() {
         );
       });
 
-      test('should wrap PaymentException from rails in new PaymentException', () async {
+      test('passes a PaymentException from a rail through unchanged', () async {
         // Register rail that throws PaymentException
         final paymentExceptionRail = PaymentExceptionThrowingMockRail(PaymentRail.x402_http);
         PaymentManager.registerRail(paymentExceptionRail);
-        
+
         try {
           await PaymentManager.createPayment(
-            
+
             railType: PaymentRail.x402_http,
             amountUSD: 100.0,
             internalTransactionId: 'payment_exception_test',
@@ -219,11 +219,12 @@ void main() {
         } catch (e) {
           expect(e, isA<PaymentException>());
           final paymentException = e as PaymentException;
-          
-          // PaymentManager wraps all exceptions, even PaymentExceptions
-          expect(paymentException.code, equals('PAYMENT_FAILED'));
-          expect(paymentException.message, contains('Payment creation failed'));
-          expect(paymentException.message, contains('Rail-specific payment error'));
+
+          // tryOperation rethrows SerializableException unchanged rather than
+          // rewrapping it — a sibling protocol exception is not the
+          // "unexpected failure" the boundary exists to sanitize.
+          expect(paymentException.code, equals('RAIL_SPECIFIC_ERROR'));
+          expect(paymentException.message, equals('Rail-specific payment error'));
         }
       });
     });

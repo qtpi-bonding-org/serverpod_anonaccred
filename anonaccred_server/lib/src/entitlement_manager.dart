@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'protocol_failures.dart';
 import 'entitlement_core.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
@@ -21,10 +22,7 @@ class EntitlementManager {
     required double quantity,
     required Transaction transaction,
   }) async {
-    EntitlementCore.requirePositiveAmount(
-      quantity,
-      operation: 'Grant',
-    );
+    EntitlementCore.requirePositiveAmount(quantity, operation: 'Grant');
 
     final existingRecord = await AccountEntitlement.db.findFirstRow(
       session,
@@ -92,60 +90,69 @@ class EntitlementManager {
       operation: 'Consumption',
     );
 
-    try {
-      await session.db.transaction((transaction) async {
-        final entitlement = await EntitlementCore.requireByTag(
-          session,
-          tag,
-          transaction: transaction,
-        );
-
-        // FOR UPDATE lock prevents concurrent reads from racing on the same
-        // balance row under Postgres READ COMMITTED isolation.
-        final record = await AccountEntitlement.db.findFirstRow(
-          session,
-          where: (t) =>
-              t.accountUuid.equals(accountUuid) &
-              t.entitlementId.equals(entitlement.id),
-          lockMode: LockMode.forUpdate,
-          transaction: transaction,
-        );
-
-        if (record == null || record.balance < amount) {
-          throw EntitlementCore.insufficientBalance(
-            currentBalance: record?.balance ?? 0.0,
-            requested: amount,
-            tag: tag,
+    return tryOperation(
+      session,
+      'consumeEntitlement',
+      () async {
+        await session.db.transaction((transaction) async {
+          final entitlement = await EntitlementCore.requireByTag(
+            session,
+            tag,
+            transaction: transaction,
           );
-        }
 
-        await AccountEntitlement.db.updateRow(
-          session,
-          record.copyWith(balance: record.balance - amount),
-          transaction: transaction,
-        );
+          // FOR UPDATE lock prevents concurrent reads from racing on the same
+          // balance row under Postgres READ COMMITTED isolation.
+          final record = await AccountEntitlement.db.findFirstRow(
+            session,
+            where: (t) =>
+                t.accountUuid.equals(accountUuid) &
+                t.entitlementId.equals(entitlement.id),
+            lockMode: LockMode.forUpdate,
+            transaction: transaction,
+          );
 
-        await ConsumptionLog.db.insertRow(
-          session,
-          ConsumptionLog(
-            accountUuid: accountUuid,
-            entitlementId: entitlement.id!,
-            amount: amount,
-            reason: reason,
-            timestamp: DateTime.now(),
+          if (record == null || record.balance < amount) {
+            throw EntitlementCore.insufficientBalance(
+              currentBalance: record?.balance ?? 0.0,
+              requested: amount,
+              tag: tag,
+            );
+          }
+
+          await AccountEntitlement.db.updateRow(
+            session,
+            record.copyWith(balance: record.balance - amount),
+            transaction: transaction,
+          );
+
+          await ConsumptionLog.db.insertRow(
+            session,
+            ConsumptionLog(
+              accountUuid: accountUuid,
+              entitlementId: entitlement.id!,
+              amount: amount,
+              reason: reason,
+              timestamp: DateTime.now(),
+            ),
+            transaction: transaction,
+          );
+        });
+      },
+      onFailure:
+          ({
+            required String code,
+            required String message,
+            required String operation,
+            required Map<String, String> details,
+          }) => InventoryException(
+            code: code,
+            message: message,
+            tag: tag,
+            details: details,
           ),
-          transaction: transaction,
-        );
-      });
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to consume entitlement: ${e.toString()}',
-        tag: tag,
-        details: {'error': e.toString()},
-      );
-    }
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 
   /// Revokes entitlement from an account by debiting the balance.
@@ -161,53 +168,50 @@ class EntitlementManager {
   }) async {
     if (quantity <= 0) return;
 
-    try {
-      await session.db.transaction((transaction) async {
-        // FOR UPDATE lock prevents concurrent revocations from racing on the
-        // same balance row under Postgres READ COMMITTED isolation.
-        final record = await AccountEntitlement.db.findFirstRow(
-          session,
-          where: (t) =>
-              t.accountUuid.equals(accountUuid) &
-              t.entitlementId.equals(entitlementId),
-          lockMode: LockMode.forUpdate,
-          transaction: transaction,
-        );
+    return tryOperation(
+      session,
+      'revokeEntitlement',
+      () async {
+        await session.db.transaction((transaction) async {
+          // FOR UPDATE lock prevents concurrent revocations from racing on the
+          // same balance row under Postgres READ COMMITTED isolation.
+          final record = await AccountEntitlement.db.findFirstRow(
+            session,
+            where: (t) =>
+                t.accountUuid.equals(accountUuid) &
+                t.entitlementId.equals(entitlementId),
+            lockMode: LockMode.forUpdate,
+            transaction: transaction,
+          );
 
-        if (record == null) return;
+          if (record == null) return;
 
-        final debit = quantity > record.balance ? record.balance : quantity;
-        if (debit <= 0) return;
+          final debit = quantity > record.balance ? record.balance : quantity;
+          if (debit <= 0) return;
 
-        await AccountEntitlement.db.updateRow(
-          session,
-          record.copyWith(balance: record.balance - debit),
-          transaction: transaction,
-        );
+          await AccountEntitlement.db.updateRow(
+            session,
+            record.copyWith(balance: record.balance - debit),
+            transaction: transaction,
+          );
 
-        await ConsumptionLog.db.insertRow(
-          session,
-          ConsumptionLog(
-            accountUuid: accountUuid,
-            entitlementId: entitlementId,
-            amount: debit,
-            reason: reason,
-            timestamp: DateTime.now(),
-          ),
-          transaction: transaction,
-        );
-      });
-    } catch (e) {
-      if (e is InventoryException) rethrow;
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to revoke entitlement: ${e.toString()}',
-        details: {
-          'error': e.toString(),
-          'entitlementId': entitlementId.toString(),
-        },
-      );
-    }
+          await ConsumptionLog.db.insertRow(
+            session,
+            ConsumptionLog(
+              accountUuid: accountUuid,
+              entitlementId: entitlementId,
+              amount: debit,
+              reason: reason,
+              timestamp: DateTime.now(),
+            ),
+            transaction: transaction,
+          );
+        });
+      },
+      onFailure: inventoryFailure,
+      code: AnonAccountErrorCodes.databaseError,
+      extraDetails: {'entitlementId': entitlementId.toString()},
+    );
   }
 
   /// Gets the current balance for an entitlement by tag.
@@ -216,28 +220,39 @@ class EntitlementManager {
     required UuidValue accountUuid,
     required String tag,
   }) async {
-    try {
-      final entitlement = await Entitlement.db.findFirstRow(
-        session,
-        where: (t) => t.tag.equals(tag),
-      );
-      if (entitlement == null) return 0.0;
+    return tryOperation(
+      session,
+      'getEntitlementBalance',
+      () async {
+        final entitlement = await Entitlement.db.findFirstRow(
+          session,
+          where: (t) => t.tag.equals(tag),
+        );
+        if (entitlement == null) return 0.0;
 
-      final record = await AccountEntitlement.db.findFirstRow(
-        session,
-        where: (t) =>
-            t.accountUuid.equals(accountUuid) &
-            t.entitlementId.equals(entitlement.id),
-      );
+        final record = await AccountEntitlement.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.accountUuid.equals(accountUuid) &
+              t.entitlementId.equals(entitlement.id),
+        );
 
-      return record?.balance ?? 0.0;
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to get entitlement balance: ${e.toString()}',
-        tag: tag,
-      );
-    }
+        return record?.balance ?? 0.0;
+      },
+      onFailure:
+          ({
+            required String code,
+            required String message,
+            required String operation,
+            required Map<String, String> details,
+          }) => InventoryException(
+            code: code,
+            message: message,
+            tag: tag,
+            details: details,
+          ),
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 
   /// Gets all entitlement balances for an account.
@@ -245,19 +260,20 @@ class EntitlementManager {
     Session session, {
     required UuidValue accountUuid,
   }) async {
-    try {
-      return await AccountEntitlement.db.find(
-        session,
-        where: (t) => t.accountUuid.equals(accountUuid),
-        include: AccountEntitlement.include(
-          entitlement: Entitlement.include(),
-        ),
-      );
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createInventoryException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to get account entitlements: ${e.toString()}',
-      );
-    }
+    return tryOperation(
+      session,
+      'getAccountEntitlements',
+      () async {
+        return await AccountEntitlement.db.find(
+          session,
+          where: (t) => t.accountUuid.equals(accountUuid),
+          include: AccountEntitlement.include(
+            entitlement: Entitlement.include(),
+          ),
+        );
+      },
+      onFailure: inventoryFailure,
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 }

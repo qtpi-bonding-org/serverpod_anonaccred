@@ -6,6 +6,7 @@ import 'package:serverpod/serverpod.dart';
 import '../../entitlement_manager.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
 
+import '../../protocol_failures.dart';
 import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
 import '../../refund_event.dart';
@@ -182,7 +183,7 @@ class GoogleIAPRail implements PaymentRailInterface {
     } catch (e) {
       return PaymentResult(
         success: false,
-        errorMessage: 'Google IAP callback processing failed: ${e.toString()}',
+        errorMessage: 'Google IAP callback processing failed: ${e.runtimeType}',
       );
     }
   }
@@ -190,9 +191,11 @@ class GoogleIAPRail implements PaymentRailInterface {
   @override
   RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) {
     try {
-      final purchaseToken = notificationData['purchase_token'] as String? ??
+      final purchaseToken =
+          notificationData['purchase_token'] as String? ??
           notificationData['purchaseToken'] as String?;
-      final orderId = notificationData['order_id'] as String? ??
+      final orderId =
+          notificationData['order_id'] as String? ??
           notificationData['orderId'] as String?;
 
       if (purchaseToken == null || orderId == null) return null;
@@ -201,7 +204,8 @@ class GoogleIAPRail implements PaymentRailInterface {
         rail: PaymentRail.google_iap,
         receiptHash: CryptoUtils.sha256Hash(purchaseToken),
         paymentRef: orderId,
-        productId: notificationData['product_id'] as String? ??
+        productId:
+            notificationData['product_id'] as String? ??
             notificationData['productId'] as String?,
         rawData: notificationData,
       );
@@ -236,168 +240,166 @@ class GoogleIAPRail implements PaymentRailInterface {
     required UuidValue accountUuid,
     String? internalTransactionId,
   }) async {
-    try {
-      // 1. Hash the purchase token for blind idempotency
-      final purchaseHash = CryptoUtils.sha256Hash(purchaseToken);
+    return tryOperation(
+      session,
+      'validatePurchase',
+      () async {
+        // 1. Hash the purchase token for blind idempotency
+        final purchaseHash = CryptoUtils.sha256Hash(purchaseToken);
 
-      // 2. Check for existing delivery via hash (idempotency)
-      final existingHash = await ReceiptHash.db.findFirstRow(
-        session,
-        where: (t) => t.hash.equals(purchaseHash),
-      );
+        // 2. Check for existing delivery via hash (idempotency)
+        final existingHash = await ReceiptHash.db.findFirstRow(
+          session,
+          where: (t) => t.hash.equals(purchaseHash),
+        );
 
-      if (existingHash != null) {
-        // Already handled - return success with fromCache
+        if (existingHash != null) {
+          // Already handled - return success with fromCache
+          return GooglePurchaseValidationResult(
+            purchaseState: 0,
+            consumptionState: 1,
+            fromCache: true,
+          );
+        }
+
+        // 2. Validate with Google API
+        final purchase = await _publisherClient.getPurchase(
+          packageName: packageName,
+          productId: productId,
+          purchaseToken: purchaseToken,
+        );
+
+        // 3. Check purchase state (must be 0 for valid)
+        if (purchase.purchaseState != 0) {
+          throw AnonAccredExceptionFactory.createPaymentException(
+            code: AnonAccredErrorCodes.paymentValidationFailed,
+            message: 'Purchase not in valid state: ${purchase.purchaseState}',
+            details: {'purchaseState': purchase.purchaseState.toString()},
+          );
+        }
+
+        // 4. Look up RailProduct from DB (replaces old env-var ProductMappingConfig)
+        final railProduct = await RailProduct.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.rail.equals(PaymentRail.google_iap) &
+              t.storeProductId.equals(productId),
+        );
+
+        if (railProduct == null) {
+          throw AnonAccountExceptionFactory.createException(
+            code: AnonAccredErrorCodes.configurationMissing,
+            message: 'No RailProduct found for Google product ID: $productId',
+            details: {'productId': productId},
+          );
+        }
+
+        // 5. Atomic Transaction: Record permanent hash, ephemeral audit, financial record, and inventory credit
+        String? deliveredTag;
+        double? deliveredQuantity;
+
+        await session.db.transaction((dbTransaction) async {
+          // a. Record the purchase hash permanently (blind idempotency)
+          await ReceiptHash.db.insertRow(
+            session,
+            ReceiptHash(
+              hash: purchaseHash,
+              paymentRail: PaymentRail.google_iap,
+            ),
+            transaction: dbTransaction,
+          );
+
+          // b. Record the EPHEMERAL accreditation (Bridge account to time for 7-day refund support)
+          final purchaseTime = DateTime.fromMillisecondsSinceEpoch(
+            purchase.purchaseTimeMillis != null
+                ? int.parse(purchase.purchaseTimeMillis!)
+                : 0,
+          );
+
+          await EphemeralAccreditation.db.insertRow(
+            session,
+            EphemeralAccreditation(
+              accountUuid: accountUuid,
+              transactionTimestamp: purchaseTime,
+            ),
+            transaction: dbTransaction,
+          );
+
+          // c. Create the PERMANENT financial record
+          final internalTxId = internalTransactionId ?? const Uuid().v4();
+
+          await TransactionPayment.db.insertRow(
+            session,
+            TransactionPayment(
+              railProductId: railProduct.id!,
+              internalTransactionId: internalTxId,
+              priceCurrency: Currency.USD,
+              price: 0.0,
+              paymentRail: PaymentRail.google_iap,
+              paymentCurrency: Currency.USD,
+              paymentAmount: 0.0,
+              paymentRef: purchase.orderId ?? '',
+              transactionTimestamp: purchaseTime,
+              clientReference: internalTxId,
+              status: OrderStatus.paid,
+            ),
+            transaction: dbTransaction,
+          );
+
+          // d. Credit user inventory based on grants
+          final grants = await RailProductGrant.db.find(
+            session,
+            where: (t) => t.railProductId.equals(railProduct.id!),
+            transaction: dbTransaction,
+          );
+
+          for (final grant in grants) {
+            await EntitlementManager.grantEntitlementById(
+              session,
+              accountUuid: accountUuid,
+              entitlementId: grant.entitlementId,
+              quantity: grant.quantity,
+              transaction: dbTransaction,
+            );
+          }
+
+          // Capture first grant info for the response
+          if (grants.isNotEmpty) {
+            final entitlement = await Entitlement.db.findById(
+              session,
+              grants.first.entitlementId,
+              transaction: dbTransaction,
+            );
+            deliveredTag = entitlement?.tag;
+            deliveredQuantity = grants.first.quantity;
+          }
+        });
+
+        // 6. Acknowledge purchase (async, don't block)
+        _acknowledgePurchaseAsync(packageName, productId, purchaseToken);
+
+        // 7. Always consume (all IAP products are consumable)
+        _consumePurchaseAsync(packageName, productId, purchaseToken);
+
+        final base = GooglePurchaseValidationResult.fromProductPurchase(
+          purchase,
+        );
         return GooglePurchaseValidationResult(
-          purchaseState: 0,
-          consumptionState: 1,
-          fromCache: true,
+          consumptionState: base.consumptionState,
+          purchaseState: base.purchaseState,
+          developerPayload: base.developerPayload,
+          internalTransactionId: base.internalTransactionId,
+          purchaseTimeMillis: base.purchaseTimeMillis,
+          purchaseType: base.purchaseType,
+          acknowledgementState: base.acknowledgementState,
+          tag: deliveredTag,
+          quantity: deliveredQuantity,
         );
-      }
-
-      // 2. Validate with Google API
-      final purchase = await _publisherClient.getPurchase(
-        packageName: packageName,
-        productId: productId,
-        purchaseToken: purchaseToken,
-      );
-
-      // 3. Check purchase state (must be 0 for valid)
-      if (purchase.purchaseState != 0) {
-        throw AnonAccredExceptionFactory.createPaymentException(
-          code: AnonAccredErrorCodes.paymentValidationFailed,
-          message: 'Purchase not in valid state: ${purchase.purchaseState}',
-          details: {'purchaseState': purchase.purchaseState.toString()},
-        );
-      }
-
-      // 4. Look up RailProduct from DB (replaces old env-var ProductMappingConfig)
-      final railProduct = await RailProduct.db.findFirstRow(
-        session,
-        where: (t) =>
-            t.rail.equals(PaymentRail.google_iap) &
-            t.storeProductId.equals(productId),
-      );
-
-      if (railProduct == null) {
-        throw AnonAccountExceptionFactory.createException(
-          code: AnonAccredErrorCodes.configurationMissing,
-          message: 'No RailProduct found for Google product ID: $productId',
-          details: {'productId': productId},
-        );
-      }
-
-      // 5. Atomic Transaction: Record permanent hash, ephemeral audit, financial record, and inventory credit
-      String? deliveredTag;
-      double? deliveredQuantity;
-
-      await session.db.transaction((dbTransaction) async {
-        // a. Record the purchase hash permanently (blind idempotency)
-        await ReceiptHash.db.insertRow(
-          session,
-          ReceiptHash(hash: purchaseHash, paymentRail: PaymentRail.google_iap),
-          transaction: dbTransaction,
-        );
-
-        // b. Record the EPHEMERAL accreditation (Bridge account to time for 7-day refund support)
-        final purchaseTime = DateTime.fromMillisecondsSinceEpoch(
-          purchase.purchaseTimeMillis != null
-              ? int.parse(purchase.purchaseTimeMillis!)
-              : 0,
-        );
-
-        await EphemeralAccreditation.db.insertRow(
-          session,
-          EphemeralAccreditation(
-            accountUuid: accountUuid,
-            transactionTimestamp: purchaseTime,
-          ),
-          transaction: dbTransaction,
-        );
-
-        // c. Create the PERMANENT financial record
-        final internalTxId = internalTransactionId ?? const Uuid().v4();
-
-        await TransactionPayment.db.insertRow(
-          session,
-          TransactionPayment(
-            railProductId: railProduct.id!,
-            internalTransactionId: internalTxId,
-            priceCurrency: Currency.USD,
-            price: 0.0,
-            paymentRail: PaymentRail.google_iap,
-            paymentCurrency: Currency.USD,
-            paymentAmount: 0.0,
-            paymentRef: purchase.orderId ?? '',
-            transactionTimestamp: purchaseTime,
-            clientReference: internalTxId,
-            status: OrderStatus.paid,
-          ),
-          transaction: dbTransaction,
-        );
-
-        // d. Credit user inventory based on grants
-        final grants = await RailProductGrant.db.find(
-          session,
-          where: (t) => t.railProductId.equals(railProduct.id!),
-          transaction: dbTransaction,
-        );
-
-        for (final grant in grants) {
-          await EntitlementManager.grantEntitlementById(
-            session,
-            accountUuid: accountUuid,
-            entitlementId: grant.entitlementId,
-            quantity: grant.quantity,
-            transaction: dbTransaction,
-          );
-        }
-
-        // Capture first grant info for the response
-        if (grants.isNotEmpty) {
-          final entitlement = await Entitlement.db.findById(
-            session,
-            grants.first.entitlementId,
-            transaction: dbTransaction,
-          );
-          deliveredTag = entitlement?.tag;
-          deliveredQuantity = grants.first.quantity;
-        }
-      });
-
-      // 6. Acknowledge purchase (async, don't block)
-      _acknowledgePurchaseAsync(packageName, productId, purchaseToken);
-
-      // 7. Always consume (all IAP products are consumable)
-      _consumePurchaseAsync(packageName, productId, purchaseToken);
-
-      final base = GooglePurchaseValidationResult.fromProductPurchase(purchase);
-      return GooglePurchaseValidationResult(
-        consumptionState: base.consumptionState,
-        purchaseState: base.purchaseState,
-        developerPayload: base.developerPayload,
-        internalTransactionId: base.internalTransactionId,
-        purchaseTimeMillis: base.purchaseTimeMillis,
-        purchaseType: base.purchaseType,
-        acknowledgementState: base.acknowledgementState,
-        tag: deliveredTag,
-        quantity: deliveredQuantity,
-      );
-    } on PaymentException {
-      rethrow;
-    } on AnonAccountException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.paymentValidationFailed,
-        message: 'Google purchase validation failed: ${e.toString()}',
-        details: {
-          'packageName': packageName,
-          'productId': productId,
-          'error': e.toString(),
-        },
-      );
-    }
+      },
+      onFailure: paymentFailure,
+      code: AnonAccredErrorCodes.paymentValidationFailed,
+      extraDetails: {'packageName': packageName, 'productId': productId},
+    );
   }
 
   /// Acknowledge purchase asynchronously (non-blocking)
@@ -474,26 +476,22 @@ class GoogleIAPRail implements PaymentRailInterface {
     required String productId,
     required String purchaseToken,
   }) async {
-    try {
-      await _publisherClient.acknowledgePurchase(
-        packageName: packageName,
-        productId: productId,
-        purchaseToken: purchaseToken,
-      );
-      return true;
-    } on PaymentException {
-      rethrow;
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.paymentValidationFailed,
-        message: 'Google purchase acknowledgment failed: ${e.toString()}',
-        details: {
-          'packageName': packageName,
-          'productId': productId,
-          'error': e.toString(),
-        },
-      );
-    }
+    final result = await tryOperation<bool, PaymentException>(
+      null,
+      'acknowledgePurchase',
+      () async {
+        await _publisherClient.acknowledgePurchase(
+          packageName: packageName,
+          productId: productId,
+          purchaseToken: purchaseToken,
+        );
+        return true;
+      },
+      onFailure: paymentFailure,
+      code: AnonAccredErrorCodes.paymentValidationFailed,
+      extraDetails: {'packageName': packageName, 'productId': productId},
+    );
+    return result;
   }
 
   /// Extract transaction information from validated Google purchase
@@ -547,7 +545,9 @@ class GooglePurchaseValidationResult {
         consumptionState: json['consumptionState'] as int? ?? 0,
         purchaseState: json['purchaseState'] as int? ?? 0,
         developerPayload: json['developerPayload'] as String?,
-        internalTransactionId: json['orderId'] as String? ?? json['internalTransactionId'] as String?,
+        internalTransactionId:
+            json['orderId'] as String? ??
+            json['internalTransactionId'] as String?,
         purchaseTimeMillis: json['purchaseTimeMillis'] as int?,
         purchaseType: json['purchaseType'] as int?,
         acknowledgementState: json['acknowledgementState'] as int?,

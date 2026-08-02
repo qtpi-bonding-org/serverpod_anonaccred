@@ -6,6 +6,7 @@ import '../generated/protocol.dart';
 import 'payment_manager.dart';
 import 'payment_processor.dart';
 import 'webhook_signature_validator.dart';
+import '../protocol_failures.dart';
 
 /// Simple webhook handler for processing external payment callbacks.
 ///
@@ -54,7 +55,7 @@ class WebhookHandler {
       }
     } catch (e) {
       session.log(
-        'Webhook processing failed - Error: ${e.toString()}',
+        'Webhook processing failed - Error: $e',
         level: LogLevel.error,
         exception: e,
       );
@@ -71,47 +72,61 @@ class WebhookHandler {
     final internalId = result.internalTransactionId;
     if (internalId == null) return;
 
-    try {
-      final currentTx = await PaymentProcessor.getTransactionById(
-        session,
-        internalId,
-      );
+    PaymentException updateFailure({
+      required String code,
+      required String message,
+      required String operation,
+      required Map<String, String> details,
+    }) => PaymentException(
+      code: code,
+      message: message,
+      internalTransactionId: internalId,
+      details: details,
+    );
 
-      if (currentTx == null) {
-        session.log(
-          'Transaction not found for ID: $internalId',
-          level: LogLevel.warning,
-        );
-        return;
-      }
-
-      // Idempotency: don't update if already in final state
-      if (currentTx.status == OrderStatus.paid ||
-          currentTx.status == OrderStatus.cancelled) {
-        return;
-      }
-
-      final newStatus = result.success ? OrderStatus.paid : OrderStatus.failed;
-      await PaymentProcessor.updateTransactionStatus(
-        session,
-        internalId,
-        newStatus,
-      );
-
-      if (result.success && result.transactionTimestamp != null) {
-        await PaymentProcessor.updateTransactionTimestamp(
+    await tryOperation(
+      session,
+      '_updateTransactionFromResult',
+      () async {
+        final currentTx = await PaymentProcessor.getTransactionById(
           session,
           internalId,
-          result.transactionTimestamp!,
         );
-      }
-    } catch (e) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccountErrorCodes.databaseError,
-        message: 'Failed to update transaction from result: ${e.toString()}',
-        internalTransactionId: internalId,
-      );
-    }
+
+        if (currentTx == null) {
+          session.log(
+            'Transaction not found for ID: $internalId',
+            level: LogLevel.warning,
+          );
+          return;
+        }
+
+        // Idempotency: don't update if already in final state
+        if (currentTx.status == OrderStatus.paid ||
+            currentTx.status == OrderStatus.cancelled) {
+          return;
+        }
+
+        final newStatus = result.success
+            ? OrderStatus.paid
+            : OrderStatus.failed;
+        await PaymentProcessor.updateTransactionStatus(
+          session,
+          internalId,
+          newStatus,
+        );
+
+        if (result.success && result.transactionTimestamp != null) {
+          await PaymentProcessor.updateTransactionTimestamp(
+            session,
+            internalId,
+            result.transactionTimestamp!,
+          );
+        }
+      },
+      onFailure: updateFailure,
+      code: AnonAccountErrorCodes.databaseError,
+    );
   }
 
   /// Extracts the internal transaction ID from the webhook payload.

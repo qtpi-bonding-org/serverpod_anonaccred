@@ -164,7 +164,7 @@ class AppleIAPRail implements PaymentRailInterface {
     } catch (e) {
       return PaymentResult(
         success: false,
-        errorMessage: 'Apple IAP callback processing failed: ${e.toString()}',
+        errorMessage: 'Apple IAP callback processing failed: ${e.runtimeType}',
       );
     }
   }
