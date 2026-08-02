@@ -5,7 +5,12 @@ import 'package:test/test.dart';
 /// .db.find on a soft-deleted table silently returns revoked rows once the
 /// unique indexes go partial.
 void main() {
-  const softDeleted = ['AccountDevice', 'GroupMember', 'GroupMemberDevice'];
+  const softDeleted = [
+    'AccountDevice',
+    'GroupMember',
+    'GroupMemberDevice',
+    'GroupOwner',
+  ];
   const allowed = 'lib/src/queries/active_rows.dart';
 
   test('no direct reads of soft-deleted tables outside active_rows.dart', () {

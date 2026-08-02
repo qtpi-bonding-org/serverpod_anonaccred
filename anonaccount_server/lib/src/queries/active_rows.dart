@@ -189,6 +189,33 @@ abstract final class ActiveRows {
         transaction: transaction,
         lockMode: LockMode.forUpdate,
       );
+
+  static Future<GroupOwner?> owner(
+    Session session,
+    UuidValue groupId,
+    UuidValue accountId, {
+    Transaction? transaction,
+  }) =>
+      GroupOwner.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.shareGroupId.equals(groupId) &
+            t.anonAccountId.equals(accountId) &
+            t.isRevoked.equals(false),
+        transaction: transaction,
+      );
+
+  static Future<List<GroupOwner>> ownersOfGroup(
+    Session session,
+    UuidValue groupId, {
+    Transaction? transaction,
+  }) =>
+      GroupOwner.db.find(
+        session,
+        where: (t) =>
+            t.shareGroupId.equals(groupId) & t.isRevoked.equals(false),
+        transaction: transaction,
+      );
 }
 
 /// Reads that deliberately include revoked rows.
