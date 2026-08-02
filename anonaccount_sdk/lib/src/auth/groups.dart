@@ -1,13 +1,21 @@
 import 'dart:convert';
 
 // ignore: implementation_imports
+import 'package:anonaccount_client/src/pow_methods.dart' show GroupMethods;
+// ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/grant_member_device_result.dart'
+    show GrantMemberDeviceResult;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/group_member.dart'
     show GroupMember;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/group_member_role.dart'
     show GroupMemberRole;
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
+    show MemberDeviceGrant;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
     show PublicKeyDuo;
@@ -281,6 +289,42 @@ class AnonaccountGroups {
       memberId: memberId,
       memberSigningPublicKeyHex: memberSigningPublicKeyHex,
       memberAuthSignature: memberAuthSignature,
+    );
+  }
+
+  /// Low-level forwarder: sends a batch of already-attested
+  /// [MemberDeviceGrant]s to the server.
+  ///
+  /// Each grant's `attestation` must already be signed by the appropriate
+  /// key (the membership's member key for `root` tier, or an already-
+  /// granted device's key for `peer` tier) over
+  /// `GroupInnerPayloads.grantMemberDevice(groupMemberId, deviceKeys,
+  /// encryptedDataKey)` — this method does not build or alter attestations,
+  /// since it never receives the per-membership member key. [grantAllDevices]
+  /// and [grantNewDevice] are the callers that hold that key and do the
+  /// signing before calling here.
+  Future<GrantMemberDeviceResult> grantMemberDevice({
+    required List<MemberDeviceGrant> grants,
+    required KeyDuo callerDeviceKey,
+  }) async {
+    final callerDeviceSigningPublicKeyHex =
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+
+    final challengeResp = await _caller.entrypoint.getChallenge();
+    final envelope = await PowSigner.build(
+      challenge: challengeResp.challenge,
+      methodName: GroupMethods.grantMemberDevice,
+      signingKey: callerDeviceKey,
+      publicKeyHex: callerDeviceSigningPublicKeyHex,
+      difficulty: challengeResp.difficulty,
+    );
+
+    return _caller.group.grantMemberDevice(
+      challenge: envelope.challenge,
+      proofOfWork: envelope.proofOfWork,
+      signature: envelope.signature,
+      callerDeviceSigningPublicKeyHex: envelope.publicKeyHex,
+      grants: grants,
     );
   }
 }
