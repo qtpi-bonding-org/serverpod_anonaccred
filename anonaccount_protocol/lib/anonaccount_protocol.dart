@@ -7,8 +7,4 @@
 library;
 
 export 'src/generated/protocol.dart';
-
-// TODO(shared-protocol-package Task 4): export 'src/pow_methods.dart'; once
-// the payload builders move here — deferred so Task 3 lands in a state
-// where the whole tree analyzes and tests cleanly with only PublicKeyDuo
-// moved.
+export 'src/pow_methods.dart';

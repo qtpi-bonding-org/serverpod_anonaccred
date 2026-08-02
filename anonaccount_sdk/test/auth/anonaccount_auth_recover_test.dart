@@ -1,8 +1,5 @@
-// ignore: implementation_imports
-import 'package:anonaccount_client/src/pow_methods.dart'
-    show AccountInnerPayloads;
 import 'package:anonaccount_protocol/anonaccount_protocol.dart'
-    show PublicKeyDuo;
+    show AccountInnerPayloads, PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 import 'package:mocktail/mocktail.dart';

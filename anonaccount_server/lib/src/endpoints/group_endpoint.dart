@@ -1,10 +1,9 @@
 import 'package:serverpod/serverpod.dart';
-import 'package:anonaccount_protocol/anonaccount_protocol.dart';
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import '../pow_methods.dart';
 import 'signed_pow_endpoint.dart';
 
 /// Three-tier auth model for group operations:
@@ -293,7 +292,7 @@ class GroupEndpoint extends SignedPowEndpoint {
       final innerPayload = GroupInnerPayloads.addGroupMember(
         groupId,
         newMemberAccountId,
-        role,
+        role.name,
         validatedMemberKeys,
       );
 

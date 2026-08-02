@@ -1,5 +1,4 @@
-import 'package:anonaccount_server/src/generated/protocol.dart';
-import 'package:anonaccount_server/src/pow_methods.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';

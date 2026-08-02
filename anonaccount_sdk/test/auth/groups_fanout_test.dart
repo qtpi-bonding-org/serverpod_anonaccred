@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
-import 'package:anonaccount_client/src/pow_methods.dart' show GroupInnerPayloads;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
+    show GroupInnerPayloads;
 // EncryptionPublicKeyHex is part of dart_jwk_duo's public surface, used here
 // to import the sibling device's encryption pubkey so we can wrap to it.
 // ignore: implementation_imports

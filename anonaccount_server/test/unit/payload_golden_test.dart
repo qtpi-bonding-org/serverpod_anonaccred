@@ -1,6 +1,5 @@
 import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 import 'package:anonaccount_server/src/generated/group_member_role.dart';
-import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
 
@@ -29,7 +28,8 @@ void main() {
     expect(GroupInnerPayloads.createGroup(duoA, duoB),
         'createGroup:04aa:04bb:04cc:04dd');
     expect(
-      GroupInnerPayloads.addGroupMember(id1, id2, GroupMemberRole.admin, duoA),
+      GroupInnerPayloads.addGroupMember(
+          id1, id2, GroupMemberRole.admin.name, duoA),
       'addGroupMember:$id1:$id2:admin:04aa:04bb',
     );
     expect(GroupInnerPayloads.removeGroupMember(id1), 'removeGroupMember:$id1');

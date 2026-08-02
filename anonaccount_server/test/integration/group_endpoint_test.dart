@@ -967,7 +967,7 @@ void main() {
     sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
   );
   final addInner = GroupInnerPayloads.addGroupMember(
-    s.group.id!, m2.id!, GroupMemberRole.member,
+    s.group.id!, m2.id!, GroupMemberRole.member.name,
     PublicKeyDuo(
       signingPublicKeyHex: m2MemberSig,
       encryptionPublicKeyHex: m2MemberEnc,
@@ -1076,7 +1076,7 @@ test('listGroupMembers: rejected when caller is not a member', () async {
     sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
   );
   final addInner = GroupInnerPayloads.addGroupMember(
-    s.group.id!, m2.id!, GroupMemberRole.member,
+    s.group.id!, m2.id!, GroupMemberRole.member.name,
     PublicKeyDuo(
       signingPublicKeyHex: m2MemberPub,
       encryptionPublicKeyHex: m2MemberEnc,
@@ -1168,7 +1168,7 @@ test('leaveGroup: last admin with other members present cannot leave (guard bloc
     sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
   );
   final addInner = GroupInnerPayloads.addGroupMember(
-    s.group.id!, m2.id!, GroupMemberRole.member,
+    s.group.id!, m2.id!, GroupMemberRole.member.name,
     PublicKeyDuo(
       signingPublicKeyHex: m2MemberPub,
       encryptionPublicKeyHex: m2MemberEnc,

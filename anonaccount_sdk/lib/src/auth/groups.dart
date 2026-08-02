@@ -3,9 +3,6 @@ import 'dart:convert';
 // ignore: implementation_imports
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 // ignore: implementation_imports
-import 'package:anonaccount_client/src/pow_methods.dart'
-    show GroupMethods, GroupInnerPayloads;
-// ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/grant_member_device_result.dart'
@@ -23,7 +20,7 @@ import 'package:anonaccount_client/src/protocol/group_member_role.dart'
 import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
     show MemberDeviceGrant;
 import 'package:anonaccount_protocol/anonaccount_protocol.dart'
-    show PublicKeyDuo;
+    show GroupMethods, GroupInnerPayloads, PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
     show

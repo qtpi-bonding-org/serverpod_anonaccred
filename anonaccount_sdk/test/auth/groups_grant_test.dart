@@ -1,5 +1,6 @@
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
-import 'package:anonaccount_client/src/pow_methods.dart' show GroupInnerPayloads;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
+    show GroupInnerPayloads;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
