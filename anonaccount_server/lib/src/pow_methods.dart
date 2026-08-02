@@ -63,24 +63,28 @@ abstract final class AccountInnerPayloads {
 }
 
 abstract final class GroupInnerPayloads {
+  /// Same reasoning as AccountInnerPayloads.registerDevice (Task 5): two
+  /// same-typed positional strings per key pair is exactly the
+  /// transposition hazard PublicKeyDuo exists to prevent. Emitted strings
+  /// are byte-identical to the old positional-string form.
   static String createGroup(
-    String ultimateSigningPublicKeyHex,
-    String ultimatePublicKey,
-    String memberSigningPublicKeyHex,
-    String memberPublicKey,
+    PublicKeyDuo groupUltimateKeys,
+    PublicKeyDuo creatorMemberKeys,
   ) =>
-      'createGroup:$ultimateSigningPublicKeyHex:$ultimatePublicKey'
-      ':$memberSigningPublicKeyHex:$memberPublicKey';
+      'createGroup:${groupUltimateKeys.signingPublicKeyHex}'
+      ':${groupUltimateKeys.encryptionPublicKeyHex}'
+      ':${creatorMemberKeys.signingPublicKeyHex}'
+      ':${creatorMemberKeys.encryptionPublicKeyHex}';
 
   static String addGroupMember(
     UuidValue groupId,
     UuidValue newMemberAccountId,
     GroupMemberRole role,
-    String memberSigningPublicKeyHex,
-    String memberPublicKey,
+    PublicKeyDuo memberKeys,
   ) =>
       'addGroupMember:$groupId:$newMemberAccountId:${role.name}'
-      ':$memberSigningPublicKeyHex:$memberPublicKey';
+      ':${memberKeys.signingPublicKeyHex}'
+      ':${memberKeys.encryptionPublicKeyHex}';
 
   static String removeGroupMember(UuidValue memberId) =>
       'removeGroupMember:$memberId';

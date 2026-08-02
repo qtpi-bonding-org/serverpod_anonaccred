@@ -102,11 +102,15 @@ Future<
     proofOfWork: outer.pow,
     signature: outer.signature,
     callerDeviceSigningPublicKeyHex: devicePub,
-    groupUltimateSigningPublicKeyHex: groupUltSigPub,
-    groupUltimatePublicKey: groupUltEnc,
+    groupUltimateKeys: PublicKeyDuo(
+      signingPublicKeyHex: groupUltSigPub,
+      encryptionPublicKeyHex: groupUltEnc,
+    ),
     groupEncryptedDataKey: 'wrapped',
-    creatorMemberSigningPublicKeyHex: creatorMemberSigPub,
-    creatorMemberPublicKey: creatorMemberEnc,
+    creatorMemberKeys: PublicKeyDuo(
+      signingPublicKeyHex: creatorMemberSigPub,
+      encryptionPublicKeyHex: creatorMemberEnc,
+    ),
     creatorMemberEncryptedDataKey: 'wrapped',
     groupUltimateAttestation: attestation,
   );
@@ -157,6 +161,63 @@ void main() {
       expect(memberships.single.addedByAttestation, isNotNull);
     });
 
+    test('createGroup rejects a member duo whose halves are the same key',
+        () async {
+      final (_, accUltPub) = SigningTestHelper.generateKeypair();
+      final account = await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: accUltPub,
+        ultimateEncryptionPublicKeyHex: accUltPub,
+      );
+      final (devicePriv, devicePub) = SigningTestHelper.generateKeypair();
+      await createTestDevice(
+        sessionBuilder,
+        anonAccountId: account.id!,
+        deviceSigningPublicKeyHex: devicePub,
+      );
+
+      final (groupUltSigPriv, groupUltSigPub) =
+          SigningTestHelper.generateKeypair();
+      final (_, groupUltEnc) = SigningTestHelper.generateKeypair();
+      // Same key pasted into both member duo slots — the distinctness
+      // check in AnonAccountHelpers.validateKeyDuo must reject this.
+      final (_, dup) = SigningTestHelper.generateKeypair();
+
+      final outer = await _outer(
+        sessionBuilder,
+        endpoints,
+        'createGroup',
+        devicePub,
+        devicePriv,
+      );
+      final innerPayload =
+          'createGroup:$groupUltSigPub:$groupUltEnc:$dup:$dup';
+      final attestation =
+          SigningTestHelper.signWith(innerPayload, groupUltSigPriv);
+
+      await expectLater(
+        endpoints.group.createGroup(
+          sessionBuilder,
+          challenge: outer.challenge,
+          proofOfWork: outer.pow,
+          signature: outer.signature,
+          callerDeviceSigningPublicKeyHex: devicePub,
+          groupUltimateKeys: PublicKeyDuo(
+            signingPublicKeyHex: groupUltSigPub,
+            encryptionPublicKeyHex: groupUltEnc,
+          ),
+          creatorMemberKeys: PublicKeyDuo(
+            signingPublicKeyHex: dup,
+            encryptionPublicKeyHex: dup,
+          ),
+          groupEncryptedDataKey: 'wrapped',
+          creatorMemberEncryptedDataKey: 'wrapped',
+          groupUltimateAttestation: attestation,
+        ),
+        throwsA(isA<AuthenticationException>()),
+      );
+    });
+
     test('createGroup rejected when group-ultimate attestation is bad',
         () async {
       final (_, accUltPub) = SigningTestHelper.generateKeypair();
@@ -199,11 +260,15 @@ void main() {
           proofOfWork: outer.pow,
           signature: outer.signature,
           callerDeviceSigningPublicKeyHex: devicePub,
-          groupUltimateSigningPublicKeyHex: groupUltSigPub,
-          groupUltimatePublicKey: groupUltEnc,
+          groupUltimateKeys: PublicKeyDuo(
+            signingPublicKeyHex: groupUltSigPub,
+            encryptionPublicKeyHex: groupUltEnc,
+          ),
           groupEncryptedDataKey: 'wrapped',
-          creatorMemberSigningPublicKeyHex: creatorMemberSigPub,
-          creatorMemberPublicKey: creatorMemberEnc,
+          creatorMemberKeys: PublicKeyDuo(
+            signingPublicKeyHex: creatorMemberSigPub,
+            encryptionPublicKeyHex: creatorMemberEnc,
+          ),
           creatorMemberEncryptedDataKey: 'wrapped',
           groupUltimateAttestation: badAttestation,
         ),
@@ -245,8 +310,10 @@ void main() {
         groupId: s.group.id!,
         newMemberAccountId: invitee.id!,
         role: role,
-        memberSigningPublicKeyHex: inviteeMemberSig,
-        memberPublicKey: inviteeMemberEnc,
+        memberKeys: PublicKeyDuo(
+          signingPublicKeyHex: inviteeMemberSig,
+          encryptionPublicKeyHex: inviteeMemberEnc,
+        ),
         encryptedDataKey: 'wrapped-for-invitee',
         callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
         memberAuthSignature: innerSig,
@@ -297,8 +364,10 @@ void main() {
         groupId: s.group.id!,
         newMemberAccountId: m2Account.id!,
         role: GroupMemberRole.member,
-        memberSigningPublicKeyHex: m2MemberPub,
-        memberPublicKey: m2MemberEnc,
+        memberKeys: PublicKeyDuo(
+          signingPublicKeyHex: m2MemberPub,
+          encryptionPublicKeyHex: m2MemberEnc,
+        ),
         encryptedDataKey: 'wrapped',
         callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
         memberAuthSignature: addSig,
@@ -335,8 +404,10 @@ void main() {
           groupId: s.group.id!,
           newMemberAccountId: victim.id!,
           role: GroupMemberRole.member,
-          memberSigningPublicKeyHex: vMemberSig,
-          memberPublicKey: vMemberEnc,
+          memberKeys: PublicKeyDuo(
+            signingPublicKeyHex: vMemberSig,
+            encryptionPublicKeyHex: vMemberEnc,
+          ),
           encryptedDataKey: 'wrapped',
           callerMemberSigningPublicKeyHex: m2MemberPub,
           memberAuthSignature: innerSig,
@@ -398,8 +469,10 @@ void main() {
           groupId: s.group.id!,
           newMemberAccountId: victim.id!,
           role: GroupMemberRole.member,
-          memberSigningPublicKeyHex: vMemberSig,
-          memberPublicKey: vMemberEnc,
+          memberKeys: PublicKeyDuo(
+            signingPublicKeyHex: vMemberSig,
+            encryptionPublicKeyHex: vMemberEnc,
+          ),
           encryptedDataKey: 'wrapped',
           callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
           memberAuthSignature: innerSig,
@@ -442,8 +515,10 @@ void main() {
         groupId: s.group.id!,
         newMemberAccountId: invitee.id!,
         role: GroupMemberRole.admin,
-        memberSigningPublicKeyHex: inviteeMemberSig,
-        memberPublicKey: inviteeMemberEnc,
+        memberKeys: PublicKeyDuo(
+          signingPublicKeyHex: inviteeMemberSig,
+          encryptionPublicKeyHex: inviteeMemberEnc,
+        ),
         encryptedDataKey: 'wrapped',
         groupUltimateSignature: ownerSig,
       );
@@ -487,8 +562,10 @@ void main() {
           groupId: s.group.id!,
           newMemberAccountId: invitee.id!,
           role: GroupMemberRole.admin,
-          memberSigningPublicKeyHex: inviteeMemberSig,
-          memberPublicKey: inviteeMemberEnc,
+          memberKeys: PublicKeyDuo(
+            signingPublicKeyHex: inviteeMemberSig,
+            encryptionPublicKeyHex: inviteeMemberEnc,
+          ),
           encryptedDataKey: 'wrapped',
           callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
           memberAuthSignature: memberSig,
@@ -530,8 +607,10 @@ void main() {
         groupId: s.group.id!,
         newMemberAccountId: victim.id!,
         role: GroupMemberRole.member,
-        memberSigningPublicKeyHex: vMemberSig,
-        memberPublicKey: vMemberEnc,
+        memberKeys: PublicKeyDuo(
+          signingPublicKeyHex: vMemberSig,
+          encryptionPublicKeyHex: vMemberEnc,
+        ),
         encryptedDataKey: 'wrapped',
         callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
         memberAuthSignature: addSig,
@@ -682,7 +761,11 @@ void main() {
     sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
   );
   final addInner = GroupInnerPayloads.addGroupMember(
-    s.group.id!, m2.id!, GroupMemberRole.member, m2MemberSig, m2MemberEnc,
+    s.group.id!, m2.id!, GroupMemberRole.member,
+    PublicKeyDuo(
+      signingPublicKeyHex: m2MemberSig,
+      encryptionPublicKeyHex: m2MemberEnc,
+    ),
   );
   final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
   await endpoints.group.addGroupMember(
@@ -694,8 +777,10 @@ void main() {
     groupId: s.group.id!,
     newMemberAccountId: m2.id!,
     role: GroupMemberRole.member,
-    memberSigningPublicKeyHex: m2MemberSig,
-    memberPublicKey: m2MemberEnc,
+    memberKeys: PublicKeyDuo(
+      signingPublicKeyHex: m2MemberSig,
+      encryptionPublicKeyHex: m2MemberEnc,
+    ),
     encryptedDataKey: 'wrapped',
     callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
     memberAuthSignature: addSig,
@@ -785,7 +870,11 @@ test('listGroupMembers: rejected when caller is not a member', () async {
     sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
   );
   final addInner = GroupInnerPayloads.addGroupMember(
-    s.group.id!, m2.id!, GroupMemberRole.member, m2MemberPub, m2MemberEnc,
+    s.group.id!, m2.id!, GroupMemberRole.member,
+    PublicKeyDuo(
+      signingPublicKeyHex: m2MemberPub,
+      encryptionPublicKeyHex: m2MemberEnc,
+    ),
   );
   final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
   final m2Row = await endpoints.group.addGroupMember(
@@ -797,8 +886,10 @@ test('listGroupMembers: rejected when caller is not a member', () async {
     groupId: s.group.id!,
     newMemberAccountId: m2.id!,
     role: GroupMemberRole.member,
-    memberSigningPublicKeyHex: m2MemberPub,
-    memberPublicKey: m2MemberEnc,
+    memberKeys: PublicKeyDuo(
+      signingPublicKeyHex: m2MemberPub,
+      encryptionPublicKeyHex: m2MemberEnc,
+    ),
     encryptedDataKey: 'wrapped',
     callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
     memberAuthSignature: addSig,
@@ -871,7 +962,11 @@ test('leaveGroup: last admin with other members present cannot leave (guard bloc
     sessionBuilder, endpoints, 'addGroupMember', s.devicePub, s.devicePriv,
   );
   final addInner = GroupInnerPayloads.addGroupMember(
-    s.group.id!, m2.id!, GroupMemberRole.member, m2MemberPub, m2MemberEnc,
+    s.group.id!, m2.id!, GroupMemberRole.member,
+    PublicKeyDuo(
+      signingPublicKeyHex: m2MemberPub,
+      encryptionPublicKeyHex: m2MemberEnc,
+    ),
   );
   final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
   await endpoints.group.addGroupMember(
@@ -883,8 +978,10 @@ test('leaveGroup: last admin with other members present cannot leave (guard bloc
     groupId: s.group.id!,
     newMemberAccountId: m2.id!,
     role: GroupMemberRole.member,
-    memberSigningPublicKeyHex: m2MemberPub,
-    memberPublicKey: m2MemberEnc,
+    memberKeys: PublicKeyDuo(
+      signingPublicKeyHex: m2MemberPub,
+      encryptionPublicKeyHex: m2MemberEnc,
+    ),
     encryptedDataKey: 'wrapped',
     callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
     memberAuthSignature: addSig,

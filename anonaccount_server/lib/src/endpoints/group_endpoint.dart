@@ -45,11 +45,9 @@ class GroupEndpoint extends SignedPowEndpoint {
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required String groupUltimateSigningPublicKeyHex,
-    required String groupUltimatePublicKey,
+    required PublicKeyDuo groupUltimateKeys,
     required String groupEncryptedDataKey,
-    required String creatorMemberSigningPublicKeyHex,
-    required String creatorMemberPublicKey,
+    required PublicKeyDuo creatorMemberKeys,
     required String creatorMemberEncryptedDataKey,
     required String groupUltimateAttestation,
   }) async {
@@ -77,20 +75,12 @@ class GroupEndpoint extends SignedPowEndpoint {
       );
       final accountId = activeDevice.anonAccountId;
 
-      AnonAccountHelpers.validatePublicKey(
-        groupUltimateSigningPublicKeyHex,
+      final groupKeys = AnonAccountHelpers.validateKeyDuo(
+        groupUltimateKeys,
         'createGroup',
       );
-      AnonAccountHelpers.validatePublicKey(
-        groupUltimatePublicKey,
-        'createGroup',
-      );
-      AnonAccountHelpers.validatePublicKey(
-        creatorMemberSigningPublicKeyHex,
-        'createGroup',
-      );
-      AnonAccountHelpers.validatePublicKey(
-        creatorMemberPublicKey,
+      final memberKeys = AnonAccountHelpers.validateKeyDuo(
+        creatorMemberKeys,
         'createGroup',
       );
       AnonAccountHelpers.validateNonEmpty(
@@ -105,15 +95,13 @@ class GroupEndpoint extends SignedPowEndpoint {
       );
 
       final innerPayload = GroupInnerPayloads.createGroup(
-        groupUltimateSigningPublicKeyHex,
-        groupUltimatePublicKey,
-        creatorMemberSigningPublicKeyHex,
-        creatorMemberPublicKey,
+        groupKeys,
+        memberKeys,
       );
       final innerOk = await CryptoUtils.verifySignature(
         message: innerPayload,
         signature: groupUltimateAttestation,
-        publicKey: groupUltimateSigningPublicKeyHex,
+        publicKey: groupKeys.signingPublicKeyHex,
       );
       if (!innerOk) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -125,12 +113,9 @@ class GroupEndpoint extends SignedPowEndpoint {
       }
 
       final now = DateTime.now();
-      // Task 6: constructor renames only. Endpoint signatures (the
-      // four positional key strings on createGroup / addGroupMember) are
-      // Task 6b's job; not touched here.
       final group = ShareGroup(
-        ultimateSigningPublicKeyHex: groupUltimateSigningPublicKeyHex,
-        ultimateEncryptionPublicKeyHex: groupUltimatePublicKey,
+        ultimateSigningPublicKeyHex: groupKeys.signingPublicKeyHex,
+        ultimateEncryptionPublicKeyHex: groupKeys.encryptionPublicKeyHex,
         encryptedDataKey: groupEncryptedDataKey,
         createdAt: now,
       );
@@ -140,13 +125,13 @@ class GroupEndpoint extends SignedPowEndpoint {
         shareGroupId: insertedGroup.id!,
         anonAccountId: accountId,
         role: GroupMemberRole.admin,
-        memberSigningPublicKeyHex: creatorMemberSigningPublicKeyHex,
-        memberEncryptionPublicKeyHex: creatorMemberPublicKey,
+        memberSigningPublicKeyHex: memberKeys.signingPublicKeyHex,
+        memberEncryptionPublicKeyHex: memberKeys.encryptionPublicKeyHex,
         encryptedDataKey: creatorMemberEncryptedDataKey,
         joinedAt: now,
         lastActive: now,
         isRevoked: false,
-        addedBySignerPublicKeyHex: groupUltimateSigningPublicKeyHex,
+        addedBySignerPublicKeyHex: groupKeys.signingPublicKeyHex,
         addedByAttestation: groupUltimateAttestation,
       );
       await GroupMember.db.insertRow(session, member);
@@ -236,8 +221,7 @@ class GroupEndpoint extends SignedPowEndpoint {
     required UuidValue groupId,
     required UuidValue newMemberAccountId,
     required GroupMemberRole role,
-    required String memberSigningPublicKeyHex,
-    required String memberPublicKey,
+    required PublicKeyDuo memberKeys,
     required String encryptedDataKey,
     String? callerMemberSigningPublicKeyHex,
     String? memberAuthSignature,
@@ -255,11 +239,10 @@ class GroupEndpoint extends SignedPowEndpoint {
         outerPayload,
       );
 
-      AnonAccountHelpers.validatePublicKey(
-        memberSigningPublicKeyHex,
+      final validatedMemberKeys = AnonAccountHelpers.validateKeyDuo(
+        memberKeys,
         'addGroupMember',
       );
-      AnonAccountHelpers.validatePublicKey(memberPublicKey, 'addGroupMember');
       AnonAccountHelpers.validateNonEmpty(
         encryptedDataKey,
         'encryptedDataKey',
@@ -270,8 +253,7 @@ class GroupEndpoint extends SignedPowEndpoint {
         groupId,
         newMemberAccountId,
         role,
-        memberSigningPublicKeyHex,
-        memberPublicKey,
+        validatedMemberKeys,
       );
 
       late final String attestingPubkey;
@@ -395,14 +377,13 @@ class GroupEndpoint extends SignedPowEndpoint {
       }
 
       final now = DateTime.now();
-      // Task 6: constructor rename only. Endpoint signatures stay as-is —
-      // Task 6b's job to introduce the duo parameter shape.
       final member = GroupMember(
         shareGroupId: groupId,
         anonAccountId: newMemberAccountId,
         role: role,
-        memberSigningPublicKeyHex: memberSigningPublicKeyHex,
-        memberEncryptionPublicKeyHex: memberPublicKey,
+        memberSigningPublicKeyHex: validatedMemberKeys.signingPublicKeyHex,
+        memberEncryptionPublicKeyHex:
+            validatedMemberKeys.encryptionPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
         joinedAt: now,
         lastActive: now,

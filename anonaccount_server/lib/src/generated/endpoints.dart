@@ -904,14 +904,9 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'groupUltimateSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'groupUltimateSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'groupUltimatePublicKey': _i1.ParameterDescription(
-              name: 'groupUltimatePublicKey',
-              type: _i1.getType<String>(),
+            'groupUltimateKeys': _i1.ParameterDescription(
+              name: 'groupUltimateKeys',
+              type: _i1.getType<_i8.PublicKeyDuo>(),
               nullable: false,
             ),
             'groupEncryptedDataKey': _i1.ParameterDescription(
@@ -919,14 +914,9 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'creatorMemberSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'creatorMemberSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'creatorMemberPublicKey': _i1.ParameterDescription(
-              name: 'creatorMemberPublicKey',
-              type: _i1.getType<String>(),
+            'creatorMemberKeys': _i1.ParameterDescription(
+              name: 'creatorMemberKeys',
+              type: _i1.getType<_i8.PublicKeyDuo>(),
               nullable: false,
             ),
             'creatorMemberEncryptedDataKey': _i1.ParameterDescription(
@@ -951,13 +941,9 @@ class Endpoints extends _i1.EndpointDispatch {
                 signature: params['signature'],
                 callerDeviceSigningPublicKeyHex:
                     params['callerDeviceSigningPublicKeyHex'],
-                groupUltimateSigningPublicKeyHex:
-                    params['groupUltimateSigningPublicKeyHex'],
-                groupUltimatePublicKey: params['groupUltimatePublicKey'],
+                groupUltimateKeys: params['groupUltimateKeys'],
                 groupEncryptedDataKey: params['groupEncryptedDataKey'],
-                creatorMemberSigningPublicKeyHex:
-                    params['creatorMemberSigningPublicKeyHex'],
-                creatorMemberPublicKey: params['creatorMemberPublicKey'],
+                creatorMemberKeys: params['creatorMemberKeys'],
                 creatorMemberEncryptedDataKey:
                     params['creatorMemberEncryptedDataKey'],
                 groupUltimateAttestation: params['groupUltimateAttestation'],
@@ -1038,14 +1024,9 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<_i9.GroupMemberRole>(),
               nullable: false,
             ),
-            'memberSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'memberSigningPublicKeyHex',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'memberPublicKey': _i1.ParameterDescription(
-              name: 'memberPublicKey',
-              type: _i1.getType<String>(),
+            'memberKeys': _i1.ParameterDescription(
+              name: 'memberKeys',
+              type: _i1.getType<_i8.PublicKeyDuo>(),
               nullable: false,
             ),
             'encryptedDataKey': _i1.ParameterDescription(
@@ -1084,9 +1065,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     groupId: params['groupId'],
                     newMemberAccountId: params['newMemberAccountId'],
                     role: params['role'],
-                    memberSigningPublicKeyHex:
-                        params['memberSigningPublicKeyHex'],
-                    memberPublicKey: params['memberPublicKey'],
+                    memberKeys: params['memberKeys'],
                     encryptedDataKey: params['encryptedDataKey'],
                     callerMemberSigningPublicKeyHex:
                         params['callerMemberSigningPublicKeyHex'],
