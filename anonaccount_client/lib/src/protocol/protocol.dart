@@ -20,20 +20,22 @@ import 'authentication_result.dart' as _i7;
 import 'device_pairing_event.dart' as _i8;
 import 'device_pairing_info.dart' as _i9;
 import 'encrypted_data_key_response.dart' as _i10;
-import 'group_member.dart' as _i11;
-import 'group_member_role.dart' as _i12;
-import 'public_challenge.dart' as _i13;
-import 'public_challenge_response.dart' as _i14;
-import 'public_key_duo.dart' as _i15;
-import 'rate_limit_counter.dart' as _i16;
-import 'shard_routing.dart' as _i17;
-import 'share_group.dart' as _i18;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i19;
-import 'package:anonaccount_client/src/protocol/group_member.dart' as _i20;
+import 'grant_tier.dart' as _i11;
+import 'group_member.dart' as _i12;
+import 'group_member_role.dart' as _i13;
+import 'member_device_grant.dart' as _i14;
+import 'public_challenge.dart' as _i15;
+import 'public_challenge_response.dart' as _i16;
+import 'public_key_duo.dart' as _i17;
+import 'rate_limit_counter.dart' as _i18;
+import 'shard_routing.dart' as _i19;
+import 'share_group.dart' as _i20;
+import 'package:anonaccount_client/src/protocol/account_device.dart' as _i21;
+import 'package:anonaccount_client/src/protocol/group_member.dart' as _i22;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i21;
+    as _i23;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i22;
+    as _i24;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -43,8 +45,10 @@ export 'authentication_result.dart';
 export 'device_pairing_event.dart';
 export 'device_pairing_info.dart';
 export 'encrypted_data_key_response.dart';
+export 'grant_tier.dart';
 export 'group_member.dart';
 export 'group_member_role.dart';
+export 'member_device_grant.dart';
 export 'public_challenge.dart';
 export 'public_challenge_response.dart';
 export 'public_key_duo.dart';
@@ -116,29 +120,35 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i10.EncryptedDataKeyResponse) {
       return _i10.EncryptedDataKeyResponse.fromJson(data) as T;
     }
-    if (t == _i11.GroupMember) {
-      return _i11.GroupMember.fromJson(data) as T;
+    if (t == _i11.GrantTier) {
+      return _i11.GrantTier.fromJson(data) as T;
     }
-    if (t == _i12.GroupMemberRole) {
-      return _i12.GroupMemberRole.fromJson(data) as T;
+    if (t == _i12.GroupMember) {
+      return _i12.GroupMember.fromJson(data) as T;
     }
-    if (t == _i13.PublicChallenge) {
-      return _i13.PublicChallenge.fromJson(data) as T;
+    if (t == _i13.GroupMemberRole) {
+      return _i13.GroupMemberRole.fromJson(data) as T;
     }
-    if (t == _i14.PublicChallengeResponse) {
-      return _i14.PublicChallengeResponse.fromJson(data) as T;
+    if (t == _i14.MemberDeviceGrant) {
+      return _i14.MemberDeviceGrant.fromJson(data) as T;
     }
-    if (t == _i15.PublicKeyDuo) {
-      return _i15.PublicKeyDuo.fromJson(data) as T;
+    if (t == _i15.PublicChallenge) {
+      return _i15.PublicChallenge.fromJson(data) as T;
     }
-    if (t == _i16.RateLimitCounter) {
-      return _i16.RateLimitCounter.fromJson(data) as T;
+    if (t == _i16.PublicChallengeResponse) {
+      return _i16.PublicChallengeResponse.fromJson(data) as T;
     }
-    if (t == _i17.ShardRouting) {
-      return _i17.ShardRouting.fromJson(data) as T;
+    if (t == _i17.PublicKeyDuo) {
+      return _i17.PublicKeyDuo.fromJson(data) as T;
     }
-    if (t == _i18.ShareGroup) {
-      return _i18.ShareGroup.fromJson(data) as T;
+    if (t == _i18.RateLimitCounter) {
+      return _i18.RateLimitCounter.fromJson(data) as T;
+    }
+    if (t == _i19.ShardRouting) {
+      return _i19.ShardRouting.fromJson(data) as T;
+    }
+    if (t == _i20.ShareGroup) {
+      return _i20.ShareGroup.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AnonAccount?>()) {
       return (data != null ? _i2.AnonAccount.fromJson(data) : null) as T;
@@ -174,30 +184,36 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == _i1.getType<_i11.GroupMember?>()) {
-      return (data != null ? _i11.GroupMember.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.GrantTier?>()) {
+      return (data != null ? _i11.GrantTier.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.GroupMemberRole?>()) {
-      return (data != null ? _i12.GroupMemberRole.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.GroupMember?>()) {
+      return (data != null ? _i12.GroupMember.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.PublicChallenge?>()) {
-      return (data != null ? _i13.PublicChallenge.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.GroupMemberRole?>()) {
+      return (data != null ? _i13.GroupMemberRole.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.PublicChallengeResponse?>()) {
-      return (data != null ? _i14.PublicChallengeResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i14.MemberDeviceGrant?>()) {
+      return (data != null ? _i14.MemberDeviceGrant.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i15.PublicChallenge?>()) {
+      return (data != null ? _i15.PublicChallenge.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i16.PublicChallengeResponse?>()) {
+      return (data != null ? _i16.PublicChallengeResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i15.PublicKeyDuo?>()) {
-      return (data != null ? _i15.PublicKeyDuo.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i17.PublicKeyDuo?>()) {
+      return (data != null ? _i17.PublicKeyDuo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i16.RateLimitCounter?>()) {
-      return (data != null ? _i16.RateLimitCounter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i18.RateLimitCounter?>()) {
+      return (data != null ? _i18.RateLimitCounter.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i17.ShardRouting?>()) {
-      return (data != null ? _i17.ShardRouting.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i19.ShardRouting?>()) {
+      return (data != null ? _i19.ShardRouting.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i18.ShareGroup?>()) {
-      return (data != null ? _i18.ShareGroup.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i20.ShareGroup?>()) {
+      return (data != null ? _i20.ShareGroup.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -214,23 +230,23 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i19.AccountDevice>) {
+    if (t == List<_i21.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i19.AccountDevice>(e))
+              .map((e) => deserialize<_i21.AccountDevice>(e))
               .toList()
           as T;
     }
-    if (t == List<_i20.GroupMember>) {
+    if (t == List<_i22.GroupMember>) {
       return (data as List)
-              .map((e) => deserialize<_i20.GroupMember>(e))
+              .map((e) => deserialize<_i22.GroupMember>(e))
               .toList()
           as T;
     }
     try {
-      return _i21.Protocol().deserialize<T>(data, t);
+      return _i23.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i22.Protocol().deserialize<T>(data, t);
+      return _i24.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -246,14 +262,16 @@ class Protocol extends _i1.SerializationManager {
       _i8.DevicePairingEvent => 'DevicePairingEvent',
       _i9.DevicePairingInfo => 'DevicePairingInfo',
       _i10.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
-      _i11.GroupMember => 'GroupMember',
-      _i12.GroupMemberRole => 'GroupMemberRole',
-      _i13.PublicChallenge => 'PublicChallenge',
-      _i14.PublicChallengeResponse => 'PublicChallengeResponse',
-      _i15.PublicKeyDuo => 'PublicKeyDuo',
-      _i16.RateLimitCounter => 'RateLimitCounter',
-      _i17.ShardRouting => 'ShardRouting',
-      _i18.ShareGroup => 'ShareGroup',
+      _i11.GrantTier => 'GrantTier',
+      _i12.GroupMember => 'GroupMember',
+      _i13.GroupMemberRole => 'GroupMemberRole',
+      _i14.MemberDeviceGrant => 'MemberDeviceGrant',
+      _i15.PublicChallenge => 'PublicChallenge',
+      _i16.PublicChallengeResponse => 'PublicChallengeResponse',
+      _i17.PublicKeyDuo => 'PublicKeyDuo',
+      _i18.RateLimitCounter => 'RateLimitCounter',
+      _i19.ShardRouting => 'ShardRouting',
+      _i20.ShareGroup => 'ShareGroup',
       _ => null,
     };
   }
@@ -286,28 +304,32 @@ class Protocol extends _i1.SerializationManager {
         return 'DevicePairingInfo';
       case _i10.EncryptedDataKeyResponse():
         return 'EncryptedDataKeyResponse';
-      case _i11.GroupMember():
+      case _i11.GrantTier():
+        return 'GrantTier';
+      case _i12.GroupMember():
         return 'GroupMember';
-      case _i12.GroupMemberRole():
+      case _i13.GroupMemberRole():
         return 'GroupMemberRole';
-      case _i13.PublicChallenge():
+      case _i14.MemberDeviceGrant():
+        return 'MemberDeviceGrant';
+      case _i15.PublicChallenge():
         return 'PublicChallenge';
-      case _i14.PublicChallengeResponse():
+      case _i16.PublicChallengeResponse():
         return 'PublicChallengeResponse';
-      case _i15.PublicKeyDuo():
+      case _i17.PublicKeyDuo():
         return 'PublicKeyDuo';
-      case _i16.RateLimitCounter():
+      case _i18.RateLimitCounter():
         return 'RateLimitCounter';
-      case _i17.ShardRouting():
+      case _i19.ShardRouting():
         return 'ShardRouting';
-      case _i18.ShareGroup():
+      case _i20.ShareGroup():
         return 'ShareGroup';
     }
-    className = _i21.Protocol().getClassNameForObject(data);
+    className = _i23.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i22.Protocol().getClassNameForObject(data);
+    className = _i24.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -347,37 +369,43 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'EncryptedDataKeyResponse') {
       return deserialize<_i10.EncryptedDataKeyResponse>(data['data']);
     }
+    if (dataClassName == 'GrantTier') {
+      return deserialize<_i11.GrantTier>(data['data']);
+    }
     if (dataClassName == 'GroupMember') {
-      return deserialize<_i11.GroupMember>(data['data']);
+      return deserialize<_i12.GroupMember>(data['data']);
     }
     if (dataClassName == 'GroupMemberRole') {
-      return deserialize<_i12.GroupMemberRole>(data['data']);
+      return deserialize<_i13.GroupMemberRole>(data['data']);
+    }
+    if (dataClassName == 'MemberDeviceGrant') {
+      return deserialize<_i14.MemberDeviceGrant>(data['data']);
     }
     if (dataClassName == 'PublicChallenge') {
-      return deserialize<_i13.PublicChallenge>(data['data']);
+      return deserialize<_i15.PublicChallenge>(data['data']);
     }
     if (dataClassName == 'PublicChallengeResponse') {
-      return deserialize<_i14.PublicChallengeResponse>(data['data']);
+      return deserialize<_i16.PublicChallengeResponse>(data['data']);
     }
     if (dataClassName == 'PublicKeyDuo') {
-      return deserialize<_i15.PublicKeyDuo>(data['data']);
+      return deserialize<_i17.PublicKeyDuo>(data['data']);
     }
     if (dataClassName == 'RateLimitCounter') {
-      return deserialize<_i16.RateLimitCounter>(data['data']);
+      return deserialize<_i18.RateLimitCounter>(data['data']);
     }
     if (dataClassName == 'ShardRouting') {
-      return deserialize<_i17.ShardRouting>(data['data']);
+      return deserialize<_i19.ShardRouting>(data['data']);
     }
     if (dataClassName == 'ShareGroup') {
-      return deserialize<_i18.ShareGroup>(data['data']);
+      return deserialize<_i20.ShareGroup>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i21.Protocol().deserializeByClassName(data);
+      return _i23.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i22.Protocol().deserializeByClassName(data);
+      return _i24.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -392,10 +420,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i21.Protocol().mapRecordToJson(record);
+      return _i23.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i22.Protocol().mapRecordToJson(record);
+      return _i24.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

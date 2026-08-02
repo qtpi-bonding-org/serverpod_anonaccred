@@ -1,0 +1,8 @@
+class: MemberDeviceGrant
+fields:
+  groupMemberId: UuidValue
+  accountDeviceId: UuidValue
+  encryptedDataKey: String
+  attestorSigningPublicKeyHex: String
+  tier: GrantTier
+  attestation: String
