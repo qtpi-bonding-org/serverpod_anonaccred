@@ -3,12 +3,16 @@ import 'dart:typed_data';
 
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/pow_methods.dart'
-    show AccountMethods, DataKeyMethods, DeviceMethods;
+    show AccountMethods, AccountInnerPayloads, DataKeyMethods, DeviceMethods;
 // ignore: implementation_imports
-import 'package:dart_jwk_duo/dart_jwk_duo.dart' show KeyDuo;
+import 'package:dart_jwk_duo/dart_jwk_duo.dart'
+    show KeyDuo, EncryptionKeyPair;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+    show PublicKeyDuo;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 // UuidValue comes from serverpod_client, re-exported by anonaccount_client.
@@ -32,13 +36,26 @@ class AnonaccountAuth {
   static String _hex(Uint8List b) =>
       b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
 
-  /// Hex-encoded ultimate-key signature over [message]. Used for the
-  /// registration payload signature and for device-key attestations on both
-  /// the create-account and recover-account paths.
+  /// Hex-encoded ultimate-key signature over [message]. Used for device-key
+  /// attestations on both the create-account and recover-account paths.
   Future<String> _signWithUltimate(String message) async => _hex(
         (await _store
             .signWithUltimateKey(Uint8List.fromList(utf8.encode(message))))!,
       );
+
+  /// The encryption-half SEC1 hex for an already-generated device key.
+  Future<String> _deviceEncryptionPublicKeyHex() async {
+    final devicePublicKey = (await _store.getDevicePublicKey())!;
+    return EncryptionKeyPair.publicOnly(publicKey: devicePublicKey)
+        .exportPublicKeySec1Hex();
+  }
+
+  /// The encryption-half SEC1 hex for the in-memory ultimate key.
+  Future<String> _ultimateEncryptionPublicKeyHex() async {
+    final ultimatePublicKey = (await _store.getUltimatePublicKey())!;
+    return EncryptionKeyPair.publicOnly(publicKey: ultimatePublicKey)
+        .exportPublicKeySec1Hex();
+  }
 
   /// Local-only: has the [AccountKeyStore] generate a fresh ultimate +
   /// device + symmetric key triple and builds a signed [RegistrationPayload].
@@ -62,24 +79,35 @@ class AnonaccountAuth {
     required DateTime createdAt,
   }) async {
     final devicePublicKeyHex = (await _store.getDeviceSigningPublicKeyHex())!;
+    final deviceEncryptionPublicKeyHex = await _deviceEncryptionPublicKeyHex();
     final ultimatePublicKeyHex =
         (await _store.getUltimateSigningPublicKeyHex())!;
+    final ultimateEncryptionPublicKeyHex =
+        await _ultimateEncryptionPublicKeyHex();
     final symmetricJwk = (await _store.getSymmetricDataKeyJwk())!;
     final recoveryBlob = await AsymmetricCrypto.wrapForRecipient(
         symmetricJwk, (await _store.getUltimatePublicKey())!);
     final deviceBlob = await AsymmetricCrypto.wrapForRecipient(
         symmetricJwk, (await _store.getDevicePublicKey())!);
-    final signableData =
-        '$devicePublicKeyHex:$ultimatePublicKeyHex:$recoveryBlob:$deviceBlob:'
-        '${createdAt.toIso8601String()}';
-    final signature = await _signWithUltimate(signableData);
-    final deviceKeyAttestation = await _signWithUltimate(devicePublicKeyHex);
+    // Attestation covers BOTH halves of the device duo — the encryption key
+    // becomes a wrap target, so it must be inside the signature rather than
+    // beside it, or it can be substituted. Matches the server's
+    // AccountInnerPayloads.registerDevice(deviceKeys) verification exactly.
+    final deviceKeyAttestation = await _signWithUltimate(
+      AccountInnerPayloads.registerDevice(
+        PublicKeyDuo(
+          signingPublicKeyHex: devicePublicKeyHex,
+          encryptionPublicKeyHex: deviceEncryptionPublicKeyHex,
+        ),
+      ),
+    );
     return RegistrationPayload(
       devicePublicKeyHex: devicePublicKeyHex,
+      deviceEncryptionPublicKeyHex: deviceEncryptionPublicKeyHex,
       ultimatePublicKeyHex: ultimatePublicKeyHex,
+      ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
       recoveryBlob: recoveryBlob,
       deviceBlob: deviceBlob,
-      signature: signature,
       deviceKeyAttestation: deviceKeyAttestation,
       createdAt: createdAt,
     );
@@ -87,12 +115,17 @@ class AnonaccountAuth {
 
   /// Submits a previously-built [payload] to the server. Difficulty is
   /// pulled from the server's challenge response.
+  ///
+  /// The envelope is signed by the DEVICE key (not the ultimate key) — the
+  /// server verifies the outer PoW+signature against `publicKeyHex`, which
+  /// must be the device signing key for the attestation-then-envelope
+  /// sequence to make sense: the device key proves liveness, the ultimate
+  /// key's attestation proves authorization.
   Future<AccountCreationResponse> registerAccount(
     RegistrationPayload payload, {
     required String deviceLabel,
   }) async {
     final deviceKey = (await _store.getDeviceKey())!;
-    final ultimatePublicKeyJwk = (await _store.getUltimatePublicKeyJwk())!;
     final challengeResponse = await _caller.entrypoint.getChallenge();
     final envelope = await PowSigner.build(
       challenge: challengeResponse.challenge,
@@ -106,11 +139,16 @@ class AnonaccountAuth {
       proofOfWork: envelope.proofOfWork,
       signature: envelope.signature,
       publicKeyHex: envelope.publicKeyHex,
-      ultimateSigningPublicKeyHex: payload.ultimatePublicKeyHex,
+      ultimateKeys: PublicKeyDuo(
+        signingPublicKeyHex: payload.ultimatePublicKeyHex,
+        encryptionPublicKeyHex: payload.ultimateEncryptionPublicKeyHex,
+      ),
       encryptedDataKey: payload.recoveryBlob,
-      ultimatePublicKey: ultimatePublicKeyJwk,
+      deviceKeys: PublicKeyDuo(
+        signingPublicKeyHex: payload.devicePublicKeyHex,
+        encryptionPublicKeyHex: payload.deviceEncryptionPublicKeyHex,
+      ),
       deviceKeyAttestation: payload.deviceKeyAttestation,
-      deviceSigningPublicKeyHex: payload.devicePublicKeyHex,
       deviceEncryptedDataKey: payload.deviceBlob,
       deviceLabel: deviceLabel,
     );
@@ -149,7 +187,8 @@ class AnonaccountAuth {
         'recoverAccount: could not parse ultimate key JWK: $e',
       );
     }
-    final ultimateHex = await ultimate.signingKeyPair.exportPublicKeyHex();
+    final ultimateHex =
+        (await ultimate.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Fetch the account data key wrapped to the ultimate encryption pubkey
     // (written as `recoveryBlob` at account creation) and unwrap it locally.
@@ -183,6 +222,7 @@ class AnonaccountAuth {
     await _store.generateAndStoreDeviceKey();
     final deviceKey = (await _store.getDeviceKey())!;
     final deviceHex = (await _store.getDeviceSigningPublicKeyHex())!;
+    final deviceEncryptionHex = await _deviceEncryptionPublicKeyHex();
 
     // Persist the key BEFORE registering. A crash after registration but
     // before this write would leave a device registered server-side with no
@@ -195,7 +235,16 @@ class AnonaccountAuth {
       symmetricJwk,
       deviceKey.encryptionKeyPair.publicKey,
     );
-    final attestation = await _signWithUltimate(deviceHex);
+    // Attestation covers BOTH halves of the device duo — see the comment in
+    // _buildSignedPayload.
+    final attestation = await _signWithUltimate(
+      AccountInnerPayloads.registerDevice(
+        PublicKeyDuo(
+          signingPublicKeyHex: deviceHex,
+          encryptionPublicKeyHex: deviceEncryptionHex,
+        ),
+      ),
+    );
 
     final regChallenge = await _caller.entrypoint.getChallenge();
     final regEnvelope = await PowSigner.build(
@@ -211,7 +260,10 @@ class AnonaccountAuth {
       signature: regEnvelope.signature,
       deviceKeyAttestation: attestation,
       ultimateSigningPublicKeyHex: ultimateHex,
-      deviceSigningPublicKeyHex: deviceHex,
+      deviceKeys: PublicKeyDuo(
+        signingPublicKeyHex: deviceHex,
+        encryptionPublicKeyHex: deviceEncryptionHex,
+      ),
       encryptedDataKey: deviceBlob,
       label: deviceLabel,
     );
@@ -231,7 +283,8 @@ class AnonaccountAuth {
     required String ultimateBackupJwk,
   }) async {
     final ultimate = await _store.importUltimateKeyJwk(ultimateBackupJwk);
-    final ultimateHex = await ultimate.signingKeyPair.exportPublicKeyHex();
+    final ultimateHex =
+        (await ultimate.signingKeyPair.exportPublicKeySec1Hex()).value;
     final challengeResp = await _caller.entrypoint.getChallenge();
     final envelope = await PowSigner.build(
       challenge: challengeResp.challenge,

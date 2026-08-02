@@ -7,8 +7,8 @@ void main() {
   test('generateAccountKeys populates device, symmetric, ultimate', () async {
     final store = InMemoryAccountKeyStore();
     await store.generateAccountKeys();
-    expect(await store.getDeviceSigningPublicKeyHex(), hasLength(128));
-    expect(await store.getUltimateSigningPublicKeyHex(), hasLength(128));
+    expect(await store.getDeviceSigningPublicKeyHex(), hasLength(130));
+    expect(await store.getUltimateSigningPublicKeyHex(), hasLength(130));
     expect(await store.getSymmetricDataKeyJwk(), isNotNull);
     expect(await store.getDevicePublicKey(), isNotNull);
     expect(await store.getUltimatePublicKey(), isNotNull);

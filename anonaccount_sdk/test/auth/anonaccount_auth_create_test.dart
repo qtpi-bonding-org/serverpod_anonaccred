@@ -1,4 +1,10 @@
 import 'dart:convert';
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/pow_methods.dart'
+    show AccountInnerPayloads;
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+    show PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 // ignore: implementation_imports
@@ -20,25 +26,34 @@ void main() {
         deviceLabel: 'macbook', createdAt: createdAt);
     final p = result.payload;
 
-    // structure
-    expect(p.devicePublicKeyHex, hasLength(128));
-    expect(p.ultimatePublicKeyHex, hasLength(128));
+    // structure — SEC1 uncompressed, 130 hex, signing and encryption
+    // halves of a duo are always distinct.
+    expect(p.devicePublicKeyHex, hasLength(130));
+    expect(p.deviceEncryptionPublicKeyHex, hasLength(130));
+    expect(p.devicePublicKeyHex, isNot(p.deviceEncryptionPublicKeyHex));
+    expect(p.ultimatePublicKeyHex, hasLength(130));
+    expect(p.ultimateEncryptionPublicKeyHex, hasLength(130));
+    expect(p.ultimatePublicKeyHex, isNot(p.ultimateEncryptionPublicKeyHex));
     expect(p.createdAt, createdAt);
 
-    // signature verifies over the canonical signableData with the ultimate key
-    final signable =
-        '${p.devicePublicKeyHex}:${p.ultimatePublicKeyHex}:${p.recoveryBlob}:'
-        '${p.deviceBlob}:${createdAt.toIso8601String()}';
+    // deviceKeyAttestation verifies over the duo-covering payload with the
+    // ultimate key — matches the server's
+    // AccountInnerPayloads.registerDevice(deviceKeys) verification.
     final ultimateJwk = (await store.getUltimateKeyJwkOnce())!;
     // re-import to verify (note: getUltimateKeyJwkOnce wiped the store copy)
     final verifyStore = InMemoryAccountKeyStore();
     final ultimate = await verifyStore.importUltimateKeyJwk(ultimateJwk);
-    expect(await SigningCrypto.verifyChallenge(signable, p.signature, ultimate),
-        isTrue);
+    final devicePayload = AccountInnerPayloads.registerDevice(
+      PublicKeyDuo(
+        signingPublicKeyHex: p.devicePublicKeyHex,
+        encryptionPublicKeyHex: p.deviceEncryptionPublicKeyHex,
+      ),
+    );
     expect(
-        await SigningCrypto.verifyChallenge(
-            p.devicePublicKeyHex, p.deviceKeyAttestation, ultimate),
-        isTrue);
+      await SigningCrypto.verifyChallenge(
+          devicePayload, p.deviceKeyAttestation, ultimate),
+      isTrue,
+    );
 
     // deviceBlob unwraps to the symmetric key with the device private key
     final device = (await store.getDeviceKey())!;

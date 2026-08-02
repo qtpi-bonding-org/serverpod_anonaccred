@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 void main() {
   test('build composes challenge + hashcash + ECDSA signature', () async {
     final keyDuo = await KeyGen.generateDeviceKey();
-    final pubkeyHex = await keyDuo.signingKeyPair.exportPublicKeyHex();
+    final pubkeyHex = await keyDuo.signingKeyPair.exportPublicKeySec1Hex();
     final envelope = await PowSigner.build(
       challenge: 'CHAL-123',
       methodName: 'createAccount',

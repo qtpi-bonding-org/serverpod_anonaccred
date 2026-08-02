@@ -1,12 +1,18 @@
 import 'dart:convert';
 
 // ignore: implementation_imports
-import 'package:anonaccount_client/src/pow_methods.dart' show DeviceMethods;
+import 'package:anonaccount_client/src/pow_methods.dart'
+    show AccountInnerPayloads, DeviceMethods;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/account_device.dart'
     show AccountDevice;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+    show PublicKeyDuo;
+import 'package:dart_jwk_duo/dart_jwk_duo.dart'
+    show EncryptionKeyPair, EncryptionPublicKeyHex;
 import 'package:webcrypto/webcrypto.dart';
 
 import '../crypto/asymmetric.dart';
@@ -34,13 +40,16 @@ class AnonaccountPairing {
   Future<GeneratedPairingQr> beginPairing({required String deviceLabel}) async {
     await _store.generateAndStoreDeviceKey();
     final signingPubkeyHex = (await _store.getDeviceSigningPublicKeyHex())!;
-    final encryptionPubkeyJwk = jsonEncode(
-        await (await _store.getDevicePublicKey())!.exportJsonWebKey());
+    final devicePublicKey = (await _store.getDevicePublicKey())!;
+    final encryptionPubkeyHex =
+        (await EncryptionKeyPair.publicOnly(publicKey: devicePublicKey)
+                .exportPublicKeySec1Hex())
+            .value;
     return GeneratedPairingQr(
       qrPayloadJson: jsonEncode({
         'action': 'pair',
         'theirSigningPubkeyHex': signingPubkeyHex,
-        'theirEncryptionPubkeyJwk': encryptionPubkeyJwk,
+        'theirEncryptionPubkeyHex': encryptionPubkeyHex,
         'label': deviceLabel,
       }),
       signingPubkeyHex: signingPubkeyHex,
@@ -101,14 +110,24 @@ class AnonaccountPairing {
   }) async {
     final ourDeviceKey = (await _store.getDeviceKey())!;
     final ourSymmetricKey = (await _store.getSymmetricDataKey())!;
-    final theirEncryptionPubkey = await EcdhPublicKey.importJsonWebKey(
-      jsonDecode(scanned.theirEncryptionPubkeyJwk) as Map<String, dynamic>,
-      EllipticCurve.p256,
+    final theirEncryptionKeyPair = await EncryptionKeyPair.importPublicKeySec1Hex(
+      EncryptionPublicKeyHex(scanned.theirEncryptionPubkeyHex),
     );
+    final theirEncryptionPubkey = theirEncryptionKeyPair.publicKey;
     final symJwk = jsonEncode(await ourSymmetricKey.exportJsonWebKey());
     final wrappedSymKey = await AsymmetricCrypto.wrapForRecipient(
         symJwk, theirEncryptionPubkey);
-    final ourDeviceHex = await ourDeviceKey.signingKeyPair.exportPublicKeyHex();
+    final ourDeviceHex =
+        (await ourDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final newDeviceKeys = PublicKeyDuo(
+      signingPublicKeyHex: scanned.theirSigningPubkeyHex,
+      encryptionPublicKeyHex: scanned.theirEncryptionPubkeyHex,
+    );
+    // An existing paired device attests to the newly paired device's key
+    // pair — the server verifies this against our device signing key.
+    final pairingAttestation = await ourDeviceKey.signingKeyPair.signBytes(
+      utf8.encode(AccountInnerPayloads.pairDevice(newDeviceKeys)),
+    );
     final challengeResp = await _caller.entrypoint.getChallenge();
     final envelope = await PowSigner.build(
       challenge: challengeResp.challenge,
@@ -122,7 +141,10 @@ class AnonaccountPairing {
       proofOfWork: envelope.proofOfWork,
       publicKeyHex: envelope.publicKeyHex,
       signature: envelope.signature,
-      newDeviceSigningPublicKeyHex: scanned.theirSigningPubkeyHex,
+      newDeviceKeys: newDeviceKeys,
+      pairingAttestation: pairingAttestation
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(),
       newDeviceEncryptedDataKey: wrappedSymKey,
       label: label,
     );

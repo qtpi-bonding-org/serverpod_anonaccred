@@ -16,8 +16,8 @@ void main() {
     final a = await KeyGen.generateDeviceKey();
     final b = await KeyGen.generateDeviceKey();
     final serializer = KeyDuoSerializer();
-    final aJwk = await serializer.exportKeyDuo(a);
-    final bJwk = await serializer.exportKeyDuo(b);
+    final aJwk = await serializer.exportKeyDuoJwk(a);
+    final bJwk = await serializer.exportKeyDuoJwk(b);
     expect(aJwk, isNot(equals(bJwk)));
   });
 

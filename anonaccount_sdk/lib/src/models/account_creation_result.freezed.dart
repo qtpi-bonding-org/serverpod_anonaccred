@@ -12,8 +12,7 @@ part of 'account_creation_result.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$AccountCreationResult {
@@ -28,10 +27,9 @@ mixin _$AccountCreationResult {
 
 /// @nodoc
 abstract class $AccountCreationResultCopyWith<$Res> {
-  factory $AccountCreationResultCopyWith(
-    AccountCreationResult value,
-    $Res Function(AccountCreationResult) then,
-  ) = _$AccountCreationResultCopyWithImpl<$Res, AccountCreationResult>;
+  factory $AccountCreationResultCopyWith(AccountCreationResult value,
+          $Res Function(AccountCreationResult) then) =
+      _$AccountCreationResultCopyWithImpl<$Res, AccountCreationResult>;
   @useResult
   $Res call({RegistrationPayload payload});
 
@@ -39,10 +37,8 @@ abstract class $AccountCreationResultCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$AccountCreationResultCopyWithImpl<
-  $Res,
-  $Val extends AccountCreationResult
->
+class _$AccountCreationResultCopyWithImpl<$Res,
+        $Val extends AccountCreationResult>
     implements $AccountCreationResultCopyWith<$Res> {
   _$AccountCreationResultCopyWithImpl(this._value, this._then);
 
@@ -55,16 +51,15 @@ class _$AccountCreationResultCopyWithImpl<
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? payload = null}) {
-    return _then(
-      _value.copyWith(
-            payload: null == payload
-                ? _value.payload
-                : payload // ignore: cast_nullable_to_non_nullable
-                      as RegistrationPayload,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? payload = null,
+  }) {
+    return _then(_value.copyWith(
+      payload: null == payload
+          ? _value.payload
+          : payload // ignore: cast_nullable_to_non_nullable
+              as RegistrationPayload,
+    ) as $Val);
   }
 
   /// Create a copy of AccountCreationResult
@@ -82,9 +77,9 @@ class _$AccountCreationResultCopyWithImpl<
 abstract class _$$AccountCreationResultImplCopyWith<$Res>
     implements $AccountCreationResultCopyWith<$Res> {
   factory _$$AccountCreationResultImplCopyWith(
-    _$AccountCreationResultImpl value,
-    $Res Function(_$AccountCreationResultImpl) then,
-  ) = __$$AccountCreationResultImplCopyWithImpl<$Res>;
+          _$AccountCreationResultImpl value,
+          $Res Function(_$AccountCreationResultImpl) then) =
+      __$$AccountCreationResultImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({RegistrationPayload payload});
@@ -95,27 +90,26 @@ abstract class _$$AccountCreationResultImplCopyWith<$Res>
 
 /// @nodoc
 class __$$AccountCreationResultImplCopyWithImpl<$Res>
-    extends
-        _$AccountCreationResultCopyWithImpl<$Res, _$AccountCreationResultImpl>
+    extends _$AccountCreationResultCopyWithImpl<$Res,
+        _$AccountCreationResultImpl>
     implements _$$AccountCreationResultImplCopyWith<$Res> {
-  __$$AccountCreationResultImplCopyWithImpl(
-    _$AccountCreationResultImpl _value,
-    $Res Function(_$AccountCreationResultImpl) _then,
-  ) : super(_value, _then);
+  __$$AccountCreationResultImplCopyWithImpl(_$AccountCreationResultImpl _value,
+      $Res Function(_$AccountCreationResultImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of AccountCreationResult
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? payload = null}) {
-    return _then(
-      _$AccountCreationResultImpl(
-        payload: null == payload
-            ? _value.payload
-            : payload // ignore: cast_nullable_to_non_nullable
-                  as RegistrationPayload,
-      ),
-    );
+  $Res call({
+    Object? payload = null,
+  }) {
+    return _then(_$AccountCreationResultImpl(
+      payload: null == payload
+          ? _value.payload
+          : payload // ignore: cast_nullable_to_non_nullable
+              as RegistrationPayload,
+    ));
   }
 }
 
@@ -149,17 +143,14 @@ class _$AccountCreationResultImpl implements _AccountCreationResult {
   @override
   @pragma('vm:prefer-inline')
   _$$AccountCreationResultImplCopyWith<_$AccountCreationResultImpl>
-  get copyWith =>
-      __$$AccountCreationResultImplCopyWithImpl<_$AccountCreationResultImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$AccountCreationResultImplCopyWithImpl<
+          _$AccountCreationResultImpl>(this, _$identity);
 }
 
 abstract class _AccountCreationResult implements AccountCreationResult {
-  const factory _AccountCreationResult({
-    required final RegistrationPayload payload,
-  }) = _$AccountCreationResultImpl;
+  const factory _AccountCreationResult(
+          {required final RegistrationPayload payload}) =
+      _$AccountCreationResultImpl;
 
   @override
   RegistrationPayload get payload;
@@ -169,5 +160,5 @@ abstract class _AccountCreationResult implements AccountCreationResult {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$AccountCreationResultImplCopyWith<_$AccountCreationResultImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }

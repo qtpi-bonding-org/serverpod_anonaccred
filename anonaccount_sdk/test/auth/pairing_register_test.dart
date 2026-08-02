@@ -1,3 +1,6 @@
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+    show PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 import 'package:mocktail/mocktail.dart';
@@ -12,6 +15,12 @@ class _FakeUuid extends Fake implements wire.UuidValue {}
 void main() {
   setUpAll(() {
     registerFallbackValue(_FakeUuid());
+    registerFallbackValue(
+      PublicKeyDuo(
+        signingPublicKeyHex: '04${'0' * 128}',
+        encryptionPublicKeyHex: '04${'1' * 128}',
+      ),
+    );
   });
 
   late _FakeCaller caller;
@@ -36,9 +45,12 @@ void main() {
   test('registerPairedDevice wraps our symmetric key + calls deviceManagement', () async {
     final stubResponse = AccountDevice(
       anonAccountId: wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
-      deviceSigningPublicKeyHex: 'h' * 128,
+      deviceSigningPublicKeyHex: '04${'h' * 128}',
+      deviceEncryptionPublicKeyHex: '04${'i' * 128}',
       encryptedDataKey: 'wrapped',
       label: 'iPhone',
+      addedBySignerPublicKeyHex: '04${'j' * 128}',
+      addedByAttestation: 'test-attestation',
       isRevoked: false,
       lastActive: DateTime.utc(2026, 5, 20),
     );
@@ -47,7 +59,8 @@ void main() {
           proofOfWork: any(named: 'proofOfWork'),
           publicKeyHex: any(named: 'publicKeyHex'),
           signature: any(named: 'signature'),
-          newDeviceSigningPublicKeyHex: any(named: 'newDeviceSigningPublicKeyHex'),
+          newDeviceKeys: any(named: 'newDeviceKeys'),
+          pairingAttestation: any(named: 'pairingAttestation'),
           newDeviceEncryptedDataKey: any(named: 'newDeviceEncryptedDataKey'),
           label: any(named: 'label'),
         )).thenAnswer((_) async => stubResponse);
@@ -69,13 +82,20 @@ void main() {
     );
     expect(result, stubResponse);
 
-    verify(() => dm.registerDeviceForAccount(
+    final captured = verify(() => dm.registerDeviceForAccount(
         challenge: 'CHAL-PAIR',
         proofOfWork: any(named: 'proofOfWork'),
         publicKeyHex: ourDeviceHex,
         signature: any(named: 'signature'),
-        newDeviceSigningPublicKeyHex: theirHex,
+        newDeviceKeys: captureAny(named: 'newDeviceKeys'),
+        pairingAttestation: any(named: 'pairingAttestation'),
         newDeviceEncryptedDataKey: any(named: 'newDeviceEncryptedDataKey'),
-        label: 'iPhone')).called(1);
+        label: 'iPhone')).captured;
+    final capturedKeys = captured.single as PublicKeyDuo;
+    expect(capturedKeys.signingPublicKeyHex, theirHex);
+    expect(
+      capturedKeys.signingPublicKeyHex,
+      isNot(capturedKeys.encryptionPublicKeyHex),
+    );
   });
 }

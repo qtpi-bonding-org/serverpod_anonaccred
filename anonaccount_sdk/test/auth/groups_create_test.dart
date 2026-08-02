@@ -8,6 +8,15 @@ class _FakeEntrypoint extends Mock implements wire.EndpointEntrypoint {}
 class _FakeGroup extends Mock implements wire.EndpointGroup {}
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(
+      wire.PublicKeyDuo(
+        signingPublicKeyHex: '04${'0' * 128}',
+        encryptionPublicKeyHex: '04${'1' * 128}',
+      ),
+    );
+  });
+
   test('createGroup generates fresh group keys, wraps to self, returns CreatedGroup', () async {
     final caller = _FakeCaller();
     final entrypoint = _FakeEntrypoint();
@@ -24,8 +33,8 @@ void main() {
 
     final stubReturn = wire.ShareGroup(
       id: wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
-      ultimateSigningPublicKeyHex: 'u' * 128,
-      ultimatePublicKey: '{"kty":"EC"}',
+      ultimateSigningPublicKeyHex: '04${'u' * 128}',
+      ultimateEncryptionPublicKeyHex: '04${'v' * 128}',
       encryptedDataKey: 'WRAPPED',
       createdAt: DateTime.utc(2026, 5, 20),
     );
@@ -34,17 +43,15 @@ void main() {
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
           callerDeviceSigningPublicKeyHex: any(named: 'callerDeviceSigningPublicKeyHex'),
-          groupUltimateSigningPublicKeyHex: any(named: 'groupUltimateSigningPublicKeyHex'),
-          groupUltimatePublicKey: any(named: 'groupUltimatePublicKey'),
+          groupUltimateKeys: any(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
-          creatorMemberSigningPublicKeyHex: any(named: 'creatorMemberSigningPublicKeyHex'),
-          creatorMemberPublicKey: any(named: 'creatorMemberPublicKey'),
+          creatorMemberKeys: any(named: 'creatorMemberKeys'),
           creatorMemberEncryptedDataKey: any(named: 'creatorMemberEncryptedDataKey'),
           groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
         )).thenAnswer((_) async => stubReturn);
 
     final callerDeviceKey = await KeyGen.generateDeviceKey();
-    final callerDeviceHex = await callerDeviceKey.signingKeyPair.exportPublicKeyHex();
+    final callerDeviceHex = await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex();
     final groups = AnonaccountGroups(caller, difficulty: 4);
     final created = await groups.createGroup(
       displayName: 'Family',
@@ -59,12 +66,10 @@ void main() {
           challenge: 'CHAL-G',
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex: callerDeviceHex,
-          groupUltimateSigningPublicKeyHex: any(named: 'groupUltimateSigningPublicKeyHex'),
-          groupUltimatePublicKey: any(named: 'groupUltimatePublicKey'),
+          callerDeviceSigningPublicKeyHex: callerDeviceHex.value,
+          groupUltimateKeys: any(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
-          creatorMemberSigningPublicKeyHex: any(named: 'creatorMemberSigningPublicKeyHex'),
-          creatorMemberPublicKey: any(named: 'creatorMemberPublicKey'),
+          creatorMemberKeys: any(named: 'creatorMemberKeys'),
           creatorMemberEncryptedDataKey: any(named: 'creatorMemberEncryptedDataKey'),
           groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
         )).called(1);

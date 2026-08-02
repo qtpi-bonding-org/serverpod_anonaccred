@@ -8,6 +8,9 @@ import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
 import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
 // ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+    show PublicKeyDuo;
+// ignore: implementation_imports
 import 'package:anonaccount_sdk/src/auth/anonaccount_auth.dart';
 // ignore: implementation_imports
 import 'package:anonaccount_sdk/src/auth/in_memory_account_key_store.dart';
@@ -24,6 +27,15 @@ void main() {
   late _FakeCaller caller;
   late _FakeAccount account;
   late _FakeEntrypoint entrypoint;
+
+  setUpAll(() {
+    registerFallbackValue(
+      PublicKeyDuo(
+        signingPublicKeyHex: '04${'0' * 128}',
+        encryptionPublicKeyHex: '04${'1' * 128}',
+      ),
+    );
+  });
 
   setUp(() {
     caller = _FakeCaller();
@@ -43,18 +55,17 @@ void main() {
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
           publicKeyHex: any(named: 'publicKeyHex'),
-          ultimateSigningPublicKeyHex: any(named: 'ultimateSigningPublicKeyHex'),
+          ultimateKeys: any(named: 'ultimateKeys'),
           encryptedDataKey: any(named: 'encryptedDataKey'),
-          ultimatePublicKey: any(named: 'ultimatePublicKey'),
+          deviceKeys: any(named: 'deviceKeys'),
           deviceKeyAttestation: any(named: 'deviceKeyAttestation'),
-          deviceSigningPublicKeyHex: any(named: 'deviceSigningPublicKeyHex'),
           deviceEncryptedDataKey: any(named: 'deviceEncryptedDataKey'),
           deviceLabel: any(named: 'deviceLabel'),
         )).thenAnswer(
         (_) async => AccountCreationResponse(
-              ultimateSigningPublicKeyHex: 'a' * 128,
+              ultimateSigningPublicKeyHex: '04${'a' * 128}',
               encryptedDataKey: 'blob',
-              ultimatePublicKey: '{}',
+              ultimateEncryptionPublicKeyHex: '04${'b' * 128}',
               createdAt: DateTime.utc(2026),
             ));
   });
@@ -68,11 +79,20 @@ void main() {
         createdAt: DateTime.utc(2026),
       );
 
-      expect(result.payload.devicePublicKeyHex, hasLength(128));
-      expect(result.payload.ultimatePublicKeyHex, hasLength(128));
+      expect(result.payload.devicePublicKeyHex, hasLength(130));
+      expect(result.payload.deviceEncryptionPublicKeyHex, hasLength(130));
+      expect(result.payload.ultimatePublicKeyHex, hasLength(130));
+      expect(result.payload.ultimateEncryptionPublicKeyHex, hasLength(130));
+      expect(
+        result.payload.devicePublicKeyHex,
+        isNot(result.payload.deviceEncryptionPublicKeyHex),
+      );
+      expect(
+        result.payload.ultimatePublicKeyHex,
+        isNot(result.payload.ultimateEncryptionPublicKeyHex),
+      );
       expect(result.payload.recoveryBlob, isNotEmpty);
       expect(result.payload.deviceBlob, isNotEmpty);
-      expect(result.payload.signature, isNotEmpty);
       expect(result.payload.deviceKeyAttestation, isNotEmpty);
 
       verifyNever(() => account.createAccount(
@@ -80,11 +100,10 @@ void main() {
             proofOfWork: any(named: 'proofOfWork'),
             signature: any(named: 'signature'),
             publicKeyHex: any(named: 'publicKeyHex'),
-            ultimateSigningPublicKeyHex: any(named: 'ultimateSigningPublicKeyHex'),
+            ultimateKeys: any(named: 'ultimateKeys'),
             encryptedDataKey: any(named: 'encryptedDataKey'),
-            ultimatePublicKey: any(named: 'ultimatePublicKey'),
+            deviceKeys: any(named: 'deviceKeys'),
             deviceKeyAttestation: any(named: 'deviceKeyAttestation'),
-            deviceSigningPublicKeyHex: any(named: 'deviceSigningPublicKeyHex'),
             deviceEncryptedDataKey: any(named: 'deviceEncryptedDataKey'),
             deviceLabel: any(named: 'deviceLabel'),
           ));
@@ -92,7 +111,7 @@ void main() {
   });
 
   group('registerAccount (wire submission)', () {
-    test('calls account.createAccount with consistent pubkeys + deviceLabel',
+    test('calls account.createAccount with a duo whose halves differ and are SEC1',
         () async {
       final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore());
       final created = await auth.createAccount(
@@ -108,27 +127,47 @@ void main() {
             proofOfWork: captureAny(named: 'proofOfWork'),
             signature: captureAny(named: 'signature'),
             publicKeyHex: captureAny(named: 'publicKeyHex'),
-            ultimateSigningPublicKeyHex:
-                captureAny(named: 'ultimateSigningPublicKeyHex'),
+            ultimateKeys: captureAny(named: 'ultimateKeys'),
             encryptedDataKey: captureAny(named: 'encryptedDataKey'),
-            ultimatePublicKey: captureAny(named: 'ultimatePublicKey'),
+            deviceKeys: captureAny(named: 'deviceKeys'),
             deviceKeyAttestation: captureAny(named: 'deviceKeyAttestation'),
-            deviceSigningPublicKeyHex:
-                captureAny(named: 'deviceSigningPublicKeyHex'),
             deviceEncryptedDataKey:
                 captureAny(named: 'deviceEncryptedDataKey'),
             deviceLabel: captureAny(named: 'deviceLabel'),
           )).captured;
       expect(captured[0], 'CHAL-FAKE'); // challenge
-      // captured order matches the captureAny order above
+      // The envelope is signed by the DEVICE key, so publicKeyHex must be
+      // the device signing key, not the ultimate key.
       expect(captured[3], created.payload.devicePublicKeyHex); // publicKeyHex
-      expect(captured[4],
-          created.payload.ultimatePublicKeyHex); // ultimateSigningPublicKeyHex
+
+      final capturedUltimateKeys = captured[4] as PublicKeyDuo;
+      expect(
+        capturedUltimateKeys.signingPublicKeyHex,
+        created.payload.ultimatePublicKeyHex,
+      );
+      expect(
+        capturedUltimateKeys.encryptionPublicKeyHex,
+        created.payload.ultimateEncryptionPublicKeyHex,
+      );
+
       expect(captured[5], created.payload.recoveryBlob); // encryptedDataKey
-      expect(captured[8],
-          created.payload.devicePublicKeyHex); // deviceSigningPublicKeyHex
-      expect(captured[9], created.payload.deviceBlob); // deviceEncryptedDataKey
-      expect(captured[10], 'iPhone-15'); // deviceLabel
+
+      final capturedDeviceKeys = captured[6] as PublicKeyDuo;
+      expect(
+        capturedDeviceKeys.signingPublicKeyHex,
+        created.payload.devicePublicKeyHex,
+      );
+      expect(
+        capturedDeviceKeys.encryptionPublicKeyHex,
+        created.payload.deviceEncryptionPublicKeyHex,
+      );
+      expect(
+        capturedDeviceKeys.signingPublicKeyHex,
+        isNot(capturedDeviceKeys.encryptionPublicKeyHex),
+      );
+
+      expect(captured[8], created.payload.deviceBlob); // deviceEncryptedDataKey
+      expect(captured[9], 'iPhone-15'); // deviceLabel
     });
   });
 }

@@ -8,16 +8,17 @@ part 'scanned_pairing_qr.g.dart';
 /// What [AnonaccountPairing.parseQr] returns to the approving device
 /// (side A) after decoding the joiner's QR/link payload.
 ///
-/// The encryption public key is delivered as a JWK string here so the
-/// model can be JSON-serialized by consumers; rehydrate it to a
-/// runtime [EcdhPublicKey] via `webcrypto` at the point of use.
+/// The encryption public key is carried as SEC1 uncompressed hex, matching
+/// every other public key in the system — not JWK. Rehydrate it to a
+/// runtime `EcdhPublicKey` via `webcrypto`'s `importPublicKeySec1Hex` (or
+/// `dart_jwk_duo`'s equivalent) at the point of use.
 @freezed
 class ScannedPairingQr with _$ScannedPairingQr {
   const ScannedPairingQr._();
 
   const factory ScannedPairingQr({
     required String theirSigningPubkeyHex,
-    required String theirEncryptionPubkeyJwk,
+    required String theirEncryptionPubkeyHex,
     required String label,
   }) = _ScannedPairingQr;
 
@@ -36,7 +37,7 @@ class ScannedPairingQr with _$ScannedPairingQr {
     }
     return ScannedPairingQr(
       theirSigningPubkeyHex: raw['theirSigningPubkeyHex'] as String,
-      theirEncryptionPubkeyJwk: raw['theirEncryptionPubkeyJwk'] as String,
+      theirEncryptionPubkeyHex: raw['theirEncryptionPubkeyHex'] as String,
       label: raw['label'] as String,
     );
   }

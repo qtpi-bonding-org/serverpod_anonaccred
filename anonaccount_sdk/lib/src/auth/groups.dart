@@ -8,6 +8,9 @@ import 'package:anonaccount_client/src/protocol/group_member.dart'
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/group_member_role.dart'
     show GroupMemberRole;
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+    show PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
 import 'package:dart_jwk_duo/dart_jwk_duo.dart' show KeyDuo;
 import 'package:webcrypto/webcrypto.dart';
@@ -42,15 +45,15 @@ class AnonaccountGroups {
 
     final dataKeyJwk = jsonEncode(await dataKey.exportJsonWebKey());
 
-    final groupUltimateSigningPublicKeyHex =
-        await groupUltimate.signingKeyPair.exportPublicKeyHex();
-    final groupUltimatePublicKey = jsonEncode(
-      await groupUltimate.encryptionKeyPair.publicKey.exportJsonWebKey(),
+    final groupUltimateKeys = await groupUltimate.exportPublicKeyDuo();
+    final creatorMemberKeys = await creatorMember.exportPublicKeyDuo();
+    final groupKeysWire = PublicKeyDuo(
+      signingPublicKeyHex: groupUltimateKeys.signing.value,
+      encryptionPublicKeyHex: groupUltimateKeys.encryption.value,
     );
-    final creatorMemberSigningPublicKeyHex =
-        await creatorMember.signingKeyPair.exportPublicKeyHex();
-    final creatorMemberPublicKey = jsonEncode(
-      await creatorMember.encryptionKeyPair.publicKey.exportJsonWebKey(),
+    final memberKeysWire = PublicKeyDuo(
+      signingPublicKeyHex: creatorMemberKeys.signing.value,
+      encryptionPublicKeyHex: creatorMemberKeys.encryption.value,
     );
 
     final groupEncryptedDataKey = await AsymmetricCrypto.wrapForRecipient(
@@ -64,15 +67,18 @@ class AnonaccountGroups {
     );
 
     // Inner attestation: group's ultimate key signs the inner payload.
+    // Matches GroupInnerPayloads.createGroup on the server byte-for-byte.
     final innerPayload =
-        'createGroup:$groupUltimateSigningPublicKeyHex:$groupUltimatePublicKey'
-        ':$creatorMemberSigningPublicKeyHex:$creatorMemberPublicKey';
+        'createGroup:${groupKeysWire.signingPublicKeyHex}'
+        ':${groupKeysWire.encryptionPublicKeyHex}'
+        ':${memberKeysWire.signingPublicKeyHex}'
+        ':${memberKeysWire.encryptionPublicKeyHex}';
     final groupUltimateAttestation =
         await SigningCrypto.signChallenge(innerPayload, groupUltimate);
 
     // Outer envelope signed by the user's device key.
     final callerDeviceSigningPublicKeyHex =
-        await callerDeviceKey.signingKeyPair.exportPublicKeyHex();
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final challengeResp = await _caller.entrypoint.getChallenge();
     final envelope = await PowSigner.build(
       challenge: challengeResp.challenge,
@@ -87,11 +93,9 @@ class AnonaccountGroups {
       proofOfWork: envelope.proofOfWork,
       signature: envelope.signature,
       callerDeviceSigningPublicKeyHex: envelope.publicKeyHex,
-      groupUltimateSigningPublicKeyHex: groupUltimateSigningPublicKeyHex,
-      groupUltimatePublicKey: groupUltimatePublicKey,
+      groupUltimateKeys: groupKeysWire,
       groupEncryptedDataKey: groupEncryptedDataKey,
-      creatorMemberSigningPublicKeyHex: creatorMemberSigningPublicKeyHex,
-      creatorMemberPublicKey: creatorMemberPublicKey,
+      creatorMemberKeys: memberKeysWire,
       creatorMemberEncryptedDataKey: creatorMemberEncryptedDataKey,
       groupUltimateAttestation: groupUltimateAttestation,
     );
@@ -110,7 +114,7 @@ class AnonaccountGroups {
     required KeyDuo callerDeviceKey,
   }) async {
     final callerDeviceSigningPublicKeyHex =
-        await callerDeviceKey.signingKeyPair.exportPublicKeyHex();
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final challengeResp = await _caller.entrypoint.getChallenge();
     final envelope = await PowSigner.build(
       challenge: challengeResp.challenge,
@@ -152,20 +156,26 @@ class AnonaccountGroups {
     required UuidValue newMemberAccountId,
     required GroupMemberRole role,
     required String newMemberSigningPubkeyHex,
-    required String newMemberPublicKeyJwk,
+    required String newMemberEncryptionPublicKeyHex,
     required String newMemberEncryptedDataKey,
     required KeyDuo callerMemberKey,
     required KeyDuo callerDeviceKey,
   }) async {
     final callerMemberSigningPublicKeyHex =
-        await callerMemberKey.signingKeyPair.exportPublicKeyHex();
+        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
-        await callerDeviceKey.signingKeyPair.exportPublicKeyHex();
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final memberKeysWire = PublicKeyDuo(
+      signingPublicKeyHex: newMemberSigningPubkeyHex,
+      encryptionPublicKeyHex: newMemberEncryptionPublicKeyHex,
+    );
 
-    // Inner payload — signed by the caller's member key.
+    // Inner payload — signed by the caller's member key. Matches
+    // GroupInnerPayloads.addGroupMember on the server byte-for-byte.
     final innerPayload =
         'addGroupMember:$groupId:$newMemberAccountId:${role.name}'
-        ':$newMemberSigningPubkeyHex:$newMemberPublicKeyJwk';
+        ':${memberKeysWire.signingPublicKeyHex}'
+        ':${memberKeysWire.encryptionPublicKeyHex}';
     final memberAuthSignature =
         await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
 
@@ -187,8 +197,7 @@ class AnonaccountGroups {
       groupId: groupId,
       newMemberAccountId: newMemberAccountId,
       role: role,
-      memberSigningPublicKeyHex: newMemberSigningPubkeyHex,
-      memberPublicKey: newMemberPublicKeyJwk,
+      memberKeys: memberKeysWire,
       encryptedDataKey: newMemberEncryptedDataKey,
       callerMemberSigningPublicKeyHex: callerMemberSigningPublicKeyHex,
       memberAuthSignature: memberAuthSignature,
@@ -206,9 +215,9 @@ class AnonaccountGroups {
     required KeyDuo callerDeviceKey,
   }) async {
     final callerMemberSigningPublicKeyHex =
-        await callerMemberKey.signingKeyPair.exportPublicKeyHex();
+        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
-        await callerDeviceKey.signingKeyPair.exportPublicKeyHex();
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Inner payload — signed by the caller's member key.
     final innerPayload = 'removeGroupMember:$memberId';
@@ -244,9 +253,9 @@ class AnonaccountGroups {
     required KeyDuo callerDeviceKey,
   }) async {
     final memberSigningPublicKeyHex =
-        await callerMemberKey.signingKeyPair.exportPublicKeyHex();
+        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
-        await callerDeviceKey.signingKeyPair.exportPublicKeyHex();
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Inner payload — signed by the caller's member key.
     final innerPayload = 'leaveGroup:$memberId';

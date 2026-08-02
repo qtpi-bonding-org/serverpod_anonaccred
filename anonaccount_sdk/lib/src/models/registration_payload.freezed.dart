@@ -12,8 +12,7 @@ part of 'registration_payload.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 RegistrationPayload _$RegistrationPayloadFromJson(Map<String, dynamic> json) {
   return _RegistrationPayload.fromJson(json);
@@ -22,12 +21,13 @@ RegistrationPayload _$RegistrationPayloadFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$RegistrationPayload {
   String get devicePublicKeyHex => throw _privateConstructorUsedError;
+  String get deviceEncryptionPublicKeyHex => throw _privateConstructorUsedError;
   String get ultimatePublicKeyHex => throw _privateConstructorUsedError;
+  String get ultimateEncryptionPublicKeyHex =>
+      throw _privateConstructorUsedError;
   String get recoveryBlob => throw _privateConstructorUsedError;
   String get deviceBlob => throw _privateConstructorUsedError;
-  String get signature => throw _privateConstructorUsedError;
   String get deviceKeyAttestation => throw _privateConstructorUsedError;
-  String? get crossDeviceKeyAttestation => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   int get version => throw _privateConstructorUsedError;
 
@@ -44,21 +44,19 @@ mixin _$RegistrationPayload {
 /// @nodoc
 abstract class $RegistrationPayloadCopyWith<$Res> {
   factory $RegistrationPayloadCopyWith(
-    RegistrationPayload value,
-    $Res Function(RegistrationPayload) then,
-  ) = _$RegistrationPayloadCopyWithImpl<$Res, RegistrationPayload>;
+          RegistrationPayload value, $Res Function(RegistrationPayload) then) =
+      _$RegistrationPayloadCopyWithImpl<$Res, RegistrationPayload>;
   @useResult
-  $Res call({
-    String devicePublicKeyHex,
-    String ultimatePublicKeyHex,
-    String recoveryBlob,
-    String deviceBlob,
-    String signature,
-    String deviceKeyAttestation,
-    String? crossDeviceKeyAttestation,
-    DateTime createdAt,
-    int version,
-  });
+  $Res call(
+      {String devicePublicKeyHex,
+      String deviceEncryptionPublicKeyHex,
+      String ultimatePublicKeyHex,
+      String ultimateEncryptionPublicKeyHex,
+      String recoveryBlob,
+      String deviceBlob,
+      String deviceKeyAttestation,
+      DateTime createdAt,
+      int version});
 }
 
 /// @nodoc
@@ -77,89 +75,83 @@ class _$RegistrationPayloadCopyWithImpl<$Res, $Val extends RegistrationPayload>
   @override
   $Res call({
     Object? devicePublicKeyHex = null,
+    Object? deviceEncryptionPublicKeyHex = null,
     Object? ultimatePublicKeyHex = null,
+    Object? ultimateEncryptionPublicKeyHex = null,
     Object? recoveryBlob = null,
     Object? deviceBlob = null,
-    Object? signature = null,
     Object? deviceKeyAttestation = null,
-    Object? crossDeviceKeyAttestation = freezed,
     Object? createdAt = null,
     Object? version = null,
   }) {
-    return _then(
-      _value.copyWith(
-            devicePublicKeyHex: null == devicePublicKeyHex
-                ? _value.devicePublicKeyHex
-                : devicePublicKeyHex // ignore: cast_nullable_to_non_nullable
-                      as String,
-            ultimatePublicKeyHex: null == ultimatePublicKeyHex
-                ? _value.ultimatePublicKeyHex
-                : ultimatePublicKeyHex // ignore: cast_nullable_to_non_nullable
-                      as String,
-            recoveryBlob: null == recoveryBlob
-                ? _value.recoveryBlob
-                : recoveryBlob // ignore: cast_nullable_to_non_nullable
-                      as String,
-            deviceBlob: null == deviceBlob
-                ? _value.deviceBlob
-                : deviceBlob // ignore: cast_nullable_to_non_nullable
-                      as String,
-            signature: null == signature
-                ? _value.signature
-                : signature // ignore: cast_nullable_to_non_nullable
-                      as String,
-            deviceKeyAttestation: null == deviceKeyAttestation
-                ? _value.deviceKeyAttestation
-                : deviceKeyAttestation // ignore: cast_nullable_to_non_nullable
-                      as String,
-            crossDeviceKeyAttestation: freezed == crossDeviceKeyAttestation
-                ? _value.crossDeviceKeyAttestation
-                : crossDeviceKeyAttestation // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            createdAt: null == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime,
-            version: null == version
-                ? _value.version
-                : version // ignore: cast_nullable_to_non_nullable
-                      as int,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      devicePublicKeyHex: null == devicePublicKeyHex
+          ? _value.devicePublicKeyHex
+          : devicePublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceEncryptionPublicKeyHex: null == deviceEncryptionPublicKeyHex
+          ? _value.deviceEncryptionPublicKeyHex
+          : deviceEncryptionPublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      ultimatePublicKeyHex: null == ultimatePublicKeyHex
+          ? _value.ultimatePublicKeyHex
+          : ultimatePublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      ultimateEncryptionPublicKeyHex: null == ultimateEncryptionPublicKeyHex
+          ? _value.ultimateEncryptionPublicKeyHex
+          : ultimateEncryptionPublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      recoveryBlob: null == recoveryBlob
+          ? _value.recoveryBlob
+          : recoveryBlob // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceBlob: null == deviceBlob
+          ? _value.deviceBlob
+          : deviceBlob // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceKeyAttestation: null == deviceKeyAttestation
+          ? _value.deviceKeyAttestation
+          : deviceKeyAttestation // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      version: null == version
+          ? _value.version
+          : version // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$RegistrationPayloadImplCopyWith<$Res>
     implements $RegistrationPayloadCopyWith<$Res> {
-  factory _$$RegistrationPayloadImplCopyWith(
-    _$RegistrationPayloadImpl value,
-    $Res Function(_$RegistrationPayloadImpl) then,
-  ) = __$$RegistrationPayloadImplCopyWithImpl<$Res>;
+  factory _$$RegistrationPayloadImplCopyWith(_$RegistrationPayloadImpl value,
+          $Res Function(_$RegistrationPayloadImpl) then) =
+      __$$RegistrationPayloadImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String devicePublicKeyHex,
-    String ultimatePublicKeyHex,
-    String recoveryBlob,
-    String deviceBlob,
-    String signature,
-    String deviceKeyAttestation,
-    String? crossDeviceKeyAttestation,
-    DateTime createdAt,
-    int version,
-  });
+  $Res call(
+      {String devicePublicKeyHex,
+      String deviceEncryptionPublicKeyHex,
+      String ultimatePublicKeyHex,
+      String ultimateEncryptionPublicKeyHex,
+      String recoveryBlob,
+      String deviceBlob,
+      String deviceKeyAttestation,
+      DateTime createdAt,
+      int version});
 }
 
 /// @nodoc
 class __$$RegistrationPayloadImplCopyWithImpl<$Res>
     extends _$RegistrationPayloadCopyWithImpl<$Res, _$RegistrationPayloadImpl>
     implements _$$RegistrationPayloadImplCopyWith<$Res> {
-  __$$RegistrationPayloadImplCopyWithImpl(
-    _$RegistrationPayloadImpl _value,
-    $Res Function(_$RegistrationPayloadImpl) _then,
-  ) : super(_value, _then);
+  __$$RegistrationPayloadImplCopyWithImpl(_$RegistrationPayloadImpl _value,
+      $Res Function(_$RegistrationPayloadImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of RegistrationPayload
   /// with the given fields replaced by the non-null parameter values.
@@ -167,72 +159,70 @@ class __$$RegistrationPayloadImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? devicePublicKeyHex = null,
+    Object? deviceEncryptionPublicKeyHex = null,
     Object? ultimatePublicKeyHex = null,
+    Object? ultimateEncryptionPublicKeyHex = null,
     Object? recoveryBlob = null,
     Object? deviceBlob = null,
-    Object? signature = null,
     Object? deviceKeyAttestation = null,
-    Object? crossDeviceKeyAttestation = freezed,
     Object? createdAt = null,
     Object? version = null,
   }) {
-    return _then(
-      _$RegistrationPayloadImpl(
-        devicePublicKeyHex: null == devicePublicKeyHex
-            ? _value.devicePublicKeyHex
-            : devicePublicKeyHex // ignore: cast_nullable_to_non_nullable
-                  as String,
-        ultimatePublicKeyHex: null == ultimatePublicKeyHex
-            ? _value.ultimatePublicKeyHex
-            : ultimatePublicKeyHex // ignore: cast_nullable_to_non_nullable
-                  as String,
-        recoveryBlob: null == recoveryBlob
-            ? _value.recoveryBlob
-            : recoveryBlob // ignore: cast_nullable_to_non_nullable
-                  as String,
-        deviceBlob: null == deviceBlob
-            ? _value.deviceBlob
-            : deviceBlob // ignore: cast_nullable_to_non_nullable
-                  as String,
-        signature: null == signature
-            ? _value.signature
-            : signature // ignore: cast_nullable_to_non_nullable
-                  as String,
-        deviceKeyAttestation: null == deviceKeyAttestation
-            ? _value.deviceKeyAttestation
-            : deviceKeyAttestation // ignore: cast_nullable_to_non_nullable
-                  as String,
-        crossDeviceKeyAttestation: freezed == crossDeviceKeyAttestation
-            ? _value.crossDeviceKeyAttestation
-            : crossDeviceKeyAttestation // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        createdAt: null == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime,
-        version: null == version
-            ? _value.version
-            : version // ignore: cast_nullable_to_non_nullable
-                  as int,
-      ),
-    );
+    return _then(_$RegistrationPayloadImpl(
+      devicePublicKeyHex: null == devicePublicKeyHex
+          ? _value.devicePublicKeyHex
+          : devicePublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceEncryptionPublicKeyHex: null == deviceEncryptionPublicKeyHex
+          ? _value.deviceEncryptionPublicKeyHex
+          : deviceEncryptionPublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      ultimatePublicKeyHex: null == ultimatePublicKeyHex
+          ? _value.ultimatePublicKeyHex
+          : ultimatePublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      ultimateEncryptionPublicKeyHex: null == ultimateEncryptionPublicKeyHex
+          ? _value.ultimateEncryptionPublicKeyHex
+          : ultimateEncryptionPublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      recoveryBlob: null == recoveryBlob
+          ? _value.recoveryBlob
+          : recoveryBlob // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceBlob: null == deviceBlob
+          ? _value.deviceBlob
+          : deviceBlob // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceKeyAttestation: null == deviceKeyAttestation
+          ? _value.deviceKeyAttestation
+          : deviceKeyAttestation // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      version: null == version
+          ? _value.version
+          : version // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$RegistrationPayloadImpl extends _RegistrationPayload {
-  const _$RegistrationPayloadImpl({
-    required this.devicePublicKeyHex,
-    required this.ultimatePublicKeyHex,
-    required this.recoveryBlob,
-    required this.deviceBlob,
-    required this.signature,
-    required this.deviceKeyAttestation,
-    this.crossDeviceKeyAttestation,
-    required this.createdAt,
-    this.version = 1,
-  }) : super._();
+  const _$RegistrationPayloadImpl(
+      {required this.devicePublicKeyHex,
+      required this.deviceEncryptionPublicKeyHex,
+      required this.ultimatePublicKeyHex,
+      required this.ultimateEncryptionPublicKeyHex,
+      required this.recoveryBlob,
+      required this.deviceBlob,
+      required this.deviceKeyAttestation,
+      required this.createdAt,
+      this.version = 1})
+      : super._();
 
   factory _$RegistrationPayloadImpl.fromJson(Map<String, dynamic> json) =>
       _$$RegistrationPayloadImplFromJson(json);
@@ -240,17 +230,17 @@ class _$RegistrationPayloadImpl extends _RegistrationPayload {
   @override
   final String devicePublicKeyHex;
   @override
+  final String deviceEncryptionPublicKeyHex;
+  @override
   final String ultimatePublicKeyHex;
+  @override
+  final String ultimateEncryptionPublicKeyHex;
   @override
   final String recoveryBlob;
   @override
   final String deviceBlob;
   @override
-  final String signature;
-  @override
   final String deviceKeyAttestation;
-  @override
-  final String? crossDeviceKeyAttestation;
   @override
   final DateTime createdAt;
   @override
@@ -259,7 +249,7 @@ class _$RegistrationPayloadImpl extends _RegistrationPayload {
 
   @override
   String toString() {
-    return 'RegistrationPayload(devicePublicKeyHex: $devicePublicKeyHex, ultimatePublicKeyHex: $ultimatePublicKeyHex, recoveryBlob: $recoveryBlob, deviceBlob: $deviceBlob, signature: $signature, deviceKeyAttestation: $deviceKeyAttestation, crossDeviceKeyAttestation: $crossDeviceKeyAttestation, createdAt: $createdAt, version: $version)';
+    return 'RegistrationPayload(devicePublicKeyHex: $devicePublicKeyHex, deviceEncryptionPublicKeyHex: $deviceEncryptionPublicKeyHex, ultimatePublicKeyHex: $ultimatePublicKeyHex, ultimateEncryptionPublicKeyHex: $ultimateEncryptionPublicKeyHex, recoveryBlob: $recoveryBlob, deviceBlob: $deviceBlob, deviceKeyAttestation: $deviceKeyAttestation, createdAt: $createdAt, version: $version)';
   }
 
   @override
@@ -269,21 +259,22 @@ class _$RegistrationPayloadImpl extends _RegistrationPayload {
             other is _$RegistrationPayloadImpl &&
             (identical(other.devicePublicKeyHex, devicePublicKeyHex) ||
                 other.devicePublicKeyHex == devicePublicKeyHex) &&
+            (identical(other.deviceEncryptionPublicKeyHex,
+                    deviceEncryptionPublicKeyHex) ||
+                other.deviceEncryptionPublicKeyHex ==
+                    deviceEncryptionPublicKeyHex) &&
             (identical(other.ultimatePublicKeyHex, ultimatePublicKeyHex) ||
                 other.ultimatePublicKeyHex == ultimatePublicKeyHex) &&
+            (identical(other.ultimateEncryptionPublicKeyHex,
+                    ultimateEncryptionPublicKeyHex) ||
+                other.ultimateEncryptionPublicKeyHex ==
+                    ultimateEncryptionPublicKeyHex) &&
             (identical(other.recoveryBlob, recoveryBlob) ||
                 other.recoveryBlob == recoveryBlob) &&
             (identical(other.deviceBlob, deviceBlob) ||
                 other.deviceBlob == deviceBlob) &&
-            (identical(other.signature, signature) ||
-                other.signature == signature) &&
             (identical(other.deviceKeyAttestation, deviceKeyAttestation) ||
                 other.deviceKeyAttestation == deviceKeyAttestation) &&
-            (identical(
-                  other.crossDeviceKeyAttestation,
-                  crossDeviceKeyAttestation,
-                ) ||
-                other.crossDeviceKeyAttestation == crossDeviceKeyAttestation) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.version, version) || other.version == version));
@@ -292,17 +283,16 @@ class _$RegistrationPayloadImpl extends _RegistrationPayload {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    devicePublicKeyHex,
-    ultimatePublicKeyHex,
-    recoveryBlob,
-    deviceBlob,
-    signature,
-    deviceKeyAttestation,
-    crossDeviceKeyAttestation,
-    createdAt,
-    version,
-  );
+      runtimeType,
+      devicePublicKeyHex,
+      deviceEncryptionPublicKeyHex,
+      ultimatePublicKeyHex,
+      ultimateEncryptionPublicKeyHex,
+      recoveryBlob,
+      deviceBlob,
+      deviceKeyAttestation,
+      createdAt,
+      version);
 
   /// Create a copy of RegistrationPayload
   /// with the given fields replaced by the non-null parameter values.
@@ -311,28 +301,27 @@ class _$RegistrationPayloadImpl extends _RegistrationPayload {
   @pragma('vm:prefer-inline')
   _$$RegistrationPayloadImplCopyWith<_$RegistrationPayloadImpl> get copyWith =>
       __$$RegistrationPayloadImplCopyWithImpl<_$RegistrationPayloadImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$RegistrationPayloadImplToJson(this);
+    return _$$RegistrationPayloadImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _RegistrationPayload extends RegistrationPayload {
-  const factory _RegistrationPayload({
-    required final String devicePublicKeyHex,
-    required final String ultimatePublicKeyHex,
-    required final String recoveryBlob,
-    required final String deviceBlob,
-    required final String signature,
-    required final String deviceKeyAttestation,
-    final String? crossDeviceKeyAttestation,
-    required final DateTime createdAt,
-    final int version,
-  }) = _$RegistrationPayloadImpl;
+  const factory _RegistrationPayload(
+      {required final String devicePublicKeyHex,
+      required final String deviceEncryptionPublicKeyHex,
+      required final String ultimatePublicKeyHex,
+      required final String ultimateEncryptionPublicKeyHex,
+      required final String recoveryBlob,
+      required final String deviceBlob,
+      required final String deviceKeyAttestation,
+      required final DateTime createdAt,
+      final int version}) = _$RegistrationPayloadImpl;
   const _RegistrationPayload._() : super._();
 
   factory _RegistrationPayload.fromJson(Map<String, dynamic> json) =
@@ -341,17 +330,17 @@ abstract class _RegistrationPayload extends RegistrationPayload {
   @override
   String get devicePublicKeyHex;
   @override
+  String get deviceEncryptionPublicKeyHex;
+  @override
   String get ultimatePublicKeyHex;
+  @override
+  String get ultimateEncryptionPublicKeyHex;
   @override
   String get recoveryBlob;
   @override
   String get deviceBlob;
   @override
-  String get signature;
-  @override
   String get deviceKeyAttestation;
-  @override
-  String? get crossDeviceKeyAttestation;
   @override
   DateTime get createdAt;
   @override

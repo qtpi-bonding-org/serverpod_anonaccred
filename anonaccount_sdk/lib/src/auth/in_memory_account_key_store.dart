@@ -19,14 +19,14 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
     _ultimate = await KeyGen.generateUltimateKey();
     _device = await KeyGen.generateDeviceKey();
     _symmetricJwk = await KeyGen.generateSymmetricKeyJwk();
-    _ultimateHex = await _ultimate!.signingKeyPair.exportPublicKeyHex();
-    _deviceHex = await _device!.signingKeyPair.exportPublicKeyHex();
+    _ultimateHex = await _ultimate!.signingKeyPair.exportPublicKeySec1Hex();
+    _deviceHex = await _device!.signingKeyPair.exportPublicKeySec1Hex();
   }
 
   @override
   Future<void> generateAndStoreDeviceKey() async {
     _device = await KeyGen.generateDeviceKey();
-    _deviceHex = await _device!.signingKeyPair.exportPublicKeyHex();
+    _deviceHex = await _device!.signingKeyPair.exportPublicKeySec1Hex();
   }
 
   @override
@@ -81,16 +81,16 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
   Future<String?> getUltimateKeyJwkOnce() async {
     final u = _ultimate;
     if (u == null) return null;
-    final jwk = await const KeyDuoSerializer().exportKeyDuo(u);
+    final jwk = await const KeyDuoSerializer().exportKeyDuoJwk(u);
     _ultimate = null; // one-time retrieval — wipe
     return jwk;
   }
 
   @override
   Future<KeyDuo> importUltimateKeyJwk(String jwk) async {
-    final u = await const KeyDuoSerializer().importKeyDuo(jwk);
+    final u = await const KeyDuoSerializer().importKeyDuoJwk(jwk);
     _ultimate = u;
-    _ultimateHex = await u.signingKeyPair.exportPublicKeyHex();
+    _ultimateHex = await u.signingKeyPair.exportPublicKeySec1Hex();
     return u;
   }
 }

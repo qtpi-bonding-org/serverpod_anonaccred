@@ -1,3 +1,9 @@
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/pow_methods.dart'
+    show AccountInnerPayloads;
+// ignore: implementation_imports
+import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+    show PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 import 'package:mocktail/mocktail.dart';
@@ -30,7 +36,7 @@ Future<({String ultimateJwk, String ultimateHex, String symmetricJwk, String rec
   );
   return (
     ultimateJwk: ultimateJwk,
-    ultimateHex: await ultimate.signingKeyPair.exportPublicKeyHex(),
+    ultimateHex: (await ultimate.signingKeyPair.exportPublicKeySec1Hex()).value,
     symmetricJwk: symmetricJwk,
     recoveryBlob: recoveryBlob,
   );
@@ -54,15 +60,18 @@ void _stubRegisterDevice(_FakeDevice device) {
         signature: any(named: 'signature'),
         deviceKeyAttestation: any(named: 'deviceKeyAttestation'),
         ultimateSigningPublicKeyHex: any(named: 'ultimateSigningPublicKeyHex'),
-        deviceSigningPublicKeyHex: any(named: 'deviceSigningPublicKeyHex'),
+        deviceKeys: any(named: 'deviceKeys'),
         encryptedDataKey: any(named: 'encryptedDataKey'),
         label: any(named: 'label'),
       )).thenAnswer((_) async => wire.AccountDevice(
         anonAccountId:
             wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
-        deviceSigningPublicKeyHex: 'h' * 128,
+        deviceSigningPublicKeyHex: '04${'h' * 128}',
+        deviceEncryptionPublicKeyHex: '04${'i' * 128}',
         encryptedDataKey: 'wrapped',
         label: 'laptop',
+        addedBySignerPublicKeyHex: '04${'j' * 128}',
+        addedByAttestation: 'test-attestation',
         isRevoked: false,
         lastActive: DateTime.utc(2026, 8, 1),
       ));
@@ -73,6 +82,15 @@ void main() {
   late _FakeEntrypoint entrypoint;
   late _FakeDataKey dataKey;
   late _FakeDevice device;
+
+  setUpAll(() {
+    registerFallbackValue(
+      PublicKeyDuo(
+        signingPublicKeyHex: '04${'0' * 128}',
+        encryptionPublicKeyHex: '04${'1' * 128}',
+      ),
+    );
+  });
 
   setUp(() {
     caller = _FakeCaller();
@@ -138,12 +156,19 @@ void main() {
           signature: any(named: 'signature'),
           deviceKeyAttestation: captureAny(named: 'deviceKeyAttestation'),
           ultimateSigningPublicKeyHex: seeded.ultimateHex,
-          deviceSigningPublicKeyHex: newDeviceHex,
+          deviceKeys: captureAny(named: 'deviceKeys'),
           encryptedDataKey: captureAny(named: 'encryptedDataKey'),
           label: 'laptop',
         )).captured;
     final attestation = captured[0] as String;
-    final deviceBlob = captured[1] as String;
+    final capturedDeviceKeys = captured[1] as PublicKeyDuo;
+    final deviceBlob = captured[2] as String;
+
+    expect(capturedDeviceKeys.signingPublicKeyHex, newDeviceHex);
+    expect(
+      capturedDeviceKeys.signingPublicKeyHex,
+      isNot(capturedDeviceKeys.encryptionPublicKeyHex),
+    );
 
     // The blob handed to the server must be the recovered account data key
     // wrapped to the NEW device — otherwise the device can never read it back.
@@ -156,12 +181,16 @@ void main() {
       seeded.symmetricJwk,
     );
 
-    // The ultimate key must have authorized this device key, or the server
-    // rejects the registration.
+    // The ultimate key must have authorized this device key pair, or the
+    // server rejects the registration.
     final verifier = InMemoryAccountKeyStore();
     final ultimate = await verifier.importUltimateKeyJwk(seeded.ultimateJwk);
     expect(
-      await SigningCrypto.verifyChallenge(newDeviceHex, attestation, ultimate),
+      await SigningCrypto.verifyChallenge(
+        AccountInnerPayloads.registerDevice(capturedDeviceKeys),
+        attestation,
+        ultimate,
+      ),
       isTrue,
     );
   });

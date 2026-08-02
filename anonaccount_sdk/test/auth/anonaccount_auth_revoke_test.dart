@@ -58,7 +58,7 @@ void main() {
     // Compute expected ultimateHex by importing into throwaway store
     final verifyStore = InMemoryAccountKeyStore();
     final ultimate = await verifyStore.importUltimateKeyJwk(seedUltimateJwk);
-    final ultimateHex = await ultimate.signingKeyPair.exportPublicKeyHex();
+    final ultimateHex = await ultimate.signingKeyPair.exportPublicKeySec1Hex();
 
     final ok = await auth.revokeDevice(
       deviceId: targetId,

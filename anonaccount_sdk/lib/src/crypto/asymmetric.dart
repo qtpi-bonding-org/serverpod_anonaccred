@@ -20,10 +20,12 @@ class AsymmetricCrypto {
     EcdhPublicKey recipient,
   ) async {
     try {
-      final keyDuo = await _publicOnlyKeyDuo(recipient);
+      final encryptionKeyPair = EncryptionKeyPair.publicOnly(
+        publicKey: recipient,
+      );
       final ct = await CryptoService.encrypt(
         Uint8List.fromList(utf8.encode(plaintext)),
-        keyDuo,
+        encryptionKeyPair,
       );
       return base64.encode(ct);
     } catch (e) {
@@ -40,10 +42,16 @@ class AsymmetricCrypto {
     EcdhPrivateKey ourPrivkey,
   ) async {
     try {
-      final keyDuo = await _privateOnlyKeyDuo(ourPrivkey);
+      // CryptoService.decrypt needs a paired pubkey; generate a throwaway
+      // one — it's irrelevant for decrypt, only the private key matters.
+      final dummyEnc = await EcdhPrivateKey.generateKey(EllipticCurve.p256);
+      final encryptionKeyPair = EncryptionKeyPair(
+        privateKey: ourPrivkey,
+        publicKey: dummyEnc.publicKey,
+      );
       final pt = await CryptoService.decrypt(
         base64.decode(wrappedBlob),
-        keyDuo,
+        encryptionKeyPair,
       );
       return utf8.decode(pt);
     } catch (e) {
@@ -51,38 +59,5 @@ class AsymmetricCrypto {
         'AsymmetricCrypto.unwrap failed: $e',
       );
     }
-  }
-
-  // `CryptoService.encrypt`/`.decrypt` require a full [KeyDuo]. For
-  // one-sided operations we synthesize a throwaway ECDSA signing pair
-  // — never used, just to satisfy the API. The encryption side is the
-  // only one that matters.
-
-  static Future<KeyDuo> _publicOnlyKeyDuo(EcdhPublicKey recipient) async {
-    final dummy = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
-    return KeyDuo(
-      signing: SigningKeyPair(
-        privateKey: dummy.privateKey,
-        publicKey: dummy.publicKey,
-      ),
-      encryption: EncryptionKeyPair.publicOnly(publicKey: recipient),
-    );
-  }
-
-  static Future<KeyDuo> _privateOnlyKeyDuo(EcdhPrivateKey ourPrivkey) async {
-    final dummySign = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
-    // CryptoService.decrypt needs a paired pubkey; generate one and
-    // hand both halves over. The pubkey is irrelevant for decrypt.
-    final dummyEnc = await EcdhPrivateKey.generateKey(EllipticCurve.p256);
-    return KeyDuo(
-      signing: SigningKeyPair(
-        privateKey: dummySign.privateKey,
-        publicKey: dummySign.publicKey,
-      ),
-      encryption: EncryptionKeyPair(
-        privateKey: ourPrivkey,
-        publicKey: dummyEnc.publicKey,
-      ),
-    );
   }
 }

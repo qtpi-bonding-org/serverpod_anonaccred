@@ -12,8 +12,7 @@ part of 'account_keys.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$AccountKeys {
@@ -31,9 +30,8 @@ mixin _$AccountKeys {
 /// @nodoc
 abstract class $AccountKeysCopyWith<$Res> {
   factory $AccountKeysCopyWith(
-    AccountKeys value,
-    $Res Function(AccountKeys) then,
-  ) = _$AccountKeysCopyWithImpl<$Res, AccountKeys>;
+          AccountKeys value, $Res Function(AccountKeys) then) =
+      _$AccountKeysCopyWithImpl<$Res, AccountKeys>;
   @useResult
   $Res call({KeyDuo ultimateKey, KeyDuo deviceKey, String symmetricKeyJwk});
 }
@@ -57,23 +55,20 @@ class _$AccountKeysCopyWithImpl<$Res, $Val extends AccountKeys>
     Object? deviceKey = null,
     Object? symmetricKeyJwk = null,
   }) {
-    return _then(
-      _value.copyWith(
-            ultimateKey: null == ultimateKey
-                ? _value.ultimateKey
-                : ultimateKey // ignore: cast_nullable_to_non_nullable
-                      as KeyDuo,
-            deviceKey: null == deviceKey
-                ? _value.deviceKey
-                : deviceKey // ignore: cast_nullable_to_non_nullable
-                      as KeyDuo,
-            symmetricKeyJwk: null == symmetricKeyJwk
-                ? _value.symmetricKeyJwk
-                : symmetricKeyJwk // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      ultimateKey: null == ultimateKey
+          ? _value.ultimateKey
+          : ultimateKey // ignore: cast_nullable_to_non_nullable
+              as KeyDuo,
+      deviceKey: null == deviceKey
+          ? _value.deviceKey
+          : deviceKey // ignore: cast_nullable_to_non_nullable
+              as KeyDuo,
+      symmetricKeyJwk: null == symmetricKeyJwk
+          ? _value.symmetricKeyJwk
+          : symmetricKeyJwk // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
@@ -81,9 +76,8 @@ class _$AccountKeysCopyWithImpl<$Res, $Val extends AccountKeys>
 abstract class _$$AccountKeysImplCopyWith<$Res>
     implements $AccountKeysCopyWith<$Res> {
   factory _$$AccountKeysImplCopyWith(
-    _$AccountKeysImpl value,
-    $Res Function(_$AccountKeysImpl) then,
-  ) = __$$AccountKeysImplCopyWithImpl<$Res>;
+          _$AccountKeysImpl value, $Res Function(_$AccountKeysImpl) then) =
+      __$$AccountKeysImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({KeyDuo ultimateKey, KeyDuo deviceKey, String symmetricKeyJwk});
@@ -94,9 +88,8 @@ class __$$AccountKeysImplCopyWithImpl<$Res>
     extends _$AccountKeysCopyWithImpl<$Res, _$AccountKeysImpl>
     implements _$$AccountKeysImplCopyWith<$Res> {
   __$$AccountKeysImplCopyWithImpl(
-    _$AccountKeysImpl _value,
-    $Res Function(_$AccountKeysImpl) _then,
-  ) : super(_value, _then);
+      _$AccountKeysImpl _value, $Res Function(_$AccountKeysImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of AccountKeys
   /// with the given fields replaced by the non-null parameter values.
@@ -107,33 +100,30 @@ class __$$AccountKeysImplCopyWithImpl<$Res>
     Object? deviceKey = null,
     Object? symmetricKeyJwk = null,
   }) {
-    return _then(
-      _$AccountKeysImpl(
-        ultimateKey: null == ultimateKey
-            ? _value.ultimateKey
-            : ultimateKey // ignore: cast_nullable_to_non_nullable
-                  as KeyDuo,
-        deviceKey: null == deviceKey
-            ? _value.deviceKey
-            : deviceKey // ignore: cast_nullable_to_non_nullable
-                  as KeyDuo,
-        symmetricKeyJwk: null == symmetricKeyJwk
-            ? _value.symmetricKeyJwk
-            : symmetricKeyJwk // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+    return _then(_$AccountKeysImpl(
+      ultimateKey: null == ultimateKey
+          ? _value.ultimateKey
+          : ultimateKey // ignore: cast_nullable_to_non_nullable
+              as KeyDuo,
+      deviceKey: null == deviceKey
+          ? _value.deviceKey
+          : deviceKey // ignore: cast_nullable_to_non_nullable
+              as KeyDuo,
+      symmetricKeyJwk: null == symmetricKeyJwk
+          ? _value.symmetricKeyJwk
+          : symmetricKeyJwk // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 
 class _$AccountKeysImpl implements _AccountKeys {
-  const _$AccountKeysImpl({
-    required this.ultimateKey,
-    required this.deviceKey,
-    required this.symmetricKeyJwk,
-  });
+  const _$AccountKeysImpl(
+      {required this.ultimateKey,
+      required this.deviceKey,
+      required this.symmetricKeyJwk});
 
   @override
   final KeyDuo ultimateKey;
@@ -174,11 +164,10 @@ class _$AccountKeysImpl implements _AccountKeys {
 }
 
 abstract class _AccountKeys implements AccountKeys {
-  const factory _AccountKeys({
-    required final KeyDuo ultimateKey,
-    required final KeyDuo deviceKey,
-    required final String symmetricKeyJwk,
-  }) = _$AccountKeysImpl;
+  const factory _AccountKeys(
+      {required final KeyDuo ultimateKey,
+      required final KeyDuo deviceKey,
+      required final String symmetricKeyJwk}) = _$AccountKeysImpl;
 
   @override
   KeyDuo get ultimateKey;

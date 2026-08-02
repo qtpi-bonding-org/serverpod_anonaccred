@@ -28,10 +28,12 @@ void main() {
       shareGroupId: wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
       anonAccountId: wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333'),
       role: wire.GroupMemberRole.member,
-      memberSigningPublicKeyHex: 'a' * 128,
-      memberPublicKey: '{"kty":"EC"}',
+      memberSigningPublicKeyHex: '04${'a' * 128}',
+      memberEncryptionPublicKeyHex: '04${'b' * 128}',
       encryptedDataKey: 'BLOB1',
       joinedAt: DateTime.utc(2026, 5, 20),
+      addedBySignerPublicKeyHex: '04${'c' * 128}',
+      addedByAttestation: 'test-attestation',
     );
     when(() => group.listMyGroups(
           challenge: any(named: 'challenge'),

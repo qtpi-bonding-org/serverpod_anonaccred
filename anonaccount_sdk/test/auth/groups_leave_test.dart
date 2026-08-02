@@ -59,7 +59,7 @@ void main() {
 
     // Extract the caller member key's public key hex for verification.
     final expectedMemberPubkeyHex =
-        await callerMemberKey.signingKeyPair.exportPublicKeyHex();
+        await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex();
 
     final captured = verify(
       () => group.leaveGroup(

@@ -12,8 +12,7 @@ part of 'created_group.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$CreatedGroup {
@@ -21,10 +20,10 @@ mixin _$CreatedGroup {
   String get displayName => throw _privateConstructorUsedError;
   AesGcmSecretKey get groupDataKey =>
       throw _privateConstructorUsedError; // The creator's own member KeyDuo — the group data key's creator
-  // copy (GroupMember.encryptedDataKey on the server) is wrapped to
-  // this KeyDuo's encryption public key. Callers MUST persist this
-  // (storeMemberKey) or they can never unwrap their own listMyGroups
-  // row for this group.
+// copy (GroupMember.encryptedDataKey on the server) is wrapped to
+// this KeyDuo's encryption public key. Callers MUST persist this
+// (storeMemberKey) or they can never unwrap their own listMyGroups
+// row for this group.
   KeyDuo get memberKey => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
 
@@ -38,17 +37,15 @@ mixin _$CreatedGroup {
 /// @nodoc
 abstract class $CreatedGroupCopyWith<$Res> {
   factory $CreatedGroupCopyWith(
-    CreatedGroup value,
-    $Res Function(CreatedGroup) then,
-  ) = _$CreatedGroupCopyWithImpl<$Res, CreatedGroup>;
+          CreatedGroup value, $Res Function(CreatedGroup) then) =
+      _$CreatedGroupCopyWithImpl<$Res, CreatedGroup>;
   @useResult
-  $Res call({
-    String groupId,
-    String displayName,
-    AesGcmSecretKey groupDataKey,
-    KeyDuo memberKey,
-    DateTime createdAt,
-  });
+  $Res call(
+      {String groupId,
+      String displayName,
+      AesGcmSecretKey groupDataKey,
+      KeyDuo memberKey,
+      DateTime createdAt});
 }
 
 /// @nodoc
@@ -72,31 +69,28 @@ class _$CreatedGroupCopyWithImpl<$Res, $Val extends CreatedGroup>
     Object? memberKey = null,
     Object? createdAt = null,
   }) {
-    return _then(
-      _value.copyWith(
-            groupId: null == groupId
-                ? _value.groupId
-                : groupId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            displayName: null == displayName
-                ? _value.displayName
-                : displayName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            groupDataKey: null == groupDataKey
-                ? _value.groupDataKey
-                : groupDataKey // ignore: cast_nullable_to_non_nullable
-                      as AesGcmSecretKey,
-            memberKey: null == memberKey
-                ? _value.memberKey
-                : memberKey // ignore: cast_nullable_to_non_nullable
-                      as KeyDuo,
-            createdAt: null == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      groupId: null == groupId
+          ? _value.groupId
+          : groupId // ignore: cast_nullable_to_non_nullable
+              as String,
+      displayName: null == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String,
+      groupDataKey: null == groupDataKey
+          ? _value.groupDataKey
+          : groupDataKey // ignore: cast_nullable_to_non_nullable
+              as AesGcmSecretKey,
+      memberKey: null == memberKey
+          ? _value.memberKey
+          : memberKey // ignore: cast_nullable_to_non_nullable
+              as KeyDuo,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ) as $Val);
   }
 }
 
@@ -104,18 +98,16 @@ class _$CreatedGroupCopyWithImpl<$Res, $Val extends CreatedGroup>
 abstract class _$$CreatedGroupImplCopyWith<$Res>
     implements $CreatedGroupCopyWith<$Res> {
   factory _$$CreatedGroupImplCopyWith(
-    _$CreatedGroupImpl value,
-    $Res Function(_$CreatedGroupImpl) then,
-  ) = __$$CreatedGroupImplCopyWithImpl<$Res>;
+          _$CreatedGroupImpl value, $Res Function(_$CreatedGroupImpl) then) =
+      __$$CreatedGroupImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String groupId,
-    String displayName,
-    AesGcmSecretKey groupDataKey,
-    KeyDuo memberKey,
-    DateTime createdAt,
-  });
+  $Res call(
+      {String groupId,
+      String displayName,
+      AesGcmSecretKey groupDataKey,
+      KeyDuo memberKey,
+      DateTime createdAt});
 }
 
 /// @nodoc
@@ -123,9 +115,8 @@ class __$$CreatedGroupImplCopyWithImpl<$Res>
     extends _$CreatedGroupCopyWithImpl<$Res, _$CreatedGroupImpl>
     implements _$$CreatedGroupImplCopyWith<$Res> {
   __$$CreatedGroupImplCopyWithImpl(
-    _$CreatedGroupImpl _value,
-    $Res Function(_$CreatedGroupImpl) _then,
-  ) : super(_value, _then);
+      _$CreatedGroupImpl _value, $Res Function(_$CreatedGroupImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of CreatedGroup
   /// with the given fields replaced by the non-null parameter values.
@@ -138,43 +129,40 @@ class __$$CreatedGroupImplCopyWithImpl<$Res>
     Object? memberKey = null,
     Object? createdAt = null,
   }) {
-    return _then(
-      _$CreatedGroupImpl(
-        groupId: null == groupId
-            ? _value.groupId
-            : groupId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        displayName: null == displayName
-            ? _value.displayName
-            : displayName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        groupDataKey: null == groupDataKey
-            ? _value.groupDataKey
-            : groupDataKey // ignore: cast_nullable_to_non_nullable
-                  as AesGcmSecretKey,
-        memberKey: null == memberKey
-            ? _value.memberKey
-            : memberKey // ignore: cast_nullable_to_non_nullable
-                  as KeyDuo,
-        createdAt: null == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime,
-      ),
-    );
+    return _then(_$CreatedGroupImpl(
+      groupId: null == groupId
+          ? _value.groupId
+          : groupId // ignore: cast_nullable_to_non_nullable
+              as String,
+      displayName: null == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String,
+      groupDataKey: null == groupDataKey
+          ? _value.groupDataKey
+          : groupDataKey // ignore: cast_nullable_to_non_nullable
+              as AesGcmSecretKey,
+      memberKey: null == memberKey
+          ? _value.memberKey
+          : memberKey // ignore: cast_nullable_to_non_nullable
+              as KeyDuo,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ));
   }
 }
 
 /// @nodoc
 
 class _$CreatedGroupImpl implements _CreatedGroup {
-  const _$CreatedGroupImpl({
-    required this.groupId,
-    required this.displayName,
-    required this.groupDataKey,
-    required this.memberKey,
-    required this.createdAt,
-  });
+  const _$CreatedGroupImpl(
+      {required this.groupId,
+      required this.displayName,
+      required this.groupDataKey,
+      required this.memberKey,
+      required this.createdAt});
 
   @override
   final String groupId;
@@ -182,11 +170,11 @@ class _$CreatedGroupImpl implements _CreatedGroup {
   final String displayName;
   @override
   final AesGcmSecretKey groupDataKey;
-  // The creator's own member KeyDuo — the group data key's creator
-  // copy (GroupMember.encryptedDataKey on the server) is wrapped to
-  // this KeyDuo's encryption public key. Callers MUST persist this
-  // (storeMemberKey) or they can never unwrap their own listMyGroups
-  // row for this group.
+// The creator's own member KeyDuo — the group data key's creator
+// copy (GroupMember.encryptedDataKey on the server) is wrapped to
+// this KeyDuo's encryption public key. Callers MUST persist this
+// (storeMemberKey) or they can never unwrap their own listMyGroups
+// row for this group.
   @override
   final KeyDuo memberKey;
   @override
@@ -215,13 +203,7 @@ class _$CreatedGroupImpl implements _CreatedGroup {
 
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    groupId,
-    displayName,
-    groupDataKey,
-    memberKey,
-    createdAt,
-  );
+      runtimeType, groupId, displayName, groupDataKey, memberKey, createdAt);
 
   /// Create a copy of CreatedGroup
   /// with the given fields replaced by the non-null parameter values.
@@ -233,24 +215,24 @@ class _$CreatedGroupImpl implements _CreatedGroup {
 }
 
 abstract class _CreatedGroup implements CreatedGroup {
-  const factory _CreatedGroup({
-    required final String groupId,
-    required final String displayName,
-    required final AesGcmSecretKey groupDataKey,
-    required final KeyDuo memberKey,
-    required final DateTime createdAt,
-  }) = _$CreatedGroupImpl;
+  const factory _CreatedGroup(
+      {required final String groupId,
+      required final String displayName,
+      required final AesGcmSecretKey groupDataKey,
+      required final KeyDuo memberKey,
+      required final DateTime createdAt}) = _$CreatedGroupImpl;
 
   @override
   String get groupId;
   @override
   String get displayName;
   @override
-  AesGcmSecretKey get groupDataKey; // The creator's own member KeyDuo — the group data key's creator
-  // copy (GroupMember.encryptedDataKey on the server) is wrapped to
-  // this KeyDuo's encryption public key. Callers MUST persist this
-  // (storeMemberKey) or they can never unwrap their own listMyGroups
-  // row for this group.
+  AesGcmSecretKey
+      get groupDataKey; // The creator's own member KeyDuo — the group data key's creator
+// copy (GroupMember.encryptedDataKey on the server) is wrapped to
+// this KeyDuo's encryption public key. Callers MUST persist this
+// (storeMemberKey) or they can never unwrap their own listMyGroups
+// row for this group.
   @override
   KeyDuo get memberKey;
   @override

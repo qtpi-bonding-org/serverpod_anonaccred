@@ -16,6 +16,12 @@ void main() {
       wire.UuidValue.fromString('00000000-0000-4000-8000-000000000000'),
     );
     registerFallbackValue(wire.GroupMemberRole.member);
+    registerFallbackValue(
+      wire.PublicKeyDuo(
+        signingPublicKeyHex: '04${'0' * 128}',
+        encryptionPublicKeyHex: '04${'1' * 128}',
+      ),
+    );
   });
 
   test('addGroupMember calls wire with inner member-key attestation', () async {
@@ -44,10 +50,12 @@ void main() {
       shareGroupId: groupId,
       anonAccountId: newMemberAccountId,
       role: wire.GroupMemberRole.member,
-      memberSigningPublicKeyHex: 'd' * 128,
-      memberPublicKey: '{"kty":"EC"}',
+      memberSigningPublicKeyHex: '04${'d' * 128}',
+      memberEncryptionPublicKeyHex: '04${'e' * 128}',
       encryptedDataKey: 'WRAPPED_KEY',
       joinedAt: DateTime.utc(2026, 5, 20),
+      addedBySignerPublicKeyHex: '04${'f' * 128}',
+      addedByAttestation: 'test-attestation',
     );
 
     when(() => group.addGroupMember(
@@ -59,8 +67,7 @@ void main() {
           groupId: any(named: 'groupId'),
           newMemberAccountId: any(named: 'newMemberAccountId'),
           role: any(named: 'role'),
-          memberSigningPublicKeyHex: any(named: 'memberSigningPublicKeyHex'),
-          memberPublicKey: any(named: 'memberPublicKey'),
+          memberKeys: any(named: 'memberKeys'),
           encryptedDataKey: any(named: 'encryptedDataKey'),
           callerMemberSigningPublicKeyHex:
               any(named: 'callerMemberSigningPublicKeyHex'),
@@ -76,8 +83,8 @@ void main() {
       groupId: groupId,
       newMemberAccountId: newMemberAccountId,
       role: wire.GroupMemberRole.member,
-      newMemberSigningPubkeyHex: 'd' * 128,
-      newMemberPublicKeyJwk: '{"kty":"EC"}',
+      newMemberSigningPubkeyHex: '04${'d' * 128}',
+      newMemberEncryptionPublicKeyHex: '04${'e' * 128}',
       newMemberEncryptedDataKey: 'WRAPPED_KEY',
       callerMemberKey: callerMemberKey,
       callerDeviceKey: callerDeviceKey,
@@ -98,8 +105,7 @@ void main() {
         groupId: any(named: 'groupId'),
         newMemberAccountId: any(named: 'newMemberAccountId'),
         role: any(named: 'role'),
-        memberSigningPublicKeyHex: any(named: 'memberSigningPublicKeyHex'),
-        memberPublicKey: any(named: 'memberPublicKey'),
+        memberKeys: any(named: 'memberKeys'),
         encryptedDataKey: any(named: 'encryptedDataKey'),
         callerMemberSigningPublicKeyHex:
             captureAny(named: 'callerMemberSigningPublicKeyHex'),

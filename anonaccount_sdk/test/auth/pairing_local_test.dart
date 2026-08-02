@@ -13,12 +13,12 @@ void main() {
     test('returns a fresh device key + parseable QR payload', () async {
       final pairing = AnonaccountPairing(_FakeCaller(), InMemoryAccountKeyStore());
       final qr = await pairing.beginPairing(deviceLabel: 'iPhone-15');
-      expect(qr.signingPubkeyHex, hasLength(128));
+      expect(qr.signingPubkeyHex, hasLength(130));
 
       final decoded = jsonDecode(qr.qrPayloadJson) as Map<String, dynamic>;
       expect(decoded['action'], 'pair');
       expect(decoded['theirSigningPubkeyHex'], qr.signingPubkeyHex);
-      expect(decoded['theirEncryptionPubkeyJwk'], isA<String>());
+      expect(decoded['theirEncryptionPubkeyHex'], hasLength(130));
       expect(decoded['label'], 'iPhone-15');
     });
   });

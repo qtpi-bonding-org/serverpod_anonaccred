@@ -6,10 +6,11 @@ void main() {
   test('AccountCreationResult exposes payload', () async {
     final payload = RegistrationPayload(
       devicePublicKeyHex: 'x',
+      deviceEncryptionPublicKeyHex: 'x2',
       ultimatePublicKeyHex: 'y',
+      ultimateEncryptionPublicKeyHex: 'y2',
       recoveryBlob: '',
       deviceBlob: '',
-      signature: '',
       deviceKeyAttestation: '',
       createdAt: DateTime.utc(2026, 5, 20),
     );

@@ -21,20 +21,20 @@ void main() {
     final wire = jsonEncode({
       'action': 'pair',
       'theirSigningPubkeyHex': 'b' * 128,
-      'theirEncryptionPubkeyJwk': '{"kty":"EC"}',
+      'theirEncryptionPubkeyHex': '04${'c' * 128}',
       'label': 'MacBook',
     });
     final scanned = ScannedPairingQr.fromQrJson(wire);
     expect(scanned.theirSigningPubkeyHex, 'b' * 128);
     expect(scanned.label, 'MacBook');
-    expect(scanned.theirEncryptionPubkeyJwk, '{"kty":"EC"}');
+    expect(scanned.theirEncryptionPubkeyHex, '04${'c' * 128}');
   });
 
   test('ScannedPairingQr.fromQrJson rejects non-pair actions', () {
     final wire = jsonEncode({
       'action': 'unknown',
       'theirSigningPubkeyHex': 'x',
-      'theirEncryptionPubkeyJwk': '{}',
+      'theirEncryptionPubkeyHex': 'y',
       'label': 'L',
     });
     expect(

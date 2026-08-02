@@ -12,8 +12,7 @@ part of 'generated_pairing_qr.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$GeneratedPairingQr {
@@ -30,9 +29,8 @@ mixin _$GeneratedPairingQr {
 /// @nodoc
 abstract class $GeneratedPairingQrCopyWith<$Res> {
   factory $GeneratedPairingQrCopyWith(
-    GeneratedPairingQr value,
-    $Res Function(GeneratedPairingQr) then,
-  ) = _$GeneratedPairingQrCopyWithImpl<$Res, GeneratedPairingQr>;
+          GeneratedPairingQr value, $Res Function(GeneratedPairingQr) then) =
+      _$GeneratedPairingQrCopyWithImpl<$Res, GeneratedPairingQr>;
   @useResult
   $Res call({String qrPayloadJson, String signingPubkeyHex});
 }
@@ -51,30 +49,29 @@ class _$GeneratedPairingQrCopyWithImpl<$Res, $Val extends GeneratedPairingQr>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? qrPayloadJson = null, Object? signingPubkeyHex = null}) {
-    return _then(
-      _value.copyWith(
-            qrPayloadJson: null == qrPayloadJson
-                ? _value.qrPayloadJson
-                : qrPayloadJson // ignore: cast_nullable_to_non_nullable
-                      as String,
-            signingPubkeyHex: null == signingPubkeyHex
-                ? _value.signingPubkeyHex
-                : signingPubkeyHex // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? qrPayloadJson = null,
+    Object? signingPubkeyHex = null,
+  }) {
+    return _then(_value.copyWith(
+      qrPayloadJson: null == qrPayloadJson
+          ? _value.qrPayloadJson
+          : qrPayloadJson // ignore: cast_nullable_to_non_nullable
+              as String,
+      signingPubkeyHex: null == signingPubkeyHex
+          ? _value.signingPubkeyHex
+          : signingPubkeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$GeneratedPairingQrImplCopyWith<$Res>
     implements $GeneratedPairingQrCopyWith<$Res> {
-  factory _$$GeneratedPairingQrImplCopyWith(
-    _$GeneratedPairingQrImpl value,
-    $Res Function(_$GeneratedPairingQrImpl) then,
-  ) = __$$GeneratedPairingQrImplCopyWithImpl<$Res>;
+  factory _$$GeneratedPairingQrImplCopyWith(_$GeneratedPairingQrImpl value,
+          $Res Function(_$GeneratedPairingQrImpl) then) =
+      __$$GeneratedPairingQrImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String qrPayloadJson, String signingPubkeyHex});
@@ -84,38 +81,36 @@ abstract class _$$GeneratedPairingQrImplCopyWith<$Res>
 class __$$GeneratedPairingQrImplCopyWithImpl<$Res>
     extends _$GeneratedPairingQrCopyWithImpl<$Res, _$GeneratedPairingQrImpl>
     implements _$$GeneratedPairingQrImplCopyWith<$Res> {
-  __$$GeneratedPairingQrImplCopyWithImpl(
-    _$GeneratedPairingQrImpl _value,
-    $Res Function(_$GeneratedPairingQrImpl) _then,
-  ) : super(_value, _then);
+  __$$GeneratedPairingQrImplCopyWithImpl(_$GeneratedPairingQrImpl _value,
+      $Res Function(_$GeneratedPairingQrImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of GeneratedPairingQr
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? qrPayloadJson = null, Object? signingPubkeyHex = null}) {
-    return _then(
-      _$GeneratedPairingQrImpl(
-        qrPayloadJson: null == qrPayloadJson
-            ? _value.qrPayloadJson
-            : qrPayloadJson // ignore: cast_nullable_to_non_nullable
-                  as String,
-        signingPubkeyHex: null == signingPubkeyHex
-            ? _value.signingPubkeyHex
-            : signingPubkeyHex // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? qrPayloadJson = null,
+    Object? signingPubkeyHex = null,
+  }) {
+    return _then(_$GeneratedPairingQrImpl(
+      qrPayloadJson: null == qrPayloadJson
+          ? _value.qrPayloadJson
+          : qrPayloadJson // ignore: cast_nullable_to_non_nullable
+              as String,
+      signingPubkeyHex: null == signingPubkeyHex
+          ? _value.signingPubkeyHex
+          : signingPubkeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 
 class _$GeneratedPairingQrImpl implements _GeneratedPairingQr {
-  const _$GeneratedPairingQrImpl({
-    required this.qrPayloadJson,
-    required this.signingPubkeyHex,
-  });
+  const _$GeneratedPairingQrImpl(
+      {required this.qrPayloadJson, required this.signingPubkeyHex});
 
   @override
   final String qrPayloadJson;
@@ -148,16 +143,13 @@ class _$GeneratedPairingQrImpl implements _GeneratedPairingQr {
   @pragma('vm:prefer-inline')
   _$$GeneratedPairingQrImplCopyWith<_$GeneratedPairingQrImpl> get copyWith =>
       __$$GeneratedPairingQrImplCopyWithImpl<_$GeneratedPairingQrImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 }
 
 abstract class _GeneratedPairingQr implements GeneratedPairingQr {
-  const factory _GeneratedPairingQr({
-    required final String qrPayloadJson,
-    required final String signingPubkeyHex,
-  }) = _$GeneratedPairingQrImpl;
+  const factory _GeneratedPairingQr(
+      {required final String qrPayloadJson,
+      required final String signingPubkeyHex}) = _$GeneratedPairingQrImpl;
 
   @override
   String get qrPayloadJson;
