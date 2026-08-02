@@ -137,7 +137,7 @@ void main() {
 
         expect(device.deviceEncryptionPublicKeyHex, hasLength(130));
         expect(device.addedByAttestation, isNotEmpty);
-        expect(device.addedBySignerPublicKeyHex, ultimatePubKey);
+        expect(device.addedByAttestorPublicKeyHex, ultimatePubKey);
         expect(device.createdAt, isNotNull);
         expect(device.revokedAt, isNull);
       },

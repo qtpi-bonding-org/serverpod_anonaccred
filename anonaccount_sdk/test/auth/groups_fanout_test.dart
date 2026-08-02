@@ -63,7 +63,7 @@ void main() {
       deviceEncryptionPublicKeyHex: encryptionHex,
       encryptedDataKey: blob,
       label: 'device-$id',
-      addedBySignerPublicKeyHex: '04${'0' * 128}',
+      addedByAttestorPublicKeyHex: '04${'0' * 128}',
       addedByAttestation: 'test-attestation',
       isRevoked: isRevoked,
     );
@@ -441,7 +441,7 @@ void main() {
         deviceEncryptionPublicKeyHex: newDeviceEncHex,
         encryptedDataKey: 'wrapped-by-approver',
         label: 'new-device',
-        addedBySignerPublicKeyHex: callerHex,
+        addedByAttestorPublicKeyHex: callerHex,
         addedByAttestation: 'att',
         isRevoked: false,
       );

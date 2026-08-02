@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
+import '../queries/active_rows.dart';
 import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 import 'signed_pow_endpoint.dart';
 
@@ -43,10 +44,9 @@ class DataKeyEndpoint extends SignedPowEndpoint {
         payload,
       );
 
-      final device = await AccountDevice.db.findFirstRow(
+      final device = await AllRows.deviceBySigningKeyIncludingRevoked(
         session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(deviceSigningPublicKeyHex),
+        deviceSigningPublicKeyHex,
       );
 
       final activeDevice = AnonAccountHelpers.requireActiveDevice(

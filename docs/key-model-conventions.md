@@ -213,6 +213,20 @@ delegated authority beneath that.
 **Reason:** possession is checkable by anyone; a DB flag is only as trustworthy as
 the server.
 
+**`GroupOwner` (added in the P0 schema batch, 2026-08-02) does not change this.**
+It is a table of *who has a recoverable copy of the group's ultimate key* —
+`encryptedUltimateKey`, the ultimate KeyDuo JWK wrapped to that account's own
+ultimate encryption key — not a role or a source of authority. Authority is still
+demonstrated by signing with the ultimate private key, exactly as above. The
+table exists because ownership can now be transferred and co-held: adding an
+owner is a row (a new wrapped copy), not a re-key, which `createGroup`
+discarding the ultimate private key after generation (see Known Deviations)
+made otherwise unrecoverable. Schema only, landed P0 — no endpoints read or
+write this table yet. `GroupOwner`'s own unique index on
+`(shareGroupId, anonAccountId)` is partial for the same reason
+`group_member_unique_idx` is: an account id can't be regenerated, so an
+unconditional index would make a revoked owner-grant permanent.
+
 ### 11. One encoding for public keys; purpose lives in the name and the type
 
 Every public key — signing or encryption, either hierarchy — is SEC1 uncompressed

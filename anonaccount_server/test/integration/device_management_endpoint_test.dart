@@ -259,7 +259,7 @@ void main() {
         label: 'paired-device',
       );
 
-      expect(device.addedBySignerPublicKeyHex, s.devicePub);
+      expect(device.addedByAttestorPublicKeyHex, s.devicePub);
       expect(device.addedByAttestation, pairingAttestation);
       expect(device.anonAccountId, s.device.anonAccountId);
     });

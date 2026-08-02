@@ -18,15 +18,20 @@ fields:
   memberSigningPublicKeyHex: String
   memberEncryptionPublicKeyHex: String
   encryptedDataKey: String
+  # The member KeyDuo JWK, encrypted with the account's ultimate encryption
+  # public key — the same construction as AnonAccount.encryptedDataKey one
+  # tier down. Non-nullable: every path that creates this row supplies it.
+  encryptedMemberKey: String
   joinedAt: DateTime, default=now
-  lastActive: DateTime, default=now
   isRevoked: bool, default=false
   # Tightened from nullable to non-nullable: every group member row is
   # recorded as attested (rule 7). Fields stay null for callers that
   # legitimately have no signer — `addedBy*` is required for a row to
   # be considered attested.
-  addedBySignerPublicKeyHex: String
+  addedByAttestorPublicKeyHex: String
   addedByAttestation: String
-  revokedBySignerPublicKeyHex: String?
+  revokedByAttestorPublicKeyHex: String?
   revokedByAttestation: String?
   revokedAt: DateTime?
+  # Reserved for key rotation. No endpoint reads it yet.
+  keyEpoch: int, default=0

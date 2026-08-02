@@ -27,3 +27,6 @@ fields:
 
   # Account creation timestamp
   createdAt: DateTime, default=now
+
+  # Reserved for key rotation. No endpoint reads it yet.
+  keyEpoch: int, default=0

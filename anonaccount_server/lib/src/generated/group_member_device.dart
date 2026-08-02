@@ -25,13 +25,15 @@ abstract class GroupMemberDevice
     required this.accountDeviceId,
     this.accountDevice,
     required this.encryptedDataKey,
-    required this.addedBySignerPublicKeyHex,
+    required this.addedByAttestorPublicKeyHex,
     required this.addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     this.revokedAt,
+    int? keyEpoch,
   }) : createdAt = createdAt ?? DateTime.now(),
-       isRevoked = isRevoked ?? false;
+       isRevoked = isRevoked ?? false,
+       keyEpoch = keyEpoch ?? 0;
 
   factory GroupMemberDevice({
     _i1.UuidValue? id,
@@ -40,11 +42,12 @@ abstract class GroupMemberDevice
     required _i1.UuidValue accountDeviceId,
     _i3.AccountDevice? accountDevice,
     required String encryptedDataKey,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     DateTime? revokedAt,
+    int? keyEpoch,
   }) = _GroupMemberDeviceImpl;
 
   factory GroupMemberDevice.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -69,8 +72,8 @@ abstract class GroupMemberDevice
               jsonSerialization['accountDevice'],
             ),
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
-      addedBySignerPublicKeyHex:
-          jsonSerialization['addedBySignerPublicKeyHex'] as String,
+      addedByAttestorPublicKeyHex:
+          jsonSerialization['addedByAttestorPublicKeyHex'] as String,
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -81,6 +84,7 @@ abstract class GroupMemberDevice
       revokedAt: jsonSerialization['revokedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
+      keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
 
@@ -101,7 +105,7 @@ abstract class GroupMemberDevice
 
   String encryptedDataKey;
 
-  String addedBySignerPublicKeyHex;
+  String addedByAttestorPublicKeyHex;
 
   String addedByAttestation;
 
@@ -110,6 +114,8 @@ abstract class GroupMemberDevice
   bool isRevoked;
 
   DateTime? revokedAt;
+
+  int keyEpoch;
 
   @override
   _i1.Table<_i1.UuidValue?> get table => t;
@@ -124,11 +130,12 @@ abstract class GroupMemberDevice
     _i1.UuidValue? accountDeviceId,
     _i3.AccountDevice? accountDevice,
     String? encryptedDataKey,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     DateTime? revokedAt,
+    int? keyEpoch,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -140,11 +147,12 @@ abstract class GroupMemberDevice
       'accountDeviceId': accountDeviceId.toJson(),
       if (accountDevice != null) 'accountDevice': accountDevice?.toJson(),
       'encryptedDataKey': encryptedDataKey,
-      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
       'addedByAttestation': addedByAttestation,
       'createdAt': createdAt.toJson(),
       'isRevoked': isRevoked,
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -159,11 +167,12 @@ abstract class GroupMemberDevice
       if (accountDevice != null)
         'accountDevice': accountDevice?.toJsonForProtocol(),
       'encryptedDataKey': encryptedDataKey,
-      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
       'addedByAttestation': addedByAttestation,
       'createdAt': createdAt.toJson(),
       'isRevoked': isRevoked,
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -213,11 +222,12 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
     required _i1.UuidValue accountDeviceId,
     _i3.AccountDevice? accountDevice,
     required String encryptedDataKey,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     DateTime? revokedAt,
+    int? keyEpoch,
   }) : super._(
          id: id,
          groupMemberId: groupMemberId,
@@ -225,11 +235,12 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
          accountDeviceId: accountDeviceId,
          accountDevice: accountDevice,
          encryptedDataKey: encryptedDataKey,
-         addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+         addedByAttestorPublicKeyHex: addedByAttestorPublicKeyHex,
          addedByAttestation: addedByAttestation,
          createdAt: createdAt,
          isRevoked: isRevoked,
          revokedAt: revokedAt,
+         keyEpoch: keyEpoch,
        );
 
   /// Returns a shallow copy of this [GroupMemberDevice]
@@ -243,11 +254,12 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
     _i1.UuidValue? accountDeviceId,
     Object? accountDevice = _Undefined,
     String? encryptedDataKey,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     Object? revokedAt = _Undefined,
+    int? keyEpoch,
   }) {
     return GroupMemberDevice(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -260,12 +272,13 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
           ? accountDevice
           : this.accountDevice?.copyWith(),
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
-      addedBySignerPublicKeyHex:
-          addedBySignerPublicKeyHex ?? this.addedBySignerPublicKeyHex,
+      addedByAttestorPublicKeyHex:
+          addedByAttestorPublicKeyHex ?? this.addedByAttestorPublicKeyHex,
       addedByAttestation: addedByAttestation ?? this.addedByAttestation,
       createdAt: createdAt ?? this.createdAt,
       isRevoked: isRevoked ?? this.isRevoked,
       revokedAt: revokedAt is DateTime? ? revokedAt : this.revokedAt,
+      keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }
 }
@@ -294,9 +307,9 @@ class GroupMemberDeviceUpdateTable
         value,
       );
 
-  _i1.ColumnValue<String, String> addedBySignerPublicKeyHex(String value) =>
+  _i1.ColumnValue<String, String> addedByAttestorPublicKeyHex(String value) =>
       _i1.ColumnValue(
-        table.addedBySignerPublicKeyHex,
+        table.addedByAttestorPublicKeyHex,
         value,
       );
 
@@ -322,6 +335,11 @@ class GroupMemberDeviceUpdateTable
         table.revokedAt,
         value,
       );
+
+  _i1.ColumnValue<int, int> keyEpoch(int value) => _i1.ColumnValue(
+    table.keyEpoch,
+    value,
+  );
 }
 
 class GroupMemberDeviceTable extends _i1.Table<_i1.UuidValue?> {
@@ -340,8 +358,8 @@ class GroupMemberDeviceTable extends _i1.Table<_i1.UuidValue?> {
       'encryptedDataKey',
       this,
     );
-    addedBySignerPublicKeyHex = _i1.ColumnString(
-      'addedBySignerPublicKeyHex',
+    addedByAttestorPublicKeyHex = _i1.ColumnString(
+      'addedByAttestorPublicKeyHex',
       this,
     );
     addedByAttestation = _i1.ColumnString(
@@ -362,6 +380,11 @@ class GroupMemberDeviceTable extends _i1.Table<_i1.UuidValue?> {
       'revokedAt',
       this,
     );
+    keyEpoch = _i1.ColumnInt(
+      'keyEpoch',
+      this,
+      hasDefault: true,
+    );
   }
 
   late final GroupMemberDeviceUpdateTable updateTable;
@@ -376,7 +399,7 @@ class GroupMemberDeviceTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString encryptedDataKey;
 
-  late final _i1.ColumnString addedBySignerPublicKeyHex;
+  late final _i1.ColumnString addedByAttestorPublicKeyHex;
 
   late final _i1.ColumnString addedByAttestation;
 
@@ -385,6 +408,8 @@ class GroupMemberDeviceTable extends _i1.Table<_i1.UuidValue?> {
   late final _i1.ColumnBool isRevoked;
 
   late final _i1.ColumnDateTime revokedAt;
+
+  late final _i1.ColumnInt keyEpoch;
 
   _i2.GroupMemberTable get groupMember {
     if (_groupMember != null) return _groupMember!;
@@ -418,11 +443,12 @@ class GroupMemberDeviceTable extends _i1.Table<_i1.UuidValue?> {
     groupMemberId,
     accountDeviceId,
     encryptedDataKey,
-    addedBySignerPublicKeyHex,
+    addedByAttestorPublicKeyHex,
     addedByAttestation,
     createdAt,
     isRevoked,
     revokedAt,
+    keyEpoch,
   ];
 
   @override

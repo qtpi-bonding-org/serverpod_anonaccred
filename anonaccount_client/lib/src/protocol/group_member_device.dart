@@ -23,13 +23,15 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
     required this.accountDeviceId,
     this.accountDevice,
     required this.encryptedDataKey,
-    required this.addedBySignerPublicKeyHex,
+    required this.addedByAttestorPublicKeyHex,
     required this.addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     this.revokedAt,
+    int? keyEpoch,
   }) : createdAt = createdAt ?? DateTime.now(),
-       isRevoked = isRevoked ?? false;
+       isRevoked = isRevoked ?? false,
+       keyEpoch = keyEpoch ?? 0;
 
   factory GroupMemberDevice({
     _i1.UuidValue? id,
@@ -38,11 +40,12 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
     required _i1.UuidValue accountDeviceId,
     _i3.AccountDevice? accountDevice,
     required String encryptedDataKey,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     DateTime? revokedAt,
+    int? keyEpoch,
   }) = _GroupMemberDeviceImpl;
 
   factory GroupMemberDevice.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -67,8 +70,8 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
               jsonSerialization['accountDevice'],
             ),
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
-      addedBySignerPublicKeyHex:
-          jsonSerialization['addedBySignerPublicKeyHex'] as String,
+      addedByAttestorPublicKeyHex:
+          jsonSerialization['addedByAttestorPublicKeyHex'] as String,
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -79,6 +82,7 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
       revokedAt: jsonSerialization['revokedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
+      keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
 
@@ -97,7 +101,7 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
 
   String encryptedDataKey;
 
-  String addedBySignerPublicKeyHex;
+  String addedByAttestorPublicKeyHex;
 
   String addedByAttestation;
 
@@ -106,6 +110,8 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
   bool isRevoked;
 
   DateTime? revokedAt;
+
+  int keyEpoch;
 
   /// Returns a shallow copy of this [GroupMemberDevice]
   /// with some or all fields replaced by the given arguments.
@@ -117,11 +123,12 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
     _i1.UuidValue? accountDeviceId,
     _i3.AccountDevice? accountDevice,
     String? encryptedDataKey,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     DateTime? revokedAt,
+    int? keyEpoch,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -133,11 +140,12 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
       'accountDeviceId': accountDeviceId.toJson(),
       if (accountDevice != null) 'accountDevice': accountDevice?.toJson(),
       'encryptedDataKey': encryptedDataKey,
-      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
       'addedByAttestation': addedByAttestation,
       'createdAt': createdAt.toJson(),
       'isRevoked': isRevoked,
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -157,11 +165,12 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
     required _i1.UuidValue accountDeviceId,
     _i3.AccountDevice? accountDevice,
     required String encryptedDataKey,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     DateTime? revokedAt,
+    int? keyEpoch,
   }) : super._(
          id: id,
          groupMemberId: groupMemberId,
@@ -169,11 +178,12 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
          accountDeviceId: accountDeviceId,
          accountDevice: accountDevice,
          encryptedDataKey: encryptedDataKey,
-         addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+         addedByAttestorPublicKeyHex: addedByAttestorPublicKeyHex,
          addedByAttestation: addedByAttestation,
          createdAt: createdAt,
          isRevoked: isRevoked,
          revokedAt: revokedAt,
+         keyEpoch: keyEpoch,
        );
 
   /// Returns a shallow copy of this [GroupMemberDevice]
@@ -187,11 +197,12 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
     _i1.UuidValue? accountDeviceId,
     Object? accountDevice = _Undefined,
     String? encryptedDataKey,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
     DateTime? createdAt,
     bool? isRevoked,
     Object? revokedAt = _Undefined,
+    int? keyEpoch,
   }) {
     return GroupMemberDevice(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -204,12 +215,13 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
           ? accountDevice
           : this.accountDevice?.copyWith(),
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
-      addedBySignerPublicKeyHex:
-          addedBySignerPublicKeyHex ?? this.addedBySignerPublicKeyHex,
+      addedByAttestorPublicKeyHex:
+          addedByAttestorPublicKeyHex ?? this.addedByAttestorPublicKeyHex,
       addedByAttestation: addedByAttestation ?? this.addedByAttestation,
       createdAt: createdAt ?? this.createdAt,
       isRevoked: isRevoked ?? this.isRevoked,
       revokedAt: revokedAt is DateTime? ? revokedAt : this.revokedAt,
+      keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }
 }

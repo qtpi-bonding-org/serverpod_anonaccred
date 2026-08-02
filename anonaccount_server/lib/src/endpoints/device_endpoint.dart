@@ -6,6 +6,7 @@ import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
+import '../queries/active_rows.dart';
 import 'signed_pow_endpoint.dart';
 
 /// Public device endpoints protected by hashcash proof-of-work.
@@ -100,7 +101,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
         deviceKeys: keys,
         encryptedDataKey: encryptedDataKey,
         label: label,
-        addedBySignerPublicKeyHex: ultimateSigningPublicKeyHex,
+        addedByAttestorPublicKeyHex: ultimateSigningPublicKeyHex,
         addedByAttestation: deviceKeyAttestation,
         operation: 'registerDevice',
       );
@@ -154,10 +155,9 @@ class DeviceEndpoint extends SignedPowEndpoint {
       );
 
       // Look up device and verify it's active
-      final device = await AccountDevice.db.findFirstRow(
+      final device = await AllRows.deviceBySigningKeyIncludingRevoked(
         session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(devicePublicKeyHex),
+        devicePublicKeyHex,
       );
 
       final activeDevice = AnonAccountHelpers.requireActiveDevice(

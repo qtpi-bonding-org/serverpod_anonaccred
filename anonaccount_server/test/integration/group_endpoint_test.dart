@@ -25,7 +25,7 @@ Future<AccountDevice> createTestDevice(
       deviceEncryptionPublicKeyHex: deviceSigningPublicKeyHex,
       encryptedDataKey: 'test-device-encrypted-data-key',
       label: 'test-device',
-      addedBySignerPublicKeyHex: deviceSigningPublicKeyHex,
+      addedByAttestorPublicKeyHex: deviceSigningPublicKeyHex,
       addedByAttestation: 'test-attestation',
       lastActive: DateTime.now(),
       isRevoked: false,
@@ -182,7 +182,7 @@ void main() {
             groupMemberId: creatorMember.id!,
             accountDeviceId: creatorDevice.id!,
             encryptedDataKey: 'blob-for-d1',
-            addedBySignerPublicKeyHex: s.creatorMemberSigPub,
+            addedByAttestorPublicKeyHex: s.creatorMemberSigPub,
             addedByAttestation: 'attestation-d1',
           ),
         );
@@ -192,7 +192,7 @@ void main() {
             groupMemberId: creatorMember.id!,
             accountDeviceId: m2Device.id!,
             encryptedDataKey: 'blob-for-d2',
-            addedBySignerPublicKeyHex: s.creatorMemberSigPub,
+            addedByAttestorPublicKeyHex: s.creatorMemberSigPub,
             addedByAttestation: 'attestation-d2',
           ),
         );
@@ -343,7 +343,7 @@ void main() {
       expect(memberships, hasLength(1));
       expect(memberships.single.role, equals(GroupMemberRole.admin));
 
-      // addedBySignerPublicKeyHex/addedByAttestation are not part of
+      // addedByAttestorPublicKeyHex/addedByAttestation are not part of
       // GroupMembershipView (Task 5) — verify attestation provenance
       // directly against the underlying GroupMember row instead.
       final verifySession =
@@ -358,7 +358,7 @@ void main() {
         );
         expect(memberRow, isNotNull);
         expect(
-          memberRow!.addedBySignerPublicKeyHex,
+          memberRow!.addedByAttestorPublicKeyHex,
           equals(s.groupUltSigPub),
         );
         expect(memberRow.addedByAttestation, isNotNull);
@@ -525,7 +525,7 @@ void main() {
         memberAuthSignature: innerSig,
       );
       expect(member.role, equals(GroupMemberRole.member));
-      expect(member.addedBySignerPublicKeyHex, equals(s.creatorMemberSigPub));
+      expect(member.addedByAttestorPublicKeyHex, equals(s.creatorMemberSigPub));
       expect(member.addedByAttestation, equals(innerSig));
     });
 
@@ -729,7 +729,7 @@ void main() {
         groupUltimateSignature: ownerSig,
       );
       expect(member.role, equals(GroupMemberRole.admin));
-      expect(member.addedBySignerPublicKeyHex, equals(s.groupUltSigPub));
+      expect(member.addedByAttestorPublicKeyHex, equals(s.groupUltSigPub));
     });
 
     test('addGroupMember(role=admin): rejected without owner sig', () async {
@@ -853,7 +853,7 @@ void main() {
         final after = await GroupMember.db.findById(session, victimRow.id!);
         expect(after!.isRevoked, isTrue);
         expect(
-          after.revokedBySignerPublicKeyHex,
+          after.revokedByAttestorPublicKeyHex,
           equals(s.creatorMemberSigPub),
         );
         expect(after.revokedByAttestation, equals(rmSig));
@@ -1126,7 +1126,7 @@ test('listGroupMembers: rejected when caller is not a member', () async {
   try {
     final after = await GroupMember.db.findById(dbSession, m2Row.id!);
     expect(after!.isRevoked, isTrue);
-    expect(after.revokedBySignerPublicKeyHex, equals(m2MemberPub));
+    expect(after.revokedByAttestorPublicKeyHex, equals(m2MemberPub));
     expect(after.revokedByAttestation, equals(innerSig));
   } finally {
     await dbSession.close();

@@ -1,0 +1,33 @@
+# An account that can open the group's ultimate key, and therefore holds
+# owner authority over the group.
+#
+# A table rather than a column on share_group because ownership transfers
+# and can be co-held: adding an owner is a row, not a re-key. The unique
+# index is partial so ownership can be re-granted after revocation —
+# group_member_unique_idx being unconditional is why leaving a group is
+# permanent today.
+class: GroupOwner
+table: group_owner
+indexes:
+  group_owner_active_idx:
+    fields: shareGroupId, anonAccountId
+    unique: true          # made partial by hand — see Task 4 Step 3
+  group_owner_account_idx:
+    fields: anonAccountId
+    unique: false
+fields:
+  id: UuidValue?, defaultPersist=random
+  shareGroup: ShareGroup?, relation(onDelete=Cascade)
+  anonAccount: AnonAccount?, relation(onDelete=Cascade)
+  # The group's ultimate KeyDuo JWK, encrypted with this account's ultimate
+  # encryption public key. Only that account's written-down backup opens it.
+  encryptedUltimateKey: String
+  addedByAttestorPublicKeyHex: String
+  addedByAttestation: String
+  # Reserved for key rotation. No endpoint reads it yet.
+  keyEpoch: int, default=0
+  createdAt: DateTime, default=now
+  isRevoked: bool, default=false
+  revokedAt: DateTime?
+  revokedByAttestorPublicKeyHex: String?
+  revokedByAttestation: String?

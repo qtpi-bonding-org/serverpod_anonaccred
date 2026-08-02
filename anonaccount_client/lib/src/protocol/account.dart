@@ -19,7 +19,9 @@ abstract class AnonAccount implements _i1.SerializableModel {
     required this.encryptedDataKey,
     required this.ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+    int? keyEpoch,
+  }) : createdAt = createdAt ?? DateTime.now(),
+       keyEpoch = keyEpoch ?? 0;
 
   factory AnonAccount({
     _i1.UuidValue? id,
@@ -27,6 +29,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
     required String encryptedDataKey,
     required String ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
+    int? keyEpoch,
   }) = _AnonAccountImpl;
 
   factory AnonAccount.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -42,6 +45,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+      keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
 
@@ -58,6 +62,8 @@ abstract class AnonAccount implements _i1.SerializableModel {
 
   DateTime createdAt;
 
+  int keyEpoch;
+
   /// Returns a shallow copy of this [AnonAccount]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -67,6 +73,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
     String? encryptedDataKey,
     String? ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
+    int? keyEpoch,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -77,6 +84,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
       'encryptedDataKey': encryptedDataKey,
       'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
       'createdAt': createdAt.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -95,12 +103,14 @@ class _AnonAccountImpl extends AnonAccount {
     required String encryptedDataKey,
     required String ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
+    int? keyEpoch,
   }) : super._(
          id: id,
          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
          createdAt: createdAt,
+         keyEpoch: keyEpoch,
        );
 
   /// Returns a shallow copy of this [AnonAccount]
@@ -113,6 +123,7 @@ class _AnonAccountImpl extends AnonAccount {
     String? encryptedDataKey,
     String? ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
+    int? keyEpoch,
   }) {
     return AnonAccount(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -122,6 +133,7 @@ class _AnonAccountImpl extends AnonAccount {
       ultimateEncryptionPublicKeyHex:
           ultimateEncryptionPublicKeyHex ?? this.ultimateEncryptionPublicKeyHex,
       createdAt: createdAt ?? this.createdAt,
+      keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }
 }

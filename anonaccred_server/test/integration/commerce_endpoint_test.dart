@@ -44,7 +44,7 @@ void main() {
           anonAccountId: testAccount.id!,
           deviceSigningPublicKeyHex: validPublicKey,
           deviceEncryptionPublicKeyHex: validPublicKey,
-          addedBySignerPublicKeyHex: validPublicKey,
+          addedByAttestorPublicKeyHex: validPublicKey,
           addedByAttestation: 'test-attestation',
           encryptedDataKey: 'device_encrypted_key_commerce_test',
           label: 'Test Device',

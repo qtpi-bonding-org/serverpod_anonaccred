@@ -38,9 +38,9 @@ fields:
   # Public key that authorized this device row (typically the ultimate
   # key for the first device, an existing paired device's key for
   # subsequent ones).
-  addedBySignerPublicKeyHex: String
+  addedByAttestorPublicKeyHex: String
 
-  # Signature produced by addedBySignerPublicKeyHex over the device
+  # Signature produced by addedByAttestorPublicKeyHex over the device
   # KeyDuo attestation payload — persisted with its signer (rule 7).
   addedByAttestation: String
 

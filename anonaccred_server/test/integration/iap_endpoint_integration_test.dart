@@ -51,7 +51,7 @@ void main() {
         deviceEncryptionPublicKeyHex:
             '04fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
             'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321',
-        addedBySignerPublicKeyHex:
+        addedByAttestorPublicKeyHex:
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
         addedByAttestation: 'test-attestation',

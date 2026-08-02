@@ -23,7 +23,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
     required this.deviceEncryptionPublicKeyHex,
     required this.encryptedDataKey,
     required this.label,
-    required this.addedBySignerPublicKeyHex,
+    required this.addedByAttestorPublicKeyHex,
     required this.addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -43,7 +43,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
     required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
     required String label,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -71,8 +71,8 @@ abstract class AccountDevice implements _i1.SerializableModel {
           jsonSerialization['deviceEncryptionPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       label: jsonSerialization['label'] as String,
-      addedBySignerPublicKeyHex:
-          jsonSerialization['addedBySignerPublicKeyHex'] as String,
+      addedByAttestorPublicKeyHex:
+          jsonSerialization['addedByAttestorPublicKeyHex'] as String,
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -107,7 +107,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
 
   String label;
 
-  String addedBySignerPublicKeyHex;
+  String addedByAttestorPublicKeyHex;
 
   String addedByAttestation;
 
@@ -132,7 +132,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
     String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
     String? label,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -151,7 +151,7 @@ abstract class AccountDevice implements _i1.SerializableModel {
       'deviceEncryptionPublicKeyHex': deviceEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
-      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
       'addedByAttestation': addedByAttestation,
       'createdAt': createdAt.toJson(),
       'lastActive': lastActive.toJson(),
@@ -178,7 +178,7 @@ class _AccountDeviceImpl extends AccountDevice {
     required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
     required String label,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -193,7 +193,7 @@ class _AccountDeviceImpl extends AccountDevice {
          deviceEncryptionPublicKeyHex: deviceEncryptionPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          label: label,
-         addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+         addedByAttestorPublicKeyHex: addedByAttestorPublicKeyHex,
          addedByAttestation: addedByAttestation,
          createdAt: createdAt,
          lastActive: lastActive,
@@ -214,7 +214,7 @@ class _AccountDeviceImpl extends AccountDevice {
     String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
     String? label,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -234,8 +234,8 @@ class _AccountDeviceImpl extends AccountDevice {
           deviceEncryptionPublicKeyHex ?? this.deviceEncryptionPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       label: label ?? this.label,
-      addedBySignerPublicKeyHex:
-          addedBySignerPublicKeyHex ?? this.addedBySignerPublicKeyHex,
+      addedByAttestorPublicKeyHex:
+          addedByAttestorPublicKeyHex ?? this.addedByAttestorPublicKeyHex,
       addedByAttestation: addedByAttestation ?? this.addedByAttestation,
       createdAt: createdAt ?? this.createdAt,
       lastActive: lastActive ?? this.lastActive,

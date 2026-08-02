@@ -213,7 +213,7 @@ void main() {
           deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
-          addedBySignerPublicKeyHex: deviceSigningKey,
+          addedByAttestorPublicKeyHex: deviceSigningKey,
           addedByAttestation: 'test-attestation',
         );
 
@@ -241,7 +241,7 @@ void main() {
             deviceEncryptionPublicKeyHex: deviceSigningKey,
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
-            addedBySignerPublicKeyHex: deviceSigningKey,
+            addedByAttestorPublicKeyHex: deviceSigningKey,
             addedByAttestation: 'test-attestation',
           );
           final publicKey = _generateFakePublicKeyString(random);
@@ -263,7 +263,7 @@ void main() {
           deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
-          addedBySignerPublicKeyHex: deviceSigningKey,
+          addedByAttestorPublicKeyHex: deviceSigningKey,
           addedByAttestation: 'test-attestation',
           isRevoked: false,
         );
@@ -290,7 +290,7 @@ void main() {
           deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
-          addedBySignerPublicKeyHex: deviceSigningKey,
+          addedByAttestorPublicKeyHex: deviceSigningKey,
           addedByAttestation: 'test-attestation',
           isRevoked: true,
         );
@@ -313,7 +313,7 @@ void main() {
             deviceEncryptionPublicKeyHex: deviceSigningKey,
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
-            addedBySignerPublicKeyHex: deviceSigningKey,
+            addedByAttestorPublicKeyHex: deviceSigningKey,
             addedByAttestation: 'test-attestation',
             isRevoked: false, // Always non-revoked for this property
           );
@@ -336,7 +336,7 @@ void main() {
             deviceEncryptionPublicKeyHex: deviceSigningKey,
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
-            addedBySignerPublicKeyHex: deviceSigningKey,
+            addedByAttestorPublicKeyHex: deviceSigningKey,
             addedByAttestation: 'test-attestation',
             isRevoked: true, // Always revoked for this property
           );

@@ -5,6 +5,7 @@ import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
+import '../queries/active_rows.dart';
 import 'signed_pow_endpoint.dart';
 
 /// SignedPoW-protected device management endpoints.
@@ -43,10 +44,10 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         'revokeDevice',
       );
 
-      final device = await AccountDevice.db.findFirstRow(
+      final device = await AllRows.deviceByIdForAccountIncludingRevoked(
         session,
-        where: (t) =>
-            t.id.equals(deviceId) & t.anonAccountId.equals(accountUuid),
+        deviceId,
+        accountUuid,
       );
 
       final foundDevice = AnonAccountHelpers.requireDevice(
@@ -116,11 +117,9 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         'listDevices',
       );
 
-      final devices = await AccountDevice.db.find(
+      final devices = await AllRows.devicesForAccountIncludingRevoked(
         session,
-        where: (t) => t.anonAccountId.equals(accountUuid),
-        orderBy: (t) => t.lastActive,
-        orderDescending: true,
+        accountUuid,
       );
 
       return devices;
@@ -167,10 +166,9 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         level: LogLevel.info,
       );
 
-      final callerDevice = await AccountDevice.db.findFirstRow(
+      final callerDevice = await AllRows.deviceBySigningKeyIncludingRevoked(
         session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(publicKeyHex),
+        publicKeyHex,
       );
 
       // Not just "exists" — an active device. A revoked device pairing new
@@ -211,7 +209,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         deviceKeys: keys,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,
-        addedBySignerPublicKeyHex: activeCaller.deviceSigningPublicKeyHex,
+        addedByAttestorPublicKeyHex: activeCaller.deviceSigningPublicKeyHex,
         addedByAttestation: pairingAttestation,
         operation: 'registerDeviceForAccount',
       );

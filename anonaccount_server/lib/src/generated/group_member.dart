@@ -29,17 +29,18 @@ abstract class GroupMember
     required this.memberSigningPublicKeyHex,
     required this.memberEncryptionPublicKeyHex,
     required this.encryptedDataKey,
+    required this.encryptedMemberKey,
     DateTime? joinedAt,
-    DateTime? lastActive,
     bool? isRevoked,
-    required this.addedBySignerPublicKeyHex,
+    required this.addedByAttestorPublicKeyHex,
     required this.addedByAttestation,
-    this.revokedBySignerPublicKeyHex,
+    this.revokedByAttestorPublicKeyHex,
     this.revokedByAttestation,
     this.revokedAt,
+    int? keyEpoch,
   }) : joinedAt = joinedAt ?? DateTime.now(),
-       lastActive = lastActive ?? DateTime.now(),
-       isRevoked = isRevoked ?? false;
+       isRevoked = isRevoked ?? false,
+       keyEpoch = keyEpoch ?? 0;
 
   factory GroupMember({
     _i1.UuidValue? id,
@@ -51,14 +52,15 @@ abstract class GroupMember
     required String memberSigningPublicKeyHex,
     required String memberEncryptionPublicKeyHex,
     required String encryptedDataKey,
+    required String encryptedMemberKey,
     DateTime? joinedAt,
-    DateTime? lastActive,
     bool? isRevoked,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
-    String? revokedBySignerPublicKeyHex,
+    String? revokedByAttestorPublicKeyHex,
     String? revokedByAttestation,
     DateTime? revokedAt,
+    int? keyEpoch,
   }) = _GroupMemberImpl;
 
   factory GroupMember.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -88,25 +90,24 @@ abstract class GroupMember
       memberEncryptionPublicKeyHex:
           jsonSerialization['memberEncryptionPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
+      encryptedMemberKey: jsonSerialization['encryptedMemberKey'] as String,
       joinedAt: jsonSerialization['joinedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['joinedAt']),
-      lastActive: jsonSerialization['lastActive'] == null
-          ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['lastActive']),
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
-      addedBySignerPublicKeyHex:
-          jsonSerialization['addedBySignerPublicKeyHex'] as String,
+      addedByAttestorPublicKeyHex:
+          jsonSerialization['addedByAttestorPublicKeyHex'] as String,
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
-      revokedBySignerPublicKeyHex:
-          jsonSerialization['revokedBySignerPublicKeyHex'] as String?,
+      revokedByAttestorPublicKeyHex:
+          jsonSerialization['revokedByAttestorPublicKeyHex'] as String?,
       revokedByAttestation:
           jsonSerialization['revokedByAttestation'] as String?,
       revokedAt: jsonSerialization['revokedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
+      keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
 
@@ -133,21 +134,23 @@ abstract class GroupMember
 
   String encryptedDataKey;
 
-  DateTime joinedAt;
+  String encryptedMemberKey;
 
-  DateTime lastActive;
+  DateTime joinedAt;
 
   bool isRevoked;
 
-  String addedBySignerPublicKeyHex;
+  String addedByAttestorPublicKeyHex;
 
   String addedByAttestation;
 
-  String? revokedBySignerPublicKeyHex;
+  String? revokedByAttestorPublicKeyHex;
 
   String? revokedByAttestation;
 
   DateTime? revokedAt;
+
+  int keyEpoch;
 
   @override
   _i1.Table<_i1.UuidValue?> get table => t;
@@ -165,14 +168,15 @@ abstract class GroupMember
     String? memberSigningPublicKeyHex,
     String? memberEncryptionPublicKeyHex,
     String? encryptedDataKey,
+    String? encryptedMemberKey,
     DateTime? joinedAt,
-    DateTime? lastActive,
     bool? isRevoked,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
-    String? revokedBySignerPublicKeyHex,
+    String? revokedByAttestorPublicKeyHex,
     String? revokedByAttestation,
     DateTime? revokedAt,
+    int? keyEpoch,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -187,16 +191,17 @@ abstract class GroupMember
       'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
       'memberEncryptionPublicKeyHex': memberEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
+      'encryptedMemberKey': encryptedMemberKey,
       'joinedAt': joinedAt.toJson(),
-      'lastActive': lastActive.toJson(),
       'isRevoked': isRevoked,
-      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
       'addedByAttestation': addedByAttestation,
-      if (revokedBySignerPublicKeyHex != null)
-        'revokedBySignerPublicKeyHex': revokedBySignerPublicKeyHex,
+      if (revokedByAttestorPublicKeyHex != null)
+        'revokedByAttestorPublicKeyHex': revokedByAttestorPublicKeyHex,
       if (revokedByAttestation != null)
         'revokedByAttestation': revokedByAttestation,
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -213,16 +218,17 @@ abstract class GroupMember
       'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
       'memberEncryptionPublicKeyHex': memberEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
+      'encryptedMemberKey': encryptedMemberKey,
       'joinedAt': joinedAt.toJson(),
-      'lastActive': lastActive.toJson(),
       'isRevoked': isRevoked,
-      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
       'addedByAttestation': addedByAttestation,
-      if (revokedBySignerPublicKeyHex != null)
-        'revokedBySignerPublicKeyHex': revokedBySignerPublicKeyHex,
+      if (revokedByAttestorPublicKeyHex != null)
+        'revokedByAttestorPublicKeyHex': revokedByAttestorPublicKeyHex,
       if (revokedByAttestation != null)
         'revokedByAttestation': revokedByAttestation,
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -275,14 +281,15 @@ class _GroupMemberImpl extends GroupMember {
     required String memberSigningPublicKeyHex,
     required String memberEncryptionPublicKeyHex,
     required String encryptedDataKey,
+    required String encryptedMemberKey,
     DateTime? joinedAt,
-    DateTime? lastActive,
     bool? isRevoked,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
-    String? revokedBySignerPublicKeyHex,
+    String? revokedByAttestorPublicKeyHex,
     String? revokedByAttestation,
     DateTime? revokedAt,
+    int? keyEpoch,
   }) : super._(
          id: id,
          shareGroupId: shareGroupId,
@@ -293,14 +300,15 @@ class _GroupMemberImpl extends GroupMember {
          memberSigningPublicKeyHex: memberSigningPublicKeyHex,
          memberEncryptionPublicKeyHex: memberEncryptionPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
+         encryptedMemberKey: encryptedMemberKey,
          joinedAt: joinedAt,
-         lastActive: lastActive,
          isRevoked: isRevoked,
-         addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+         addedByAttestorPublicKeyHex: addedByAttestorPublicKeyHex,
          addedByAttestation: addedByAttestation,
-         revokedBySignerPublicKeyHex: revokedBySignerPublicKeyHex,
+         revokedByAttestorPublicKeyHex: revokedByAttestorPublicKeyHex,
          revokedByAttestation: revokedByAttestation,
          revokedAt: revokedAt,
+         keyEpoch: keyEpoch,
        );
 
   /// Returns a shallow copy of this [GroupMember]
@@ -317,14 +325,15 @@ class _GroupMemberImpl extends GroupMember {
     String? memberSigningPublicKeyHex,
     String? memberEncryptionPublicKeyHex,
     String? encryptedDataKey,
+    String? encryptedMemberKey,
     DateTime? joinedAt,
-    DateTime? lastActive,
     bool? isRevoked,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
-    Object? revokedBySignerPublicKeyHex = _Undefined,
+    Object? revokedByAttestorPublicKeyHex = _Undefined,
     Object? revokedByAttestation = _Undefined,
     Object? revokedAt = _Undefined,
+    int? keyEpoch,
   }) {
     return GroupMember(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -342,19 +351,20 @@ class _GroupMemberImpl extends GroupMember {
       memberEncryptionPublicKeyHex:
           memberEncryptionPublicKeyHex ?? this.memberEncryptionPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
+      encryptedMemberKey: encryptedMemberKey ?? this.encryptedMemberKey,
       joinedAt: joinedAt ?? this.joinedAt,
-      lastActive: lastActive ?? this.lastActive,
       isRevoked: isRevoked ?? this.isRevoked,
-      addedBySignerPublicKeyHex:
-          addedBySignerPublicKeyHex ?? this.addedBySignerPublicKeyHex,
+      addedByAttestorPublicKeyHex:
+          addedByAttestorPublicKeyHex ?? this.addedByAttestorPublicKeyHex,
       addedByAttestation: addedByAttestation ?? this.addedByAttestation,
-      revokedBySignerPublicKeyHex: revokedBySignerPublicKeyHex is String?
-          ? revokedBySignerPublicKeyHex
-          : this.revokedBySignerPublicKeyHex,
+      revokedByAttestorPublicKeyHex: revokedByAttestorPublicKeyHex is String?
+          ? revokedByAttestorPublicKeyHex
+          : this.revokedByAttestorPublicKeyHex,
       revokedByAttestation: revokedByAttestation is String?
           ? revokedByAttestation
           : this.revokedByAttestation,
       revokedAt: revokedAt is DateTime? ? revokedAt : this.revokedAt,
+      keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }
 }
@@ -401,15 +411,15 @@ class GroupMemberUpdateTable extends _i1.UpdateTable<GroupMemberTable> {
         value,
       );
 
-  _i1.ColumnValue<DateTime, DateTime> joinedAt(DateTime value) =>
+  _i1.ColumnValue<String, String> encryptedMemberKey(String value) =>
       _i1.ColumnValue(
-        table.joinedAt,
+        table.encryptedMemberKey,
         value,
       );
 
-  _i1.ColumnValue<DateTime, DateTime> lastActive(DateTime value) =>
+  _i1.ColumnValue<DateTime, DateTime> joinedAt(DateTime value) =>
       _i1.ColumnValue(
-        table.lastActive,
+        table.joinedAt,
         value,
       );
 
@@ -418,9 +428,9 @@ class GroupMemberUpdateTable extends _i1.UpdateTable<GroupMemberTable> {
     value,
   );
 
-  _i1.ColumnValue<String, String> addedBySignerPublicKeyHex(String value) =>
+  _i1.ColumnValue<String, String> addedByAttestorPublicKeyHex(String value) =>
       _i1.ColumnValue(
-        table.addedBySignerPublicKeyHex,
+        table.addedByAttestorPublicKeyHex,
         value,
       );
 
@@ -430,11 +440,12 @@ class GroupMemberUpdateTable extends _i1.UpdateTable<GroupMemberTable> {
         value,
       );
 
-  _i1.ColumnValue<String, String> revokedBySignerPublicKeyHex(String? value) =>
-      _i1.ColumnValue(
-        table.revokedBySignerPublicKeyHex,
-        value,
-      );
+  _i1.ColumnValue<String, String> revokedByAttestorPublicKeyHex(
+    String? value,
+  ) => _i1.ColumnValue(
+    table.revokedByAttestorPublicKeyHex,
+    value,
+  );
 
   _i1.ColumnValue<String, String> revokedByAttestation(String? value) =>
       _i1.ColumnValue(
@@ -447,6 +458,11 @@ class GroupMemberUpdateTable extends _i1.UpdateTable<GroupMemberTable> {
         table.revokedAt,
         value,
       );
+
+  _i1.ColumnValue<int, int> keyEpoch(int value) => _i1.ColumnValue(
+    table.keyEpoch,
+    value,
+  );
 }
 
 class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
@@ -477,13 +493,12 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
       'encryptedDataKey',
       this,
     );
+    encryptedMemberKey = _i1.ColumnString(
+      'encryptedMemberKey',
+      this,
+    );
     joinedAt = _i1.ColumnDateTime(
       'joinedAt',
-      this,
-      hasDefault: true,
-    );
-    lastActive = _i1.ColumnDateTime(
-      'lastActive',
       this,
       hasDefault: true,
     );
@@ -492,16 +507,16 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
-    addedBySignerPublicKeyHex = _i1.ColumnString(
-      'addedBySignerPublicKeyHex',
+    addedByAttestorPublicKeyHex = _i1.ColumnString(
+      'addedByAttestorPublicKeyHex',
       this,
     );
     addedByAttestation = _i1.ColumnString(
       'addedByAttestation',
       this,
     );
-    revokedBySignerPublicKeyHex = _i1.ColumnString(
-      'revokedBySignerPublicKeyHex',
+    revokedByAttestorPublicKeyHex = _i1.ColumnString(
+      'revokedByAttestorPublicKeyHex',
       this,
     );
     revokedByAttestation = _i1.ColumnString(
@@ -511,6 +526,11 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
     revokedAt = _i1.ColumnDateTime(
       'revokedAt',
       this,
+    );
+    keyEpoch = _i1.ColumnInt(
+      'keyEpoch',
+      this,
+      hasDefault: true,
     );
   }
 
@@ -532,21 +552,23 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString encryptedDataKey;
 
-  late final _i1.ColumnDateTime joinedAt;
+  late final _i1.ColumnString encryptedMemberKey;
 
-  late final _i1.ColumnDateTime lastActive;
+  late final _i1.ColumnDateTime joinedAt;
 
   late final _i1.ColumnBool isRevoked;
 
-  late final _i1.ColumnString addedBySignerPublicKeyHex;
+  late final _i1.ColumnString addedByAttestorPublicKeyHex;
 
   late final _i1.ColumnString addedByAttestation;
 
-  late final _i1.ColumnString revokedBySignerPublicKeyHex;
+  late final _i1.ColumnString revokedByAttestorPublicKeyHex;
 
   late final _i1.ColumnString revokedByAttestation;
 
   late final _i1.ColumnDateTime revokedAt;
+
+  late final _i1.ColumnInt keyEpoch;
 
   _i2.ShareGroupTable get shareGroup {
     if (_shareGroup != null) return _shareGroup!;
@@ -583,14 +605,15 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
     memberSigningPublicKeyHex,
     memberEncryptionPublicKeyHex,
     encryptedDataKey,
+    encryptedMemberKey,
     joinedAt,
-    lastActive,
     isRevoked,
-    addedBySignerPublicKeyHex,
+    addedByAttestorPublicKeyHex,
     addedByAttestation,
-    revokedBySignerPublicKeyHex,
+    revokedByAttestorPublicKeyHex,
     revokedByAttestation,
     revokedAt,
+    keyEpoch,
   ];
 
   @override

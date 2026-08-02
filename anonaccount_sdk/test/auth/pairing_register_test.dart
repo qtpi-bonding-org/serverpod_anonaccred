@@ -48,7 +48,7 @@ void main() {
       deviceEncryptionPublicKeyHex: '04${'i' * 128}',
       encryptedDataKey: 'wrapped',
       label: 'iPhone',
-      addedBySignerPublicKeyHex: '04${'j' * 128}',
+      addedByAttestorPublicKeyHex: '04${'j' * 128}',
       addedByAttestation: 'test-attestation',
       isRevoked: false,
       lastActive: DateTime.utc(2026, 5, 20),

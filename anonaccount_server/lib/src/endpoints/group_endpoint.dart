@@ -4,6 +4,7 @@ import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
+import '../queries/active_rows.dart';
 import 'signed_pow_endpoint.dart';
 
 /// Three-tier auth model for group operations:
@@ -63,10 +64,9 @@ class GroupEndpoint extends SignedPowEndpoint {
         outerPayload,
       );
 
-      final callerDevice = await AccountDevice.db.findFirstRow(
+      final callerDevice = await AllRows.deviceBySigningKeyIncludingRevoked(
         session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(callerDeviceSigningPublicKeyHex),
+        callerDeviceSigningPublicKeyHex,
       );
       final activeDevice = AnonAccountHelpers.requireActiveDevice(
         callerDevice,
@@ -128,10 +128,12 @@ class GroupEndpoint extends SignedPowEndpoint {
         memberSigningPublicKeyHex: memberKeys.signingPublicKeyHex,
         memberEncryptionPublicKeyHex: memberKeys.encryptionPublicKeyHex,
         encryptedDataKey: creatorMemberEncryptedDataKey,
+        // TODO(member-key-backup): placeholder until the member-key-backup
+        // plan lands the write path for this column.
+        encryptedMemberKey: '',
         joinedAt: now,
-        lastActive: now,
         isRevoked: false,
-        addedBySignerPublicKeyHex: groupKeys.signingPublicKeyHex,
+        addedByAttestorPublicKeyHex: groupKeys.signingPublicKeyHex,
         addedByAttestation: groupUltimateAttestation,
       );
       await GroupMember.db.insertRow(session, member);
@@ -185,10 +187,9 @@ class GroupEndpoint extends SignedPowEndpoint {
       // The caller must be an ACTIVE device — the returned blob is now
       // wrapped to the caller's own encryption key, so a revoked device
       // must not be able to fetch it.
-      final callerDeviceRow = await AccountDevice.db.findFirstRow(
+      final callerDeviceRow = await AllRows.deviceBySigningKeyIncludingRevoked(
         session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(callerDeviceSigningPublicKeyHex),
+        callerDeviceSigningPublicKeyHex,
       );
       final activeCaller = AnonAccountHelpers.requireActiveDevice(
         callerDeviceRow,
@@ -196,20 +197,14 @@ class GroupEndpoint extends SignedPowEndpoint {
         'listMyGroups',
       );
 
-      final members = await GroupMember.db.find(
+      final members = await ActiveRows.membershipsForAccount(
         session,
-        where: (t) =>
-            t.anonAccountId.equals(activeCaller.anonAccountId) &
-            t.isRevoked.equals(false),
-        orderBy: (t) => t.joinedAt,
-        orderDescending: true,
+        activeCaller.anonAccountId,
       );
 
-      final grants = await GroupMemberDevice.db.find(
+      final grants = await ActiveRows.grantsForDevice(
         session,
-        where: (t) =>
-            t.accountDeviceId.equals(activeCaller.id!) &
-            t.isRevoked.equals(false),
+        activeCaller.id!,
       );
       final grantByMemberId = {for (final g in grants) g.groupMemberId: g};
 
@@ -357,13 +352,10 @@ class GroupEndpoint extends SignedPowEndpoint {
             operation: 'addGroupMember',
           );
         }
-        final callerMembership = await GroupMember.db.findFirstRow(
+        final callerMembership = await ActiveRows.callerMembershipByMemberKey(
           session,
-          where: (t) =>
-              t.memberSigningPublicKeyHex
-                  .equals(callerMemberSigningPublicKeyHex) &
-              t.shareGroupId.equals(groupId) &
-              t.isRevoked.equals(false),
+          groupId,
+          callerMemberSigningPublicKeyHex,
         );
         if (callerMembership == null) {
           throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -397,12 +389,10 @@ class GroupEndpoint extends SignedPowEndpoint {
       }
 
       // Reject duplicate non-revoked memberships.
-      final existing = await GroupMember.db.findFirstRow(
+      final existing = await ActiveRows.memberInGroup(
         session,
-        where: (t) =>
-            t.shareGroupId.equals(groupId) &
-            t.anonAccountId.equals(newMemberAccountId) &
-            t.isRevoked.equals(false),
+        groupId,
+        newMemberAccountId,
       );
       if (existing != null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -425,10 +415,12 @@ class GroupEndpoint extends SignedPowEndpoint {
         memberEncryptionPublicKeyHex:
             validatedMemberKeys.encryptionPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
+        // TODO(member-key-backup): placeholder until the member-key-backup
+        // plan lands the write path for this column.
+        encryptedMemberKey: '',
         joinedAt: now,
-        lastActive: now,
         isRevoked: false,
-        addedBySignerPublicKeyHex: attestingPubkey,
+        addedByAttestorPublicKeyHex: attestingPubkey,
         addedByAttestation: attestationSig,
       );
       final insertedMember = await GroupMember.db.insertRow(session, member);
@@ -481,7 +473,8 @@ class GroupEndpoint extends SignedPowEndpoint {
         outerPayload,
       );
 
-      final target = await GroupMember.db.findById(session, memberId);
+      final target =
+          await AllRows.groupMemberByIdIncludingRevoked(session, memberId);
       if (target == null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authDeviceNotFound,
@@ -551,13 +544,10 @@ class GroupEndpoint extends SignedPowEndpoint {
             operation: 'removeGroupMember',
           );
         }
-        final callerMembership = await GroupMember.db.findFirstRow(
+        final callerMembership = await ActiveRows.callerMembershipByMemberKey(
           session,
-          where: (t) =>
-              t.memberSigningPublicKeyHex
-                  .equals(callerMemberSigningPublicKeyHex) &
-              t.shareGroupId.equals(target.shareGroupId) &
-              t.isRevoked.equals(false),
+          target.shareGroupId,
+          callerMemberSigningPublicKeyHex,
         );
         if (callerMembership == null) {
           throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -596,13 +586,10 @@ class GroupEndpoint extends SignedPowEndpoint {
       await session.db.transaction((tx) async {
         var shouldDissolve = false;
         if (target.role == GroupMemberRole.admin) {
-          final activeMembers = await GroupMember.db.find(
+          final activeMembers = await ActiveRows.activeMembersOfGroupForUpdate(
             session,
-            where: (t) =>
-                t.shareGroupId.equals(target.shareGroupId) &
-                t.isRevoked.equals(false),
+            target.shareGroupId,
             transaction: tx,
-            lockMode: LockMode.forUpdate,
           );
           final activeAdmins = activeMembers
               .where((m) => m.role == GroupMemberRole.admin)
@@ -629,7 +616,7 @@ class GroupEndpoint extends SignedPowEndpoint {
             session,
             target.copyWith(
               isRevoked: true,
-              revokedBySignerPublicKeyHex: attestingPubkey,
+              revokedByAttestorPublicKeyHex: attestingPubkey,
               revokedByAttestation: attestationSig,
             ),
             transaction: tx,
@@ -728,13 +715,10 @@ class GroupEndpoint extends SignedPowEndpoint {
         );
       }
 
-      final callerMembership = await GroupMember.db.findFirstRow(
+      final callerMembership = await ActiveRows.callerMembershipByMemberKey(
         session,
-        where: (t) =>
-            t.memberSigningPublicKeyHex
-                .equals(callerMemberSigningPublicKeyHex) &
-            t.shareGroupId.equals(groupId) &
-            t.isRevoked.equals(false),
+        groupId,
+        callerMemberSigningPublicKeyHex,
       );
       if (callerMembership == null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -819,13 +803,10 @@ class GroupEndpoint extends SignedPowEndpoint {
         );
       }
 
-      final callerMembership = await GroupMember.db.findFirstRow(
+      final callerMembership = await ActiveRows.callerMembershipByMemberKey(
         session,
-        where: (t) =>
-            t.memberSigningPublicKeyHex
-                .equals(callerMemberSigningPublicKeyHex) &
-            t.shareGroupId.equals(groupId) &
-            t.isRevoked.equals(false),
+        groupId,
+        callerMemberSigningPublicKeyHex,
       );
       if (callerMembership == null) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -848,12 +829,7 @@ class GroupEndpoint extends SignedPowEndpoint {
         );
       }
 
-      return await GroupMember.db.find(
-        session,
-        where: (t) =>
-            t.shareGroupId.equals(groupId) & t.isRevoked.equals(false),
-        orderBy: (t) => t.joinedAt,
-      );
+      return ActiveRows.membersOfGroup(session, groupId);
     } on AuthenticationException {
       rethrow;
     } catch (e, stackTrace) {
@@ -892,7 +868,8 @@ class GroupEndpoint extends SignedPowEndpoint {
         outerPayload,
       );
 
-      final target = await GroupMember.db.findById(session, memberId);
+      final target =
+          await AllRows.groupMemberByIdIncludingRevoked(session, memberId);
       if (target == null || target.isRevoked) {
         throw AnonAccountExceptionFactory.createAuthenticationException(
           code: AnonAccountErrorCodes.authDeviceNotFound,
@@ -950,13 +927,10 @@ class GroupEndpoint extends SignedPowEndpoint {
       await session.db.transaction((tx) async {
         var shouldDissolve = false;
         if (target.role == GroupMemberRole.admin) {
-          final activeMembers = await GroupMember.db.find(
+          final activeMembers = await ActiveRows.activeMembersOfGroupForUpdate(
             session,
-            where: (t) =>
-                t.shareGroupId.equals(target.shareGroupId) &
-                t.isRevoked.equals(false),
+            target.shareGroupId,
             transaction: tx,
-            lockMode: LockMode.forUpdate,
           );
           final activeAdmins = activeMembers
               .where((m) => m.role == GroupMemberRole.admin)
@@ -982,7 +956,7 @@ class GroupEndpoint extends SignedPowEndpoint {
           session,
           target.copyWith(
             isRevoked: true,
-            revokedBySignerPublicKeyHex: memberSigningPublicKeyHex,
+            revokedByAttestorPublicKeyHex: memberSigningPublicKeyHex,
             revokedByAttestation: memberAuthSignature,
           ),
           transaction: tx,
@@ -1049,10 +1023,9 @@ class GroupEndpoint extends SignedPowEndpoint {
 
       // The caller must be an ACTIVE device — this endpoint writes grants
       // and the result is readable by the grantee.
-      final callerDevice = await AccountDevice.db.findFirstRow(
+      final callerDevice = await AllRows.deviceBySigningKeyIncludingRevoked(
         session,
-        where: (t) =>
-            t.deviceSigningPublicKeyHex.equals(callerDeviceSigningPublicKeyHex),
+        callerDeviceSigningPublicKeyHex,
       );
       AnonAccountHelpers.requireActiveDevice(
         callerDevice,
@@ -1079,7 +1052,7 @@ class GroupEndpoint extends SignedPowEndpoint {
         final rows = <GroupMemberDevice>[];
         for (final g in grants) {
           // 1. membership exists and is active.
-          final member = await GroupMember.db.findById(
+          final member = await AllRows.groupMemberByIdIncludingRevoked(
             session,
             g.groupMemberId,
             transaction: tx,
@@ -1098,7 +1071,7 @@ class GroupEndpoint extends SignedPowEndpoint {
           //    could push the group data key to an arbitrary device
           //    through a server-persisted, member-attested channel
           //    co-members cannot see.
-          final grantee = await AccountDevice.db.findById(
+          final grantee = await AllRows.deviceByIdIncludingRevoked(
             session,
             g.accountDeviceId,
             transaction: tx,
@@ -1136,10 +1109,9 @@ class GroupEndpoint extends SignedPowEndpoint {
               );
             }
           } else {
-            final attestorDevice = await AccountDevice.db.findFirstRow(
+            final attestorDevice = await AllRows.deviceBySigningKeyIncludingRevoked(
               session,
-              where: (t) => t.deviceSigningPublicKeyHex
-                  .equals(g.attestorSigningPublicKeyHex),
+              g.attestorSigningPublicKeyHex,
               transaction: tx,
             );
             if (attestorDevice == null || attestorDevice.isRevoked) {
@@ -1149,12 +1121,10 @@ class GroupEndpoint extends SignedPowEndpoint {
                 operation: 'grantMemberDevice',
               );
             }
-            final attestorGrant = await GroupMemberDevice.db.findFirstRow(
+            final attestorGrant = await ActiveRows.grantForDevice(
               session,
-              where: (t) =>
-                  t.groupMemberId.equals(g.groupMemberId) &
-                  t.accountDeviceId.equals(attestorDevice.id!) &
-                  t.isRevoked.equals(false),
+              g.groupMemberId,
+              attestorDevice.id!,
               transaction: tx,
             );
             if (attestorGrant == null) {
@@ -1195,7 +1165,7 @@ class GroupEndpoint extends SignedPowEndpoint {
             groupMemberId: g.groupMemberId,
             accountDeviceId: g.accountDeviceId,
             encryptedDataKey: g.encryptedDataKey,
-            addedBySignerPublicKeyHex: g.attestorSigningPublicKeyHex,
+            addedByAttestorPublicKeyHex: g.attestorSigningPublicKeyHex,
             addedByAttestation: g.attestation,
           ));
         }

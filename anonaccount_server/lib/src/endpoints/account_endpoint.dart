@@ -163,7 +163,7 @@ class AccountEndpoint extends SignedPowEndpoint {
           deviceKeys: deviceKeysValidated,
           encryptedDataKey: deviceEncryptedDataKey,
           label: deviceLabel,
-          addedBySignerPublicKeyHex: ultimateSigningPublicKeyHex,
+          addedByAttestorPublicKeyHex: ultimateSigningPublicKeyHex,
           addedByAttestation: deviceKeyAttestation,
           operation: 'createAccount',
           transaction: transaction,
