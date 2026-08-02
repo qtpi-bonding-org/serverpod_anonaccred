@@ -25,7 +25,7 @@ abstract class AccountDevice
     required this.deviceEncryptionPublicKeyHex,
     required this.encryptedDataKey,
     required this.label,
-    required this.addedBySignerPublicKeyHex,
+    required this.addedByAttestorPublicKeyHex,
     required this.addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -45,7 +45,7 @@ abstract class AccountDevice
     required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
     required String label,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -73,8 +73,8 @@ abstract class AccountDevice
           jsonSerialization['deviceEncryptionPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       label: jsonSerialization['label'] as String,
-      addedBySignerPublicKeyHex:
-          jsonSerialization['addedBySignerPublicKeyHex'] as String,
+      addedByAttestorPublicKeyHex:
+          jsonSerialization['addedByAttestorPublicKeyHex'] as String,
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -111,7 +111,7 @@ abstract class AccountDevice
 
   String label;
 
-  String addedBySignerPublicKeyHex;
+  String addedByAttestorPublicKeyHex;
 
   String addedByAttestation;
 
@@ -139,7 +139,7 @@ abstract class AccountDevice
     String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
     String? label,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -158,7 +158,7 @@ abstract class AccountDevice
       'deviceEncryptionPublicKeyHex': deviceEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
-      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
       'addedByAttestation': addedByAttestation,
       'createdAt': createdAt.toJson(),
       'lastActive': lastActive.toJson(),
@@ -179,7 +179,7 @@ abstract class AccountDevice
       'deviceEncryptionPublicKeyHex': deviceEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
-      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
       'addedByAttestation': addedByAttestation,
       'createdAt': createdAt.toJson(),
       'lastActive': lastActive.toJson(),
@@ -230,7 +230,7 @@ class _AccountDeviceImpl extends AccountDevice {
     required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
     required String label,
-    required String addedBySignerPublicKeyHex,
+    required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -245,7 +245,7 @@ class _AccountDeviceImpl extends AccountDevice {
          deviceEncryptionPublicKeyHex: deviceEncryptionPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          label: label,
-         addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+         addedByAttestorPublicKeyHex: addedByAttestorPublicKeyHex,
          addedByAttestation: addedByAttestation,
          createdAt: createdAt,
          lastActive: lastActive,
@@ -266,7 +266,7 @@ class _AccountDeviceImpl extends AccountDevice {
     String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
     String? label,
-    String? addedBySignerPublicKeyHex,
+    String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
     DateTime? createdAt,
     DateTime? lastActive,
@@ -286,8 +286,8 @@ class _AccountDeviceImpl extends AccountDevice {
           deviceEncryptionPublicKeyHex ?? this.deviceEncryptionPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       label: label ?? this.label,
-      addedBySignerPublicKeyHex:
-          addedBySignerPublicKeyHex ?? this.addedBySignerPublicKeyHex,
+      addedByAttestorPublicKeyHex:
+          addedByAttestorPublicKeyHex ?? this.addedByAttestorPublicKeyHex,
       addedByAttestation: addedByAttestation ?? this.addedByAttestation,
       createdAt: createdAt ?? this.createdAt,
       lastActive: lastActive ?? this.lastActive,
@@ -331,9 +331,9 @@ class AccountDeviceUpdateTable extends _i1.UpdateTable<AccountDeviceTable> {
     value,
   );
 
-  _i1.ColumnValue<String, String> addedBySignerPublicKeyHex(String value) =>
+  _i1.ColumnValue<String, String> addedByAttestorPublicKeyHex(String value) =>
       _i1.ColumnValue(
-        table.addedBySignerPublicKeyHex,
+        table.addedByAttestorPublicKeyHex,
         value,
       );
 
@@ -396,8 +396,8 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
       'label',
       this,
     );
-    addedBySignerPublicKeyHex = _i1.ColumnString(
-      'addedBySignerPublicKeyHex',
+    addedByAttestorPublicKeyHex = _i1.ColumnString(
+      'addedByAttestorPublicKeyHex',
       this,
     );
     addedByAttestation = _i1.ColumnString(
@@ -444,7 +444,7 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString label;
 
-  late final _i1.ColumnString addedBySignerPublicKeyHex;
+  late final _i1.ColumnString addedByAttestorPublicKeyHex;
 
   late final _i1.ColumnString addedByAttestation;
 
@@ -479,7 +479,7 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
     deviceEncryptionPublicKeyHex,
     encryptedDataKey,
     label,
-    addedBySignerPublicKeyHex,
+    addedByAttestorPublicKeyHex,
     addedByAttestation,
     createdAt,
     lastActive,

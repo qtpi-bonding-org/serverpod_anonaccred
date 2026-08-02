@@ -209,7 +209,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         deviceKeys: keys,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,
-        addedBySignerPublicKeyHex: activeCaller.deviceSigningPublicKeyHex,
+        addedByAttestorPublicKeyHex: activeCaller.deviceSigningPublicKeyHex,
         addedByAttestation: pairingAttestation,
         operation: 'registerDeviceForAccount',
       );

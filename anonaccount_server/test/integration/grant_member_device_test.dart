@@ -29,7 +29,7 @@ Future<AccountDevice> createTestDevice(
       deviceEncryptionPublicKeyHex: deviceEncryptionPublicKeyHex,
       encryptedDataKey: 'test-device-encrypted-data-key',
       label: 'test-device',
-      addedBySignerPublicKeyHex: deviceSigningPublicKeyHex,
+      addedByAttestorPublicKeyHex: deviceSigningPublicKeyHex,
       addedByAttestation: 'test-attestation',
       lastActive: DateTime.now(),
       isRevoked: isRevoked,
@@ -93,7 +93,8 @@ Future<({GroupMember member, AccountDevice ownerDevice, String groupUltSigPub, S
         memberSigningPublicKeyHex: creatorMemberSigPub,
         memberEncryptionPublicKeyHex: creatorMemberEnc,
         encryptedDataKey: 'wrapped',
-        addedBySignerPublicKeyHex: groupUltSigPub,
+        encryptedMemberKey: 'wrapped',
+        addedByAttestorPublicKeyHex: groupUltSigPub,
         addedByAttestation: 'sig',
       ),
     );
@@ -202,7 +203,8 @@ void main() {
             memberSigningPublicKeyHex: creatorMemberSigPub,
             memberEncryptionPublicKeyHex: creatorMemberEnc,
             encryptedDataKey: 'wrapped',
-            addedBySignerPublicKeyHex: groupUltSigPub,
+            encryptedMemberKey: 'wrapped',
+            addedByAttestorPublicKeyHex: groupUltSigPub,
             addedByAttestation: 'sig',
           ),
         );
@@ -216,7 +218,7 @@ void main() {
           groupMemberId: member.id!,
           accountDeviceId: device.id!,
           encryptedDataKey: 'wrapped-to-device',
-          addedBySignerPublicKeyHex: member.memberSigningPublicKeyHex,
+          addedByAttestorPublicKeyHex: member.memberSigningPublicKeyHex,
           addedByAttestation: 'sig',
         ),
       );
@@ -226,7 +228,7 @@ void main() {
       expect(row.createdAt, isNotNull);
       expect(row.encryptedDataKey, equals('wrapped-to-device'));
       expect(
-        row.addedBySignerPublicKeyHex,
+        row.addedByAttestorPublicKeyHex,
         equals(member.memberSigningPublicKeyHex),
       );
     });
@@ -279,7 +281,8 @@ void main() {
             memberSigningPublicKeyHex: creatorMemberSigPub,
             memberEncryptionPublicKeyHex: creatorMemberEnc,
             encryptedDataKey: 'wrapped',
-            addedBySignerPublicKeyHex: groupUltSigPub,
+            encryptedMemberKey: 'wrapped',
+            addedByAttestorPublicKeyHex: groupUltSigPub,
             addedByAttestation: 'sig',
           ),
         );
@@ -294,7 +297,7 @@ void main() {
           groupMemberId: member.id!,
           accountDeviceId: device.id!,
           encryptedDataKey: 'blob-v1',
-          addedBySignerPublicKeyHex: member.memberSigningPublicKeyHex,
+          addedByAttestorPublicKeyHex: member.memberSigningPublicKeyHex,
           addedByAttestation: 'sig-1',
         ),
       );
@@ -314,7 +317,7 @@ void main() {
           groupMemberId: member.id!,
           accountDeviceId: device.id!,
           encryptedDataKey: 'blob-v2',
-          addedBySignerPublicKeyHex: member.memberSigningPublicKeyHex,
+          addedByAttestorPublicKeyHex: member.memberSigningPublicKeyHex,
           addedByAttestation: 'sig-2',
         ),
       );
@@ -395,7 +398,7 @@ void main() {
         expect(row, isNotNull);
         expect(row!.encryptedDataKey, equals('blob-for-sibling'));
         expect(
-          row.addedBySignerPublicKeyHex,
+          row.addedByAttestorPublicKeyHex,
           equals(s.creatorMemberSigPub),
         );
         expect(row.addedByAttestation, equals(attestation));
@@ -858,7 +861,8 @@ void main() {
             memberSigningPublicKeyHex: '04${'d' * 128}',
             memberEncryptionPublicKeyHex: '04${'e' * 128}',
             encryptedDataKey: 'wrapped2',
-            addedBySignerPublicKeyHex: '04${'b' * 128}',
+            encryptedMemberKey: 'wrapped2',
+            addedByAttestorPublicKeyHex: '04${'b' * 128}',
             addedByAttestation: 'sig-b',
           ),
         );
@@ -889,7 +893,8 @@ void main() {
             memberSigningPublicKeyHex: member2Pub,
             memberEncryptionPublicKeyHex: member2Enc,
             encryptedDataKey: 'wrapped2',
-            addedBySignerPublicKeyHex: '04${'b' * 128}',
+            addedByAttestorPublicKeyHex: '04${'b' * 128}',
+            encryptedMemberKey: 'wrapped2',
             addedByAttestation: 'sig-b',
           ),
         );

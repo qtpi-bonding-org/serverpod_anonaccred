@@ -66,7 +66,7 @@ void _stubRegisterDevice(_FakeDevice device) {
         deviceEncryptionPublicKeyHex: '04${'i' * 128}',
         encryptedDataKey: 'wrapped',
         label: 'laptop',
-        addedBySignerPublicKeyHex: '04${'j' * 128}',
+        addedByAttestorPublicKeyHex: '04${'j' * 128}',
         addedByAttestation: 'test-attestation',
         isRevoked: false,
         lastActive: DateTime.utc(2026, 8, 1),

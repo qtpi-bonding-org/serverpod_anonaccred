@@ -53,8 +53,9 @@ void main() {
       memberSigningPublicKeyHex: '04${'d' * 128}',
       memberEncryptionPublicKeyHex: '04${'e' * 128}',
       encryptedDataKey: 'WRAPPED_KEY',
+      encryptedMemberKey: 'WRAPPED_KEY',
       joinedAt: DateTime.utc(2026, 5, 20),
-      addedBySignerPublicKeyHex: '04${'f' * 128}',
+      addedByAttestorPublicKeyHex: '04${'f' * 128}',
       addedByAttestation: 'test-attestation',
     );
 

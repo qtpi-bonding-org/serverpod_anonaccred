@@ -20,7 +20,9 @@ abstract class AnonAccount
     required this.encryptedDataKey,
     required this.ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+    int? keyEpoch,
+  }) : createdAt = createdAt ?? DateTime.now(),
+       keyEpoch = keyEpoch ?? 0;
 
   factory AnonAccount({
     _i1.UuidValue? id,
@@ -28,6 +30,7 @@ abstract class AnonAccount
     required String encryptedDataKey,
     required String ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
+    int? keyEpoch,
   }) = _AnonAccountImpl;
 
   factory AnonAccount.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -43,6 +46,7 @@ abstract class AnonAccount
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+      keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
 
@@ -61,6 +65,8 @@ abstract class AnonAccount
 
   DateTime createdAt;
 
+  int keyEpoch;
+
   @override
   _i1.Table<_i1.UuidValue?> get table => t;
 
@@ -73,6 +79,7 @@ abstract class AnonAccount
     String? encryptedDataKey,
     String? ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
+    int? keyEpoch,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -83,6 +90,7 @@ abstract class AnonAccount
       'encryptedDataKey': encryptedDataKey,
       'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
       'createdAt': createdAt.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -95,6 +103,7 @@ abstract class AnonAccount
       'encryptedDataKey': encryptedDataKey,
       'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
       'createdAt': createdAt.toJson(),
+      'keyEpoch': keyEpoch,
     };
   }
 
@@ -137,12 +146,14 @@ class _AnonAccountImpl extends AnonAccount {
     required String encryptedDataKey,
     required String ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
+    int? keyEpoch,
   }) : super._(
          id: id,
          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
          createdAt: createdAt,
+         keyEpoch: keyEpoch,
        );
 
   /// Returns a shallow copy of this [AnonAccount]
@@ -155,6 +166,7 @@ class _AnonAccountImpl extends AnonAccount {
     String? encryptedDataKey,
     String? ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
+    int? keyEpoch,
   }) {
     return AnonAccount(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -164,6 +176,7 @@ class _AnonAccountImpl extends AnonAccount {
       ultimateEncryptionPublicKeyHex:
           ultimateEncryptionPublicKeyHex ?? this.ultimateEncryptionPublicKeyHex,
       createdAt: createdAt ?? this.createdAt,
+      keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }
 }
@@ -195,6 +208,11 @@ class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
         table.createdAt,
         value,
       );
+
+  _i1.ColumnValue<int, int> keyEpoch(int value) => _i1.ColumnValue(
+    table.keyEpoch,
+    value,
+  );
 }
 
 class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
@@ -217,6 +235,11 @@ class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    keyEpoch = _i1.ColumnInt(
+      'keyEpoch',
+      this,
+      hasDefault: true,
+    );
   }
 
   late final AnonAccountUpdateTable updateTable;
@@ -229,6 +252,8 @@ class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDateTime createdAt;
 
+  late final _i1.ColumnInt keyEpoch;
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -236,6 +261,7 @@ class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
     encryptedDataKey,
     ultimateEncryptionPublicKeyHex,
     createdAt,
+    keyEpoch,
   ];
 }
 

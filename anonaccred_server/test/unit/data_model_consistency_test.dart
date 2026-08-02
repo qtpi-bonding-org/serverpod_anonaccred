@@ -77,7 +77,7 @@ void main() {
             anonAccountId: accountUuid,
             deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
             deviceEncryptionPublicKeyHex: _generateRandomEcdsaP256PublicKey(),
-            addedBySignerPublicKeyHex: _generateRandomEcdsaP256PublicKey(),
+            addedByAttestorPublicKeyHex: _generateRandomEcdsaP256PublicKey(),
             addedByAttestation: 'test-attestation',
             encryptedDataKey: encryptedDataKey,
             label: label,

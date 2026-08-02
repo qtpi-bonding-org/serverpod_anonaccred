@@ -101,7 +101,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
         deviceKeys: keys,
         encryptedDataKey: encryptedDataKey,
         label: label,
-        addedBySignerPublicKeyHex: ultimateSigningPublicKeyHex,
+        addedByAttestorPublicKeyHex: ultimateSigningPublicKeyHex,
         addedByAttestation: deviceKeyAttestation,
         operation: 'registerDevice',
       );

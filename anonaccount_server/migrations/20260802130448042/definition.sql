@@ -30,164 +30,7 @@ language plpgsql
 volatile;
 
 --
--- ACTION CREATE TABLE
---
-CREATE TABLE "account_entitlement" (
-    "id" bigserial PRIMARY KEY,
-    "accountUuid" uuid NOT NULL,
-    "entitlementId" bigint NOT NULL,
-    "balance" double precision NOT NULL
-);
-
--- Indexes
-CREATE UNIQUE INDEX "account_entitlement_idx" ON "account_entitlement" USING btree ("accountUuid", "entitlementId");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "consumption_log" (
-    "id" bigserial PRIMARY KEY,
-    "accountUuid" uuid NOT NULL,
-    "entitlementId" bigint NOT NULL,
-    "amount" double precision NOT NULL,
-    "reason" text NOT NULL,
-    "timestamp" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Indexes
-CREATE INDEX "account_idx" ON "consumption_log" USING btree ("accountUuid");
-CREATE INDEX "entitlement_idx" ON "consumption_log" USING btree ("entitlementId");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "entitlement" (
-    "id" bigserial PRIMARY KEY,
-    "tag" text NOT NULL,
-    "name" text NOT NULL,
-    "type" text NOT NULL,
-    "serverValidated" boolean NOT NULL
-);
-
--- Indexes
-CREATE UNIQUE INDEX "tag_idx" ON "entitlement" USING btree ("tag");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "ephemeral_accreditation" (
-    "id" bigserial PRIMARY KEY,
-    "accountUuid" uuid NOT NULL,
-    "transactionTimestamp" timestamp without time zone NOT NULL
-);
-
--- Indexes
-CREATE INDEX "lookup_idx" ON "ephemeral_accreditation" USING btree ("transactionTimestamp");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "ephemeral_accreditation_group" (
-    "id" bigserial PRIMARY KEY,
-    "accountUuid" uuid NOT NULL,
-    "shareGroupUuid" uuid NOT NULL,
-    "transactionTimestamp" timestamp without time zone NOT NULL
-);
-
--- Indexes
-CREATE INDEX "ephemeral_group_lookup_idx" ON "ephemeral_accreditation_group" USING btree ("transactionTimestamp");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "group_consumption_log" (
-    "id" bigserial PRIMARY KEY,
-    "shareGroupUuid" uuid NOT NULL,
-    "entitlementId" bigint NOT NULL,
-    "amount" double precision NOT NULL,
-    "reason" text NOT NULL,
-    "timestamp" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "consumingAccountUuid" uuid
-);
-
--- Indexes
-CREATE INDEX "group_consumption_group_idx" ON "group_consumption_log" USING btree ("shareGroupUuid");
-CREATE INDEX "group_consumption_entitlement_idx" ON "group_consumption_log" USING btree ("entitlementId");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "group_entitlement" (
-    "id" bigserial PRIMARY KEY,
-    "shareGroupUuid" uuid NOT NULL,
-    "entitlementId" bigint NOT NULL,
-    "balance" double precision NOT NULL
-);
-
--- Indexes
-CREATE UNIQUE INDEX "group_entitlement_idx" ON "group_entitlement" USING btree ("shareGroupUuid", "entitlementId");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "rail_product" (
-    "id" bigserial PRIMARY KEY,
-    "rail" text NOT NULL,
-    "storeProductId" text NOT NULL,
-    "isActive" boolean NOT NULL
-);
-
--- Indexes
-CREATE INDEX "store_product_idx" ON "rail_product" USING btree ("rail", "storeProductId");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "rail_product_grant" (
-    "id" bigserial PRIMARY KEY,
-    "railProductId" bigint NOT NULL,
-    "entitlementId" bigint NOT NULL,
-    "quantity" double precision NOT NULL
-);
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "receipt_hash" (
-    "id" bigserial PRIMARY KEY,
-    "hash" text NOT NULL,
-    "paymentRail" text NOT NULL,
-    "processedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Indexes
-CREATE UNIQUE INDEX "hash_idx" ON "receipt_hash" USING btree ("hash");
-
---
--- ACTION CREATE TABLE
---
-CREATE TABLE "transaction_payment" (
-    "id" bigserial PRIMARY KEY,
-    "railProductId" bigint NOT NULL,
-    "internalTransactionId" text NOT NULL,
-    "priceCurrency" text NOT NULL,
-    "price" double precision NOT NULL,
-    "paymentRail" text NOT NULL,
-    "paymentCurrency" text NOT NULL,
-    "paymentAmount" double precision NOT NULL,
-    "paymentRef" text,
-    "transactionTimestamp" timestamp without time zone NOT NULL,
-    "clientReference" text,
-    "status" text NOT NULL,
-    "railDataJson" text
-);
-
--- Indexes
-CREATE UNIQUE INDEX "internal_tx_id_idx" ON "transaction_payment" USING btree ("internalTransactionId");
-CREATE INDEX "timestamp_idx" ON "transaction_payment" USING btree ("transactionTimestamp");
-
---
--- ACTION CREATE TABLE
+-- Class AccountDevice as table account_device
 --
 CREATE TABLE "account_device" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -196,7 +39,7 @@ CREATE TABLE "account_device" (
     "deviceEncryptionPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "label" text NOT NULL,
-    "addedBySignerPublicKeyHex" text NOT NULL,
+    "addedByAttestorPublicKeyHex" text NOT NULL,
     "addedByAttestation" text NOT NULL,
     "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastActive" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -210,21 +53,22 @@ CREATE UNIQUE INDEX "device_signing_key_idx" ON "account_device" USING btree ("d
 CREATE INDEX "account_devices_idx" ON "account_device" USING btree ("anonAccountId");
 
 --
--- ACTION CREATE TABLE
+-- Class AnonAccount as table anon_account
 --
 CREATE TABLE "anon_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "ultimateSigningPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "ultimateEncryptionPublicKeyHex" text NOT NULL,
-    "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "keyEpoch" bigint NOT NULL DEFAULT 0
 );
 
 -- Indexes
 CREATE UNIQUE INDEX "ultimate_signing_key_idx" ON "anon_account" USING btree ("ultimateSigningPublicKeyHex");
 
 --
--- ACTION CREATE TABLE
+-- Class GroupMember as table group_member
 --
 CREATE TABLE "group_member" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -234,34 +78,40 @@ CREATE TABLE "group_member" (
     "memberSigningPublicKeyHex" text NOT NULL,
     "memberEncryptionPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
+    "encryptedMemberKey" text NOT NULL,
     "joinedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "lastActive" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isRevoked" boolean NOT NULL DEFAULT false,
-    "addedBySignerPublicKeyHex" text NOT NULL,
+    "addedByAttestorPublicKeyHex" text NOT NULL,
     "addedByAttestation" text NOT NULL,
-    "revokedBySignerPublicKeyHex" text,
+    "revokedByAttestorPublicKeyHex" text,
     "revokedByAttestation" text,
-    "revokedAt" timestamp without time zone
+    "revokedAt" timestamp without time zone,
+    "keyEpoch" bigint NOT NULL DEFAULT 0
 );
 
 -- Indexes
 CREATE UNIQUE INDEX "group_member_signing_key_idx" ON "group_member" USING btree ("memberSigningPublicKeyHex");
 CREATE UNIQUE INDEX "group_member_unique_idx" ON "group_member" USING btree ("shareGroupId", "anonAccountId");
+DROP INDEX IF EXISTS "group_member_unique_idx";
+CREATE UNIQUE INDEX "group_member_unique_idx"
+  ON "group_member" USING btree ("shareGroupId", "anonAccountId")
+  WHERE "isRevoked" = false;
 CREATE INDEX "group_member_account_idx" ON "group_member" USING btree ("anonAccountId");
 
 --
--- ACTION CREATE TABLE
+-- Class GroupMemberDevice as table group_member_device
 --
 CREATE TABLE "group_member_device" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "groupMemberId" uuid NOT NULL,
     "accountDeviceId" uuid NOT NULL,
     "encryptedDataKey" text NOT NULL,
-    "addedBySignerPublicKeyHex" text NOT NULL,
+    "addedByAttestorPublicKeyHex" text NOT NULL,
     "addedByAttestation" text NOT NULL,
     "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isRevoked" boolean NOT NULL DEFAULT false,
-    "revokedAt" timestamp without time zone
+    "revokedAt" timestamp without time zone,
+    "keyEpoch" bigint NOT NULL DEFAULT 0
 );
 
 -- Indexes
@@ -273,7 +123,33 @@ CREATE UNIQUE INDEX "group_member_device_active_idx"
 CREATE INDEX "group_member_device_device_idx" ON "group_member_device" USING btree ("accountDeviceId");
 
 --
--- ACTION CREATE TABLE
+-- Class GroupOwner as table group_owner
+--
+CREATE TABLE "group_owner" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "shareGroupId" uuid NOT NULL,
+    "anonAccountId" uuid NOT NULL,
+    "encryptedUltimateKey" text NOT NULL,
+    "addedByAttestorPublicKeyHex" text NOT NULL,
+    "addedByAttestation" text NOT NULL,
+    "keyEpoch" bigint NOT NULL DEFAULT 0,
+    "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isRevoked" boolean NOT NULL DEFAULT false,
+    "revokedAt" timestamp without time zone,
+    "revokedByAttestorPublicKeyHex" text,
+    "revokedByAttestation" text
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "group_owner_active_idx" ON "group_owner" USING btree ("shareGroupId", "anonAccountId");
+DROP INDEX IF EXISTS "group_owner_active_idx";
+CREATE UNIQUE INDEX "group_owner_active_idx"
+  ON "group_owner" USING btree ("shareGroupId", "anonAccountId")
+  WHERE "isRevoked" = false;
+CREATE INDEX "group_owner_account_idx" ON "group_owner" USING btree ("anonAccountId");
+
+--
+-- Class PublicChallenge as table public_challenges
 --
 CREATE TABLE "public_challenges" (
     "id" bigserial PRIMARY KEY,
@@ -286,7 +162,7 @@ CREATE UNIQUE INDEX "public_challenges_challenge_idx" ON "public_challenges" USI
 CREATE INDEX "public_challenges_expires_idx" ON "public_challenges" USING btree ("expiresAt");
 
 --
--- ACTION CREATE TABLE
+-- Class ShardRouting as table shard_routing
 --
 CREATE TABLE "shard_routing" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -300,7 +176,7 @@ CREATE TABLE "shard_routing" (
 CREATE UNIQUE INDEX "shard_routing_unique_idx" ON "shard_routing" USING btree ("tenantId", "tenantType");
 
 --
--- ACTION CREATE TABLE
+-- Class ShareGroup as table share_group
 --
 CREATE TABLE "share_group" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -315,7 +191,7 @@ CREATE TABLE "share_group" (
 CREATE UNIQUE INDEX "share_group_ultimate_signing_key_idx" ON "share_group" USING btree ("ultimateSigningPublicKeyHex");
 
 --
--- ACTION CREATE TABLE
+-- Class CloudStorageEntry as table serverpod_cloud_storage
 --
 CREATE TABLE "serverpod_cloud_storage" (
     "id" bigserial PRIMARY KEY,
@@ -332,7 +208,7 @@ CREATE UNIQUE INDEX "serverpod_cloud_storage_path_idx" ON "serverpod_cloud_stora
 CREATE INDEX "serverpod_cloud_storage_expiration" ON "serverpod_cloud_storage" USING btree ("expiration");
 
 --
--- ACTION CREATE TABLE
+-- Class CloudStorageDirectUploadEntry as table serverpod_cloud_storage_direct_upload
 --
 CREATE TABLE "serverpod_cloud_storage_direct_upload" (
     "id" bigserial PRIMARY KEY,
@@ -346,7 +222,7 @@ CREATE TABLE "serverpod_cloud_storage_direct_upload" (
 CREATE UNIQUE INDEX "serverpod_cloud_storage_direct_upload_storage_path" ON "serverpod_cloud_storage_direct_upload" USING btree ("storageId", "path");
 
 --
--- ACTION CREATE TABLE
+-- Class FutureCallEntry as table serverpod_future_call
 --
 CREATE TABLE "serverpod_future_call" (
     "id" bigserial PRIMARY KEY,
@@ -363,7 +239,7 @@ CREATE INDEX "serverpod_future_call_serverId_idx" ON "serverpod_future_call" USI
 CREATE INDEX "serverpod_future_call_identifier_idx" ON "serverpod_future_call" USING btree ("identifier");
 
 --
--- ACTION CREATE TABLE
+-- Class ServerHealthConnectionInfo as table serverpod_health_connection_info
 --
 CREATE TABLE "serverpod_health_connection_info" (
     "id" bigserial PRIMARY KEY,
@@ -379,7 +255,7 @@ CREATE TABLE "serverpod_health_connection_info" (
 CREATE UNIQUE INDEX "serverpod_health_connection_info_timestamp_idx" ON "serverpod_health_connection_info" USING btree ("timestamp", "serverId", "granularity");
 
 --
--- ACTION CREATE TABLE
+-- Class ServerHealthMetric as table serverpod_health_metric
 --
 CREATE TABLE "serverpod_health_metric" (
     "id" bigserial PRIMARY KEY,
@@ -395,7 +271,7 @@ CREATE TABLE "serverpod_health_metric" (
 CREATE UNIQUE INDEX "serverpod_health_metric_timestamp_idx" ON "serverpod_health_metric" USING btree ("timestamp", "serverId", "name", "granularity");
 
 --
--- ACTION CREATE TABLE
+-- Class LogEntry as table serverpod_log
 --
 CREATE TABLE "serverpod_log" (
     "id" bigserial PRIMARY KEY,
@@ -415,7 +291,7 @@ CREATE TABLE "serverpod_log" (
 CREATE INDEX "serverpod_log_sessionLogId_idx" ON "serverpod_log" USING btree ("sessionLogId");
 
 --
--- ACTION CREATE TABLE
+-- Class MessageLogEntry as table serverpod_message_log
 --
 CREATE TABLE "serverpod_message_log" (
     "id" bigserial PRIMARY KEY,
@@ -432,7 +308,7 @@ CREATE TABLE "serverpod_message_log" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class MethodInfo as table serverpod_method
 --
 CREATE TABLE "serverpod_method" (
     "id" bigserial PRIMARY KEY,
@@ -444,7 +320,7 @@ CREATE TABLE "serverpod_method" (
 CREATE UNIQUE INDEX "serverpod_method_endpoint_method_idx" ON "serverpod_method" USING btree ("endpoint", "method");
 
 --
--- ACTION CREATE TABLE
+-- Class DatabaseMigrationVersion as table serverpod_migrations
 --
 CREATE TABLE "serverpod_migrations" (
     "id" bigserial PRIMARY KEY,
@@ -457,7 +333,7 @@ CREATE TABLE "serverpod_migrations" (
 CREATE UNIQUE INDEX "serverpod_migrations_ids" ON "serverpod_migrations" USING btree ("module");
 
 --
--- ACTION CREATE TABLE
+-- Class QueryLogEntry as table serverpod_query_log
 --
 CREATE TABLE "serverpod_query_log" (
     "id" bigserial PRIMARY KEY,
@@ -477,7 +353,7 @@ CREATE TABLE "serverpod_query_log" (
 CREATE INDEX "serverpod_query_log_sessionLogId_idx" ON "serverpod_query_log" USING btree ("sessionLogId");
 
 --
--- ACTION CREATE TABLE
+-- Class ReadWriteTestEntry as table serverpod_readwrite_test
 --
 CREATE TABLE "serverpod_readwrite_test" (
     "id" bigserial PRIMARY KEY,
@@ -485,7 +361,7 @@ CREATE TABLE "serverpod_readwrite_test" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class RuntimeSettings as table serverpod_runtime_settings
 --
 CREATE TABLE "serverpod_runtime_settings" (
     "id" bigserial PRIMARY KEY,
@@ -496,7 +372,7 @@ CREATE TABLE "serverpod_runtime_settings" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class SessionLogEntry as table serverpod_session_log
 --
 CREATE TABLE "serverpod_session_log" (
     "id" bigserial PRIMARY KEY,
@@ -523,7 +399,7 @@ CREATE INDEX "serverpod_session_log_touched_idx" ON "serverpod_session_log" USIN
 CREATE INDEX "serverpod_session_log_isopen_idx" ON "serverpod_session_log" USING btree ("isOpen");
 
 --
--- ACTION CREATE TABLE
+-- Class AnonymousAccount as table serverpod_auth_idp_anonymous_account
 --
 CREATE TABLE "serverpod_auth_idp_anonymous_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -532,7 +408,7 @@ CREATE TABLE "serverpod_auth_idp_anonymous_account" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class AppleAccount as table serverpod_auth_idp_apple_account
 --
 CREATE TABLE "serverpod_auth_idp_apple_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -553,7 +429,7 @@ CREATE TABLE "serverpod_auth_idp_apple_account" (
 CREATE UNIQUE INDEX "serverpod_auth_apple_account_identifier" ON "serverpod_auth_idp_apple_account" USING btree ("userIdentifier");
 
 --
--- ACTION CREATE TABLE
+-- Class EmailAccount as table serverpod_auth_idp_email_account
 --
 CREATE TABLE "serverpod_auth_idp_email_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -567,7 +443,7 @@ CREATE TABLE "serverpod_auth_idp_email_account" (
 CREATE UNIQUE INDEX "serverpod_auth_idp_email_account_email" ON "serverpod_auth_idp_email_account" USING btree ("email");
 
 --
--- ACTION CREATE TABLE
+-- Class EmailAccountPasswordResetRequest as table serverpod_auth_idp_email_account_password_reset_request
 --
 CREATE TABLE "serverpod_auth_idp_email_account_password_reset_request" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -578,7 +454,7 @@ CREATE TABLE "serverpod_auth_idp_email_account_password_reset_request" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class EmailAccountRequest as table serverpod_auth_idp_email_account_request
 --
 CREATE TABLE "serverpod_auth_idp_email_account_request" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -592,7 +468,7 @@ CREATE TABLE "serverpod_auth_idp_email_account_request" (
 CREATE UNIQUE INDEX "serverpod_auth_idp_email_account_request_email" ON "serverpod_auth_idp_email_account_request" USING btree ("email");
 
 --
--- ACTION CREATE TABLE
+-- Class FacebookAccount as table serverpod_auth_idp_facebook_account
 --
 CREATE TABLE "serverpod_auth_idp_facebook_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -609,7 +485,7 @@ CREATE TABLE "serverpod_auth_idp_facebook_account" (
 CREATE UNIQUE INDEX "serverpod_auth_facebook_account_user_identifier" ON "serverpod_auth_idp_facebook_account" USING btree ("userIdentifier");
 
 --
--- ACTION CREATE TABLE
+-- Class FirebaseAccount as table serverpod_auth_idp_firebase_account
 --
 CREATE TABLE "serverpod_auth_idp_firebase_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -624,7 +500,7 @@ CREATE TABLE "serverpod_auth_idp_firebase_account" (
 CREATE UNIQUE INDEX "serverpod_auth_firebase_account_user_identifier" ON "serverpod_auth_idp_firebase_account" USING btree ("userIdentifier");
 
 --
--- ACTION CREATE TABLE
+-- Class GitHubAccount as table serverpod_auth_idp_github_account
 --
 CREATE TABLE "serverpod_auth_idp_github_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -638,7 +514,7 @@ CREATE TABLE "serverpod_auth_idp_github_account" (
 CREATE UNIQUE INDEX "serverpod_auth_github_account_user_identifier" ON "serverpod_auth_idp_github_account" USING btree ("userIdentifier");
 
 --
--- ACTION CREATE TABLE
+-- Class GoogleAccount as table serverpod_auth_idp_google_account
 --
 CREATE TABLE "serverpod_auth_idp_google_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -652,7 +528,7 @@ CREATE TABLE "serverpod_auth_idp_google_account" (
 CREATE UNIQUE INDEX "serverpod_auth_google_account_user_identifier" ON "serverpod_auth_idp_google_account" USING btree ("userIdentifier");
 
 --
--- ACTION CREATE TABLE
+-- Class MicrosoftAccount as table serverpod_auth_idp_microsoft_account
 --
 CREATE TABLE "serverpod_auth_idp_microsoft_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -666,7 +542,7 @@ CREATE TABLE "serverpod_auth_idp_microsoft_account" (
 CREATE UNIQUE INDEX "serverpod_auth_microsoft_account_user_identifier" ON "serverpod_auth_idp_microsoft_account" USING btree ("userIdentifier");
 
 --
--- ACTION CREATE TABLE
+-- Class PasskeyAccount as table serverpod_auth_idp_passkey_account
 --
 CREATE TABLE "serverpod_auth_idp_passkey_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -683,7 +559,7 @@ CREATE TABLE "serverpod_auth_idp_passkey_account" (
 CREATE UNIQUE INDEX "serverpod_auth_idp_passkey_account_key_id_base64" ON "serverpod_auth_idp_passkey_account" USING btree ("keyIdBase64");
 
 --
--- ACTION CREATE TABLE
+-- Class PasskeyChallenge as table serverpod_auth_idp_passkey_challenge
 --
 CREATE TABLE "serverpod_auth_idp_passkey_challenge" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -692,7 +568,7 @@ CREATE TABLE "serverpod_auth_idp_passkey_challenge" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class RateLimitedRequestAttempt as table serverpod_auth_idp_rate_limited_request_attempt
 --
 CREATE TABLE "serverpod_auth_idp_rate_limited_request_attempt" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -708,7 +584,7 @@ CREATE TABLE "serverpod_auth_idp_rate_limited_request_attempt" (
 CREATE INDEX "serverpod_auth_idp_rate_limited_request_attempt_composite" ON "serverpod_auth_idp_rate_limited_request_attempt" USING btree ("domain", "source", "nonce", "attemptedAt");
 
 --
--- ACTION CREATE TABLE
+-- Class SecretChallenge as table serverpod_auth_idp_secret_challenge
 --
 CREATE TABLE "serverpod_auth_idp_secret_challenge" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -716,7 +592,7 @@ CREATE TABLE "serverpod_auth_idp_secret_challenge" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class RefreshToken as table serverpod_auth_core_jwt_refresh_token
 --
 CREATE TABLE "serverpod_auth_core_jwt_refresh_token" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -734,7 +610,7 @@ CREATE TABLE "serverpod_auth_core_jwt_refresh_token" (
 CREATE INDEX "serverpod_auth_core_jwt_refresh_token_last_updated_at" ON "serverpod_auth_core_jwt_refresh_token" USING btree ("lastUpdatedAt");
 
 --
--- ACTION CREATE TABLE
+-- Class UserProfile as table serverpod_auth_core_profile
 --
 CREATE TABLE "serverpod_auth_core_profile" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -750,7 +626,7 @@ CREATE TABLE "serverpod_auth_core_profile" (
 CREATE UNIQUE INDEX "serverpod_auth_profile_user_profile_email_auth_user_id" ON "serverpod_auth_core_profile" USING btree ("authUserId");
 
 --
--- ACTION CREATE TABLE
+-- Class UserProfileImage as table serverpod_auth_core_profile_image
 --
 CREATE TABLE "serverpod_auth_core_profile_image" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -762,7 +638,7 @@ CREATE TABLE "serverpod_auth_core_profile_image" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class ServerSideSession as table serverpod_auth_core_session
 --
 CREATE TABLE "serverpod_auth_core_session" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -778,7 +654,7 @@ CREATE TABLE "serverpod_auth_core_session" (
 );
 
 --
--- ACTION CREATE TABLE
+-- Class AuthUser as table serverpod_auth_core_user
 --
 CREATE TABLE "serverpod_auth_core_user" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
@@ -788,73 +664,7 @@ CREATE TABLE "serverpod_auth_core_user" (
 );
 
 --
--- ACTION CREATE FOREIGN KEY
---
-ALTER TABLE ONLY "account_entitlement"
-    ADD CONSTRAINT "account_entitlement_fk_0"
-    FOREIGN KEY("entitlementId")
-    REFERENCES "entitlement"("id")
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-
---
--- ACTION CREATE FOREIGN KEY
---
-ALTER TABLE ONLY "consumption_log"
-    ADD CONSTRAINT "consumption_log_fk_0"
-    FOREIGN KEY("entitlementId")
-    REFERENCES "entitlement"("id")
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-
---
--- ACTION CREATE FOREIGN KEY
---
-ALTER TABLE ONLY "group_consumption_log"
-    ADD CONSTRAINT "group_consumption_log_fk_0"
-    FOREIGN KEY("entitlementId")
-    REFERENCES "entitlement"("id")
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-
---
--- ACTION CREATE FOREIGN KEY
---
-ALTER TABLE ONLY "group_entitlement"
-    ADD CONSTRAINT "group_entitlement_fk_0"
-    FOREIGN KEY("entitlementId")
-    REFERENCES "entitlement"("id")
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-
---
--- ACTION CREATE FOREIGN KEY
---
-ALTER TABLE ONLY "rail_product_grant"
-    ADD CONSTRAINT "rail_product_grant_fk_0"
-    FOREIGN KEY("railProductId")
-    REFERENCES "rail_product"("id")
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-ALTER TABLE ONLY "rail_product_grant"
-    ADD CONSTRAINT "rail_product_grant_fk_1"
-    FOREIGN KEY("entitlementId")
-    REFERENCES "entitlement"("id")
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-
---
--- ACTION CREATE FOREIGN KEY
---
-ALTER TABLE ONLY "transaction_payment"
-    ADD CONSTRAINT "transaction_payment_fk_0"
-    FOREIGN KEY("railProductId")
-    REFERENCES "rail_product"("id")
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION;
-
---
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "account_device" table
 --
 ALTER TABLE ONLY "account_device"
     ADD CONSTRAINT "account_device_fk_0"
@@ -864,7 +674,7 @@ ALTER TABLE ONLY "account_device"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "group_member" table
 --
 ALTER TABLE ONLY "group_member"
     ADD CONSTRAINT "group_member_fk_0"
@@ -880,7 +690,7 @@ ALTER TABLE ONLY "group_member"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "group_member_device" table
 --
 ALTER TABLE ONLY "group_member_device"
     ADD CONSTRAINT "group_member_device_fk_0"
@@ -896,7 +706,23 @@ ALTER TABLE ONLY "group_member_device"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "group_owner" table
+--
+ALTER TABLE ONLY "group_owner"
+    ADD CONSTRAINT "group_owner_fk_0"
+    FOREIGN KEY("shareGroupId")
+    REFERENCES "share_group"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+ALTER TABLE ONLY "group_owner"
+    ADD CONSTRAINT "group_owner_fk_1"
+    FOREIGN KEY("anonAccountId")
+    REFERENCES "anon_account"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+
+--
+-- Foreign relations for "serverpod_log" table
 --
 ALTER TABLE ONLY "serverpod_log"
     ADD CONSTRAINT "serverpod_log_fk_0"
@@ -906,7 +732,7 @@ ALTER TABLE ONLY "serverpod_log"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_message_log" table
 --
 ALTER TABLE ONLY "serverpod_message_log"
     ADD CONSTRAINT "serverpod_message_log_fk_0"
@@ -916,7 +742,7 @@ ALTER TABLE ONLY "serverpod_message_log"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_query_log" table
 --
 ALTER TABLE ONLY "serverpod_query_log"
     ADD CONSTRAINT "serverpod_query_log_fk_0"
@@ -926,7 +752,7 @@ ALTER TABLE ONLY "serverpod_query_log"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_anonymous_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_anonymous_account"
     ADD CONSTRAINT "serverpod_auth_idp_anonymous_account_fk_0"
@@ -936,7 +762,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_anonymous_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_apple_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_apple_account"
     ADD CONSTRAINT "serverpod_auth_idp_apple_account_fk_0"
@@ -946,7 +772,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_apple_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_email_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_email_account"
     ADD CONSTRAINT "serverpod_auth_idp_email_account_fk_0"
@@ -956,7 +782,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_email_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_email_account_password_reset_request" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_email_account_password_reset_request"
     ADD CONSTRAINT "serverpod_auth_idp_email_account_password_reset_request_fk_0"
@@ -978,7 +804,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_email_account_password_reset_request"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_email_account_request" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_email_account_request"
     ADD CONSTRAINT "serverpod_auth_idp_email_account_request_fk_0"
@@ -994,7 +820,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_email_account_request"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_facebook_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_facebook_account"
     ADD CONSTRAINT "serverpod_auth_idp_facebook_account_fk_0"
@@ -1004,7 +830,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_facebook_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_firebase_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_firebase_account"
     ADD CONSTRAINT "serverpod_auth_idp_firebase_account_fk_0"
@@ -1014,7 +840,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_firebase_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_github_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_github_account"
     ADD CONSTRAINT "serverpod_auth_idp_github_account_fk_0"
@@ -1024,7 +850,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_github_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_google_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_google_account"
     ADD CONSTRAINT "serverpod_auth_idp_google_account_fk_0"
@@ -1034,7 +860,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_google_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_microsoft_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_microsoft_account"
     ADD CONSTRAINT "serverpod_auth_idp_microsoft_account_fk_0"
@@ -1044,7 +870,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_microsoft_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_idp_passkey_account" table
 --
 ALTER TABLE ONLY "serverpod_auth_idp_passkey_account"
     ADD CONSTRAINT "serverpod_auth_idp_passkey_account_fk_0"
@@ -1054,7 +880,7 @@ ALTER TABLE ONLY "serverpod_auth_idp_passkey_account"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_core_jwt_refresh_token" table
 --
 ALTER TABLE ONLY "serverpod_auth_core_jwt_refresh_token"
     ADD CONSTRAINT "serverpod_auth_core_jwt_refresh_token_fk_0"
@@ -1064,7 +890,7 @@ ALTER TABLE ONLY "serverpod_auth_core_jwt_refresh_token"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_core_profile" table
 --
 ALTER TABLE ONLY "serverpod_auth_core_profile"
     ADD CONSTRAINT "serverpod_auth_core_profile_fk_0"
@@ -1080,7 +906,7 @@ ALTER TABLE ONLY "serverpod_auth_core_profile"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_core_profile_image" table
 --
 ALTER TABLE ONLY "serverpod_auth_core_profile_image"
     ADD CONSTRAINT "serverpod_auth_core_profile_image_fk_0"
@@ -1090,7 +916,7 @@ ALTER TABLE ONLY "serverpod_auth_core_profile_image"
     ON UPDATE NO ACTION;
 
 --
--- ACTION CREATE FOREIGN KEY
+-- Foreign relations for "serverpod_auth_core_session" table
 --
 ALTER TABLE ONLY "serverpod_auth_core_session"
     ADD CONSTRAINT "serverpod_auth_core_session_fk_0"
@@ -1101,20 +927,12 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 
 
 --
--- MIGRATION VERSION FOR anonaccred
---
-INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccred', '20260802064641733', now())
-    ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260802064641733', "timestamp" = now();
-
---
 -- MIGRATION VERSION FOR anonaccount
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccount', '20260802064443024', now())
+    VALUES ('anonaccount', '20260802130448042', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260802064443024', "timestamp" = now();
+    DO UPDATE SET "version" = '20260802130448042', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod

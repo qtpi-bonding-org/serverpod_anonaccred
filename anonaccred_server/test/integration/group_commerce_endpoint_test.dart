@@ -48,7 +48,7 @@ void main() {
           anonAccountId: testAccount.id!,
           deviceSigningPublicKeyHex: validPublicKey,
           deviceEncryptionPublicKeyHex: validPublicKey,
-          addedBySignerPublicKeyHex: validPublicKey,
+          addedByAttestorPublicKeyHex: validPublicKey,
           addedByAttestation: 'test-attestation',
           encryptedDataKey: 'device_key_for_group_commerce_test',
           label: 'Test Device',
@@ -87,7 +87,8 @@ void main() {
             memberSigningPublicKeyHex: validPublicKey,
             memberEncryptionPublicKeyHex: validPublicKey,
             encryptedDataKey: 'wrapped_for_member',
-            addedBySignerPublicKeyHex: validPublicKey,
+            encryptedMemberKey: 'wrapped_for_member',
+            addedByAttestorPublicKeyHex: validPublicKey,
             addedByAttestation: 'test-attestation',
           ),
         );

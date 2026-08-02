@@ -39,7 +39,7 @@ Future<AccountDevice> _seedDevice(
       deviceEncryptionPublicKeyHex: enc,
       encryptedDataKey: 'wrapped',
       label: 'test-device',
-      addedBySignerPublicKeyHex: sig,
+      addedByAttestorPublicKeyHex: sig,
       addedByAttestation: 'attestation',
       lastActive: DateTime.now(),
       isRevoked: isRevoked,
@@ -93,7 +93,8 @@ Future<GroupMember> _seedMember(
       memberSigningPublicKeyHex: hex,
       memberEncryptionPublicKeyHex: hex,
       encryptedDataKey: 'wrapped',
-      addedBySignerPublicKeyHex: hex,
+      encryptedMemberKey: 'wrapped',
+      addedByAttestorPublicKeyHex: hex,
       addedByAttestation: 'attestation',
       isRevoked: isRevoked,
     );
@@ -125,7 +126,7 @@ Future<GroupMemberDevice> _seedGrant(
       groupMemberId: groupMemberId,
       accountDeviceId: accountDeviceId,
       encryptedDataKey: 'wrapped',
-      addedBySignerPublicKeyHex: _uniqueHex(),
+      addedByAttestorPublicKeyHex: _uniqueHex(),
       addedByAttestation: 'attestation',
       isRevoked: isRevoked,
     );

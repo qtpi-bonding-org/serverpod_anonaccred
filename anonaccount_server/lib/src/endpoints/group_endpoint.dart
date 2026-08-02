@@ -128,10 +128,12 @@ class GroupEndpoint extends SignedPowEndpoint {
         memberSigningPublicKeyHex: memberKeys.signingPublicKeyHex,
         memberEncryptionPublicKeyHex: memberKeys.encryptionPublicKeyHex,
         encryptedDataKey: creatorMemberEncryptedDataKey,
+        // TODO(member-key-backup): placeholder until the member-key-backup
+        // plan lands the write path for this column.
+        encryptedMemberKey: '',
         joinedAt: now,
-        lastActive: now,
         isRevoked: false,
-        addedBySignerPublicKeyHex: groupKeys.signingPublicKeyHex,
+        addedByAttestorPublicKeyHex: groupKeys.signingPublicKeyHex,
         addedByAttestation: groupUltimateAttestation,
       );
       await GroupMember.db.insertRow(session, member);
@@ -413,10 +415,12 @@ class GroupEndpoint extends SignedPowEndpoint {
         memberEncryptionPublicKeyHex:
             validatedMemberKeys.encryptionPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
+        // TODO(member-key-backup): placeholder until the member-key-backup
+        // plan lands the write path for this column.
+        encryptedMemberKey: '',
         joinedAt: now,
-        lastActive: now,
         isRevoked: false,
-        addedBySignerPublicKeyHex: attestingPubkey,
+        addedByAttestorPublicKeyHex: attestingPubkey,
         addedByAttestation: attestationSig,
       );
       final insertedMember = await GroupMember.db.insertRow(session, member);
@@ -612,7 +616,7 @@ class GroupEndpoint extends SignedPowEndpoint {
             session,
             target.copyWith(
               isRevoked: true,
-              revokedBySignerPublicKeyHex: attestingPubkey,
+              revokedByAttestorPublicKeyHex: attestingPubkey,
               revokedByAttestation: attestationSig,
             ),
             transaction: tx,
@@ -952,7 +956,7 @@ class GroupEndpoint extends SignedPowEndpoint {
           session,
           target.copyWith(
             isRevoked: true,
-            revokedBySignerPublicKeyHex: memberSigningPublicKeyHex,
+            revokedByAttestorPublicKeyHex: memberSigningPublicKeyHex,
             revokedByAttestation: memberAuthSignature,
           ),
           transaction: tx,
@@ -1161,7 +1165,7 @@ class GroupEndpoint extends SignedPowEndpoint {
             groupMemberId: g.groupMemberId,
             accountDeviceId: g.accountDeviceId,
             encryptedDataKey: g.encryptedDataKey,
-            addedBySignerPublicKeyHex: g.attestorSigningPublicKeyHex,
+            addedByAttestorPublicKeyHex: g.attestorSigningPublicKeyHex,
             addedByAttestation: g.attestation,
           ));
         }
