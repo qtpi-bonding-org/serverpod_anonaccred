@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,98 +9,56 @@ part of 'created_group.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$CreatedGroup {
-  String get groupId => throw _privateConstructorUsedError;
-  String get displayName => throw _privateConstructorUsedError;
-  AesGcmSecretKey get groupDataKey =>
-      throw _privateConstructorUsedError; // The creator's own member KeyDuo — the group data key's creator
+  String get groupId;
+  String get displayName;
+  AesGcmSecretKey
+      get groupDataKey; // The creator's own member KeyDuo — the group data key's creator
 // copy (GroupMember.encryptedDataKey on the server) is wrapped to
 // this KeyDuo's encryption public key. Callers MUST persist this
 // (storeMemberKey) or they can never unwrap their own listMyGroups
 // row for this group.
-  KeyDuo get memberKey => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
+  KeyDuo get memberKey;
+  DateTime get createdAt;
 
   /// Create a copy of CreatedGroup
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $CreatedGroupCopyWith<CreatedGroup> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+      _$CreatedGroupCopyWithImpl<CreatedGroup>(
+          this as CreatedGroup, _$identity);
 
-/// @nodoc
-abstract class $CreatedGroupCopyWith<$Res> {
-  factory $CreatedGroupCopyWith(
-          CreatedGroup value, $Res Function(CreatedGroup) then) =
-      _$CreatedGroupCopyWithImpl<$Res, CreatedGroup>;
-  @useResult
-  $Res call(
-      {String groupId,
-      String displayName,
-      AesGcmSecretKey groupDataKey,
-      KeyDuo memberKey,
-      DateTime createdAt});
-}
-
-/// @nodoc
-class _$CreatedGroupCopyWithImpl<$Res, $Val extends CreatedGroup>
-    implements $CreatedGroupCopyWith<$Res> {
-  _$CreatedGroupCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of CreatedGroup
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? groupId = null,
-    Object? displayName = null,
-    Object? groupDataKey = null,
-    Object? memberKey = null,
-    Object? createdAt = null,
-  }) {
-    return _then(_value.copyWith(
-      groupId: null == groupId
-          ? _value.groupId
-          : groupId // ignore: cast_nullable_to_non_nullable
-              as String,
-      displayName: null == displayName
-          ? _value.displayName
-          : displayName // ignore: cast_nullable_to_non_nullable
-              as String,
-      groupDataKey: null == groupDataKey
-          ? _value.groupDataKey
-          : groupDataKey // ignore: cast_nullable_to_non_nullable
-              as AesGcmSecretKey,
-      memberKey: null == memberKey
-          ? _value.memberKey
-          : memberKey // ignore: cast_nullable_to_non_nullable
-              as KeyDuo,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is CreatedGroup &&
+            (identical(other.groupId, groupId) || other.groupId == groupId) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.groupDataKey, groupDataKey) ||
+                other.groupDataKey == groupDataKey) &&
+            (identical(other.memberKey, memberKey) ||
+                other.memberKey == memberKey) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt));
   }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, groupId, displayName, groupDataKey, memberKey, createdAt);
 }
 
 /// @nodoc
-abstract class _$$CreatedGroupImplCopyWith<$Res>
-    implements $CreatedGroupCopyWith<$Res> {
-  factory _$$CreatedGroupImplCopyWith(
-          _$CreatedGroupImpl value, $Res Function(_$CreatedGroupImpl) then) =
-      __$$CreatedGroupImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $CreatedGroupCopyWith<$Res> {
+  factory $CreatedGroupCopyWith(
+          CreatedGroup value, $Res Function(CreatedGroup) _then) =
+      _$CreatedGroupCopyWithImpl;
   @useResult
   $Res call(
       {String groupId,
@@ -111,12 +69,11 @@ abstract class _$$CreatedGroupImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$CreatedGroupImplCopyWithImpl<$Res>
-    extends _$CreatedGroupCopyWithImpl<$Res, _$CreatedGroupImpl>
-    implements _$$CreatedGroupImplCopyWith<$Res> {
-  __$$CreatedGroupImplCopyWithImpl(
-      _$CreatedGroupImpl _value, $Res Function(_$CreatedGroupImpl) _then)
-      : super(_value, _then);
+class _$CreatedGroupCopyWithImpl<$Res> implements $CreatedGroupCopyWith<$Res> {
+  _$CreatedGroupCopyWithImpl(this._self, this._then);
+
+  final CreatedGroup _self;
+  final $Res Function(CreatedGroup) _then;
 
   /// Create a copy of CreatedGroup
   /// with the given fields replaced by the non-null parameter values.
@@ -129,40 +86,207 @@ class __$$CreatedGroupImplCopyWithImpl<$Res>
     Object? memberKey = null,
     Object? createdAt = null,
   }) {
-    return _then(_$CreatedGroupImpl(
+    return _then(_self.copyWith(
       groupId: null == groupId
-          ? _value.groupId
+          ? _self.groupId
           : groupId // ignore: cast_nullable_to_non_nullable
               as String,
       displayName: null == displayName
-          ? _value.displayName
+          ? _self.displayName
           : displayName // ignore: cast_nullable_to_non_nullable
               as String,
       groupDataKey: null == groupDataKey
-          ? _value.groupDataKey
+          ? _self.groupDataKey
           : groupDataKey // ignore: cast_nullable_to_non_nullable
               as AesGcmSecretKey,
       memberKey: null == memberKey
-          ? _value.memberKey
+          ? _self.memberKey
           : memberKey // ignore: cast_nullable_to_non_nullable
               as KeyDuo,
       createdAt: null == createdAt
-          ? _value.createdAt
+          ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
     ));
   }
 }
 
+/// Adds pattern-matching-related methods to [CreatedGroup].
+extension CreatedGroupPatterns on CreatedGroup {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_CreatedGroup value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _CreatedGroup() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_CreatedGroup value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreatedGroup():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_CreatedGroup value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreatedGroup() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String groupId, String displayName,
+            AesGcmSecretKey groupDataKey, KeyDuo memberKey, DateTime createdAt)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _CreatedGroup() when $default != null:
+        return $default(_that.groupId, _that.displayName, _that.groupDataKey,
+            _that.memberKey, _that.createdAt);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String groupId, String displayName,
+            AesGcmSecretKey groupDataKey, KeyDuo memberKey, DateTime createdAt)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreatedGroup():
+        return $default(_that.groupId, _that.displayName, _that.groupDataKey,
+            _that.memberKey, _that.createdAt);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String groupId, String displayName,
+            AesGcmSecretKey groupDataKey, KeyDuo memberKey, DateTime createdAt)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreatedGroup() when $default != null:
+        return $default(_that.groupId, _that.displayName, _that.groupDataKey,
+            _that.memberKey, _that.createdAt);
+      case _:
+        return null;
+    }
+  }
+}
+
 /// @nodoc
 
-class _$CreatedGroupImpl implements _CreatedGroup {
-  const _$CreatedGroupImpl(
+class _CreatedGroup extends CreatedGroup {
+  const _CreatedGroup(
       {required this.groupId,
       required this.displayName,
       required this.groupDataKey,
       required this.memberKey,
-      required this.createdAt});
+      required this.createdAt})
+      : super._();
 
   @override
   final String groupId;
@@ -180,16 +304,19 @@ class _$CreatedGroupImpl implements _CreatedGroup {
   @override
   final DateTime createdAt;
 
+  /// Create a copy of CreatedGroup
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'CreatedGroup(groupId: $groupId, displayName: $displayName, groupDataKey: $groupDataKey, memberKey: $memberKey, createdAt: $createdAt)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$CreatedGroupCopyWith<_CreatedGroup> get copyWith =>
+      __$CreatedGroupCopyWithImpl<_CreatedGroup>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$CreatedGroupImpl &&
+            other is _CreatedGroup &&
             (identical(other.groupId, groupId) || other.groupId == groupId) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
@@ -204,44 +331,66 @@ class _$CreatedGroupImpl implements _CreatedGroup {
   @override
   int get hashCode => Object.hash(
       runtimeType, groupId, displayName, groupDataKey, memberKey, createdAt);
+}
+
+/// @nodoc
+abstract mixin class _$CreatedGroupCopyWith<$Res>
+    implements $CreatedGroupCopyWith<$Res> {
+  factory _$CreatedGroupCopyWith(
+          _CreatedGroup value, $Res Function(_CreatedGroup) _then) =
+      __$CreatedGroupCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String groupId,
+      String displayName,
+      AesGcmSecretKey groupDataKey,
+      KeyDuo memberKey,
+      DateTime createdAt});
+}
+
+/// @nodoc
+class __$CreatedGroupCopyWithImpl<$Res>
+    implements _$CreatedGroupCopyWith<$Res> {
+  __$CreatedGroupCopyWithImpl(this._self, this._then);
+
+  final _CreatedGroup _self;
+  final $Res Function(_CreatedGroup) _then;
 
   /// Create a copy of CreatedGroup
   /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$CreatedGroupImplCopyWith<_$CreatedGroupImpl> get copyWith =>
-      __$$CreatedGroupImplCopyWithImpl<_$CreatedGroupImpl>(this, _$identity);
+  $Res call({
+    Object? groupId = null,
+    Object? displayName = null,
+    Object? groupDataKey = null,
+    Object? memberKey = null,
+    Object? createdAt = null,
+  }) {
+    return _then(_CreatedGroup(
+      groupId: null == groupId
+          ? _self.groupId
+          : groupId // ignore: cast_nullable_to_non_nullable
+              as String,
+      displayName: null == displayName
+          ? _self.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String,
+      groupDataKey: null == groupDataKey
+          ? _self.groupDataKey
+          : groupDataKey // ignore: cast_nullable_to_non_nullable
+              as AesGcmSecretKey,
+      memberKey: null == memberKey
+          ? _self.memberKey
+          : memberKey // ignore: cast_nullable_to_non_nullable
+              as KeyDuo,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ));
+  }
 }
 
-abstract class _CreatedGroup implements CreatedGroup {
-  const factory _CreatedGroup(
-      {required final String groupId,
-      required final String displayName,
-      required final AesGcmSecretKey groupDataKey,
-      required final KeyDuo memberKey,
-      required final DateTime createdAt}) = _$CreatedGroupImpl;
-
-  @override
-  String get groupId;
-  @override
-  String get displayName;
-  @override
-  AesGcmSecretKey
-      get groupDataKey; // The creator's own member KeyDuo — the group data key's creator
-// copy (GroupMember.encryptedDataKey on the server) is wrapped to
-// this KeyDuo's encryption public key. Callers MUST persist this
-// (storeMemberKey) or they can never unwrap their own listMyGroups
-// row for this group.
-  @override
-  KeyDuo get memberKey;
-  @override
-  DateTime get createdAt;
-
-  /// Create a copy of CreatedGroup
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CreatedGroupImplCopyWith<_$CreatedGroupImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+// dart format on

@@ -6,9 +6,8 @@ part of 'group_membership.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$GroupMembershipImpl _$$GroupMembershipImplFromJson(
-        Map<String, dynamic> json) =>
-    _$GroupMembershipImpl(
+_GroupMembership _$GroupMembershipFromJson(Map<String, dynamic> json) =>
+    _GroupMembership(
       groupId: json['groupId'] as String,
       memberId: UuidValueJsonExtension.fromJson(json['memberId']),
       role: const _GroupMemberRoleConverter().fromJson(json['role'] as String),
@@ -18,8 +17,7 @@ _$GroupMembershipImpl _$$GroupMembershipImplFromJson(
       joinedAt: DateTime.parse(json['joinedAt'] as String),
     );
 
-Map<String, dynamic> _$$GroupMembershipImplToJson(
-        _$GroupMembershipImpl instance) =>
+Map<String, dynamic> _$GroupMembershipToJson(_GroupMembership instance) =>
     <String, dynamic>{
       'groupId': instance.groupId,
       'memberId': _uuidValueToJson(instance.memberId),

@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,229 +9,37 @@ part of 'group_membership.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-GroupMembership _$GroupMembershipFromJson(Map<String, dynamic> json) {
-  return _GroupMembership.fromJson(json);
-}
 
 /// @nodoc
 mixin _$GroupMembership {
-  String get groupId => throw _privateConstructorUsedError;
+  String get groupId;
   @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-  UuidValue get memberId => throw _privateConstructorUsedError;
+  UuidValue get memberId;
   @_GroupMemberRoleConverter()
-  GroupMemberRole get role => throw _privateConstructorUsedError;
-  String get memberSigningPublicKeyHex => throw _privateConstructorUsedError;
-  String get memberEncryptedDataKey => throw _privateConstructorUsedError;
-  String? get deviceEncryptedDataKey => throw _privateConstructorUsedError;
-  DateTime get joinedAt => throw _privateConstructorUsedError;
-
-  /// Serializes this GroupMembership to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  GroupMemberRole get role;
+  String get memberSigningPublicKeyHex;
+  String get memberEncryptedDataKey;
+  String? get deviceEncryptedDataKey;
+  DateTime get joinedAt;
 
   /// Create a copy of GroupMembership
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $GroupMembershipCopyWith<GroupMembership> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+      _$GroupMembershipCopyWithImpl<GroupMembership>(
+          this as GroupMembership, _$identity);
 
-/// @nodoc
-abstract class $GroupMembershipCopyWith<$Res> {
-  factory $GroupMembershipCopyWith(
-          GroupMembership value, $Res Function(GroupMembership) then) =
-      _$GroupMembershipCopyWithImpl<$Res, GroupMembership>;
-  @useResult
-  $Res call(
-      {String groupId,
-      @JsonKey(
-          fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-      UuidValue memberId,
-      @_GroupMemberRoleConverter() GroupMemberRole role,
-      String memberSigningPublicKeyHex,
-      String memberEncryptedDataKey,
-      String? deviceEncryptedDataKey,
-      DateTime joinedAt});
-}
-
-/// @nodoc
-class _$GroupMembershipCopyWithImpl<$Res, $Val extends GroupMembership>
-    implements $GroupMembershipCopyWith<$Res> {
-  _$GroupMembershipCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of GroupMembership
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? groupId = null,
-    Object? memberId = null,
-    Object? role = null,
-    Object? memberSigningPublicKeyHex = null,
-    Object? memberEncryptedDataKey = null,
-    Object? deviceEncryptedDataKey = freezed,
-    Object? joinedAt = null,
-  }) {
-    return _then(_value.copyWith(
-      groupId: null == groupId
-          ? _value.groupId
-          : groupId // ignore: cast_nullable_to_non_nullable
-              as String,
-      memberId: null == memberId
-          ? _value.memberId
-          : memberId // ignore: cast_nullable_to_non_nullable
-              as UuidValue,
-      role: null == role
-          ? _value.role
-          : role // ignore: cast_nullable_to_non_nullable
-              as GroupMemberRole,
-      memberSigningPublicKeyHex: null == memberSigningPublicKeyHex
-          ? _value.memberSigningPublicKeyHex
-          : memberSigningPublicKeyHex // ignore: cast_nullable_to_non_nullable
-              as String,
-      memberEncryptedDataKey: null == memberEncryptedDataKey
-          ? _value.memberEncryptedDataKey
-          : memberEncryptedDataKey // ignore: cast_nullable_to_non_nullable
-              as String,
-      deviceEncryptedDataKey: freezed == deviceEncryptedDataKey
-          ? _value.deviceEncryptedDataKey
-          : deviceEncryptedDataKey // ignore: cast_nullable_to_non_nullable
-              as String?,
-      joinedAt: null == joinedAt
-          ? _value.joinedAt
-          : joinedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$GroupMembershipImplCopyWith<$Res>
-    implements $GroupMembershipCopyWith<$Res> {
-  factory _$$GroupMembershipImplCopyWith(_$GroupMembershipImpl value,
-          $Res Function(_$GroupMembershipImpl) then) =
-      __$$GroupMembershipImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String groupId,
-      @JsonKey(
-          fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-      UuidValue memberId,
-      @_GroupMemberRoleConverter() GroupMemberRole role,
-      String memberSigningPublicKeyHex,
-      String memberEncryptedDataKey,
-      String? deviceEncryptedDataKey,
-      DateTime joinedAt});
-}
-
-/// @nodoc
-class __$$GroupMembershipImplCopyWithImpl<$Res>
-    extends _$GroupMembershipCopyWithImpl<$Res, _$GroupMembershipImpl>
-    implements _$$GroupMembershipImplCopyWith<$Res> {
-  __$$GroupMembershipImplCopyWithImpl(
-      _$GroupMembershipImpl _value, $Res Function(_$GroupMembershipImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of GroupMembership
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? groupId = null,
-    Object? memberId = null,
-    Object? role = null,
-    Object? memberSigningPublicKeyHex = null,
-    Object? memberEncryptedDataKey = null,
-    Object? deviceEncryptedDataKey = freezed,
-    Object? joinedAt = null,
-  }) {
-    return _then(_$GroupMembershipImpl(
-      groupId: null == groupId
-          ? _value.groupId
-          : groupId // ignore: cast_nullable_to_non_nullable
-              as String,
-      memberId: null == memberId
-          ? _value.memberId
-          : memberId // ignore: cast_nullable_to_non_nullable
-              as UuidValue,
-      role: null == role
-          ? _value.role
-          : role // ignore: cast_nullable_to_non_nullable
-              as GroupMemberRole,
-      memberSigningPublicKeyHex: null == memberSigningPublicKeyHex
-          ? _value.memberSigningPublicKeyHex
-          : memberSigningPublicKeyHex // ignore: cast_nullable_to_non_nullable
-              as String,
-      memberEncryptedDataKey: null == memberEncryptedDataKey
-          ? _value.memberEncryptedDataKey
-          : memberEncryptedDataKey // ignore: cast_nullable_to_non_nullable
-              as String,
-      deviceEncryptedDataKey: freezed == deviceEncryptedDataKey
-          ? _value.deviceEncryptedDataKey
-          : deviceEncryptedDataKey // ignore: cast_nullable_to_non_nullable
-              as String?,
-      joinedAt: null == joinedAt
-          ? _value.joinedAt
-          : joinedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$GroupMembershipImpl implements _GroupMembership {
-  const _$GroupMembershipImpl(
-      {required this.groupId,
-      @JsonKey(
-          fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-      required this.memberId,
-      @_GroupMemberRoleConverter() required this.role,
-      required this.memberSigningPublicKeyHex,
-      required this.memberEncryptedDataKey,
-      required this.deviceEncryptedDataKey,
-      required this.joinedAt});
-
-  factory _$GroupMembershipImpl.fromJson(Map<String, dynamic> json) =>
-      _$$GroupMembershipImplFromJson(json);
-
-  @override
-  final String groupId;
-  @override
-  @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-  final UuidValue memberId;
-  @override
-  @_GroupMemberRoleConverter()
-  final GroupMemberRole role;
-  @override
-  final String memberSigningPublicKeyHex;
-  @override
-  final String memberEncryptedDataKey;
-  @override
-  final String? deviceEncryptedDataKey;
-  @override
-  final DateTime joinedAt;
-
-  @override
-  String toString() {
-    return 'GroupMembership(groupId: $groupId, memberId: $memberId, role: $role, memberSigningPublicKeyHex: $memberSigningPublicKeyHex, memberEncryptedDataKey: $memberEncryptedDataKey, deviceEncryptedDataKey: $deviceEncryptedDataKey, joinedAt: $joinedAt)';
-  }
+  /// Serializes this GroupMembership to a JSON map.
+  Map<String, dynamic> toJson();
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$GroupMembershipImpl &&
+            other is GroupMembership &&
             (identical(other.groupId, groupId) || other.groupId == groupId) &&
             (identical(other.memberId, memberId) ||
                 other.memberId == memberId) &&
@@ -259,59 +67,453 @@ class _$GroupMembershipImpl implements _GroupMembership {
       deviceEncryptedDataKey,
       joinedAt);
 
-  /// Create a copy of GroupMembership
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$GroupMembershipImplCopyWith<_$GroupMembershipImpl> get copyWith =>
-      __$$GroupMembershipImplCopyWithImpl<_$GroupMembershipImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$GroupMembershipImplToJson(
-      this,
-    );
+  String toString() {
+    return 'GroupMembership(groupId: $groupId, memberId: $memberId, role: $role, memberSigningPublicKeyHex: $memberSigningPublicKeyHex, memberEncryptedDataKey: $memberEncryptedDataKey, deviceEncryptedDataKey: $deviceEncryptedDataKey, joinedAt: $joinedAt)';
   }
 }
 
-abstract class _GroupMembership implements GroupMembership {
-  const factory _GroupMembership(
-      {required final String groupId,
+/// @nodoc
+abstract mixin class $GroupMembershipCopyWith<$Res> {
+  factory $GroupMembershipCopyWith(
+          GroupMembership value, $Res Function(GroupMembership) _then) =
+      _$GroupMembershipCopyWithImpl;
+  @useResult
+  $Res call(
+      {String groupId,
       @JsonKey(
           fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-      required final UuidValue memberId,
-      @_GroupMemberRoleConverter() required final GroupMemberRole role,
-      required final String memberSigningPublicKeyHex,
-      required final String memberEncryptedDataKey,
-      required final String? deviceEncryptedDataKey,
-      required final DateTime joinedAt}) = _$GroupMembershipImpl;
+      UuidValue memberId,
+      @_GroupMemberRoleConverter() GroupMemberRole role,
+      String memberSigningPublicKeyHex,
+      String memberEncryptedDataKey,
+      String? deviceEncryptedDataKey,
+      DateTime joinedAt});
+}
 
-  factory _GroupMembership.fromJson(Map<String, dynamic> json) =
-      _$GroupMembershipImpl.fromJson;
+/// @nodoc
+class _$GroupMembershipCopyWithImpl<$Res>
+    implements $GroupMembershipCopyWith<$Res> {
+  _$GroupMembershipCopyWithImpl(this._self, this._then);
+
+  final GroupMembership _self;
+  final $Res Function(GroupMembership) _then;
+
+  /// Create a copy of GroupMembership
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? groupId = null,
+    Object? memberId = null,
+    Object? role = null,
+    Object? memberSigningPublicKeyHex = null,
+    Object? memberEncryptedDataKey = null,
+    Object? deviceEncryptedDataKey = freezed,
+    Object? joinedAt = null,
+  }) {
+    return _then(_self.copyWith(
+      groupId: null == groupId
+          ? _self.groupId
+          : groupId // ignore: cast_nullable_to_non_nullable
+              as String,
+      memberId: null == memberId
+          ? _self.memberId
+          : memberId // ignore: cast_nullable_to_non_nullable
+              as UuidValue,
+      role: null == role
+          ? _self.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as GroupMemberRole,
+      memberSigningPublicKeyHex: null == memberSigningPublicKeyHex
+          ? _self.memberSigningPublicKeyHex
+          : memberSigningPublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      memberEncryptedDataKey: null == memberEncryptedDataKey
+          ? _self.memberEncryptedDataKey
+          : memberEncryptedDataKey // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceEncryptedDataKey: freezed == deviceEncryptedDataKey
+          ? _self.deviceEncryptedDataKey
+          : deviceEncryptedDataKey // ignore: cast_nullable_to_non_nullable
+              as String?,
+      joinedAt: null == joinedAt
+          ? _self.joinedAt
+          : joinedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [GroupMembership].
+extension GroupMembershipPatterns on GroupMembership {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_GroupMembership value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _GroupMembership() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_GroupMembership value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _GroupMembership():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_GroupMembership value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _GroupMembership() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            String groupId,
+            @JsonKey(
+                fromJson: UuidValueJsonExtension.fromJson,
+                toJson: _uuidValueToJson)
+            UuidValue memberId,
+            @_GroupMemberRoleConverter() GroupMemberRole role,
+            String memberSigningPublicKeyHex,
+            String memberEncryptedDataKey,
+            String? deviceEncryptedDataKey,
+            DateTime joinedAt)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _GroupMembership() when $default != null:
+        return $default(
+            _that.groupId,
+            _that.memberId,
+            _that.role,
+            _that.memberSigningPublicKeyHex,
+            _that.memberEncryptedDataKey,
+            _that.deviceEncryptedDataKey,
+            _that.joinedAt);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            String groupId,
+            @JsonKey(
+                fromJson: UuidValueJsonExtension.fromJson,
+                toJson: _uuidValueToJson)
+            UuidValue memberId,
+            @_GroupMemberRoleConverter() GroupMemberRole role,
+            String memberSigningPublicKeyHex,
+            String memberEncryptedDataKey,
+            String? deviceEncryptedDataKey,
+            DateTime joinedAt)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _GroupMembership():
+        return $default(
+            _that.groupId,
+            _that.memberId,
+            _that.role,
+            _that.memberSigningPublicKeyHex,
+            _that.memberEncryptedDataKey,
+            _that.deviceEncryptedDataKey,
+            _that.joinedAt);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            String groupId,
+            @JsonKey(
+                fromJson: UuidValueJsonExtension.fromJson,
+                toJson: _uuidValueToJson)
+            UuidValue memberId,
+            @_GroupMemberRoleConverter() GroupMemberRole role,
+            String memberSigningPublicKeyHex,
+            String memberEncryptedDataKey,
+            String? deviceEncryptedDataKey,
+            DateTime joinedAt)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _GroupMembership() when $default != null:
+        return $default(
+            _that.groupId,
+            _that.memberId,
+            _that.role,
+            _that.memberSigningPublicKeyHex,
+            _that.memberEncryptedDataKey,
+            _that.deviceEncryptedDataKey,
+            _that.joinedAt);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _GroupMembership implements GroupMembership {
+  const _GroupMembership(
+      {required this.groupId,
+      @JsonKey(
+          fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
+      required this.memberId,
+      @_GroupMemberRoleConverter() required this.role,
+      required this.memberSigningPublicKeyHex,
+      required this.memberEncryptedDataKey,
+      required this.deviceEncryptedDataKey,
+      required this.joinedAt});
+  factory _GroupMembership.fromJson(Map<String, dynamic> json) =>
+      _$GroupMembershipFromJson(json);
 
   @override
-  String get groupId;
+  final String groupId;
   @override
   @JsonKey(fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
-  UuidValue get memberId;
+  final UuidValue memberId;
   @override
   @_GroupMemberRoleConverter()
-  GroupMemberRole get role;
+  final GroupMemberRole role;
   @override
-  String get memberSigningPublicKeyHex;
+  final String memberSigningPublicKeyHex;
   @override
-  String get memberEncryptedDataKey;
+  final String memberEncryptedDataKey;
   @override
-  String? get deviceEncryptedDataKey;
+  final String? deviceEncryptedDataKey;
   @override
-  DateTime get joinedAt;
+  final DateTime joinedAt;
 
   /// Create a copy of GroupMembership
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$GroupMembershipImplCopyWith<_$GroupMembershipImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  _$GroupMembershipCopyWith<_GroupMembership> get copyWith =>
+      __$GroupMembershipCopyWithImpl<_GroupMembership>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$GroupMembershipToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _GroupMembership &&
+            (identical(other.groupId, groupId) || other.groupId == groupId) &&
+            (identical(other.memberId, memberId) ||
+                other.memberId == memberId) &&
+            (identical(other.role, role) || other.role == role) &&
+            (identical(other.memberSigningPublicKeyHex,
+                    memberSigningPublicKeyHex) ||
+                other.memberSigningPublicKeyHex == memberSigningPublicKeyHex) &&
+            (identical(other.memberEncryptedDataKey, memberEncryptedDataKey) ||
+                other.memberEncryptedDataKey == memberEncryptedDataKey) &&
+            (identical(other.deviceEncryptedDataKey, deviceEncryptedDataKey) ||
+                other.deviceEncryptedDataKey == deviceEncryptedDataKey) &&
+            (identical(other.joinedAt, joinedAt) ||
+                other.joinedAt == joinedAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      groupId,
+      memberId,
+      role,
+      memberSigningPublicKeyHex,
+      memberEncryptedDataKey,
+      deviceEncryptedDataKey,
+      joinedAt);
+
+  @override
+  String toString() {
+    return 'GroupMembership(groupId: $groupId, memberId: $memberId, role: $role, memberSigningPublicKeyHex: $memberSigningPublicKeyHex, memberEncryptedDataKey: $memberEncryptedDataKey, deviceEncryptedDataKey: $deviceEncryptedDataKey, joinedAt: $joinedAt)';
+  }
 }
+
+/// @nodoc
+abstract mixin class _$GroupMembershipCopyWith<$Res>
+    implements $GroupMembershipCopyWith<$Res> {
+  factory _$GroupMembershipCopyWith(
+          _GroupMembership value, $Res Function(_GroupMembership) _then) =
+      __$GroupMembershipCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String groupId,
+      @JsonKey(
+          fromJson: UuidValueJsonExtension.fromJson, toJson: _uuidValueToJson)
+      UuidValue memberId,
+      @_GroupMemberRoleConverter() GroupMemberRole role,
+      String memberSigningPublicKeyHex,
+      String memberEncryptedDataKey,
+      String? deviceEncryptedDataKey,
+      DateTime joinedAt});
+}
+
+/// @nodoc
+class __$GroupMembershipCopyWithImpl<$Res>
+    implements _$GroupMembershipCopyWith<$Res> {
+  __$GroupMembershipCopyWithImpl(this._self, this._then);
+
+  final _GroupMembership _self;
+  final $Res Function(_GroupMembership) _then;
+
+  /// Create a copy of GroupMembership
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? groupId = null,
+    Object? memberId = null,
+    Object? role = null,
+    Object? memberSigningPublicKeyHex = null,
+    Object? memberEncryptedDataKey = null,
+    Object? deviceEncryptedDataKey = freezed,
+    Object? joinedAt = null,
+  }) {
+    return _then(_GroupMembership(
+      groupId: null == groupId
+          ? _self.groupId
+          : groupId // ignore: cast_nullable_to_non_nullable
+              as String,
+      memberId: null == memberId
+          ? _self.memberId
+          : memberId // ignore: cast_nullable_to_non_nullable
+              as UuidValue,
+      role: null == role
+          ? _self.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as GroupMemberRole,
+      memberSigningPublicKeyHex: null == memberSigningPublicKeyHex
+          ? _self.memberSigningPublicKeyHex
+          : memberSigningPublicKeyHex // ignore: cast_nullable_to_non_nullable
+              as String,
+      memberEncryptedDataKey: null == memberEncryptedDataKey
+          ? _self.memberEncryptedDataKey
+          : memberEncryptedDataKey // ignore: cast_nullable_to_non_nullable
+              as String,
+      deviceEncryptedDataKey: freezed == deviceEncryptedDataKey
+          ? _self.deviceEncryptedDataKey
+          : deviceEncryptedDataKey // ignore: cast_nullable_to_non_nullable
+              as String?,
+      joinedAt: null == joinedAt
+          ? _self.joinedAt
+          : joinedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ));
+  }
+}
+
+// dart format on

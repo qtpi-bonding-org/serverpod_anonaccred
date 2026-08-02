@@ -12,7 +12,9 @@ part 'created_group.freezed.dart';
 /// handles. Consumers persist the JWK form (`exportJsonWebKey` /
 /// `KeyDuoSerializer`) themselves.
 @freezed
-class CreatedGroup with _$CreatedGroup {
+abstract class CreatedGroup with _$CreatedGroup {
+  const CreatedGroup._();
+
   const factory CreatedGroup({
     required String groupId,
     required String displayName,
@@ -25,4 +27,13 @@ class CreatedGroup with _$CreatedGroup {
     required KeyDuo memberKey,
     required DateTime createdAt,
   }) = _CreatedGroup;
+
+  /// Written by hand because [groupDataKey] and [memberKey] hold live secret
+  /// material. They print opaquely today only because webcrypto and
+  /// dart_jwk_duo use default toStrings — a third-party detail this should
+  /// not depend on.
+  @override
+  String toString() => 'CreatedGroup(groupId: $groupId, '
+      'displayName: $displayName, groupDataKey: <AesGcmSecretKey>, '
+      'memberKey: <KeyDuo>, createdAt: $createdAt)';
 }

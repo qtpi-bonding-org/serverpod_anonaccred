@@ -4,7 +4,7 @@ version: 0.1.0
 publish_to: none
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: '^3.8.0'
 
 dependencies:
   anonaccount_client:
@@ -17,7 +17,7 @@ dependencies:
       url: https://github.com/qtpi-bonding-org/dart_jwk_duo.git
       ref: 09d89c590ea89be22d36c2942ec339296b6aefd7
   crypto: ^3.0.3
-  freezed_annotation: ^2.4.4
+  freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
   meta: ^1.16.0
 
@@ -25,6 +25,6 @@ dev_dependencies:
   mocktail: ^1.0.4
   test: ^1.25.5
   build_runner: ^2.4.13
-  freezed: ^2.5.7
+  freezed: ^3.2.5
   json_serializable: ^6.7.1
   lints: ^4.0.0

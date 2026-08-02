@@ -14,7 +14,7 @@ part 'registration_payload.g.dart';
 /// work standardised every public key on SEC1 uncompressed hex and made the
 /// device attestation cover both halves of the device key.
 @freezed
-class RegistrationPayload with _$RegistrationPayload {
+abstract class RegistrationPayload with _$RegistrationPayload {
   const RegistrationPayload._();
 
   const factory RegistrationPayload({

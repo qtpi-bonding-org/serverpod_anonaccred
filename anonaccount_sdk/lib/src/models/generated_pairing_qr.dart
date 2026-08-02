@@ -9,7 +9,7 @@ part 'generated_pairing_qr.freezed.dart';
 ///   - feeds `signingPubkeyHex` to `monitorRegistration` to learn when
 ///     side A has wrapped the symmetric key.
 @freezed
-class GeneratedPairingQr with _$GeneratedPairingQr {
+abstract class GeneratedPairingQr with _$GeneratedPairingQr {
   const factory GeneratedPairingQr({
     required String qrPayloadJson,
     required String signingPubkeyHex,

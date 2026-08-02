@@ -6,9 +6,8 @@ part of 'registration_payload.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$RegistrationPayloadImpl _$$RegistrationPayloadImplFromJson(
-        Map<String, dynamic> json) =>
-    _$RegistrationPayloadImpl(
+_RegistrationPayload _$RegistrationPayloadFromJson(Map<String, dynamic> json) =>
+    _RegistrationPayload(
       devicePublicKeyHex: json['devicePublicKeyHex'] as String,
       deviceEncryptionPublicKeyHex:
           json['deviceEncryptionPublicKeyHex'] as String,
@@ -22,8 +21,8 @@ _$RegistrationPayloadImpl _$$RegistrationPayloadImplFromJson(
       version: (json['version'] as num?)?.toInt() ?? 1,
     );
 
-Map<String, dynamic> _$$RegistrationPayloadImplToJson(
-        _$RegistrationPayloadImpl instance) =>
+Map<String, dynamic> _$RegistrationPayloadToJson(
+        _RegistrationPayload instance) =>
     <String, dynamic>{
       'devicePublicKeyHex': instance.devicePublicKeyHex,
       'deviceEncryptionPublicKeyHex': instance.deviceEncryptionPublicKeyHex,

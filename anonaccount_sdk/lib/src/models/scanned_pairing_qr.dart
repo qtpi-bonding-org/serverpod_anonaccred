@@ -13,7 +13,7 @@ part 'scanned_pairing_qr.g.dart';
 /// runtime `EcdhPublicKey` via `webcrypto`'s `importPublicKeySec1Hex` (or
 /// `dart_jwk_duo`'s equivalent) at the point of use.
 @freezed
-class ScannedPairingQr with _$ScannedPairingQr {
+abstract class ScannedPairingQr with _$ScannedPairingQr {
   const ScannedPairingQr._();
 
   const factory ScannedPairingQr({

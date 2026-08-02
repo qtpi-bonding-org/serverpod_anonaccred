@@ -43,7 +43,7 @@ class _GroupMemberRoleConverter
 String _uuidValueToJson(UuidValue value) => value.toJson();
 
 @freezed
-class GroupMembership with _$GroupMembership {
+abstract class GroupMembership with _$GroupMembership {
   const factory GroupMembership({
     required String groupId,
     @JsonKey(

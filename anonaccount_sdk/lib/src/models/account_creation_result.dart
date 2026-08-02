@@ -8,7 +8,7 @@ part 'account_creation_result.freezed.dart';
 /// already been used to sign [payload] via the consumer's `AccountKeyStore`
 /// and is not exposed here — the store owns its custody/backup lifecycle.
 @freezed
-class AccountCreationResult with _$AccountCreationResult {
+abstract class AccountCreationResult with _$AccountCreationResult {
   const factory AccountCreationResult({
     required RegistrationPayload payload,
   }) = _AccountCreationResult;
