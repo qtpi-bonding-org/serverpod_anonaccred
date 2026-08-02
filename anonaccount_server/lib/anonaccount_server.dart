@@ -45,3 +45,5 @@ export 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 export 'src/helpers.dart';
 // ShardRouting tenantType constants (shared between quanitya/episutra)
 export 'src/shard_tenant_type.dart';
+export 'src/try_operation.dart';
+export 'src/protocol_failures.dart';
