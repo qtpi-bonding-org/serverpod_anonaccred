@@ -19,6 +19,7 @@ class SigningTestHelper {
 
   // Corresponding public key (x || y, 64 bytes = 128 hex chars)
   static const String testPublicKeyHex =
+      '04'
       'b8f7b02e0f4e2175c5292732a5004b5c0b0f7fb7845000602ef03ee71e94ab39'
       '86fe2f21de8f5945c65d838f2d3a616d7760fdff2d8c0c69ff52f88780287627';
 
@@ -71,7 +72,8 @@ class SigningTestHelper {
 
     final xHex = _bytesToHex(_bigIntToBytes(publicKey.Q!.x!.toBigInteger()!, 32));
     final yHex = _bytesToHex(_bigIntToBytes(publicKey.Q!.y!.toBigInteger()!, 32));
-    final publicKeyHex = '$xHex$yHex';
+    // SEC1 uncompressed: 04 tag, then x || y.
+    final publicKeyHex = '04$xHex$yHex';
 
     return (privateKeyHex, publicKeyHex);
   }

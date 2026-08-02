@@ -82,8 +82,13 @@ class PublicChallengeService {
     int? rateLimitPerHour,
   }) async {
     // 0. Validate public key format
-    if (publicKeyHex.length != 128 ||
-        !RegExp(r'^[0-9a-fA-F]+$').hasMatch(publicKeyHex)) {
+    //
+    // Delegates to CryptoUtils.isValidPublicKey (itself delegating to
+    // key_format.dart's single definition as of the account/device principal
+    // parity work) rather than a separately hand-rolled length/hex check —
+    // this file had its own hardcoded `length != 128` check that predated,
+    // and diverged from, the shared validator.
+    if (!CryptoUtils.isValidPublicKey(publicKeyHex)) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
         code: AnonAccountErrorCodes.cryptoInvalidPublicKey,
         message: 'Invalid public key format',

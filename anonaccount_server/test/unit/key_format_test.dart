@@ -1,5 +1,6 @@
 // anonaccount_server/test/unit/key_format_test.dart
 import 'package:anonaccount_server/src/key_format.dart';
+import '../test_helpers/signing_test_helper.dart';
 import 'package:test/test.dart';
 
 // A real P-256 point, SEC1 uncompressed, 130 hex.
@@ -36,6 +37,19 @@ void main() {
     test('rejects the empty string', () {
       expect(() => PublicKeyFormat.normalize(''),
           throwsA(isA<FormatException>()));
+    });
+  });
+
+  group('test fixtures', () {
+    test('generateKeypair emits SEC1 130-hex accepted by the codec', () {
+      final (_, publicKeyHex) = SigningTestHelper.generateKeypair();
+      expect(publicKeyHex, hasLength(130));
+      expect(PublicKeyFormat.isValid(publicKeyHex), isTrue);
+    });
+
+    test('testPublicKeyHex is a valid SEC1 key', () {
+      expect(PublicKeyFormat.isValid(SigningTestHelper.testPublicKeyHex),
+          isTrue);
     });
   });
 }
