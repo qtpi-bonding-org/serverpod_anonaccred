@@ -3,6 +3,7 @@ include: package:lints/recommended.yaml
 analyzer:
   exclude:
     - "**/*.freezed.dart"
+    - "lib/src/generated/**"
   language:
     strict-casts: true
     strict-inference: true

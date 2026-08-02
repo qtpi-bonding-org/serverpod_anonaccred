@@ -22,8 +22,7 @@ import 'package:anonaccount_client/src/protocol/group_member_role.dart'
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
     show MemberDeviceGrant;
-// ignore: implementation_imports
-import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
     show PublicKeyDuo;
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'

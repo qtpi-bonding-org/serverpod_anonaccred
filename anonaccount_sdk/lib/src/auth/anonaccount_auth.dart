@@ -10,8 +10,7 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart'
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
-// ignore: implementation_imports
-import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
     show PublicKeyDuo;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;

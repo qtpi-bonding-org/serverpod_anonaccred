@@ -1,5 +1,5 @@
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 import 'package:anonaccount_server/src/generated/group_member_role.dart';
-import 'package:anonaccount_server/src/generated/public_key_duo.dart';
 import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';

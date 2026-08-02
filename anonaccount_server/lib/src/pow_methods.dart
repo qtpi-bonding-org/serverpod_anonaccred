@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:anonaccount_protocol/anonaccount_protocol.dart';
 import 'generated/group_member_role.dart';
-import 'generated/public_key_duo.dart';
 
 /// Method name constants for PoW payload construction.
 ///

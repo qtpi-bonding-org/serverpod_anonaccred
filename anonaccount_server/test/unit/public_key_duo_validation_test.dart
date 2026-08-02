@@ -1,5 +1,6 @@
 // anonaccount_server/test/unit/public_key_duo_validation_test.dart
-import 'package:anonaccount_server/src/generated/protocol.dart';
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
+import 'package:anonaccount_server/src/generated/authentication_exception.dart';
 import 'package:anonaccount_server/src/helpers.dart';
 import 'package:test/test.dart';
 import '../test_helpers/signing_test_helper.dart';

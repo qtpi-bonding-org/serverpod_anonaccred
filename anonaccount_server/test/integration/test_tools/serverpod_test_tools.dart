@@ -16,7 +16,7 @@ import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:anonaccount_server/src/generated/account_creation_response.dart'
     as _i4;
-import 'package:anonaccount_server/src/generated/public_key_duo.dart' as _i5;
+import 'package:anonaccount_protocol/src/generated/public_key_duo.dart' as _i5;
 import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
     as _i6;
 import 'package:anonaccount_server/src/generated/encrypted_data_key_response.dart'

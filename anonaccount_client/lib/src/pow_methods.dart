@@ -1,4 +1,5 @@
-import 'protocol/public_key_duo.dart';
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
+    hide Protocol;
 
 import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 import 'protocol/group_member_role.dart';

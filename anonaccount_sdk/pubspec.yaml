@@ -9,6 +9,8 @@ environment:
 dependencies:
   anonaccount_client:
     path: ../anonaccount_client
+  anonaccount_protocol:
+    path: ../anonaccount_protocol
   webcrypto: ^0.6.0
   dart_jwk_duo:
     git:

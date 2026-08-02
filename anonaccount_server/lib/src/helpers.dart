@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:anonaccount_protocol/anonaccount_protocol.dart';
 
 import 'crypto_auth.dart';
 import 'exception_factory.dart';

@@ -8,8 +8,7 @@ import 'package:anonaccount_client/src/protocol/account_device.dart'
     show AccountDevice;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
-// ignore: implementation_imports
-import 'package:anonaccount_client/src/protocol/public_key_duo.dart'
+import 'package:anonaccount_protocol/anonaccount_protocol.dart'
     show PublicKeyDuo;
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
     show EncryptionKeyPair, EncryptionPublicKeyHex;

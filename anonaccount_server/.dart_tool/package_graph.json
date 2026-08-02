@@ -26,6 +26,7 @@
       "version": "0.1.0",
       "dependencies": [
         "anonaccount_client",
+        "anonaccount_protocol",
         "crypto",
         "dart_jwk_duo",
         "freezed_annotation",

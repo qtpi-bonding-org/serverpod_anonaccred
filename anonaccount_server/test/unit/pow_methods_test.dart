@@ -1,7 +1,7 @@
 // Tests for AccountInnerPayloads builders. These mirror the wire strings
 // signed by account/device endpoints and the client SDK, so any drift
 // between server and client surfaces here as a string mismatch.
-import 'package:anonaccount_server/src/generated/protocol.dart';
+import 'package:anonaccount_protocol/anonaccount_protocol.dart';
 import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
