@@ -1,8 +1,10 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
+import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
+import '../pow_methods.dart';
 import 'signed_pow_endpoint.dart';
 
 /// SignedPoW-protected device management endpoints.
@@ -55,7 +57,10 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
 
       await AccountDevice.db.updateRow(
         session,
-        foundDevice.copyWith(isRevoked: true),
+        foundDevice.copyWith(
+          isRevoked: true,
+          revokedAt: AnonAccountHelpers.roundToMinute(DateTime.now()),
+        ),
       );
 
       // Best-effort: revoke any JWTs for this account
@@ -139,6 +144,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
     required String publicKeyHex,
     required String signature,
     required PublicKeyDuo newDeviceKeys,
+    required String pairingAttestation,
     required String newDeviceEncryptedDataKey,
     required String label,
   }) async {
@@ -167,36 +173,46 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
             t.deviceSigningPublicKeyHex.equals(publicKeyHex),
       );
 
-      if (callerDevice == null) {
-        session.log(
-          'DeviceManagementEndpoint: ERROR - Caller device not found in DB',
-          level: LogLevel.error,
-        );
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authDeviceNotFound,
-          message: 'Caller device not found',
-          operation: 'registerDeviceForAccount',
-          details: {'callerDeviceKey': publicKeyHex},
-        );
-      }
+      // Not just "exists" — an active device. A revoked device pairing new
+      // devices would defeat revocation entirely, and we are about to
+      // persist a signed record of the grant.
+      final activeCaller = AnonAccountHelpers.requireActiveDevice(
+        callerDevice,
+        publicKeyHex,
+        'registerDeviceForAccount',
+      );
 
       session.log(
-        'DeviceManagementEndpoint: Registering new device for account UUID: ${callerDevice.anonAccountId}',
+        'DeviceManagementEndpoint: Registering new device for account UUID: ${activeCaller.anonAccountId}',
         level: LogLevel.info,
       );
 
-      // Task 6 only widens the parameter shape to a PublicKeyDuo. The
-      // pairing-attestation check and revoked-caller guard are Task 9's
-      // job; for now we route the insert through the shared helper using
-      // the new duo signature unchanged.
+      final keys = AnonAccountHelpers.validateKeyDuo(
+        newDeviceKeys,
+        'registerDeviceForAccount',
+      );
+      final attestationValid = await CryptoUtils.verifySignature(
+        message: AccountInnerPayloads.pairDevice(keys),
+        signature: pairingAttestation,
+        publicKey: activeCaller.deviceSigningPublicKeyHex,
+      );
+      if (!attestationValid) {
+        throw AnonAccountExceptionFactory.createAuthenticationException(
+          code: AnonAccountErrorCodes.cryptoInvalidSignature,
+          message: 'Invalid pairing attestation — the calling device did not '
+              'authorize this device key pair',
+          operation: 'registerDeviceForAccount',
+        );
+      }
+
       final insertedDevice = await AnonAccountHelpers.insertDevice(
         session,
-        accountId: callerDevice.anonAccountId,
-        deviceKeys: newDeviceKeys,
+        accountId: activeCaller.anonAccountId,
+        deviceKeys: keys,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,
-        addedBySignerPublicKeyHex: publicKeyHex,
-        addedByAttestation: '',
+        addedBySignerPublicKeyHex: activeCaller.deviceSigningPublicKeyHex,
+        addedByAttestation: pairingAttestation,
         operation: 'registerDeviceForAccount',
       );
 

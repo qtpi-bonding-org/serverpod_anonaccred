@@ -720,6 +720,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<_i8.PublicKeyDuo>(),
               nullable: false,
             ),
+            'pairingAttestation': _i1.ParameterDescription(
+              name: 'pairingAttestation',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
             'newDeviceEncryptedDataKey': _i1.ParameterDescription(
               name: 'newDeviceEncryptedDataKey',
               type: _i1.getType<String>(),
@@ -745,6 +750,7 @@ class Endpoints extends _i1.EndpointDispatch {
                         publicKeyHex: params['publicKeyHex'],
                         signature: params['signature'],
                         newDeviceKeys: params['newDeviceKeys'],
+                        pairingAttestation: params['pairingAttestation'],
                         newDeviceEncryptedDataKey:
                             params['newDeviceEncryptedDataKey'],
                         label: params['label'],

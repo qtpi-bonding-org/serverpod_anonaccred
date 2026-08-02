@@ -460,6 +460,7 @@ class EndpointDeviceManagement extends EndpointSignedPow {
     required String publicKeyHex,
     required String signature,
     required _i4.PublicKeyDuo newDeviceKeys,
+    required String pairingAttestation,
     required String newDeviceEncryptedDataKey,
     required String label,
   }) => caller.callServerEndpoint<_i7.AccountDevice>(
@@ -471,6 +472,7 @@ class EndpointDeviceManagement extends EndpointSignedPow {
       'publicKeyHex': publicKeyHex,
       'signature': signature,
       'newDeviceKeys': newDeviceKeys,
+      'pairingAttestation': pairingAttestation,
       'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
       'label': label,
     },

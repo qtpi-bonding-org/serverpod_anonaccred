@@ -888,6 +888,7 @@ class _DeviceManagementEndpoint {
     required String publicKeyHex,
     required String signature,
     required _i5.PublicKeyDuo newDeviceKeys,
+    required String pairingAttestation,
     required String newDeviceEncryptedDataKey,
     required String label,
   }) async {
@@ -908,6 +909,7 @@ class _DeviceManagementEndpoint {
             'publicKeyHex': publicKeyHex,
             'signature': signature,
             'newDeviceKeys': newDeviceKeys,
+            'pairingAttestation': pairingAttestation,
             'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
             'label': label,
           }),

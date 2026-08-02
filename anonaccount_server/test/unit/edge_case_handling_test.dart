@@ -141,6 +141,7 @@ void main() {
               signingPublicKeyHex: 'device_pub_key_hex',
               encryptionPublicKeyHex: 'device_enc_pub_key_hex',
             ),
+            pairingAttestation: 'invalid',
             newDeviceEncryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
