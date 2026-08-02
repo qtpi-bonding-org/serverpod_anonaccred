@@ -32,8 +32,8 @@ void main() {
       // Test that verifySignature properly validates inputs before attempting verification
       // Using well-formed but cryptographically invalid data to test the validation path
       
-      // Valid format public key (128 hex chars - all valid hex digits)
-      final validFormatPublicKey = 'a' * 128;
+      // Valid format public key (SEC1 uncompressed, 130 hex chars)
+      final validFormatPublicKey = '04${'a' * 128}';
       
       // Valid format signature (128 hex chars)  
       final validFormatSignature = 'b' * 128;
@@ -79,9 +79,10 @@ void main() {
     });
 
     test('public key validation works correctly for ECDSA P-256', () {
-      // Valid key (128 hex characters for ECDSA P-256)
-      final validKey = 'a' * 128;
-      expect(CryptoUtils.isValidPublicKey(validKey), isTrue);
+      // The only accepted format is SEC1 uncompressed (04 prefix), 130 hex.
+      // A bare 128-hex key (no prefix) is no longer accepted.
+      final bareKeyNoPrefix = 'a' * 128;
+      expect(CryptoUtils.isValidPublicKey(bareKeyNoPrefix), isFalse);
 
       // Valid key with 04 prefix (130 hex characters)
       final validKeyWithPrefix = '04${'a' * 128}';
@@ -89,17 +90,17 @@ void main() {
 
       // Invalid length (64 chars is Ed25519, not ECDSA P-256)
       expect(CryptoUtils.isValidPublicKey('a' * 64), isFalse);
-      
+
       // Invalid length - too short
       expect(CryptoUtils.isValidPublicKey('short'), isFalse);
       expect(CryptoUtils.isValidPublicKey(''), isFalse);
 
       // Invalid hex characters
-      final invalidHex = 'g' * 128;
+      final invalidHex = '04${'g' * 128}';
       expect(CryptoUtils.isValidPublicKey(invalidHex), isFalse);
 
-      // Mixed case should work
-      final mixedCase = 'A1b2C3d4' * 16; // 128 characters
+      // Mixed case with the 04 prefix should work
+      final mixedCase = '04${'A1b2C3d4' * 16}'; // 130 characters
       expect(CryptoUtils.isValidPublicKey(mixedCase), isTrue);
     });
 

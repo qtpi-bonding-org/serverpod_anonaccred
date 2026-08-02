@@ -130,15 +130,15 @@ void main() {
       expect(CryptoUtils.isValidPublicKey(''), isFalse);
       expect(CryptoUtils.isValidPublicKey('short'), isFalse);
 
-      // Test with valid format (128 hex characters)
+      // Test with valid format (SEC1 uncompressed, 130 hex characters)
       const validKey =
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+          '04a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
           'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       expect(CryptoUtils.isValidPublicKey(validKey), isTrue);
 
       // Test with invalid hex characters
       const invalidHex =
-          'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
+          '04g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456'
           'g1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
       expect(CryptoUtils.isValidPublicKey(invalidHex), isFalse);
     });

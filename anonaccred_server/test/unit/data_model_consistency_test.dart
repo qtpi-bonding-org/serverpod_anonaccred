@@ -31,7 +31,7 @@ void main() {
             id: _generateRandomAccountUuid(),
             ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
             encryptedDataKey: encryptedDataKey,
-            ultimatePublicKey: _generateRandomEcdsaP256PublicKey(),
+            ultimateEncryptionPublicKeyHex: _generateRandomEcdsaP256PublicKey(),
             createdAt: createdAt,
           );
 
@@ -76,6 +76,9 @@ void main() {
           final device = AccountDevice(
             anonAccountId: accountUuid,
             deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+            deviceEncryptionPublicKeyHex: _generateRandomEcdsaP256PublicKey(),
+            addedBySignerPublicKeyHex: _generateRandomEcdsaP256PublicKey(),
+            addedByAttestation: 'test-attestation',
             encryptedDataKey: encryptedDataKey,
             label: label,
             lastActive: lastActive,

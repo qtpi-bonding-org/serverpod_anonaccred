@@ -70,7 +70,7 @@ void main() {
             id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_test_$i',
-            ultimatePublicKey: _generateRandomPublicKey(),
+            ultimateEncryptionPublicKeyHex: _generateRandomPublicKey(),
           ));
           final accountUuid = account.id!;
 
@@ -151,7 +151,7 @@ void main() {
             id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_val',
-            ultimatePublicKey: _generateRandomPublicKey(),
+            ultimateEncryptionPublicKeyHex: _generateRandomPublicKey(),
           ),
         );
         final accountUuid = account.id!;
@@ -208,7 +208,7 @@ void main() {
             id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: _generateRandomPublicKey(),
             encryptedDataKey: 'encrypted_data_key_full_$i',
-            ultimatePublicKey: _generateRandomPublicKey(),
+            ultimateEncryptionPublicKeyHex: _generateRandomPublicKey(),
           ));
           final accountUuid = account.id!;
 

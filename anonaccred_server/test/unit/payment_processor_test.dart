@@ -17,7 +17,7 @@ void main() {
         ultimateSigningPublicKeyHex:
             'test_public_key_${DateTime.now().millisecondsSinceEpoch}',
         encryptedDataKey: 'encrypted_data_key_test',
-        ultimatePublicKey:
+        ultimateEncryptionPublicKeyHex:
             'ultimate_public_key_${DateTime.now().millisecondsSinceEpoch}',
       );
       testAccount = await AnonAccount.db.insertRow(session, testAccount);

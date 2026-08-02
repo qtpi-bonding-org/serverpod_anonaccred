@@ -23,13 +23,13 @@ void main() {
       final session = sessionBuilder.build();
       var account = await AnonAccount.db.findFirstRow(
         session,
-        where: (t) => t.ultimatePublicKey.equals(validPublicKey),
+        where: (t) => t.ultimateEncryptionPublicKeyHex.equals(validPublicKey),
       );
       account ??= await AnonAccount.db.insertRow(session, AnonAccount(
         id: UuidValue.fromString('a0000000-0000-4000-8000-000000000001'),
         ultimateSigningPublicKeyHex: validPublicKey,
         encryptedDataKey: 'encrypted_data_key_for_commerce_test',
-        ultimatePublicKey: validPublicKey,
+        ultimateEncryptionPublicKeyHex: validPublicKey,
       ));
       testAccount = account;
 
@@ -43,6 +43,9 @@ void main() {
         AccountDevice(
           anonAccountId: testAccount.id!,
           deviceSigningPublicKeyHex: validPublicKey,
+          deviceEncryptionPublicKeyHex: validPublicKey,
+          addedBySignerPublicKeyHex: validPublicKey,
+          addedByAttestation: 'test-attestation',
           encryptedDataKey: 'device_encrypted_key_commerce_test',
           label: 'Test Device',
         ),

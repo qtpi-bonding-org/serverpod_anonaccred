@@ -25,7 +25,7 @@ void main() {
 
       var account = await AnonAccount.db.findFirstRow(
         session,
-        where: (t) => t.ultimatePublicKey.equals(validPublicKey),
+        where: (t) => t.ultimateEncryptionPublicKeyHex.equals(validPublicKey),
       );
       account ??= await AnonAccount.db.insertRow(
         session,
@@ -33,7 +33,7 @@ void main() {
           id: UuidValue.fromString('b0000000-0000-4000-8000-000000000001'),
           ultimateSigningPublicKeyHex: validPublicKey,
           encryptedDataKey: 'encrypted_for_group_commerce_test',
-          ultimatePublicKey: validPublicKey,
+          ultimateEncryptionPublicKeyHex: validPublicKey,
         ),
       );
       testAccount = account;
@@ -47,31 +47,51 @@ void main() {
         AccountDevice(
           anonAccountId: testAccount.id!,
           deviceSigningPublicKeyHex: validPublicKey,
+          deviceEncryptionPublicKeyHex: validPublicKey,
+          addedBySignerPublicKeyHex: validPublicKey,
+          addedByAttestation: 'test-attestation',
           encryptedDataKey: 'device_key_for_group_commerce_test',
           label: 'Test Device',
         ),
       );
 
-      // Insert a group and a membership row.
-      testGroup = await ShareGroup.db.insertRow(
+      // Insert a group and a membership row (find-or-create: ShareGroup and
+      // GroupMember now carry unique indexes on their signing keys, so a
+      // hardcoded key across setUp() calls in a shared withServerpod group
+      // must not be re-inserted).
+      var group = await ShareGroup.db.findFirstRow(
+        session,
+        where: (t) => t.ultimateSigningPublicKeyHex.equals(validPublicKey),
+      );
+      group ??= await ShareGroup.db.insertRow(
         session,
         ShareGroup(
           ultimateSigningPublicKeyHex: validPublicKey,
-          ultimatePublicKey: validPublicKey,
+          ultimateEncryptionPublicKeyHex: validPublicKey,
           encryptedDataKey: 'group_master_wrapped',
         ),
       );
-      await GroupMember.db.insertRow(
+      testGroup = group;
+
+      final existingMember = await GroupMember.db.findFirstRow(
         session,
-        GroupMember(
-          shareGroupId: testGroup.id!,
-          anonAccountId: testAccount.id!,
-          role: GroupMemberRole.admin,
-          memberSigningPublicKeyHex: validPublicKey,
-          memberPublicKey: validPublicKey,
-          encryptedDataKey: 'wrapped_for_member',
-        ),
+        where: (t) => t.memberSigningPublicKeyHex.equals(validPublicKey),
       );
+      if (existingMember == null) {
+        await GroupMember.db.insertRow(
+          session,
+          GroupMember(
+            shareGroupId: testGroup.id!,
+            anonAccountId: testAccount.id!,
+            role: GroupMemberRole.admin,
+            memberSigningPublicKeyHex: validPublicKey,
+            memberEncryptionPublicKeyHex: validPublicKey,
+            encryptedDataKey: 'wrapped_for_member',
+            addedBySignerPublicKeyHex: validPublicKey,
+            addedByAttestation: 'test-attestation',
+          ),
+        );
+      }
 
       authenticatedSessionBuilder = sessionBuilder.copyWith(
         authentication: AuthenticationOverride.authenticationInfo(
@@ -102,13 +122,19 @@ void main() {
     });
 
     test('getGroupEntitlements rejects non-member callers', () async {
-      // Build a foreign group with no membership for testAccount.
+      // Build a foreign group with no membership for testAccount. Uses a
+      // distinct key — ShareGroup.ultimateSigningPublicKeyHex is now
+      // unique, so it cannot reuse validPublicKey (already the setUp
+      // group's key).
+      const foreignPublicKey =
+          'ff23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
       final session = sessionBuilder.build();
       final foreign = await ShareGroup.db.insertRow(
         session,
         ShareGroup(
-          ultimateSigningPublicKeyHex: validPublicKey,
-          ultimatePublicKey: validPublicKey,
+          ultimateSigningPublicKeyHex: foreignPublicKey,
+          ultimateEncryptionPublicKeyHex: foreignPublicKey,
           encryptedDataKey: 'other_group',
         ),
       );
@@ -217,12 +243,15 @@ void main() {
     });
 
     test('consumeGroupEntitlement: rejected for non-member caller', () async {
+      const foreignPublicKey2 =
+          'fe23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
       final session = sessionBuilder.build();
       final foreign = await ShareGroup.db.insertRow(
         session,
         ShareGroup(
-          ultimateSigningPublicKeyHex: validPublicKey,
-          ultimatePublicKey: validPublicKey,
+          ultimateSigningPublicKeyHex: foreignPublicKey2,
+          ultimateEncryptionPublicKeyHex: foreignPublicKey2,
           encryptedDataKey: 'other_group_2',
         ),
       );

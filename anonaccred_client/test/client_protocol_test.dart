@@ -9,14 +9,13 @@ void main() {
   group('Client Protocol Integration Tests', () {
     test('AnonAccount protocol class works correctly', () {
       final account = AnonAccount(
-        id: 1,
         ultimateSigningPublicKeyHex: 'a' * 128,
         encryptedDataKey: 'encrypted_data_key_example',
-        ultimatePublicKey: 'b' * 128,
+        ultimateEncryptionPublicKeyHex: 'b' * 128,
         createdAt: DateTime.now(),
       );
 
-      expect(account.id, equals(1));
+      expect(account.id, isNull);
       expect(account.ultimateSigningPublicKeyHex, equals('a' * 128));
       expect(account.encryptedDataKey, equals('encrypted_data_key_example'));
       expect(account.createdAt, isA<DateTime>());
@@ -24,17 +23,26 @@ void main() {
 
     test('AccountDevice protocol class works correctly', () {
       final device = AccountDevice(
-        id: 1,
-        accountId: 123,
+        anonAccountId: UuidValue.fromString(
+          'a0000000-0000-4000-8000-000000000001',
+        ),
         deviceSigningPublicKeyHex: 'b' * 128,
+        deviceEncryptionPublicKeyHex: 'c' * 128,
+        addedBySignerPublicKeyHex: 'd' * 128,
+        addedByAttestation: 'test-attestation',
         encryptedDataKey: 'device_encrypted_key',
         label: 'Test Device',
         lastActive: DateTime.now(),
         isRevoked: false,
       );
 
-      expect(device.id, equals(1));
-      expect(device.accountId, equals(123));
+      expect(device.id, isNull);
+      expect(
+        device.anonAccountId,
+        equals(
+          UuidValue.fromString('a0000000-0000-4000-8000-000000000001'),
+        ),
+      );
       expect(device.deviceSigningPublicKeyHex, equals('b' * 128));
       expect(device.encryptedDataKey, equals('device_encrypted_key'));
       expect(device.label, equals('Test Device'));
@@ -146,10 +154,10 @@ void main() {
 
     test('protocol classes support JSON serialization', () {
       final account = AnonAccount(
-        id: 1,
+        id: null,
         ultimateSigningPublicKeyHex: 'c' * 128,
         encryptedDataKey: 'test_key',
-        ultimatePublicKey: 'd' * 128,
+        ultimateEncryptionPublicKeyHex: 'd' * 128,
         createdAt: DateTime.now(),
       );
 
@@ -173,10 +181,10 @@ void main() {
     test('Serverpod client integration works', () {
       expect(() {
         final account = AnonAccount(
-          id: 1,
+          id: null,
           ultimateSigningPublicKeyHex: 'd' * 128,
           encryptedDataKey: 'integration_test',
-          ultimatePublicKey: 'e' * 128,
+          ultimateEncryptionPublicKeyHex: 'e' * 128,
           createdAt: DateTime.now(),
         );
 

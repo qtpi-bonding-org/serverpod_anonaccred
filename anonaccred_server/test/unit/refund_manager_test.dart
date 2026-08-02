@@ -31,7 +31,7 @@ Future<_SeedResult> _seedBridgeChain(
       id: UuidValue.fromString(const Uuid().v4()),
       ultimateSigningPublicKeyHex: 'test_key_$paymentRef',
       encryptedDataKey: 'test_data',
-      ultimatePublicKey: 'test_pubkey_$paymentRef',
+      ultimateEncryptionPublicKeyHex: 'test_pubkey_$paymentRef',
     ),
   );
   final accountUuid = account.id!;

@@ -1051,6 +1051,13 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
+          "name": "deviceEncryptionPublicKeyHex",
+          "columnType": 0,
+          "isNullable": false,
+          "dartType": "String"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
           "name": "encryptedDataKey",
           "columnType": 0,
           "isNullable": false,
@@ -1062,6 +1069,28 @@
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "addedBySignerPublicKeyHex",
+          "columnType": 0,
+          "isNullable": false,
+          "dartType": "String"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "addedByAttestation",
+          "columnType": 0,
+          "isNullable": false,
+          "dartType": "String"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "createdAt",
+          "columnType": 4,
+          "isNullable": false,
+          "columnDefault": "CURRENT_TIMESTAMP",
+          "dartType": "DateTime"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -1078,6 +1107,13 @@
           "isNullable": false,
           "columnDefault": "false",
           "dartType": "bool"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "revokedAt",
+          "columnType": 4,
+          "isNullable": true,
+          "dartType": "DateTime?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -1121,21 +1157,16 @@
         },
         {
           "__className__": "serverpod.IndexDefinition",
-          "indexName": "auth_lookup_idx",
+          "indexName": "device_signing_key_idx",
           "elements": [
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
               "definition": "deviceSigningPublicKeyHex"
-            },
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "isRevoked"
             }
           ],
           "type": "btree",
-          "isUnique": false,
+          "isUnique": true,
           "isPrimary": false
         },
         {
@@ -1186,7 +1217,7 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "ultimatePublicKey",
+          "name": "ultimateEncryptionPublicKeyHex",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -1218,12 +1249,12 @@
         },
         {
           "__className__": "serverpod.IndexDefinition",
-          "indexName": "ultimate_key_idx",
+          "indexName": "ultimate_signing_key_idx",
           "elements": [
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "ultimatePublicKey"
+              "definition": "ultimateSigningPublicKeyHex"
             }
           ],
           "type": "btree",
@@ -1278,7 +1309,7 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "memberPublicKey",
+          "name": "memberEncryptionPublicKeyHex",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -1318,15 +1349,15 @@
           "__className__": "serverpod.ColumnDefinition",
           "name": "addedBySignerPublicKeyHex",
           "columnType": 0,
-          "isNullable": true,
-          "dartType": "String?"
+          "isNullable": false,
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "addedByAttestation",
           "columnType": 0,
-          "isNullable": true,
-          "dartType": "String?"
+          "isNullable": false,
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -1341,6 +1372,13 @@
           "columnType": 0,
           "isNullable": true,
           "dartType": "String?"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "revokedAt",
+          "columnType": 4,
+          "isNullable": true,
+          "dartType": "DateTime?"
         }
       ],
       "foreignKeys": [
@@ -1387,6 +1425,20 @@
           "type": "btree",
           "isUnique": true,
           "isPrimary": true
+        },
+        {
+          "__className__": "serverpod.IndexDefinition",
+          "indexName": "group_member_signing_key_idx",
+          "elements": [
+            {
+              "__className__": "serverpod.IndexElementDefinition",
+              "type": 0,
+              "definition": "memberSigningPublicKeyHex"
+            }
+          ],
+          "type": "btree",
+          "isUnique": true,
+          "isPrimary": false
         },
         {
           "__className__": "serverpod.IndexDefinition",
@@ -1503,6 +1555,90 @@
     },
     {
       "__className__": "serverpod.TableDefinition",
+      "name": "shard_routing",
+      "dartName": "ShardRouting",
+      "module": "anonaccount",
+      "schema": "public",
+      "columns": [
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "id",
+          "columnType": 7,
+          "isNullable": false,
+          "columnDefault": "gen_random_uuid()",
+          "dartType": "UuidValue?"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "tenantId",
+          "columnType": 7,
+          "isNullable": false,
+          "dartType": "UuidValue"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "tenantType",
+          "columnType": 0,
+          "isNullable": false,
+          "dartType": "String"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "shardName",
+          "columnType": 0,
+          "isNullable": false,
+          "columnDefault": "'shard_01'::text",
+          "dartType": "String"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "updatedAt",
+          "columnType": 4,
+          "isNullable": false,
+          "columnDefault": "CURRENT_TIMESTAMP",
+          "dartType": "DateTime"
+        }
+      ],
+      "foreignKeys": [],
+      "indexes": [
+        {
+          "__className__": "serverpod.IndexDefinition",
+          "indexName": "shard_routing_pkey",
+          "elements": [
+            {
+              "__className__": "serverpod.IndexElementDefinition",
+              "type": 0,
+              "definition": "id"
+            }
+          ],
+          "type": "btree",
+          "isUnique": true,
+          "isPrimary": true
+        },
+        {
+          "__className__": "serverpod.IndexDefinition",
+          "indexName": "shard_routing_unique_idx",
+          "elements": [
+            {
+              "__className__": "serverpod.IndexElementDefinition",
+              "type": 0,
+              "definition": "tenantId"
+            },
+            {
+              "__className__": "serverpod.IndexElementDefinition",
+              "type": 0,
+              "definition": "tenantType"
+            }
+          ],
+          "type": "btree",
+          "isUnique": true,
+          "isPrimary": false
+        }
+      ],
+      "managed": true
+    },
+    {
+      "__className__": "serverpod.TableDefinition",
       "name": "share_group",
       "dartName": "ShareGroup",
       "module": "anonaccount",
@@ -1525,7 +1661,7 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "ultimatePublicKey",
+          "name": "ultimateEncryptionPublicKeyHex",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -1569,6 +1705,20 @@
           "type": "btree",
           "isUnique": true,
           "isPrimary": true
+        },
+        {
+          "__className__": "serverpod.IndexDefinition",
+          "indexName": "share_group_ultimate_signing_key_idx",
+          "elements": [
+            {
+              "__className__": "serverpod.IndexElementDefinition",
+              "type": 0,
+              "definition": "ultimateSigningPublicKeyHex"
+            }
+          ],
+          "type": "btree",
+          "isUnique": true,
+          "isPrimary": false
         }
       ],
       "managed": true
@@ -4719,12 +4869,12 @@
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "anonaccred",
-      "version": "20260612014431816"
+      "version": "20260802052013759"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "anonaccount",
-      "version": "20260612014040715"
+      "version": "20260802041130344"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",

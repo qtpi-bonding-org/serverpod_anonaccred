@@ -38,9 +38,9 @@ void main() {
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 128-char hex for ECDSA P-256
         encryptedDataKey: 'encrypted_data_key_test',
-        ultimatePublicKey:
+        ultimateEncryptionPublicKeyHex:
             'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // ultimatePublicKey - using same key for testing
+            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // ultimateEncryptionPublicKeyHex - using same key for testing
       ));
 
       testDevice = await AccountDevice.db.insertRow(sessionBuilder.build(), AccountDevice(
@@ -48,6 +48,13 @@ void main() {
         deviceSigningPublicKeyHex:
             'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
             'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
+        deviceEncryptionPublicKeyHex:
+            '04fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
+            'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321',
+        addedBySignerPublicKeyHex:
+            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        addedByAttestation: 'test-attestation',
         encryptedDataKey: 'encrypted_device_key_test',
         label: 'Test Device',
       ));

@@ -31,7 +31,7 @@ void main() {
             id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
-            ultimatePublicKey: _generateFakePublicKeyString(),
+            ultimateEncryptionPublicKeyHex: _generateFakePublicKeyString(),
             createdAt: DateTime.now(),
           );
 
@@ -39,6 +39,9 @@ void main() {
           final device = AccountDevice(
             anonAccountId: UuidValue.fromString(const Uuid().v4()),
             deviceSigningPublicKeyHex: publicSubKey,
+            deviceEncryptionPublicKeyHex: _generateFakePublicKeyString(),
+            addedBySignerPublicKeyHex: _generateFakePublicKeyString(),
+            addedByAttestation: 'test-attestation',
             encryptedDataKey: encryptedDeviceDataKey,
             label: 'Test Device',
             lastActive: DateTime.now(),
@@ -52,8 +55,8 @@ void main() {
           // Verify no private key storage capability
           expect(
             account.ultimateSigningPublicKeyHex.length,
-            equals(128),
-          ); // ECDSA P-256 public key format
+            equals(130),
+          ); // SEC1 uncompressed ECDSA P-256 public key format
           expect(_isValidHexString(account.ultimateSigningPublicKeyHex), isTrue);
 
           // Verify encrypted data remains encrypted (no decryption methods)
@@ -67,8 +70,8 @@ void main() {
           // Verify no private key storage capability
           expect(
             device.deviceSigningPublicKeyHex.length,
-            equals(128),
-          ); // ECDSA P-256 public key format
+            equals(130),
+          ); // SEC1 uncompressed ECDSA P-256 public key format
           expect(_isValidHexString(device.deviceSigningPublicKeyHex), isTrue);
 
           // Verify encrypted data remains encrypted
@@ -100,7 +103,7 @@ void main() {
             id: UuidValue.fromString(const Uuid().v4()),
             ultimateSigningPublicKeyHex: publicMasterKey,
             encryptedDataKey: encryptedMasterDataKey,
-            ultimatePublicKey: _generateFakePublicKeyString(),
+            ultimateEncryptionPublicKeyHex: _generateFakePublicKeyString(),
             createdAt: DateTime.now(),
           );
 
@@ -112,6 +115,9 @@ void main() {
             final device = AccountDevice(
               anonAccountId: UuidValue.fromString(const Uuid().v4()),
               deviceSigningPublicKeyHex: _generateFakePublicKeyString(),
+              deviceEncryptionPublicKeyHex: _generateFakePublicKeyString(),
+              addedBySignerPublicKeyHex: _generateFakePublicKeyString(),
+              addedByAttestation: 'test-attestation',
               encryptedDataKey: _generateRandomEncryptedData(),
               label: 'Device $j',
               lastActive: DateTime.now(),
@@ -227,7 +233,7 @@ void main() {
 
           // Test hex conversion utilities
           final hexBytes = CryptoUtils.hexToBytes(publicKey);
-          expect(hexBytes.length, equals(64)); // 128 hex chars = 64 bytes
+          expect(hexBytes.length, equals(65)); // 130 hex chars = 65 bytes (SEC1)
 
           final hexString = CryptoUtils.bytesToHex(hexBytes);
           expect(hexString.toLowerCase(), equals(publicKey.toLowerCase()));
@@ -275,7 +281,7 @@ void main() {
 
               // Verify error details don't expose the invalid key content
               expect(authException.details?['publicKeyLength'], isNotNull);
-              expect(authException.details?['expectedLength'], equals('128 or 130'));
+              expect(authException.details?['expectedLength'], equals('130'));
 
               // Verify the actual invalid key is not in the error message or details (skip empty strings)
               if (invalidKey.isNotEmpty) {
@@ -408,13 +414,15 @@ void main() {
 
 // Test data generators - These generate FAKE hex strings for testing, not real cryptographic keys
 String _generateFakePublicKeyString() {
-  // Generate a fake 128-character hex string for testing (not a real ECDSA P-256 key)
+  // Generate a fake SEC1-uncompressed-shaped hex string for testing (not a
+  // real ECDSA P-256 key) — 04 tag + 128 hex chars = 130 total, the only
+  // format CryptoUtils.isValidPublicKey accepts.
   final random = Random();
   const chars = '0123456789abcdef';
-  return List.generate(
+  return '04${List.generate(
     128,
     (index) => chars[random.nextInt(chars.length)],
-  ).join();
+  ).join()}';
 }
 
 String _generateFakeSignatureString() {
@@ -459,7 +467,7 @@ bool _isValidHexString(String hex) {
 }
 
 bool _isValidEcdsaP256PublicKey(String publicKey) =>
-    publicKey.length == 128 && _isValidHexString(publicKey);
+    publicKey.length == 130 && _isValidHexString(publicKey);
 
 bool _isValidEncryptedData(String encryptedData) =>
     encryptedData.isNotEmpty && encryptedData.length >= 16;
