@@ -179,11 +179,11 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: e30f27c943a9c25ec6c7eaf70787f48998a7c113
-      resolved-ref: e30f27c943a9c25ec6c7eaf70787f48998a7c113
+      ref: "99356e83bfcfa1a777a70c1763179e1d6a4d618a"
+      resolved-ref: "99356e83bfcfa1a777a70c1763179e1d6a4d618a"
       url: "https://github.com/qtpi-bonding-org/dart_jwk_duo.git"
     source: git
-    version: "1.0.0"
+    version: "2.0.0"
   ed25519_edwards:
     dependency: transitive
     description:

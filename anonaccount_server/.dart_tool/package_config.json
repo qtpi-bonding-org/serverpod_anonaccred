@@ -35,7 +35,7 @@
       "name": "anonaccount_sdk",
       "rootUri": "../../anonaccount_sdk",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.3"
     },
     {
       "name": "archive",
@@ -135,9 +135,9 @@
     },
     {
       "name": "dart_jwk_duo",
-      "rootUri": "file:///Users/aicoder/.pub-cache/git/dart_jwk_duo-e30f27c943a9c25ec6c7eaf70787f48998a7c113/",
+      "rootUri": "file:///Users/aicoder/.pub-cache/git/dart_jwk_duo-99356e83bfcfa1a777a70c1763179e1d6a4d618a/",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.3"
     },
     {
       "name": "ed25519_edwards",

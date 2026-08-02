@@ -1,0 +1,24 @@
+# A device's access to one membership: the group data key wrapped to that
+# device, plus the attestation that granted it.
+#
+# This is the join point between the two trust domains — a GroupMember is an
+# account, and an account has devices. See docs/key-model-conventions.md.
+class: GroupMemberDevice
+table: group_member_device
+indexes:
+  group_member_device_active_idx:
+    fields: groupMemberId, accountDeviceId
+    unique: true          # made partial by hand — see Step 4
+  group_member_device_device_idx:
+    fields: accountDeviceId
+    unique: false
+fields:
+  id: UuidValue?, defaultPersist=random
+  groupMember: GroupMember?, relation(onDelete=Cascade)
+  accountDevice: AccountDevice?, relation(onDelete=Cascade)
+  encryptedDataKey: String
+  addedBySignerPublicKeyHex: String
+  addedByAttestation: String
+  createdAt: DateTime, default=now
+  isRevoked: bool, default=false
+  revokedAt: DateTime?
