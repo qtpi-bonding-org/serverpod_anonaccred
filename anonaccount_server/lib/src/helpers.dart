@@ -233,19 +233,25 @@ class AnonAccountHelpers {
   static Future<AccountDevice> insertDevice(
     Session session, {
     required UuidValue accountId,
-    required String deviceSigningPublicKeyHex,
+    required PublicKeyDuo deviceKeys,
     required String encryptedDataKey,
     required String label,
+    required String addedBySignerPublicKeyHex,
+    required String addedByAttestation,
     required String operation,
+    Transaction? transaction,
   }) async {
-    validatePublicKey(deviceSigningPublicKeyHex, operation);
+    final keys = validateKeyDuo(deviceKeys, operation);
     validateNonEmpty(encryptedDataKey, 'encryptedDataKey', operation);
     validateNonEmpty(label, 'label', operation);
+    validateNonEmpty(addedBySignerPublicKeyHex, 'addedBySignerPublicKeyHex', operation);
+    validateNonEmpty(addedByAttestation, 'addedByAttestation', operation);
 
     final existing = await AccountDevice.db.findFirstRow(
       session,
       where: (t) =>
-          t.deviceSigningPublicKeyHex.equals(deviceSigningPublicKeyHex),
+          t.deviceSigningPublicKeyHex.equals(keys.signingPublicKeyHex),
+      transaction: transaction,
     );
     if (existing != null) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -253,21 +259,28 @@ class AnonAccountHelpers {
         message: 'Device signing public key already registered',
         operation: operation,
         details: {
-          'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+          'deviceSigningPublicKeyHex': keys.signingPublicKeyHex,
         },
       );
     }
 
-    final device = AccountDevice(
-      anonAccountId: accountId,
-      deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
-      encryptedDataKey: encryptedDataKey,
-      label: label,
-      lastActive: roundToMinute(DateTime.now()),
-      isRevoked: false,
+    final now = roundToMinute(DateTime.now());
+    return await AccountDevice.db.insertRow(
+      session,
+      AccountDevice(
+        anonAccountId: accountId,
+        deviceSigningPublicKeyHex: keys.signingPublicKeyHex,
+        deviceEncryptionPublicKeyHex: keys.encryptionPublicKeyHex,
+        encryptedDataKey: encryptedDataKey,
+        label: label,
+        addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+        addedByAttestation: addedByAttestation,
+        createdAt: now,
+        lastActive: now,
+        isRevoked: false,
+      ),
+      transaction: transaction,
     );
-
-    return await AccountDevice.db.insertRow(session, device);
   }
 
   /// Require active device (exists and not revoked)

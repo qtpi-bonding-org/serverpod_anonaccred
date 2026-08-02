@@ -171,7 +171,7 @@ void main() {
           id: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           ultimateSigningPublicKeyHex: _generateFakePublicKeyString(random),
           encryptedDataKey: 'encrypted',
-          ultimatePublicKey: _generateFakePublicKeyString(random),
+          ultimateEncryptionPublicKeyHex: _generateFakePublicKeyString(random),
         );
 
         final result = AnonAccountHelpers.requireAccount(account, '1', 'testOp');
@@ -192,7 +192,7 @@ void main() {
             id: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             ultimateSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
-            ultimatePublicKey: _generateFakePublicKeyString(random),
+            ultimateEncryptionPublicKeyHex: _generateFakePublicKeyString(random),
           );
           final accountIdentifier = 'account-${random.nextInt(1000) + 1}';
           final operation = 'op${random.nextInt(100)}';
@@ -210,8 +210,11 @@ void main() {
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: deviceSigningKey,
+          deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
+          addedBySignerPublicKeyHex: deviceSigningKey,
+          addedByAttestation: 'test-attestation',
         );
 
         final result =
@@ -230,12 +233,16 @@ void main() {
       test('property: requireDevice should return valid devices', () {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
+          final deviceSigningKey = _generateFakePublicKeyString(random);
           final device = AccountDevice(
             id: UuidValue.fromString('00000000-0000-0000-0000-${(i + 1).toString().padLeft(12, '0')}'),
             anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-            deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
+            deviceSigningPublicKeyHex: deviceSigningKey,
+            deviceEncryptionPublicKeyHex: deviceSigningKey,
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
+            addedBySignerPublicKeyHex: deviceSigningKey,
+            addedByAttestation: 'test-attestation',
           );
           final publicKey = _generateFakePublicKeyString(random);
           final operation = 'op${random.nextInt(100)}';
@@ -253,8 +260,11 @@ void main() {
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: deviceSigningKey,
+          deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
+          addedBySignerPublicKeyHex: deviceSigningKey,
+          addedByAttestation: 'test-attestation',
           isRevoked: false,
         );
 
@@ -277,8 +287,11 @@ void main() {
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000003'),
           anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
           deviceSigningPublicKeyHex: deviceSigningKey,
+          deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
           label: 'test device',
+          addedBySignerPublicKeyHex: deviceSigningKey,
+          addedByAttestation: 'test-attestation',
           isRevoked: true,
         );
 
@@ -292,12 +305,16 @@ void main() {
       test('property: requireActiveDevice should return non-revoked devices', () {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
+          final deviceSigningKey = _generateFakePublicKeyString(random);
           final device = AccountDevice(
             id: UuidValue.fromString('00000000-0000-0000-0001-${(i + 1).toString().padLeft(12, '0')}'),
             anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-            deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
+            deviceSigningPublicKeyHex: deviceSigningKey,
+            deviceEncryptionPublicKeyHex: deviceSigningKey,
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
+            addedBySignerPublicKeyHex: deviceSigningKey,
+            addedByAttestation: 'test-attestation',
             isRevoked: false, // Always non-revoked for this property
           );
           final publicKey = _generateFakePublicKeyString(random);
@@ -311,12 +328,16 @@ void main() {
       test('property: requireActiveDevice should reject revoked devices', () {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
+          final deviceSigningKey = _generateFakePublicKeyString(random);
           final device = AccountDevice(
             id: UuidValue.fromString('00000000-0000-0000-0002-${(i + 1).toString().padLeft(12, '0')}'),
             anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-            deviceSigningPublicKeyHex: _generateFakePublicKeyString(random),
+            deviceSigningPublicKeyHex: deviceSigningKey,
+            deviceEncryptionPublicKeyHex: deviceSigningKey,
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
             label: 'device${random.nextInt(1000)}',
+            addedBySignerPublicKeyHex: deviceSigningKey,
+            addedByAttestation: 'test-attestation',
             isRevoked: true, // Always revoked for this property
           );
           final publicKey = _generateFakePublicKeyString(random);

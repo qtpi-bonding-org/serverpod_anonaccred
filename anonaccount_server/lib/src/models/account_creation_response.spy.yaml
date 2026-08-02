@@ -3,5 +3,5 @@ class: AccountCreationResponse
 fields:
   ultimateSigningPublicKeyHex: String
   encryptedDataKey: String
-  ultimatePublicKey: String
+  ultimateEncryptionPublicKeyHex: String
   createdAt: DateTime

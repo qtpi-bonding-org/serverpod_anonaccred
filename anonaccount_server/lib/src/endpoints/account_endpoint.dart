@@ -36,15 +36,23 @@ class AccountEndpoint extends SignedPowEndpoint {
     required String proofOfWork,
     required String signature,
     required String publicKeyHex,
-    required String ultimateSigningPublicKeyHex,
+    required PublicKeyDuo ultimateKeys,
     required String encryptedDataKey,
-    required String ultimatePublicKey,
+    required PublicKeyDuo deviceKeys,
     required String deviceKeyAttestation,
-    required String deviceSigningPublicKeyHex,
     required String deviceEncryptedDataKey,
     required String deviceLabel,
   }) async {
     try {
+      // Task 6 widens the parameter shape to PublicKeyDuo for both ultimate
+      // and device keys. The single-signing-key envelope/attestation logic
+      // stays exactly as-is for now — Tasks 7-9 will upgrade it to sign
+      // over both halves of the duo.
+      final ultimateSigningPublicKeyHex = ultimateKeys.signingPublicKeyHex;
+      final ultimateEncryptionPublicKeyHex =
+          ultimateKeys.encryptionPublicKeyHex;
+      final deviceSigningPublicKeyHex = deviceKeys.signingPublicKeyHex;
+
       final payload =
           '$challenge:${AccountMethods.createAccount}:$ultimateSigningPublicKeyHex';
 
@@ -63,7 +71,7 @@ class AccountEndpoint extends SignedPowEndpoint {
         'createAccount',
       );
       AnonAccountHelpers.validatePublicKey(
-        ultimatePublicKey,
+        ultimateEncryptionPublicKeyHex,
         'createAccount',
       );
       AnonAccountHelpers.validateNonEmpty(
@@ -73,6 +81,8 @@ class AccountEndpoint extends SignedPowEndpoint {
       );
 
       // Verify attestation: ultimate key authorized this device key
+      // Task 7 upgrades this to verify over both halves of deviceKeys; for
+      // now the existing single-signing-key check stands.
       final attestationValid = await CryptoUtils.verifySignature(
         message: AccountInnerPayloads.deviceAttestation(deviceSigningPublicKeyHex),
         signature: deviceKeyAttestation,
@@ -87,7 +97,7 @@ class AccountEndpoint extends SignedPowEndpoint {
         );
       }
 
-      // Check for duplicate account
+      // Check for duplicate account (using the renamed encryption field).
       final existingByDevice = await AnonAccount.db.findFirstRow(
         session,
         where: (t) => t.ultimateSigningPublicKeyHex
@@ -107,7 +117,9 @@ class AccountEndpoint extends SignedPowEndpoint {
 
       final existingByUltimate = await AnonAccount.db.findFirstRow(
         session,
-        where: (t) => t.ultimatePublicKey.equals(ultimatePublicKey),
+        where: (t) => t.ultimateEncryptionPublicKeyHex.equals(
+          ultimateEncryptionPublicKeyHex,
+        ),
       );
 
       if (existingByUltimate != null) {
@@ -115,7 +127,9 @@ class AccountEndpoint extends SignedPowEndpoint {
           code: AnonAccountErrorCodes.authDuplicateDevice,
           message: 'Account with this ultimate key already exists',
           operation: 'createAccount',
-          details: {'ultimatePublicKey': ultimatePublicKey},
+          details: {
+            'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+          },
         );
       }
 
@@ -127,19 +141,25 @@ class AccountEndpoint extends SignedPowEndpoint {
         id: authUser.id,
         ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
-        ultimatePublicKey: ultimatePublicKey,
+        ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
         createdAt: now,
       );
 
       await AnonAccount.db.insertRow(session, newAccount);
 
-      // Register first device atomically
+      // Insert the first device via the shared helper. Task 6 widens the
+      // helper's required parameters (now also accepts the encryption key,
+      // signer pubkey, and attestation); the atomic-write path that signs
+      // over the actual duo belongs to Tasks 7-9. For Task 6 we just
+      // thread the duo through unchanged.
       await AnonAccountHelpers.insertDevice(
         session,
         accountId: authUser.id,
-        deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+        deviceKeys: deviceKeys,
         encryptedDataKey: deviceEncryptedDataKey,
         label: deviceLabel,
+        addedBySignerPublicKeyHex: ultimateSigningPublicKeyHex,
+        addedByAttestation: deviceKeyAttestation,
         operation: 'createAccount',
       );
 
@@ -150,7 +170,7 @@ class AccountEndpoint extends SignedPowEndpoint {
       return AccountCreationResponse(
         ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
         encryptedDataKey: encryptedDataKey,
-        ultimatePublicKey: ultimatePublicKey,
+        ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
         createdAt: now,
       );
     } on AuthenticationException {

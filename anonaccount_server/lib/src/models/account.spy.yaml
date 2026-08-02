@@ -3,24 +3,27 @@
 class: AnonAccount
 table: anon_account
 indexes:
-  ultimate_key_idx:
-    fields: ultimatePublicKey
+  ultimate_signing_key_idx:
+    fields: ultimateSigningPublicKeyHex
     unique: true
 fields:
   # UUID primary key — matches Serverpod AuthUser.id for JWT identity
   id: UuidValue?, defaultPersist=random
 
-  # Ultimate ECDSA P-256 signing public key (128 hex chars, x||y coordinates)
-  # Used as account identifier for authentication - matches Flutter client naming
+  # Ultimate ECDSA P-256 signing public key (130 lowercase hex chars,
+  # SEC1 uncompressed `04||x||y`). The actual identity key — used by
+  # resolveAccountUuidByUltimateKey, resolveAccountUuidByAnyKey, and
+  # registerDevice to bind a device to its account.
   ultimateSigningPublicKeyHex: String
 
-  # Recovery blob: Symmetric data key encrypted with ultimate public key
+  # Recovery blob: Symmetric data key encrypted with ultimate encryption key
   # Server never decrypts this - used for account recovery
   encryptedDataKey: String
 
-  # Ultimate ECDSA P-256 public key (128 hex chars, x||y coordinates)
-  # Used for account recovery lookup - derived from user's offline backup
-  ultimatePublicKey: String
+  # Ultimate ECDSA P-256 encryption public key (130 lowercase hex chars,
+  # SEC1 uncompressed). Names state purpose and format; the signing key
+  # above is the identity, this is the wrap target.
+  ultimateEncryptionPublicKeyHex: String
 
   # Account creation timestamp
   createdAt: DateTime, default=now

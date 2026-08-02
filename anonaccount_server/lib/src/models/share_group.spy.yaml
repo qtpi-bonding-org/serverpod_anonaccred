@@ -1,9 +1,13 @@
 class: ShareGroup
 table: share_group
+indexes:
+  share_group_ultimate_signing_key_idx:
+    fields: ultimateSigningPublicKeyHex
+    unique: true
 fields:
   id: UuidValue?, defaultPersist=random
   ultimateSigningPublicKeyHex: String
-  ultimatePublicKey: String
+  ultimateEncryptionPublicKeyHex: String
   encryptedDataKey: String
   createdAt: DateTime, default=now
   keyEpoch: int, default=0

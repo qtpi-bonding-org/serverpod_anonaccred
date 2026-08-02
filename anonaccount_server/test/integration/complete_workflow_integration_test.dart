@@ -1,4 +1,3 @@
-
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:serverpod_test/serverpod_test.dart';
@@ -25,7 +24,7 @@ void main() {
 
         // Step 2: Create account via PoW-protected endpoint
         const encryptedDataKey = 'encrypted_account_data_key_12345';
-        const ultimatePublicKey =
+        const ultimateEncryptionPublicKeyHex =
             '04aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
@@ -39,9 +38,12 @@ void main() {
             '${challengeResponse.challenge}:${AccountMethods.createAccount}:$pubKey';
         final signature = SigningTestHelper.signWith(payload, privKey);
 
-        // Generate first device keypair and attestation
+        // Generate first device keypair and attestation. Task 6 widens
+        // the wire shape to a PublicKeyDuo with two distinct halves.
         final (_, firstDevicePubKey) = SigningTestHelper.generateKeypair();
-        final firstDeviceAttestation = SigningTestHelper.signWith(firstDevicePubKey, privKey);
+        final (_, firstDeviceEncPubKey) = SigningTestHelper.generateKeypair();
+        final firstDeviceAttestation =
+            SigningTestHelper.signWith(firstDevicePubKey, privKey);
 
         final accountResponse = await endpoints.account.createAccount(
           sessionBuilder,
@@ -49,11 +51,16 @@ void main() {
           proofOfWork: proofOfWork,
           signature: signature,
           publicKeyHex: pubKey,
-          ultimateSigningPublicKeyHex: pubKey,
+          ultimateKeys: PublicKeyDuo(
+            signingPublicKeyHex: pubKey,
+            encryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
+          ),
           encryptedDataKey: encryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: firstDevicePubKey,
+            encryptionPublicKeyHex: firstDeviceEncPubKey,
+          ),
           deviceKeyAttestation: firstDeviceAttestation,
-          deviceSigningPublicKeyHex: firstDevicePubKey,
           deviceEncryptedDataKey: 'test-device-data-key',
           deviceLabel: 'test-device',
         );
@@ -85,6 +92,7 @@ void main() {
 
         // Step 4: Generate device keypair and register with PoW
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
         const deviceLabel = 'Test Device for Complete Workflow';
 
@@ -104,7 +112,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: account.ultimateSigningPublicKeyHex,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: deviceEncryptedDataKey,
           label: deviceLabel,
         );
@@ -150,7 +161,7 @@ void main() {
         // Create account via direct DB insert
         final (_, pubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'encrypted_account_data_key_lookup';
-        const ultimatePublicKey =
+        const ultimateEncryptionPublicKeyHex =
             '04bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
             'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
@@ -158,7 +169,7 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: pubKey,
           encryptedDataKey: encryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
         );
 
         expect(account.id, isNotNull);
@@ -241,6 +252,7 @@ void main() {
         );
 
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
 
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
@@ -258,7 +270,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: 'encrypted_device_data_key',
           label: 'Test Device',
         );
@@ -276,6 +291,7 @@ void main() {
         );
 
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
 
         // Register first
         final regChallenge1 = await endpoints.entrypoint.getChallenge(sessionBuilder);
@@ -294,7 +310,10 @@ void main() {
           signature: regSignature1,
           deviceKeyAttestation: deviceKeyAttestation1,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: 'encrypted_device_data_key',
           label: 'Test Device',
         );
@@ -317,7 +336,10 @@ void main() {
             signature: regSignature2,
             deviceKeyAttestation: deviceKeyAttestation2,
             ultimateSigningPublicKeyHex: ultimatePubKey,
-            deviceSigningPublicKeyHex: devicePubKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
             encryptedDataKey: 'encrypted_device_data_key_2',
             label: 'Test Device 2',
           ),
@@ -328,6 +350,7 @@ void main() {
       test('non-existent account registration fails', () async {
         final (nonExistPrivKey, nonExistPubKey) = SigningTestHelper.generateKeypair();
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
 
         final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
         final regPow = await PowTestHelper.mint(
@@ -346,7 +369,10 @@ void main() {
             signature: regSignature,
             deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex: nonExistPubKey,
-            deviceSigningPublicKeyHex: devicePubKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
             encryptedDataKey: 'encrypted_device_data_key',
             label: 'Test Device',
           ),

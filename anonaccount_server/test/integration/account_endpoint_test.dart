@@ -39,12 +39,14 @@ void main() {
           '${challengeResponse.challenge}:${AccountMethods.createAccount}:$pubKey';
       final signature = SigningTestHelper.signWith(payload, privKey);
 
-      const ultimatePublicKey =
+      const ultimateEncryptionPublicKeyHex =
           '04b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
           'b123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-      // Generate device keypair and attestation
+      // Generate device keypair and attestation. Task 6 widens the wire
+      // shape to a PublicKeyDuo with two distinct halves.
       final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+      final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
       final deviceAttestation = SigningTestHelper.signWith(devicePubKey, privKey);
 
       final account = await endpoints.account.createAccount(
@@ -53,11 +55,16 @@ void main() {
         proofOfWork: proofOfWork,
         signature: signature,
         publicKeyHex: pubKey,
-        ultimateSigningPublicKeyHex: pubKey,
+        ultimateKeys: PublicKeyDuo(
+          signingPublicKeyHex: pubKey,
+          encryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
+        ),
         encryptedDataKey: 'test-encrypted-data-key',
-        ultimatePublicKey: ultimatePublicKey,
+        deviceKeys: PublicKeyDuo(
+          signingPublicKeyHex: devicePubKey,
+          encryptionPublicKeyHex: deviceEncPubKey,
+        ),
         deviceKeyAttestation: deviceAttestation,
-        deviceSigningPublicKeyHex: devicePubKey,
         deviceEncryptedDataKey: 'test-device-data-key',
         deviceLabel: 'test-device',
       );
@@ -78,7 +85,7 @@ void main() {
       await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: pubKey,
-        ultimatePublicKey:
+        ultimateEncryptionPublicKeyHex:
             '04c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             'c123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       );
@@ -95,6 +102,7 @@ void main() {
       final signature = SigningTestHelper.signWith(payload, privKey);
 
       final (devicePrivKey2, devicePubKey2) = SigningTestHelper.generateKeypair();
+      final (_, deviceEncPubKey2) = SigningTestHelper.generateKeypair();
       final deviceAttestation2 = SigningTestHelper.signWith(devicePubKey2, privKey);
 
       expect(
@@ -104,13 +112,18 @@ void main() {
           proofOfWork: proofOfWork,
           signature: signature,
           publicKeyHex: pubKey,
-          ultimateSigningPublicKeyHex: pubKey,
+          ultimateKeys: PublicKeyDuo(
+            signingPublicKeyHex: pubKey,
+            encryptionPublicKeyHex:
+                '04d123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+                'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+          ),
           encryptedDataKey: 'test-encrypted-data-key-2',
-          ultimatePublicKey:
-              '04d123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-              'd123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey2,
+            encryptionPublicKeyHex: deviceEncPubKey2,
+          ),
           deviceKeyAttestation: deviceAttestation2,
-          deviceSigningPublicKeyHex: devicePubKey2,
           deviceEncryptedDataKey: 'test-device-data-key-2',
           deviceLabel: 'test-device-2',
         ),

@@ -18,7 +18,7 @@ abstract class AnonAccount
     this.id,
     required this.ultimateSigningPublicKeyHex,
     required this.encryptedDataKey,
-    required this.ultimatePublicKey,
+    required this.ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -26,7 +26,7 @@ abstract class AnonAccount
     _i1.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
-    required String ultimatePublicKey,
+    required String ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
   }) = _AnonAccountImpl;
 
@@ -38,7 +38,8 @@ abstract class AnonAccount
       ultimateSigningPublicKeyHex:
           jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
-      ultimatePublicKey: jsonSerialization['ultimatePublicKey'] as String,
+      ultimateEncryptionPublicKeyHex:
+          jsonSerialization['ultimateEncryptionPublicKeyHex'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -56,7 +57,7 @@ abstract class AnonAccount
 
   String encryptedDataKey;
 
-  String ultimatePublicKey;
+  String ultimateEncryptionPublicKeyHex;
 
   DateTime createdAt;
 
@@ -70,7 +71,7 @@ abstract class AnonAccount
     _i1.UuidValue? id,
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
-    String? ultimatePublicKey,
+    String? ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
   });
   @override
@@ -80,7 +81,7 @@ abstract class AnonAccount
       if (id != null) 'id': id?.toJson(),
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
-      'ultimatePublicKey': ultimatePublicKey,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -92,7 +93,7 @@ abstract class AnonAccount
       if (id != null) 'id': id?.toJson(),
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
-      'ultimatePublicKey': ultimatePublicKey,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -134,13 +135,13 @@ class _AnonAccountImpl extends AnonAccount {
     _i1.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
-    required String ultimatePublicKey,
+    required String ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
   }) : super._(
          id: id,
          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
-         ultimatePublicKey: ultimatePublicKey,
+         ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
          createdAt: createdAt,
        );
 
@@ -152,7 +153,7 @@ class _AnonAccountImpl extends AnonAccount {
     Object? id = _Undefined,
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
-    String? ultimatePublicKey,
+    String? ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
   }) {
     return AnonAccount(
@@ -160,7 +161,8 @@ class _AnonAccountImpl extends AnonAccount {
       ultimateSigningPublicKeyHex:
           ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
-      ultimatePublicKey: ultimatePublicKey ?? this.ultimatePublicKey,
+      ultimateEncryptionPublicKeyHex:
+          ultimateEncryptionPublicKeyHex ?? this.ultimateEncryptionPublicKeyHex,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -181,11 +183,12 @@ class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
         value,
       );
 
-  _i1.ColumnValue<String, String> ultimatePublicKey(String value) =>
-      _i1.ColumnValue(
-        table.ultimatePublicKey,
-        value,
-      );
+  _i1.ColumnValue<String, String> ultimateEncryptionPublicKeyHex(
+    String value,
+  ) => _i1.ColumnValue(
+    table.ultimateEncryptionPublicKeyHex,
+    value,
+  );
 
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
@@ -205,8 +208,8 @@ class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
       'encryptedDataKey',
       this,
     );
-    ultimatePublicKey = _i1.ColumnString(
-      'ultimatePublicKey',
+    ultimateEncryptionPublicKeyHex = _i1.ColumnString(
+      'ultimateEncryptionPublicKeyHex',
       this,
     );
     createdAt = _i1.ColumnDateTime(
@@ -222,7 +225,7 @@ class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString encryptedDataKey;
 
-  late final _i1.ColumnString ultimatePublicKey;
+  late final _i1.ColumnString ultimateEncryptionPublicKeyHex;
 
   late final _i1.ColumnDateTime createdAt;
 
@@ -231,7 +234,7 @@ class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
     id,
     ultimateSigningPublicKeyHex,
     encryptedDataKey,
-    ultimatePublicKey,
+    ultimateEncryptionPublicKeyHex,
     createdAt,
   ];
 }

@@ -125,9 +125,12 @@ class GroupEndpoint extends SignedPowEndpoint {
       }
 
       final now = DateTime.now();
+      // Task 6: constructor renames only. Endpoint signatures (the
+      // four positional key strings on createGroup / addGroupMember) are
+      // Task 6b's job; not touched here.
       final group = ShareGroup(
         ultimateSigningPublicKeyHex: groupUltimateSigningPublicKeyHex,
-        ultimatePublicKey: groupUltimatePublicKey,
+        ultimateEncryptionPublicKeyHex: groupUltimatePublicKey,
         encryptedDataKey: groupEncryptedDataKey,
         createdAt: now,
       );
@@ -138,7 +141,7 @@ class GroupEndpoint extends SignedPowEndpoint {
         anonAccountId: accountId,
         role: GroupMemberRole.admin,
         memberSigningPublicKeyHex: creatorMemberSigningPublicKeyHex,
-        memberPublicKey: creatorMemberPublicKey,
+        memberEncryptionPublicKeyHex: creatorMemberPublicKey,
         encryptedDataKey: creatorMemberEncryptedDataKey,
         joinedAt: now,
         lastActive: now,
@@ -392,12 +395,14 @@ class GroupEndpoint extends SignedPowEndpoint {
       }
 
       final now = DateTime.now();
+      // Task 6: constructor rename only. Endpoint signatures stay as-is —
+      // Task 6b's job to introduce the duo parameter shape.
       final member = GroupMember(
         shareGroupId: groupId,
         anonAccountId: newMemberAccountId,
         role: role,
         memberSigningPublicKeyHex: memberSigningPublicKeyHex,
-        memberPublicKey: memberPublicKey,
+        memberEncryptionPublicKeyHex: memberPublicKey,
         encryptedDataKey: encryptedDataKey,
         joinedAt: now,
         lastActive: now,

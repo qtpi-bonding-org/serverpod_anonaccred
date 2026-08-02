@@ -14,6 +14,9 @@ Future<AccountDevice> createTestDevice(
   TestSessionBuilder sessionBuilder, {
   required UuidValue anonAccountId,
   required String deviceSigningPublicKeyHex,
+  String? deviceEncryptionPublicKeyHex,
+  String addedBySignerPublicKeyHex = 'test-attester',
+  String addedByAttestation = 'test-attestation',
   String encryptedDataKey = 'test-device-encrypted-data-key',
   String label = 'Test Device',
   bool isRevoked = false,
@@ -27,8 +30,13 @@ Future<AccountDevice> createTestDevice(
     final device = AccountDevice(
       anonAccountId: anonAccountId,
       deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+      deviceEncryptionPublicKeyHex:
+          deviceEncryptionPublicKeyHex ?? deviceSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey,
       label: label,
+      addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+      addedByAttestation: addedByAttestation,
+      createdAt: DateTime.now(),
       lastActive: DateTime.now(),
       isRevoked: isRevoked,
     );
@@ -52,7 +60,7 @@ void main() {
         final account = await createTestAccount(
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          ultimatePublicKey: ultimatePubKey,
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
         );
         final (devicePrivKey, devicePubKey) =
             SigningTestHelper.generateKeypair();
@@ -91,7 +99,7 @@ void main() {
         final account = await createTestAccount(
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          ultimatePublicKey: ultimatePubKey,
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
         );
         final (devicePrivKey, devicePubKey) =
             SigningTestHelper.generateKeypair();
@@ -159,7 +167,7 @@ void main() {
           await createTestAccount(
             sessionBuilder,
             ultimateSigningPublicKeyHex: ultimatePubKey,
-            ultimatePublicKey: ultimatePubKey,
+            ultimateEncryptionPublicKeyHex: ultimatePubKey,
             encryptedDataKey: expectedKey,
           );
 

@@ -15,7 +15,7 @@ Future<AnonAccount> createTestAccount(
   TestSessionBuilder sessionBuilder, {
   required String ultimateSigningPublicKeyHex,
   String encryptedDataKey = 'test-encrypted-data-key',
-  String? ultimatePublicKey,
+  String? ultimateEncryptionPublicKeyHex,
 }) async {
   final session =
       (sessionBuilder as InternalTestSessionBuilder).internalBuild(
@@ -30,7 +30,8 @@ Future<AnonAccount> createTestAccount(
       id: authUser.id,
       ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey,
-      ultimatePublicKey: ultimatePublicKey ?? ultimateSigningPublicKeyHex,
+      ultimateEncryptionPublicKeyHex:
+          ultimateEncryptionPublicKeyHex ?? ultimateSigningPublicKeyHex,
       createdAt: DateTime.now(),
     );
     return await AnonAccount.db.insertRow(session, account);

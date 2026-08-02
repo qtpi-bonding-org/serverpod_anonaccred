@@ -1,11 +1,13 @@
 # AccountDevice: Ephemeral device access with subkey authentication
-# Enables multiple devices per account with individual key management
+# Enables multiple devices per account with individual key management.
+# A complete KeyDuo principal — encryption pubkey, persisted attestation,
+# creation/revocation timestamps — matching GroupMember.
 class: AccountDevice
 table: account_device
 indexes:
-  auth_lookup_idx:
-    fields: deviceSigningPublicKeyHex, isRevoked
-    unique: false
+  device_signing_key_idx:
+    fields: deviceSigningPublicKeyHex
+    unique: true
   account_devices_idx:
     fields: anonAccountId
     unique: false
@@ -16,22 +18,43 @@ fields:
   # FK to AnonAccount — Serverpod auto-generates anonAccountId: UuidValue
   anonAccount: AnonAccount?, relation(onDelete=Cascade)
 
-  # Device ECDSA P-256 signing public key (128 hex chars, x||y coordinates)
-  # Used for device authentication - matches Flutter client naming
+  # Device ECDSA P-256 signing public key (130 lowercase hex chars,
+  # SEC1 uncompressed `04||x||y`). Identity key — used for auth.
   deviceSigningPublicKeyHex: String
 
-  # Symmetric data key encrypted with device private key (client-side encryption)
-  # Allows device-specific access without compromising master account security
+  # Device ECDSA P-256 encryption public key (130 lowercase hex chars,
+  # SEC1 uncompressed). Wrap target — without this the device is
+  # unaddressable (rule 1, see conventions).
+  deviceEncryptionPublicKeyHex: String
+
+  # Symmetric data key encrypted with device encryption public key
+  # (client-side encryption). Allows device-specific access without
+  # compromising master account security.
   encryptedDataKey: String
 
   # Human-readable device identifier (e.g., "iPhone 15", "MacBook Pro")
   label: String
+
+  # Public key that authorized this device row (typically the ultimate
+  # key for the first device, an existing paired device's key for
+  # subsequent ones).
+  addedBySignerPublicKeyHex: String
+
+  # Signature produced by addedBySignerPublicKeyHex over the device
+  # KeyDuo attestation payload — persisted with its signer (rule 7).
+  addedByAttestation: String
+
+  # Creation timestamp — when the device row was first registered.
+  createdAt: DateTime, default=now
 
   # Last activity timestamp for device management
   lastActive: DateTime, default=now
 
   # Revocation flag for device access control
   isRevoked: bool, default=false
+
+  # When revocation occurred — null for active devices.
+  revokedAt: DateTime?
 
   # Monotonically increasing counter; clients compare against their cached
   # value to detect when the account data key needs to be re-wrapped.

@@ -16,14 +16,14 @@ abstract class AccountCreationResponse implements _i1.SerializableModel {
   AccountCreationResponse._({
     required this.ultimateSigningPublicKeyHex,
     required this.encryptedDataKey,
-    required this.ultimatePublicKey,
+    required this.ultimateEncryptionPublicKeyHex,
     required this.createdAt,
   });
 
   factory AccountCreationResponse({
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
-    required String ultimatePublicKey,
+    required String ultimateEncryptionPublicKeyHex,
     required DateTime createdAt,
   }) = _AccountCreationResponseImpl;
 
@@ -34,7 +34,8 @@ abstract class AccountCreationResponse implements _i1.SerializableModel {
       ultimateSigningPublicKeyHex:
           jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
-      ultimatePublicKey: jsonSerialization['ultimatePublicKey'] as String,
+      ultimateEncryptionPublicKeyHex:
+          jsonSerialization['ultimateEncryptionPublicKeyHex'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -45,7 +46,7 @@ abstract class AccountCreationResponse implements _i1.SerializableModel {
 
   String encryptedDataKey;
 
-  String ultimatePublicKey;
+  String ultimateEncryptionPublicKeyHex;
 
   DateTime createdAt;
 
@@ -55,7 +56,7 @@ abstract class AccountCreationResponse implements _i1.SerializableModel {
   AccountCreationResponse copyWith({
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
-    String? ultimatePublicKey,
+    String? ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
   });
   @override
@@ -64,7 +65,7 @@ abstract class AccountCreationResponse implements _i1.SerializableModel {
       '__className__': 'anonaccount.AccountCreationResponse',
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
-      'ultimatePublicKey': ultimatePublicKey,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -79,12 +80,12 @@ class _AccountCreationResponseImpl extends AccountCreationResponse {
   _AccountCreationResponseImpl({
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
-    required String ultimatePublicKey,
+    required String ultimateEncryptionPublicKeyHex,
     required DateTime createdAt,
   }) : super._(
          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
-         ultimatePublicKey: ultimatePublicKey,
+         ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
          createdAt: createdAt,
        );
 
@@ -95,14 +96,15 @@ class _AccountCreationResponseImpl extends AccountCreationResponse {
   AccountCreationResponse copyWith({
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
-    String? ultimatePublicKey,
+    String? ultimateEncryptionPublicKeyHex,
     DateTime? createdAt,
   }) {
     return AccountCreationResponse(
       ultimateSigningPublicKeyHex:
           ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
-      ultimatePublicKey: ultimatePublicKey ?? this.ultimatePublicKey,
+      ultimateEncryptionPublicKeyHex:
+          ultimateEncryptionPublicKeyHex ?? this.ultimateEncryptionPublicKeyHex,
       createdAt: createdAt ?? this.createdAt,
     );
   }

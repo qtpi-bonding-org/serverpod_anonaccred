@@ -17,7 +17,7 @@ abstract class ShareGroup
   ShareGroup._({
     this.id,
     required this.ultimateSigningPublicKeyHex,
-    required this.ultimatePublicKey,
+    required this.ultimateEncryptionPublicKeyHex,
     required this.encryptedDataKey,
     DateTime? createdAt,
     int? keyEpoch,
@@ -27,7 +27,7 @@ abstract class ShareGroup
   factory ShareGroup({
     _i1.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
-    required String ultimatePublicKey,
+    required String ultimateEncryptionPublicKeyHex,
     required String encryptedDataKey,
     DateTime? createdAt,
     int? keyEpoch,
@@ -40,7 +40,8 @@ abstract class ShareGroup
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       ultimateSigningPublicKeyHex:
           jsonSerialization['ultimateSigningPublicKeyHex'] as String,
-      ultimatePublicKey: jsonSerialization['ultimatePublicKey'] as String,
+      ultimateEncryptionPublicKeyHex:
+          jsonSerialization['ultimateEncryptionPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -58,7 +59,7 @@ abstract class ShareGroup
 
   String ultimateSigningPublicKeyHex;
 
-  String ultimatePublicKey;
+  String ultimateEncryptionPublicKeyHex;
 
   String encryptedDataKey;
 
@@ -75,7 +76,7 @@ abstract class ShareGroup
   ShareGroup copyWith({
     _i1.UuidValue? id,
     String? ultimateSigningPublicKeyHex,
-    String? ultimatePublicKey,
+    String? ultimateEncryptionPublicKeyHex,
     String? encryptedDataKey,
     DateTime? createdAt,
     int? keyEpoch,
@@ -86,7 +87,7 @@ abstract class ShareGroup
       '__className__': 'anonaccount.ShareGroup',
       if (id != null) 'id': id?.toJson(),
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
-      'ultimatePublicKey': ultimatePublicKey,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'createdAt': createdAt.toJson(),
       'keyEpoch': keyEpoch,
@@ -99,7 +100,7 @@ abstract class ShareGroup
       '__className__': 'anonaccount.ShareGroup',
       if (id != null) 'id': id?.toJson(),
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
-      'ultimatePublicKey': ultimatePublicKey,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'createdAt': createdAt.toJson(),
       'keyEpoch': keyEpoch,
@@ -142,14 +143,14 @@ class _ShareGroupImpl extends ShareGroup {
   _ShareGroupImpl({
     _i1.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
-    required String ultimatePublicKey,
+    required String ultimateEncryptionPublicKeyHex,
     required String encryptedDataKey,
     DateTime? createdAt,
     int? keyEpoch,
   }) : super._(
          id: id,
          ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
-         ultimatePublicKey: ultimatePublicKey,
+         ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          createdAt: createdAt,
          keyEpoch: keyEpoch,
@@ -162,7 +163,7 @@ class _ShareGroupImpl extends ShareGroup {
   ShareGroup copyWith({
     Object? id = _Undefined,
     String? ultimateSigningPublicKeyHex,
-    String? ultimatePublicKey,
+    String? ultimateEncryptionPublicKeyHex,
     String? encryptedDataKey,
     DateTime? createdAt,
     int? keyEpoch,
@@ -171,7 +172,8 @@ class _ShareGroupImpl extends ShareGroup {
       id: id is _i1.UuidValue? ? id : this.id,
       ultimateSigningPublicKeyHex:
           ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
-      ultimatePublicKey: ultimatePublicKey ?? this.ultimatePublicKey,
+      ultimateEncryptionPublicKeyHex:
+          ultimateEncryptionPublicKeyHex ?? this.ultimateEncryptionPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       createdAt: createdAt ?? this.createdAt,
       keyEpoch: keyEpoch ?? this.keyEpoch,
@@ -188,11 +190,12 @@ class ShareGroupUpdateTable extends _i1.UpdateTable<ShareGroupTable> {
         value,
       );
 
-  _i1.ColumnValue<String, String> ultimatePublicKey(String value) =>
-      _i1.ColumnValue(
-        table.ultimatePublicKey,
-        value,
-      );
+  _i1.ColumnValue<String, String> ultimateEncryptionPublicKeyHex(
+    String value,
+  ) => _i1.ColumnValue(
+    table.ultimateEncryptionPublicKeyHex,
+    value,
+  );
 
   _i1.ColumnValue<String, String> encryptedDataKey(String value) =>
       _i1.ColumnValue(
@@ -219,8 +222,8 @@ class ShareGroupTable extends _i1.Table<_i1.UuidValue?> {
       'ultimateSigningPublicKeyHex',
       this,
     );
-    ultimatePublicKey = _i1.ColumnString(
-      'ultimatePublicKey',
+    ultimateEncryptionPublicKeyHex = _i1.ColumnString(
+      'ultimateEncryptionPublicKeyHex',
       this,
     );
     encryptedDataKey = _i1.ColumnString(
@@ -243,7 +246,7 @@ class ShareGroupTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString ultimateSigningPublicKeyHex;
 
-  late final _i1.ColumnString ultimatePublicKey;
+  late final _i1.ColumnString ultimateEncryptionPublicKeyHex;
 
   late final _i1.ColumnString encryptedDataKey;
 
@@ -255,7 +258,7 @@ class ShareGroupTable extends _i1.Table<_i1.UuidValue?> {
   List<_i1.Column> get columns => [
     id,
     ultimateSigningPublicKeyHex,
-    ultimatePublicKey,
+    ultimateEncryptionPublicKeyHex,
     encryptedDataKey,
     createdAt,
     keyEpoch,

@@ -89,6 +89,12 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String',
         ),
         _i2.ColumnDefinition(
+          name: 'deviceEncryptionPublicKeyHex',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
           name: 'encryptedDataKey',
           columnType: _i2.ColumnType.text,
           isNullable: false,
@@ -99,6 +105,25 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'addedBySignerPublicKeyHex',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'addedByAttestation',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
         ),
         _i2.ColumnDefinition(
           name: 'lastActive',
@@ -113,6 +138,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: false,
           dartType: 'bool',
           columnDefault: 'false',
+        ),
+        _i2.ColumnDefinition(
+          name: 'revokedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'keyEpoch',
@@ -149,20 +180,16 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: true,
         ),
         _i2.IndexDefinition(
-          indexName: 'auth_lookup_idx',
+          indexName: 'device_signing_key_idx',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'deviceSigningPublicKeyHex',
             ),
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'isRevoked',
-            ),
           ],
           type: 'btree',
-          isUnique: false,
+          isUnique: true,
           isPrimary: false,
         ),
         _i2.IndexDefinition(
@@ -207,7 +234,7 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String',
         ),
         _i2.ColumnDefinition(
-          name: 'ultimatePublicKey',
+          name: 'ultimateEncryptionPublicKeyHex',
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
@@ -236,12 +263,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: true,
         ),
         _i2.IndexDefinition(
-          indexName: 'ultimate_key_idx',
+          indexName: 'ultimate_signing_key_idx',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'ultimatePublicKey',
+              definition: 'ultimateSigningPublicKeyHex',
             ),
           ],
           type: 'btree',
@@ -289,7 +316,7 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String',
         ),
         _i2.ColumnDefinition(
-          name: 'memberPublicKey',
+          name: 'memberEncryptionPublicKeyHex',
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
@@ -324,14 +351,14 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'addedBySignerPublicKeyHex',
           columnType: _i2.ColumnType.text,
-          isNullable: true,
-          dartType: 'String?',
+          isNullable: false,
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'addedByAttestation',
           columnType: _i2.ColumnType.text,
-          isNullable: true,
-          dartType: 'String?',
+          isNullable: false,
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'revokedBySignerPublicKeyHex',
@@ -344,6 +371,12 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'revokedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
       ],
       foreignKeys: [
@@ -381,6 +414,19 @@ class Protocol extends _i1.SerializationManagerServer {
           type: 'btree',
           isUnique: true,
           isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'group_member_signing_key_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'memberSigningPublicKeyHex',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
         ),
         _i2.IndexDefinition(
           indexName: 'group_member_unique_idx',
@@ -580,7 +626,7 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String',
         ),
         _i2.ColumnDefinition(
-          name: 'ultimatePublicKey',
+          name: 'ultimateEncryptionPublicKeyHex',
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
@@ -620,6 +666,19 @@ class Protocol extends _i1.SerializationManagerServer {
           type: 'btree',
           isUnique: true,
           isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'share_group_ultimate_signing_key_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'ultimateSigningPublicKeyHex',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
         ),
       ],
       managed: true,

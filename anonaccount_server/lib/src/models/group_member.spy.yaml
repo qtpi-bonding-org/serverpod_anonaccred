@@ -1,6 +1,9 @@
 class: GroupMember
 table: group_member
 indexes:
+  group_member_signing_key_idx:
+    fields: memberSigningPublicKeyHex
+    unique: true
   group_member_unique_idx:
     fields: shareGroupId, anonAccountId
     unique: true
@@ -13,12 +16,17 @@ fields:
   anonAccount: AnonAccount?, relation(onDelete=Cascade)
   role: GroupMemberRole
   memberSigningPublicKeyHex: String
-  memberPublicKey: String
+  memberEncryptionPublicKeyHex: String
   encryptedDataKey: String
   joinedAt: DateTime, default=now
   lastActive: DateTime, default=now
   isRevoked: bool, default=false
-  addedBySignerPublicKeyHex: String?
-  addedByAttestation: String?
+  # Tightened from nullable to non-nullable: every group member row is
+  # recorded as attested (rule 7). Fields stay null for callers that
+  # legitimately have no signer — `addedBy*` is required for a row to
+  # be considered attested.
+  addedBySignerPublicKeyHex: String
+  addedByAttestation: String
   revokedBySignerPublicKeyHex: String?
   revokedByAttestation: String?
+  revokedAt: DateTime?

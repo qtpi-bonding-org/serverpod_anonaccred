@@ -30,7 +30,7 @@ void main() {
         id: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
         ultimateSigningPublicKeyHex: 'a' * 128, // ECDSA P-256 format
         encryptedDataKey: 'encrypted',
-        ultimatePublicKey: 'b' * 128,
+        ultimateEncryptionPublicKeyHex: 'b' * 128,
       );
 
       final result = AnonAccountHelpers.requireAccount(account, 'test-identifier', 'testOp');

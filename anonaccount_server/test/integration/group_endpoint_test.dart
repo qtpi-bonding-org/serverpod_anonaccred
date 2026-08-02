@@ -22,8 +22,11 @@ Future<AccountDevice> createTestDevice(
     final device = AccountDevice(
       anonAccountId: anonAccountId,
       deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+      deviceEncryptionPublicKeyHex: deviceSigningPublicKeyHex,
       encryptedDataKey: 'test-device-encrypted-data-key',
       label: 'test-device',
+      addedBySignerPublicKeyHex: deviceSigningPublicKeyHex,
+      addedByAttestation: 'test-attestation',
       lastActive: DateTime.now(),
       isRevoked: false,
     );
@@ -67,7 +70,7 @@ Future<
   final account = await createTestAccount(
     sessionBuilder,
     ultimateSigningPublicKeyHex: accUltPub,
-    ultimatePublicKey: accUltPub,
+    ultimateEncryptionPublicKeyHex: accUltPub,
   );
   final (devicePriv, devicePub) = SigningTestHelper.generateKeypair();
   await createTestDevice(
@@ -160,7 +163,7 @@ void main() {
       final account = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: accUltPub,
-        ultimatePublicKey: accUltPub,
+        ultimateEncryptionPublicKeyHex: accUltPub,
       );
       final (devicePriv, devicePub) = SigningTestHelper.generateKeypair();
       await createTestDevice(
@@ -215,7 +218,7 @@ void main() {
       final invitee = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: inviteeUltPub,
-        ultimatePublicKey: inviteeUltPub,
+        ultimateEncryptionPublicKeyHex: inviteeUltPub,
       );
       final (_, inviteeMemberSig) = SigningTestHelper.generateKeypair();
       final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
@@ -262,7 +265,7 @@ void main() {
       final m2Account = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: m2UltPub,
-        ultimatePublicKey: m2UltPub,
+        ultimateEncryptionPublicKeyHex: m2UltPub,
       );
       final (m2DevicePriv, m2DevicePub) = SigningTestHelper.generateKeypair();
       await createTestDevice(
@@ -306,7 +309,7 @@ void main() {
       final victim = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: victimUltPub,
-        ultimatePublicKey: victimUltPub,
+        ultimateEncryptionPublicKeyHex: victimUltPub,
       );
       final (_, vMemberSig) = SigningTestHelper.generateKeypair();
       final (_, vMemberEnc) = SigningTestHelper.generateKeypair();
@@ -351,7 +354,7 @@ void main() {
       final otherAccount = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: otherUltPub,
-        ultimatePublicKey: otherUltPub,
+        ultimateEncryptionPublicKeyHex: otherUltPub,
       );
       final (otherDevicePriv, otherDevicePub) =
           SigningTestHelper.generateKeypair();
@@ -368,7 +371,7 @@ void main() {
       final victim = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: vUltPub,
-        ultimatePublicKey: vUltPub,
+        ultimateEncryptionPublicKeyHex: vUltPub,
       );
       final (_, vMemberSig) = SigningTestHelper.generateKeypair();
       final (_, vMemberEnc) = SigningTestHelper.generateKeypair();
@@ -413,7 +416,7 @@ void main() {
       final invitee = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: inviteeUltPub,
-        ultimatePublicKey: inviteeUltPub,
+        ultimateEncryptionPublicKeyHex: inviteeUltPub,
       );
       final (_, inviteeMemberSig) = SigningTestHelper.generateKeypair();
       final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
@@ -455,7 +458,7 @@ void main() {
       final invitee = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: inviteeUltPub,
-        ultimatePublicKey: inviteeUltPub,
+        ultimateEncryptionPublicKeyHex: inviteeUltPub,
       );
       final (_, inviteeMemberSig) = SigningTestHelper.generateKeypair();
       final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
@@ -502,7 +505,7 @@ void main() {
       final victim = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: vUltPub,
-        ultimatePublicKey: vUltPub,
+        ultimateEncryptionPublicKeyHex: vUltPub,
       );
       final (_, vMemberSig) = SigningTestHelper.generateKeypair();
       final (_, vMemberEnc) = SigningTestHelper.generateKeypair();
@@ -631,7 +634,7 @@ void main() {
       final outsider = await createTestAccount(
         sessionBuilder,
         ultimateSigningPublicKeyHex: outsiderUltPub,
-        ultimatePublicKey: outsiderUltPub,
+        ultimateEncryptionPublicKeyHex: outsiderUltPub,
       );
       final (outsiderDevicePriv, outsiderDevicePub) = SigningTestHelper.generateKeypair();
       await createTestDevice(
@@ -670,7 +673,7 @@ void main() {
   final m2 = await createTestAccount(
     sessionBuilder,
     ultimateSigningPublicKeyHex: m2UltPub,
-    ultimatePublicKey: m2UltPub,
+    ultimateEncryptionPublicKeyHex: m2UltPub,
   );
   final (_, m2MemberSig) = SigningTestHelper.generateKeypair();
   final (_, m2MemberEnc) = SigningTestHelper.generateKeypair();
@@ -728,7 +731,7 @@ test('listGroupMembers: rejected when caller is not a member', () async {
   final outsider = await createTestAccount(
     sessionBuilder,
     ultimateSigningPublicKeyHex: outsiderUltPub,
-    ultimatePublicKey: outsiderUltPub,
+    ultimateEncryptionPublicKeyHex: outsiderUltPub,
   );
   final (outsiderDevicePriv, outsiderDevicePub) = SigningTestHelper.generateKeypair();
   await createTestDevice(
@@ -767,7 +770,7 @@ test('listGroupMembers: rejected when caller is not a member', () async {
   final m2 = await createTestAccount(
     sessionBuilder,
     ultimateSigningPublicKeyHex: m2UltPub,
-    ultimatePublicKey: m2UltPub,
+    ultimateEncryptionPublicKeyHex: m2UltPub,
   );
   final (m2DevicePriv, m2DevicePub) = SigningTestHelper.generateKeypair();
   await createTestDevice(
@@ -853,7 +856,7 @@ test('leaveGroup: last admin with other members present cannot leave (guard bloc
   final m2 = await createTestAccount(
     sessionBuilder,
     ultimateSigningPublicKeyHex: m2UltPub,
-    ultimatePublicKey: m2UltPub,
+    ultimateEncryptionPublicKeyHex: m2UltPub,
   );
   final (_, m2DevicePub) = SigningTestHelper.generateKeypair();
   await createTestDevice(

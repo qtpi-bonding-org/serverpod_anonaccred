@@ -36,15 +36,20 @@ CREATE TABLE "account_device" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "anonAccountId" uuid NOT NULL,
     "deviceSigningPublicKeyHex" text NOT NULL,
+    "deviceEncryptionPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "label" text NOT NULL,
+    "addedBySignerPublicKeyHex" text NOT NULL,
+    "addedByAttestation" text NOT NULL,
+    "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastActive" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isRevoked" boolean NOT NULL DEFAULT false,
+    "revokedAt" timestamp without time zone,
     "keyEpoch" bigint NOT NULL DEFAULT 0
 );
 
 -- Indexes
-CREATE INDEX "auth_lookup_idx" ON "account_device" USING btree ("deviceSigningPublicKeyHex", "isRevoked");
+CREATE UNIQUE INDEX "device_signing_key_idx" ON "account_device" USING btree ("deviceSigningPublicKeyHex");
 CREATE INDEX "account_devices_idx" ON "account_device" USING btree ("anonAccountId");
 
 --
@@ -54,12 +59,12 @@ CREATE TABLE "anon_account" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "ultimateSigningPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
-    "ultimatePublicKey" text NOT NULL,
+    "ultimateEncryptionPublicKeyHex" text NOT NULL,
     "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
-CREATE UNIQUE INDEX "ultimate_key_idx" ON "anon_account" USING btree ("ultimatePublicKey");
+CREATE UNIQUE INDEX "ultimate_signing_key_idx" ON "anon_account" USING btree ("ultimateSigningPublicKeyHex");
 
 --
 -- Class GroupMember as table group_member
@@ -70,18 +75,20 @@ CREATE TABLE "group_member" (
     "anonAccountId" uuid NOT NULL,
     "role" text NOT NULL,
     "memberSigningPublicKeyHex" text NOT NULL,
-    "memberPublicKey" text NOT NULL,
+    "memberEncryptionPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "joinedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastActive" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isRevoked" boolean NOT NULL DEFAULT false,
-    "addedBySignerPublicKeyHex" text,
-    "addedByAttestation" text,
+    "addedBySignerPublicKeyHex" text NOT NULL,
+    "addedByAttestation" text NOT NULL,
     "revokedBySignerPublicKeyHex" text,
-    "revokedByAttestation" text
+    "revokedByAttestation" text,
+    "revokedAt" timestamp without time zone
 );
 
 -- Indexes
+CREATE UNIQUE INDEX "group_member_signing_key_idx" ON "group_member" USING btree ("memberSigningPublicKeyHex");
 CREATE UNIQUE INDEX "group_member_unique_idx" ON "group_member" USING btree ("shareGroupId", "anonAccountId");
 CREATE INDEX "group_member_account_idx" ON "group_member" USING btree ("anonAccountId");
 
@@ -118,11 +125,14 @@ CREATE UNIQUE INDEX "shard_routing_unique_idx" ON "shard_routing" USING btree ("
 CREATE TABLE "share_group" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "ultimateSigningPublicKeyHex" text NOT NULL,
-    "ultimatePublicKey" text NOT NULL,
+    "ultimateEncryptionPublicKeyHex" text NOT NULL,
     "encryptedDataKey" text NOT NULL,
     "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "keyEpoch" bigint NOT NULL DEFAULT 0
 );
+
+-- Indexes
+CREATE UNIQUE INDEX "share_group_ultimate_signing_key_idx" ON "share_group" USING btree ("ultimateSigningPublicKeyHex");
 
 --
 -- Class CloudStorageEntry as table serverpod_cloud_storage
@@ -832,9 +842,9 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 -- MIGRATION VERSION FOR anonaccount
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccount', '20260724051550202', now())
+    VALUES ('anonaccount', '20260802041130344', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260724051550202', "timestamp" = now();
+    DO UPDATE SET "version" = '20260802041130344', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod

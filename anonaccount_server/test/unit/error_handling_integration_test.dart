@@ -1,11 +1,12 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
-import '../integration/test_tools/serverpod_test_tools.dart';
+
 import '../test_helpers/auth_services_test_helper.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
+import '../integration/test_tools/serverpod_test_tools.dart';
 
 /// Test error handling and privacy logging integration
 void main() {
@@ -29,7 +30,7 @@ void main() {
         const publicKey =
             'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             'a123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-        const ultimatePublicKey =
+        const ultimateEncryptionPublicKeyHex =
             'f123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
             'f123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
         // Wrong signature (valid format but doesn't match payload)
@@ -44,11 +45,16 @@ void main() {
             proofOfWork: proofOfWork,
             signature: wrongSignature,
             publicKeyHex: publicKey,
-            ultimateSigningPublicKeyHex: publicKey,
+            ultimateKeys: PublicKeyDuo(
+              signingPublicKeyHex: publicKey,
+              encryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
+            ),
             encryptedDataKey: 'test_encrypted_data',
-            ultimatePublicKey: ultimatePublicKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: publicKey,
+              encryptionPublicKeyHex: publicKey,
+            ),
             deviceKeyAttestation: 'dummy-attestation',
-            deviceSigningPublicKeyHex: publicKey,
             deviceEncryptedDataKey: 'dummy-device-key',
             deviceLabel: 'dummy-device',
           ),
@@ -66,7 +72,10 @@ void main() {
             proofOfWork: 'invalid',
             publicKeyHex: 'invalid',
             signature: 'invalid',
-            newDeviceSigningPublicKeyHex: 'device_pub_key_hex',
+            newDeviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: 'device_pub_key_hex',
+              encryptionPublicKeyHex: 'device_enc_pub_key_hex',
+            ),
             newDeviceEncryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
@@ -138,7 +147,10 @@ void main() {
             deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex:
                 testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: emptyDeviceKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: emptyDeviceKey,
+              encryptionPublicKeyHex: emptyDeviceKey,
+            ),
             encryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
@@ -189,7 +201,10 @@ void main() {
             deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex:
                 testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: invalidDeviceKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: invalidDeviceKey,
+              encryptionPublicKeyHex: invalidDeviceKey,
+            ),
             encryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
@@ -217,6 +232,7 @@ void main() {
         );
 
         final (validDevicePrivKey, validDevicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, validDeviceEncPubKey) = SigningTestHelper.generateKeypair();
 
         // Register first time — payload must use device key (matches endpoint)
         final regChallenge1 =
@@ -240,7 +256,10 @@ void main() {
           deviceKeyAttestation: deviceKeyAttestation1,
           ultimateSigningPublicKeyHex:
               testAccount.ultimateSigningPublicKeyHex,
-          deviceSigningPublicKeyHex: validDevicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: validDevicePubKey,
+            encryptionPublicKeyHex: validDeviceEncPubKey,
+          ),
           encryptedDataKey: 'encrypted_data_key',
           label: 'Test Device',
         );
@@ -268,7 +287,10 @@ void main() {
             deviceKeyAttestation: deviceKeyAttestation2,
             ultimateSigningPublicKeyHex:
                 testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: validDevicePubKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: validDevicePubKey,
+              encryptionPublicKeyHex: validDeviceEncPubKey,
+            ),
             encryptedDataKey: 'encrypted_data_key_2',
             label: 'Test Device 2',
           ),

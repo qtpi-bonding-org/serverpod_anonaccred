@@ -1,3 +1,4 @@
+import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/pow_methods.dart';
 import 'package:test/test.dart';
 import '../test_helpers/auth_services_test_helper.dart';
@@ -23,10 +24,11 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: 'encrypted_test_data_key',
-          ultimatePublicKey: ultimatePubKey,
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
         );
 
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
@@ -49,7 +51,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: encryptedDataKey,
           label: label,
         );
@@ -60,10 +65,73 @@ void main() {
           device.deviceSigningPublicKeyHex,
           equals(devicePubKey),
         );
-        expect(device.encryptedDataKey, equals(encryptedDataKey));
         expect(device.label, equals(label));
         expect(device.isRevoked, isFalse);
         expect(device.lastActive, isNotNull);
+      },
+    );
+
+    test(
+      'registerDevice persists the encryption key and its attestation',
+      () async {
+        // Build a fresh account + device pair so this test does not depend on
+        // the order it runs in within the withServerpod group.
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
+        final testAccount = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: ultimatePubKey,
+          encryptedDataKey: 'encrypted_test_data_key_roundtrip',
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
+        );
+
+        final (devicePrivKey, devicePubKey) =
+            SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
+        const encryptedDataKey = 'device_encrypted_data_key_roundtrip';
+        const label = 'Roundtrip Test Device';
+
+        // Task 6 only widens the persisted schema and the endpoint's
+        // parameter shape to PublicKeyDuo — the attestation check itself
+        // still verifies the legacy single-key payload (deviceAttestation)
+        // until Task 8 upgrades it to cover both halves. Sign accordingly so
+        // this test exercises the round-trip, not Task 8's not-yet-landed
+        // behaviour.
+        final deviceKeyAttestation = SigningTestHelper.signWith(
+          devicePubKey,
+          ultimatePrivKey,
+        );
+
+        final regChallenge =
+            await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regPow = await PowTestHelper.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final regPayload =
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
+
+        final device = await endpoints.device.registerDevice(
+          sessionBuilder,
+          challenge: regChallenge.challenge,
+          proofOfWork: regPow,
+          signature: regSignature,
+          deviceKeyAttestation: deviceKeyAttestation,
+          ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
+          encryptedDataKey: encryptedDataKey,
+          label: label,
+        );
+
+        expect(device.deviceEncryptionPublicKeyHex, hasLength(130));
+        expect(device.addedByAttestation, isNotEmpty);
+        expect(device.addedBySignerPublicKeyHex, ultimatePubKey);
+        expect(device.createdAt, isNotNull);
+        expect(device.revokedAt, isNull);
       },
     );
 
@@ -77,10 +145,11 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: 'encrypted_test_data_key_2',
-          ultimatePublicKey: ultimatePubKey,
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
         );
 
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
@@ -103,7 +172,10 @@ void main() {
           signature: regSignature1,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: encryptedDataKey,
           label: label,
         );
@@ -125,7 +197,10 @@ void main() {
             signature: regSignature2,
             deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: devicePubKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
             encryptedDataKey: 'different_encrypted_data_key',
             label: 'Different Device',
           ),
@@ -142,10 +217,11 @@ void main() {
         sessionBuilder,
         ultimateSigningPublicKeyHex: ultimatePubKey,
         encryptedDataKey: 'encrypted_test_data_key_3',
-        ultimatePublicKey: ultimatePubKey,
+        ultimateEncryptionPublicKeyHex: ultimatePubKey,
       );
 
       const invalidDeviceSigningPublicKeyHex = 'invalid_key_format';
+      const invalidDeviceEncryptionPublicKeyHex = 'invalid_key_format';
       const encryptedDataKey = 'device_encrypted_data_key';
       const label = 'Test Device';
 
@@ -172,7 +248,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-          deviceSigningPublicKeyHex: invalidDeviceSigningPublicKeyHex,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: invalidDeviceSigningPublicKeyHex,
+            encryptionPublicKeyHex: invalidDeviceEncryptionPublicKeyHex,
+          ),
           encryptedDataKey: encryptedDataKey,
           label: label,
         ),
@@ -184,6 +263,7 @@ void main() {
       'registerDevice - should reject registration for non-existent account',
       () async {
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const encryptedDataKey = 'device_encrypted_data_key';
         const label = 'Test Device';
 
@@ -210,7 +290,10 @@ void main() {
             signature: regSignature,
             deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex: nonExistPubKey,
-            deviceSigningPublicKeyHex: devicePubKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: devicePubKey,
+              encryptionPublicKeyHex: deviceEncPubKey,
+            ),
             encryptedDataKey: encryptedDataKey,
             label: label,
           ),
@@ -226,10 +309,11 @@ void main() {
         sessionBuilder,
         ultimateSigningPublicKeyHex: ultimatePubKey,
         encryptedDataKey: 'encrypted_test_data_key_attest',
-        ultimatePublicKey: ultimatePubKey,
+        ultimateEncryptionPublicKeyHex: ultimatePubKey,
       );
 
       final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+      final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
 
       // Sign attestation with WRONG key (device key instead of ultimate)
       final badAttestation = SigningTestHelper.signWith(devicePubKey, devicePrivKey);
@@ -250,7 +334,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: badAttestation,
           ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: 'device_encrypted_data_key',
           label: 'Test Device',
         ),
@@ -266,10 +353,11 @@ void main() {
         sessionBuilder,
         ultimateSigningPublicKeyHex: ultimatePubKey,
         encryptedDataKey: 'encrypted_test_data_key_challenge',
-        ultimatePublicKey: ultimatePubKey,
+        ultimateEncryptionPublicKeyHex: ultimatePubKey,
       );
 
       final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+      final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
       const encryptedDataKey = 'device_encrypted_data_key_challenge';
       const label = 'Challenge Test Device';
 
@@ -290,7 +378,10 @@ void main() {
         signature: regSignature,
         deviceKeyAttestation: deviceKeyAttestation,
         ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-        deviceSigningPublicKeyHex: devicePubKey,
+        deviceKeys: PublicKeyDuo(
+          signingPublicKeyHex: devicePubKey,
+          encryptionPublicKeyHex: deviceEncPubKey,
+        ),
         encryptedDataKey: encryptedDataKey,
         label: label,
       );

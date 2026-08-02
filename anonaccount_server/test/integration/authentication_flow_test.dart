@@ -26,11 +26,12 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: encryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
-        // Create device with real keypair
+        // Create device with real keypair (Task 6: distinct signing/encryption halves)
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
         const deviceLabel = 'Test Device';
 
@@ -51,7 +52,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: deviceEncryptedDataKey,
           label: deviceLabel,
         );
@@ -95,10 +99,11 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: encryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_invalid';
         const deviceLabel = 'Test Device Invalid';
 
@@ -119,7 +124,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: deviceEncryptedDataKey,
           label: deviceLabel,
         );
@@ -150,10 +158,11 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: encryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_revoked';
         const deviceLabel = 'Test Device Revoked';
 
@@ -174,7 +183,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: deviceEncryptedDataKey,
           label: deviceLabel,
         );
@@ -233,10 +245,11 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: encryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_info';
         const deviceLabel = 'Test Device Info';
 
@@ -257,7 +270,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: deviceEncryptedDataKey,
           label: deviceLabel,
         );
@@ -288,7 +304,7 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: encryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
         // Create multiple devices
@@ -297,6 +313,7 @@ void main() {
 
         for (var i = 0; i < 3; i++) {
           final (devPrivKey, devPubKey) = SigningTestHelper.generateKeypair();
+          final (_, devEncPubKey) = SigningTestHelper.generateKeypair();
 
           final deviceEncryptedDataKey = 'encrypted_device_data_key_multi_$i';
           final deviceLabel = 'Test Device Multi $i';
@@ -318,7 +335,10 @@ void main() {
             signature: regSignature,
             deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex: ultimatePubKey,
-            deviceSigningPublicKeyHex: devPubKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: devPubKey,
+              encryptionPublicKeyHex: devEncPubKey,
+            ),
             encryptedDataKey: deviceEncryptedDataKey,
             label: deviceLabel,
           );
@@ -370,10 +390,11 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: encryptedDataKey,
-          ultimatePublicKey: ultimatePublicKey,
+          ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_extract';
         const deviceLabel = 'Test Device Extract';
 
@@ -394,7 +415,10 @@ void main() {
           signature: regSignature,
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex: ultimatePubKey,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: deviceEncryptedDataKey,
           label: deviceLabel,
         );

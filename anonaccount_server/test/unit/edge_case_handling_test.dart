@@ -2,11 +2,11 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
 
-import '../integration/test_tools/serverpod_test_tools.dart';
 import '../test_helpers/auth_services_test_helper.dart';
 import '../test_helpers/pow_test_helper.dart';
 import '../test_helpers/signing_test_helper.dart';
 import '../test_helpers/test_account_helper.dart';
+import '../integration/test_tools/serverpod_test_tools.dart';
 
 void main() {
   setUpAll(initializeTestAuthServices);
@@ -21,7 +21,7 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: 'encrypted_test_data_key',
-          ultimatePublicKey: ultimatePubKey,
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
         );
 
         // Payload must match endpoint: uses deviceSigningPublicKeyHex (empty here)
@@ -43,7 +43,10 @@ void main() {
             signature: regSignature,
             deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: emptyDeviceKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: emptyDeviceKey,
+              encryptionPublicKeyHex: emptyDeviceKey,
+            ),
             encryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
@@ -59,7 +62,7 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: 'encrypted_test_data_key_2',
-          ultimatePublicKey: ultimatePubKey,
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
         );
 
         // Payload must match endpoint: uses deviceSigningPublicKeyHex (invalid here)
@@ -81,7 +84,10 @@ void main() {
             signature: regSignature,
             deviceKeyAttestation: deviceKeyAttestation,
             ultimateSigningPublicKeyHex: testAccount.ultimateSigningPublicKeyHex,
-            deviceSigningPublicKeyHex: invalidDeviceKey,
+            deviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: invalidDeviceKey,
+              encryptionPublicKeyHex: invalidDeviceKey,
+            ),
             encryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),
@@ -115,7 +121,10 @@ void main() {
             proofOfWork: 'invalid',
             publicKeyHex: 'invalid',
             signature: 'invalid',
-            newDeviceSigningPublicKeyHex: 'device_pub_key_hex',
+            newDeviceKeys: PublicKeyDuo(
+              signingPublicKeyHex: 'device_pub_key_hex',
+              encryptionPublicKeyHex: 'device_enc_pub_key_hex',
+            ),
             newDeviceEncryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
           ),

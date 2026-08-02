@@ -22,12 +22,18 @@ abstract class AccountDevice
     required this.anonAccountId,
     this.anonAccount,
     required this.deviceSigningPublicKeyHex,
+    required this.deviceEncryptionPublicKeyHex,
     required this.encryptedDataKey,
     required this.label,
+    required this.addedBySignerPublicKeyHex,
+    required this.addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    this.revokedAt,
     int? keyEpoch,
-  }) : lastActive = lastActive ?? DateTime.now(),
+  }) : createdAt = createdAt ?? DateTime.now(),
+       lastActive = lastActive ?? DateTime.now(),
        isRevoked = isRevoked ?? false,
        keyEpoch = keyEpoch ?? 0;
 
@@ -36,10 +42,15 @@ abstract class AccountDevice
     required _i1.UuidValue anonAccountId,
     _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
+    required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
     required String label,
+    required String addedBySignerPublicKeyHex,
+    required String addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    DateTime? revokedAt,
     int? keyEpoch,
   }) = _AccountDeviceImpl;
 
@@ -58,14 +69,25 @@ abstract class AccountDevice
             ),
       deviceSigningPublicKeyHex:
           jsonSerialization['deviceSigningPublicKeyHex'] as String,
+      deviceEncryptionPublicKeyHex:
+          jsonSerialization['deviceEncryptionPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       label: jsonSerialization['label'] as String,
+      addedBySignerPublicKeyHex:
+          jsonSerialization['addedBySignerPublicKeyHex'] as String,
+      addedByAttestation: jsonSerialization['addedByAttestation'] as String,
+      createdAt: jsonSerialization['createdAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
       lastActive: jsonSerialization['lastActive'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['lastActive']),
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
+      revokedAt: jsonSerialization['revokedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
@@ -83,13 +105,23 @@ abstract class AccountDevice
 
   String deviceSigningPublicKeyHex;
 
+  String deviceEncryptionPublicKeyHex;
+
   String encryptedDataKey;
 
   String label;
 
+  String addedBySignerPublicKeyHex;
+
+  String addedByAttestation;
+
+  DateTime createdAt;
+
   DateTime lastActive;
 
   bool isRevoked;
+
+  DateTime? revokedAt;
 
   int keyEpoch;
 
@@ -104,10 +136,15 @@ abstract class AccountDevice
     _i1.UuidValue? anonAccountId,
     _i2.AnonAccount? anonAccount,
     String? deviceSigningPublicKeyHex,
+    String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
     String? label,
+    String? addedBySignerPublicKeyHex,
+    String? addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    DateTime? revokedAt,
     int? keyEpoch,
   });
   @override
@@ -118,10 +155,15 @@ abstract class AccountDevice
       'anonAccountId': anonAccountId.toJson(),
       if (anonAccount != null) 'anonAccount': anonAccount?.toJson(),
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+      'deviceEncryptionPublicKeyHex': deviceEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
+      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestation': addedByAttestation,
+      'createdAt': createdAt.toJson(),
       'lastActive': lastActive.toJson(),
       'isRevoked': isRevoked,
+      if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'keyEpoch': keyEpoch,
     };
   }
@@ -134,10 +176,15 @@ abstract class AccountDevice
       'anonAccountId': anonAccountId.toJson(),
       if (anonAccount != null) 'anonAccount': anonAccount?.toJsonForProtocol(),
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+      'deviceEncryptionPublicKeyHex': deviceEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
+      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestation': addedByAttestation,
+      'createdAt': createdAt.toJson(),
       'lastActive': lastActive.toJson(),
       'isRevoked': isRevoked,
+      if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'keyEpoch': keyEpoch,
     };
   }
@@ -180,20 +227,30 @@ class _AccountDeviceImpl extends AccountDevice {
     required _i1.UuidValue anonAccountId,
     _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
+    required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
     required String label,
+    required String addedBySignerPublicKeyHex,
+    required String addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    DateTime? revokedAt,
     int? keyEpoch,
   }) : super._(
          id: id,
          anonAccountId: anonAccountId,
          anonAccount: anonAccount,
          deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+         deviceEncryptionPublicKeyHex: deviceEncryptionPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          label: label,
+         addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+         addedByAttestation: addedByAttestation,
+         createdAt: createdAt,
          lastActive: lastActive,
          isRevoked: isRevoked,
+         revokedAt: revokedAt,
          keyEpoch: keyEpoch,
        );
 
@@ -206,10 +263,15 @@ class _AccountDeviceImpl extends AccountDevice {
     _i1.UuidValue? anonAccountId,
     Object? anonAccount = _Undefined,
     String? deviceSigningPublicKeyHex,
+    String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
     String? label,
+    String? addedBySignerPublicKeyHex,
+    String? addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    Object? revokedAt = _Undefined,
     int? keyEpoch,
   }) {
     return AccountDevice(
@@ -220,10 +282,17 @@ class _AccountDeviceImpl extends AccountDevice {
           : this.anonAccount?.copyWith(),
       deviceSigningPublicKeyHex:
           deviceSigningPublicKeyHex ?? this.deviceSigningPublicKeyHex,
+      deviceEncryptionPublicKeyHex:
+          deviceEncryptionPublicKeyHex ?? this.deviceEncryptionPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       label: label ?? this.label,
+      addedBySignerPublicKeyHex:
+          addedBySignerPublicKeyHex ?? this.addedBySignerPublicKeyHex,
+      addedByAttestation: addedByAttestation ?? this.addedByAttestation,
+      createdAt: createdAt ?? this.createdAt,
       lastActive: lastActive ?? this.lastActive,
       isRevoked: isRevoked ?? this.isRevoked,
+      revokedAt: revokedAt is DateTime? ? revokedAt : this.revokedAt,
       keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }
@@ -245,6 +314,12 @@ class AccountDeviceUpdateTable extends _i1.UpdateTable<AccountDeviceTable> {
         value,
       );
 
+  _i1.ColumnValue<String, String> deviceEncryptionPublicKeyHex(String value) =>
+      _i1.ColumnValue(
+        table.deviceEncryptionPublicKeyHex,
+        value,
+      );
+
   _i1.ColumnValue<String, String> encryptedDataKey(String value) =>
       _i1.ColumnValue(
         table.encryptedDataKey,
@@ -256,6 +331,24 @@ class AccountDeviceUpdateTable extends _i1.UpdateTable<AccountDeviceTable> {
     value,
   );
 
+  _i1.ColumnValue<String, String> addedBySignerPublicKeyHex(String value) =>
+      _i1.ColumnValue(
+        table.addedBySignerPublicKeyHex,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> addedByAttestation(String value) =>
+      _i1.ColumnValue(
+        table.addedByAttestation,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
+      _i1.ColumnValue(
+        table.createdAt,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> lastActive(DateTime value) =>
       _i1.ColumnValue(
         table.lastActive,
@@ -266,6 +359,12 @@ class AccountDeviceUpdateTable extends _i1.UpdateTable<AccountDeviceTable> {
     table.isRevoked,
     value,
   );
+
+  _i1.ColumnValue<DateTime, DateTime> revokedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.revokedAt,
+        value,
+      );
 
   _i1.ColumnValue<int, int> keyEpoch(int value) => _i1.ColumnValue(
     table.keyEpoch,
@@ -285,6 +384,10 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
       'deviceSigningPublicKeyHex',
       this,
     );
+    deviceEncryptionPublicKeyHex = _i1.ColumnString(
+      'deviceEncryptionPublicKeyHex',
+      this,
+    );
     encryptedDataKey = _i1.ColumnString(
       'encryptedDataKey',
       this,
@@ -292,6 +395,19 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
     label = _i1.ColumnString(
       'label',
       this,
+    );
+    addedBySignerPublicKeyHex = _i1.ColumnString(
+      'addedBySignerPublicKeyHex',
+      this,
+    );
+    addedByAttestation = _i1.ColumnString(
+      'addedByAttestation',
+      this,
+    );
+    createdAt = _i1.ColumnDateTime(
+      'createdAt',
+      this,
+      hasDefault: true,
     );
     lastActive = _i1.ColumnDateTime(
       'lastActive',
@@ -302,6 +418,10 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
       'isRevoked',
       this,
       hasDefault: true,
+    );
+    revokedAt = _i1.ColumnDateTime(
+      'revokedAt',
+      this,
     );
     keyEpoch = _i1.ColumnInt(
       'keyEpoch',
@@ -318,13 +438,23 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString deviceSigningPublicKeyHex;
 
+  late final _i1.ColumnString deviceEncryptionPublicKeyHex;
+
   late final _i1.ColumnString encryptedDataKey;
 
   late final _i1.ColumnString label;
 
+  late final _i1.ColumnString addedBySignerPublicKeyHex;
+
+  late final _i1.ColumnString addedByAttestation;
+
+  late final _i1.ColumnDateTime createdAt;
+
   late final _i1.ColumnDateTime lastActive;
 
   late final _i1.ColumnBool isRevoked;
+
+  late final _i1.ColumnDateTime revokedAt;
 
   late final _i1.ColumnInt keyEpoch;
 
@@ -346,10 +476,15 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
     id,
     anonAccountId,
     deviceSigningPublicKeyHex,
+    deviceEncryptionPublicKeyHex,
     encryptedDataKey,
     label,
+    addedBySignerPublicKeyHex,
+    addedByAttestation,
+    createdAt,
     lastActive,
     isRevoked,
+    revokedAt,
     keyEpoch,
   ];
 

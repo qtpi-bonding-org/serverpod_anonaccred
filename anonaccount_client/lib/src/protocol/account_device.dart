@@ -20,12 +20,18 @@ abstract class AccountDevice implements _i1.SerializableModel {
     required this.anonAccountId,
     this.anonAccount,
     required this.deviceSigningPublicKeyHex,
+    required this.deviceEncryptionPublicKeyHex,
     required this.encryptedDataKey,
     required this.label,
+    required this.addedBySignerPublicKeyHex,
+    required this.addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    this.revokedAt,
     int? keyEpoch,
-  }) : lastActive = lastActive ?? DateTime.now(),
+  }) : createdAt = createdAt ?? DateTime.now(),
+       lastActive = lastActive ?? DateTime.now(),
        isRevoked = isRevoked ?? false,
        keyEpoch = keyEpoch ?? 0;
 
@@ -34,10 +40,15 @@ abstract class AccountDevice implements _i1.SerializableModel {
     required _i1.UuidValue anonAccountId,
     _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
+    required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
     required String label,
+    required String addedBySignerPublicKeyHex,
+    required String addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    DateTime? revokedAt,
     int? keyEpoch,
   }) = _AccountDeviceImpl;
 
@@ -56,14 +67,25 @@ abstract class AccountDevice implements _i1.SerializableModel {
             ),
       deviceSigningPublicKeyHex:
           jsonSerialization['deviceSigningPublicKeyHex'] as String,
+      deviceEncryptionPublicKeyHex:
+          jsonSerialization['deviceEncryptionPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       label: jsonSerialization['label'] as String,
+      addedBySignerPublicKeyHex:
+          jsonSerialization['addedBySignerPublicKeyHex'] as String,
+      addedByAttestation: jsonSerialization['addedByAttestation'] as String,
+      createdAt: jsonSerialization['createdAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
       lastActive: jsonSerialization['lastActive'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['lastActive']),
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
+      revokedAt: jsonSerialization['revokedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
@@ -79,13 +101,23 @@ abstract class AccountDevice implements _i1.SerializableModel {
 
   String deviceSigningPublicKeyHex;
 
+  String deviceEncryptionPublicKeyHex;
+
   String encryptedDataKey;
 
   String label;
 
+  String addedBySignerPublicKeyHex;
+
+  String addedByAttestation;
+
+  DateTime createdAt;
+
   DateTime lastActive;
 
   bool isRevoked;
+
+  DateTime? revokedAt;
 
   int keyEpoch;
 
@@ -97,10 +129,15 @@ abstract class AccountDevice implements _i1.SerializableModel {
     _i1.UuidValue? anonAccountId,
     _i2.AnonAccount? anonAccount,
     String? deviceSigningPublicKeyHex,
+    String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
     String? label,
+    String? addedBySignerPublicKeyHex,
+    String? addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    DateTime? revokedAt,
     int? keyEpoch,
   });
   @override
@@ -111,10 +148,15 @@ abstract class AccountDevice implements _i1.SerializableModel {
       'anonAccountId': anonAccountId.toJson(),
       if (anonAccount != null) 'anonAccount': anonAccount?.toJson(),
       'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+      'deviceEncryptionPublicKeyHex': deviceEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'label': label,
+      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestation': addedByAttestation,
+      'createdAt': createdAt.toJson(),
       'lastActive': lastActive.toJson(),
       'isRevoked': isRevoked,
+      if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'keyEpoch': keyEpoch,
     };
   }
@@ -133,20 +175,30 @@ class _AccountDeviceImpl extends AccountDevice {
     required _i1.UuidValue anonAccountId,
     _i2.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
+    required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
     required String label,
+    required String addedBySignerPublicKeyHex,
+    required String addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    DateTime? revokedAt,
     int? keyEpoch,
   }) : super._(
          id: id,
          anonAccountId: anonAccountId,
          anonAccount: anonAccount,
          deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+         deviceEncryptionPublicKeyHex: deviceEncryptionPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          label: label,
+         addedBySignerPublicKeyHex: addedBySignerPublicKeyHex,
+         addedByAttestation: addedByAttestation,
+         createdAt: createdAt,
          lastActive: lastActive,
          isRevoked: isRevoked,
+         revokedAt: revokedAt,
          keyEpoch: keyEpoch,
        );
 
@@ -159,10 +211,15 @@ class _AccountDeviceImpl extends AccountDevice {
     _i1.UuidValue? anonAccountId,
     Object? anonAccount = _Undefined,
     String? deviceSigningPublicKeyHex,
+    String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
     String? label,
+    String? addedBySignerPublicKeyHex,
+    String? addedByAttestation,
+    DateTime? createdAt,
     DateTime? lastActive,
     bool? isRevoked,
+    Object? revokedAt = _Undefined,
     int? keyEpoch,
   }) {
     return AccountDevice(
@@ -173,10 +230,17 @@ class _AccountDeviceImpl extends AccountDevice {
           : this.anonAccount?.copyWith(),
       deviceSigningPublicKeyHex:
           deviceSigningPublicKeyHex ?? this.deviceSigningPublicKeyHex,
+      deviceEncryptionPublicKeyHex:
+          deviceEncryptionPublicKeyHex ?? this.deviceEncryptionPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       label: label ?? this.label,
+      addedBySignerPublicKeyHex:
+          addedBySignerPublicKeyHex ?? this.addedBySignerPublicKeyHex,
+      addedByAttestation: addedByAttestation ?? this.addedByAttestation,
+      createdAt: createdAt ?? this.createdAt,
       lastActive: lastActive ?? this.lastActive,
       isRevoked: isRevoked ?? this.isRevoked,
+      revokedAt: revokedAt is DateTime? ? revokedAt : this.revokedAt,
       keyEpoch: keyEpoch ?? this.keyEpoch,
     );
   }

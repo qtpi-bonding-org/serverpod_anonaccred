@@ -138,7 +138,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
-    required String newDeviceSigningPublicKeyHex,
+    required PublicKeyDuo newDeviceKeys,
     required String newDeviceEncryptedDataKey,
     required String label,
   }) async {
@@ -185,58 +185,28 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         level: LogLevel.info,
       );
 
-      AnonAccountHelpers.validatePublicKey(
-        newDeviceSigningPublicKeyHex,
-        'registerDeviceForAccount',
-      );
-      AnonAccountHelpers.validateNonEmpty(
-        newDeviceEncryptedDataKey,
-        'newDeviceEncryptedDataKey',
-        'registerDeviceForAccount',
-      );
-      AnonAccountHelpers.validateNonEmpty(
-        label,
-        'label',
-        'registerDeviceForAccount',
-      );
-
-      final existing = await AccountDevice.db.findFirstRow(
+      // Task 6 only widens the parameter shape to a PublicKeyDuo. The
+      // pairing-attestation check and revoked-caller guard are Task 9's
+      // job; for now we route the insert through the shared helper using
+      // the new duo signature unchanged.
+      final insertedDevice = await AnonAccountHelpers.insertDevice(
         session,
-        where: (t) => t.deviceSigningPublicKeyHex
-            .equals(newDeviceSigningPublicKeyHex),
-      );
-      if (existing != null) {
-        throw AnonAccountExceptionFactory.createAuthenticationException(
-          code: AnonAccountErrorCodes.authDuplicateDevice,
-          message: 'Device already registered',
-          operation: 'registerDeviceForAccount',
-          details: {
-            'newDeviceSigningPublicKeyHex': newDeviceSigningPublicKeyHex,
-          },
-        );
-      }
-
-      final newDevice = AccountDevice(
-        anonAccountId: callerDevice.anonAccountId,
-        deviceSigningPublicKeyHex: newDeviceSigningPublicKeyHex,
+        accountId: callerDevice.anonAccountId,
+        deviceKeys: newDeviceKeys,
         encryptedDataKey: newDeviceEncryptedDataKey,
         label: label,
-        lastActive: AnonAccountHelpers.roundToMinute(DateTime.now()),
-        isRevoked: false,
-      );
-
-      final insertedDevice = await AccountDevice.db.insertRow(
-        session,
-        newDevice,
+        addedBySignerPublicKeyHex: publicKeyHex,
+        addedByAttestation: '',
+        operation: 'registerDeviceForAccount',
       );
 
       final channelName =
-          'pairing-updates-$newDeviceSigningPublicKeyHex';
+          'pairing-updates-${newDeviceKeys.signingPublicKeyHex}';
       session.messages.postMessage(
         channelName,
         DevicePairingEvent(
           encryptedDataKey: newDeviceEncryptedDataKey,
-          signingKeyHex: newDeviceSigningPublicKeyHex,
+          signingKeyHex: newDeviceKeys.signingPublicKeyHex,
         ),
       );
 

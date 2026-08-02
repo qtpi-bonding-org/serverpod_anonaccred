@@ -27,15 +27,16 @@ abstract class GroupMember
     this.anonAccount,
     required this.role,
     required this.memberSigningPublicKeyHex,
-    required this.memberPublicKey,
+    required this.memberEncryptionPublicKeyHex,
     required this.encryptedDataKey,
     DateTime? joinedAt,
     DateTime? lastActive,
     bool? isRevoked,
-    this.addedBySignerPublicKeyHex,
-    this.addedByAttestation,
+    required this.addedBySignerPublicKeyHex,
+    required this.addedByAttestation,
     this.revokedBySignerPublicKeyHex,
     this.revokedByAttestation,
+    this.revokedAt,
   }) : joinedAt = joinedAt ?? DateTime.now(),
        lastActive = lastActive ?? DateTime.now(),
        isRevoked = isRevoked ?? false;
@@ -48,15 +49,16 @@ abstract class GroupMember
     _i3.AnonAccount? anonAccount,
     required _i4.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
-    required String memberPublicKey,
+    required String memberEncryptionPublicKeyHex,
     required String encryptedDataKey,
     DateTime? joinedAt,
     DateTime? lastActive,
     bool? isRevoked,
-    String? addedBySignerPublicKeyHex,
-    String? addedByAttestation,
+    required String addedBySignerPublicKeyHex,
+    required String addedByAttestation,
     String? revokedBySignerPublicKeyHex,
     String? revokedByAttestation,
+    DateTime? revokedAt,
   }) = _GroupMemberImpl;
 
   factory GroupMember.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -83,7 +85,8 @@ abstract class GroupMember
       role: _i4.GroupMemberRole.fromJson((jsonSerialization['role'] as String)),
       memberSigningPublicKeyHex:
           jsonSerialization['memberSigningPublicKeyHex'] as String,
-      memberPublicKey: jsonSerialization['memberPublicKey'] as String,
+      memberEncryptionPublicKeyHex:
+          jsonSerialization['memberEncryptionPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       joinedAt: jsonSerialization['joinedAt'] == null
           ? null
@@ -95,12 +98,15 @@ abstract class GroupMember
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
       addedBySignerPublicKeyHex:
-          jsonSerialization['addedBySignerPublicKeyHex'] as String?,
-      addedByAttestation: jsonSerialization['addedByAttestation'] as String?,
+          jsonSerialization['addedBySignerPublicKeyHex'] as String,
+      addedByAttestation: jsonSerialization['addedByAttestation'] as String,
       revokedBySignerPublicKeyHex:
           jsonSerialization['revokedBySignerPublicKeyHex'] as String?,
       revokedByAttestation:
           jsonSerialization['revokedByAttestation'] as String?,
+      revokedAt: jsonSerialization['revokedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
     );
   }
 
@@ -123,7 +129,7 @@ abstract class GroupMember
 
   String memberSigningPublicKeyHex;
 
-  String memberPublicKey;
+  String memberEncryptionPublicKeyHex;
 
   String encryptedDataKey;
 
@@ -133,13 +139,15 @@ abstract class GroupMember
 
   bool isRevoked;
 
-  String? addedBySignerPublicKeyHex;
+  String addedBySignerPublicKeyHex;
 
-  String? addedByAttestation;
+  String addedByAttestation;
 
   String? revokedBySignerPublicKeyHex;
 
   String? revokedByAttestation;
+
+  DateTime? revokedAt;
 
   @override
   _i1.Table<_i1.UuidValue?> get table => t;
@@ -155,7 +163,7 @@ abstract class GroupMember
     _i3.AnonAccount? anonAccount,
     _i4.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
-    String? memberPublicKey,
+    String? memberEncryptionPublicKeyHex,
     String? encryptedDataKey,
     DateTime? joinedAt,
     DateTime? lastActive,
@@ -164,6 +172,7 @@ abstract class GroupMember
     String? addedByAttestation,
     String? revokedBySignerPublicKeyHex,
     String? revokedByAttestation,
+    DateTime? revokedAt,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -176,18 +185,18 @@ abstract class GroupMember
       if (anonAccount != null) 'anonAccount': anonAccount?.toJson(),
       'role': role.toJson(),
       'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
-      'memberPublicKey': memberPublicKey,
+      'memberEncryptionPublicKeyHex': memberEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'joinedAt': joinedAt.toJson(),
       'lastActive': lastActive.toJson(),
       'isRevoked': isRevoked,
-      if (addedBySignerPublicKeyHex != null)
-        'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
-      if (addedByAttestation != null) 'addedByAttestation': addedByAttestation,
+      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestation': addedByAttestation,
       if (revokedBySignerPublicKeyHex != null)
         'revokedBySignerPublicKeyHex': revokedBySignerPublicKeyHex,
       if (revokedByAttestation != null)
         'revokedByAttestation': revokedByAttestation,
+      if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
     };
   }
 
@@ -202,18 +211,18 @@ abstract class GroupMember
       if (anonAccount != null) 'anonAccount': anonAccount?.toJsonForProtocol(),
       'role': role.toJson(),
       'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
-      'memberPublicKey': memberPublicKey,
+      'memberEncryptionPublicKeyHex': memberEncryptionPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'joinedAt': joinedAt.toJson(),
       'lastActive': lastActive.toJson(),
       'isRevoked': isRevoked,
-      if (addedBySignerPublicKeyHex != null)
-        'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
-      if (addedByAttestation != null) 'addedByAttestation': addedByAttestation,
+      'addedBySignerPublicKeyHex': addedBySignerPublicKeyHex,
+      'addedByAttestation': addedByAttestation,
       if (revokedBySignerPublicKeyHex != null)
         'revokedBySignerPublicKeyHex': revokedBySignerPublicKeyHex,
       if (revokedByAttestation != null)
         'revokedByAttestation': revokedByAttestation,
+      if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
     };
   }
 
@@ -264,15 +273,16 @@ class _GroupMemberImpl extends GroupMember {
     _i3.AnonAccount? anonAccount,
     required _i4.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
-    required String memberPublicKey,
+    required String memberEncryptionPublicKeyHex,
     required String encryptedDataKey,
     DateTime? joinedAt,
     DateTime? lastActive,
     bool? isRevoked,
-    String? addedBySignerPublicKeyHex,
-    String? addedByAttestation,
+    required String addedBySignerPublicKeyHex,
+    required String addedByAttestation,
     String? revokedBySignerPublicKeyHex,
     String? revokedByAttestation,
+    DateTime? revokedAt,
   }) : super._(
          id: id,
          shareGroupId: shareGroupId,
@@ -281,7 +291,7 @@ class _GroupMemberImpl extends GroupMember {
          anonAccount: anonAccount,
          role: role,
          memberSigningPublicKeyHex: memberSigningPublicKeyHex,
-         memberPublicKey: memberPublicKey,
+         memberEncryptionPublicKeyHex: memberEncryptionPublicKeyHex,
          encryptedDataKey: encryptedDataKey,
          joinedAt: joinedAt,
          lastActive: lastActive,
@@ -290,6 +300,7 @@ class _GroupMemberImpl extends GroupMember {
          addedByAttestation: addedByAttestation,
          revokedBySignerPublicKeyHex: revokedBySignerPublicKeyHex,
          revokedByAttestation: revokedByAttestation,
+         revokedAt: revokedAt,
        );
 
   /// Returns a shallow copy of this [GroupMember]
@@ -304,15 +315,16 @@ class _GroupMemberImpl extends GroupMember {
     Object? anonAccount = _Undefined,
     _i4.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
-    String? memberPublicKey,
+    String? memberEncryptionPublicKeyHex,
     String? encryptedDataKey,
     DateTime? joinedAt,
     DateTime? lastActive,
     bool? isRevoked,
-    Object? addedBySignerPublicKeyHex = _Undefined,
-    Object? addedByAttestation = _Undefined,
+    String? addedBySignerPublicKeyHex,
+    String? addedByAttestation,
     Object? revokedBySignerPublicKeyHex = _Undefined,
     Object? revokedByAttestation = _Undefined,
+    Object? revokedAt = _Undefined,
   }) {
     return GroupMember(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -327,23 +339,22 @@ class _GroupMemberImpl extends GroupMember {
       role: role ?? this.role,
       memberSigningPublicKeyHex:
           memberSigningPublicKeyHex ?? this.memberSigningPublicKeyHex,
-      memberPublicKey: memberPublicKey ?? this.memberPublicKey,
+      memberEncryptionPublicKeyHex:
+          memberEncryptionPublicKeyHex ?? this.memberEncryptionPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       joinedAt: joinedAt ?? this.joinedAt,
       lastActive: lastActive ?? this.lastActive,
       isRevoked: isRevoked ?? this.isRevoked,
-      addedBySignerPublicKeyHex: addedBySignerPublicKeyHex is String?
-          ? addedBySignerPublicKeyHex
-          : this.addedBySignerPublicKeyHex,
-      addedByAttestation: addedByAttestation is String?
-          ? addedByAttestation
-          : this.addedByAttestation,
+      addedBySignerPublicKeyHex:
+          addedBySignerPublicKeyHex ?? this.addedBySignerPublicKeyHex,
+      addedByAttestation: addedByAttestation ?? this.addedByAttestation,
       revokedBySignerPublicKeyHex: revokedBySignerPublicKeyHex is String?
           ? revokedBySignerPublicKeyHex
           : this.revokedBySignerPublicKeyHex,
       revokedByAttestation: revokedByAttestation is String?
           ? revokedByAttestation
           : this.revokedByAttestation,
+      revokedAt: revokedAt is DateTime? ? revokedAt : this.revokedAt,
     );
   }
 }
@@ -378,9 +389,9 @@ class GroupMemberUpdateTable extends _i1.UpdateTable<GroupMemberTable> {
         value,
       );
 
-  _i1.ColumnValue<String, String> memberPublicKey(String value) =>
+  _i1.ColumnValue<String, String> memberEncryptionPublicKeyHex(String value) =>
       _i1.ColumnValue(
-        table.memberPublicKey,
+        table.memberEncryptionPublicKeyHex,
         value,
       );
 
@@ -407,13 +418,13 @@ class GroupMemberUpdateTable extends _i1.UpdateTable<GroupMemberTable> {
     value,
   );
 
-  _i1.ColumnValue<String, String> addedBySignerPublicKeyHex(String? value) =>
+  _i1.ColumnValue<String, String> addedBySignerPublicKeyHex(String value) =>
       _i1.ColumnValue(
         table.addedBySignerPublicKeyHex,
         value,
       );
 
-  _i1.ColumnValue<String, String> addedByAttestation(String? value) =>
+  _i1.ColumnValue<String, String> addedByAttestation(String value) =>
       _i1.ColumnValue(
         table.addedByAttestation,
         value,
@@ -428,6 +439,12 @@ class GroupMemberUpdateTable extends _i1.UpdateTable<GroupMemberTable> {
   _i1.ColumnValue<String, String> revokedByAttestation(String? value) =>
       _i1.ColumnValue(
         table.revokedByAttestation,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> revokedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.revokedAt,
         value,
       );
 }
@@ -452,8 +469,8 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
       'memberSigningPublicKeyHex',
       this,
     );
-    memberPublicKey = _i1.ColumnString(
-      'memberPublicKey',
+    memberEncryptionPublicKeyHex = _i1.ColumnString(
+      'memberEncryptionPublicKeyHex',
       this,
     );
     encryptedDataKey = _i1.ColumnString(
@@ -491,6 +508,10 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
       'revokedByAttestation',
       this,
     );
+    revokedAt = _i1.ColumnDateTime(
+      'revokedAt',
+      this,
+    );
   }
 
   late final GroupMemberUpdateTable updateTable;
@@ -507,7 +528,7 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString memberSigningPublicKeyHex;
 
-  late final _i1.ColumnString memberPublicKey;
+  late final _i1.ColumnString memberEncryptionPublicKeyHex;
 
   late final _i1.ColumnString encryptedDataKey;
 
@@ -524,6 +545,8 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
   late final _i1.ColumnString revokedBySignerPublicKeyHex;
 
   late final _i1.ColumnString revokedByAttestation;
+
+  late final _i1.ColumnDateTime revokedAt;
 
   _i2.ShareGroupTable get shareGroup {
     if (_shareGroup != null) return _shareGroup!;
@@ -558,7 +581,7 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
     anonAccountId,
     role,
     memberSigningPublicKeyHex,
-    memberPublicKey,
+    memberEncryptionPublicKeyHex,
     encryptedDataKey,
     joinedAt,
     lastActive,
@@ -567,6 +590,7 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
     addedByAttestation,
     revokedBySignerPublicKeyHex,
     revokedByAttestation,
+    revokedAt,
   ];
 
   @override

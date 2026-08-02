@@ -17,11 +17,12 @@ import '../endpoints/device_endpoint.dart' as _i4;
 import '../endpoints/device_management_endpoint.dart' as _i5;
 import '../endpoints/entrypoint_endpoint.dart' as _i6;
 import '../endpoints/group_endpoint.dart' as _i7;
-import 'package:anonaccount_server/src/generated/group_member_role.dart' as _i8;
+import 'package:anonaccount_server/src/generated/public_key_duo.dart' as _i8;
+import 'package:anonaccount_server/src/generated/group_member_role.dart' as _i9;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i9;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i10;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i11;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -91,9 +92,9 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'ultimateSigningPublicKeyHex',
-              type: _i1.getType<String>(),
+            'ultimateKeys': _i1.ParameterDescription(
+              name: 'ultimateKeys',
+              type: _i1.getType<_i8.PublicKeyDuo>(),
               nullable: false,
             ),
             'encryptedDataKey': _i1.ParameterDescription(
@@ -101,18 +102,13 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'ultimatePublicKey': _i1.ParameterDescription(
-              name: 'ultimatePublicKey',
-              type: _i1.getType<String>(),
+            'deviceKeys': _i1.ParameterDescription(
+              name: 'deviceKeys',
+              type: _i1.getType<_i8.PublicKeyDuo>(),
               nullable: false,
             ),
             'deviceKeyAttestation': _i1.ParameterDescription(
               name: 'deviceKeyAttestation',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'deviceSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'deviceSigningPublicKeyHex',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -138,13 +134,10 @@ class Endpoints extends _i1.EndpointDispatch {
                     proofOfWork: params['proofOfWork'],
                     signature: params['signature'],
                     publicKeyHex: params['publicKeyHex'],
-                    ultimateSigningPublicKeyHex:
-                        params['ultimateSigningPublicKeyHex'],
+                    ultimateKeys: params['ultimateKeys'],
                     encryptedDataKey: params['encryptedDataKey'],
-                    ultimatePublicKey: params['ultimatePublicKey'],
+                    deviceKeys: params['deviceKeys'],
                     deviceKeyAttestation: params['deviceKeyAttestation'],
-                    deviceSigningPublicKeyHex:
-                        params['deviceSigningPublicKeyHex'],
                     deviceEncryptedDataKey: params['deviceEncryptedDataKey'],
                     deviceLabel: params['deviceLabel'],
                   ),
@@ -421,9 +414,9 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'deviceSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'deviceSigningPublicKeyHex',
-              type: _i1.getType<String>(),
+            'deviceKeys': _i1.ParameterDescription(
+              name: 'deviceKeys',
+              type: _i1.getType<_i8.PublicKeyDuo>(),
               nullable: false,
             ),
             'encryptedDataKey': _i1.ParameterDescription(
@@ -450,8 +443,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     deviceKeyAttestation: params['deviceKeyAttestation'],
                     ultimateSigningPublicKeyHex:
                         params['ultimateSigningPublicKeyHex'],
-                    deviceSigningPublicKeyHex:
-                        params['deviceSigningPublicKeyHex'],
+                    deviceKeys: params['deviceKeys'],
                     encryptedDataKey: params['encryptedDataKey'],
                     label: params['label'],
                   ),
@@ -723,9 +715,9 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'newDeviceSigningPublicKeyHex': _i1.ParameterDescription(
-              name: 'newDeviceSigningPublicKeyHex',
-              type: _i1.getType<String>(),
+            'newDeviceKeys': _i1.ParameterDescription(
+              name: 'newDeviceKeys',
+              type: _i1.getType<_i8.PublicKeyDuo>(),
               nullable: false,
             ),
             'newDeviceEncryptedDataKey': _i1.ParameterDescription(
@@ -752,8 +744,7 @@ class Endpoints extends _i1.EndpointDispatch {
                         proofOfWork: params['proofOfWork'],
                         publicKeyHex: params['publicKeyHex'],
                         signature: params['signature'],
-                        newDeviceSigningPublicKeyHex:
-                            params['newDeviceSigningPublicKeyHex'],
+                        newDeviceKeys: params['newDeviceKeys'],
                         newDeviceEncryptedDataKey:
                             params['newDeviceEncryptedDataKey'],
                         label: params['label'],
@@ -1044,7 +1035,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'role': _i1.ParameterDescription(
               name: 'role',
-              type: _i1.getType<_i8.GroupMemberRole>(),
+              type: _i1.getType<_i9.GroupMemberRole>(),
               nullable: false,
             ),
             'memberSigningPublicKeyHex': _i1.ParameterDescription(
@@ -1462,9 +1453,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i9.Endpoints()
+    modules['serverpod_auth_idp'] = _i10.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i10.Endpoints()
+    modules['serverpod_auth_core'] = _i11.Endpoints()
       ..initializeEndpoints(server);
   }
 }

@@ -30,11 +30,13 @@ void main() {
           sessionBuilder,
           ultimateSigningPublicKeyHex: ultimatePubKey,
           encryptedDataKey: accountEncryptedDataKey,
-          ultimatePublicKey: ultimatePubKey,
+          ultimateEncryptionPublicKeyHex: ultimatePubKey,
         );
 
-        // Register a device with PoW
+        // Register a device with PoW. Task 6: distinct signing/encryption
+        // halves via PublicKeyDuo.
         final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'device_encrypted_data_key';
         const deviceLabel = 'Test Device for Revocation';
 
@@ -59,7 +61,10 @@ void main() {
           deviceKeyAttestation: deviceKeyAttestation,
           ultimateSigningPublicKeyHex:
               testAccount.ultimateSigningPublicKeyHex,
-          deviceSigningPublicKeyHex: devicePubKey,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey,
+            encryptionPublicKeyHex: deviceEncPubKey,
+          ),
           encryptedDataKey: deviceEncryptedDataKey,
           label: deviceLabel,
         );
@@ -96,6 +101,7 @@ void main() {
 
         // Verify device registration still works (PoW-protected, not session-auth)
         final (devicePrivKey2, devicePubKey2) = SigningTestHelper.generateKeypair();
+        final (_, deviceEncPubKey2) = SigningTestHelper.generateKeypair();
 
         final regChallenge2 =
             await endpoints.entrypoint.getChallenge(sessionBuilder);
@@ -118,7 +124,10 @@ void main() {
           deviceKeyAttestation: deviceKeyAttestation2,
           ultimateSigningPublicKeyHex:
               testAccount.ultimateSigningPublicKeyHex,
-          deviceSigningPublicKeyHex: devicePubKey2,
+          deviceKeys: PublicKeyDuo(
+            signingPublicKeyHex: devicePubKey2,
+            encryptionPublicKeyHex: deviceEncPubKey2,
+          ),
           encryptedDataKey: 'device_encrypted_data_key_2',
           label: 'Test Device 2',
         );

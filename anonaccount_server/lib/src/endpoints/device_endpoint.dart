@@ -34,12 +34,17 @@ class DeviceEndpoint extends SignedPowEndpoint {
     required String signature,
     required String deviceKeyAttestation,
     required String ultimateSigningPublicKeyHex,
-    required String deviceSigningPublicKeyHex,
+    required PublicKeyDuo deviceKeys,
     required String encryptedDataKey,
     required String label,
   }) async {
     try {
       // 1. Verify attestation: ultimate key authorized this device key
+      // Task 6 only widens the parameter shape to a PublicKeyDuo; the
+      // existing single-signing-key attestation check (Task 8's job to
+      // upgrade) stays exactly as-is, but reads from the duo's signing
+      // half instead of a top-level parameter.
+      final deviceSigningPublicKeyHex = deviceKeys.signingPublicKeyHex;
       final attestationValid = await CryptoUtils.verifySignature(
         message: AccountInnerPayloads.deviceAttestation(deviceSigningPublicKeyHex),
         signature: deviceKeyAttestation,
@@ -67,7 +72,7 @@ class DeviceEndpoint extends SignedPowEndpoint {
         payload,
       );
 
-      // Validate ultimate key and resolve account
+      // Validate ultimate key and resolve account.
       AnonAccountHelpers.validatePublicKey(
         ultimateSigningPublicKeyHex,
         'registerDevice',
@@ -89,13 +94,18 @@ class DeviceEndpoint extends SignedPowEndpoint {
         );
       }
 
-      // Validate + duplicate check + insert via shared helper
+      // Task 6 only widens the parameter shape to a PublicKeyDuo and
+      // threads it through insertDevice. The attestation/transaction
+      // verification work that will sign over both halves of the duo
+      // belongs to Tasks 7-9.
       final insertedDevice = await AnonAccountHelpers.insertDevice(
         session,
         accountId: account.id!,
-        deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+        deviceKeys: deviceKeys,
         encryptedDataKey: encryptedDataKey,
         label: label,
+        addedBySignerPublicKeyHex: ultimateSigningPublicKeyHex,
+        addedByAttestation: deviceKeyAttestation,
         operation: 'registerDevice',
       );
 
