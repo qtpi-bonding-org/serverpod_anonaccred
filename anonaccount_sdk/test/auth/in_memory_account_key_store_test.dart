@@ -34,4 +34,36 @@ void main() {
     final data = Uint8List.fromList(utf8.encode('x'));
     expect(await store.signWithUltimateKey(data), isNotNull);
   });
+
+  test('ultimate encryption public key hex survives the one-time wipe',
+      () async {
+    final store = InMemoryAccountKeyStore();
+    await store.generateAccountKeys();
+
+    final before = await store.getUltimateEncryptionPublicKeyHex();
+    expect(before, isNotNull);
+    expect(before, matches(RegExp(r'^04[0-9a-f]{128}$')));
+
+    // The private halves go away here. The public half must not.
+    await store.getUltimateKeyJwkOnce();
+
+    expect(await store.getUltimatePublicKey(), isNull,
+        reason: 'the private-bearing KeyDuo is wiped');
+    expect(await store.getUltimateEncryptionPublicKeyHex(), before,
+        reason: 'a public key is not secret and is needed to write '
+            'group membership backups long after the wipe');
+  });
+
+  test('importUltimateKeyJwk repopulates the encryption public key hex',
+      () async {
+    final seed = InMemoryAccountKeyStore();
+    await seed.generateAccountKeys();
+    final expected = await seed.getUltimateEncryptionPublicKeyHex();
+    final jwk = (await seed.getUltimateKeyJwkOnce())!;
+
+    final restored = InMemoryAccountKeyStore();
+    expect(await restored.getUltimateEncryptionPublicKeyHex(), isNull);
+    await restored.importUltimateKeyJwk(jwk);
+    expect(await restored.getUltimateEncryptionPublicKeyHex(), expected);
+  });
 }

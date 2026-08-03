@@ -29,6 +29,14 @@ abstract interface class AccountKeyStore {
   Future<EcdhPublicKey?> getUltimatePublicKey();
   Future<String?> getUltimatePublicKeyJwk();
   Future<String?> getUltimateSigningPublicKeyHex();
+
+  /// The account's ultimate ECDH public key, SEC1 uncompressed hex.
+  ///
+  /// Survives [getUltimateKeyJwkOnce]: that wipes the private halves, and a
+  /// public key is not secret. Needed to encrypt group member keys long
+  /// after the ultimate key itself has left the device.
+  Future<String?> getUltimateEncryptionPublicKeyHex();
+
   Future<String?> getUltimateKeyJwkOnce();
   Future<KeyDuo> importUltimateKeyJwk(String jwk);
 }
