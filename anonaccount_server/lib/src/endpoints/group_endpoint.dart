@@ -13,8 +13,10 @@ import 'signed_pow_endpoint.dart';
 ///
 /// 1. **Transport (outer envelope):** every call carries a PoW + ECDSA
 ///    signature from the caller's device key. Same shape as every other
-///    `SignedPowEndpoint`. Proves the request is live and from a
-///    non-revoked device of some account.
+///    `SignedPowEndpoint`. Proves the request is live and signed by whoever
+///    holds that key — not that the device is still active. The methods that
+///    use [guard] additionally check revocation; the remaining legacy methods
+///    still resolve callers through the revocation-blind account helper.
 /// 2. **Role (inner signature):** for admin-tier ops where the role is
 ///    `member`, the caller's group-member signing key signs an
 ///    operation-specific payload. The server verifies against the row
@@ -60,27 +62,15 @@ class GroupEndpoint extends SignedPowEndpoint {
       session,
       'createGroup',
       () async {
-        final outerPayload =
-            '$challenge:${GroupMethods.createGroup}:$callerDeviceSigningPublicKeyHex';
-        await verifySignedPow(
+        final activeCaller = await guard(
           session,
-          challenge,
-          proofOfWork,
-          callerDeviceSigningPublicKeyHex,
-          signature,
-          outerPayload,
+          challenge: challenge,
+          proofOfWork: proofOfWork,
+          signature: signature,
+          callerDeviceSigningPublicKeyHex: callerDeviceSigningPublicKeyHex,
+          methodName: GroupMethods.createGroup,
         );
-
-        final callerDevice = await AllRows.deviceBySigningKeyIncludingRevoked(
-          session,
-          callerDeviceSigningPublicKeyHex,
-        );
-        final activeDevice = AnonAccountHelpers.requireActiveDevice(
-          callerDevice,
-          callerDeviceSigningPublicKeyHex,
-          'createGroup',
-        );
-        final accountId = activeDevice.anonAccountId;
+        final accountId = activeCaller.accountId;
 
         final groupKeys = AnonAccountHelpers.validateKeyDuo(
           groupUltimateKeys,
@@ -137,7 +127,8 @@ class GroupEndpoint extends SignedPowEndpoint {
         if (!memberKeyBackupOk) {
           throw AnonAccountExceptionFactory.createAuthenticationException(
             code: AnonAccountErrorCodes.cryptoInvalidSignature,
-            message: 'Invalid encrypted member key attestation — the creator '
+            message:
+                'Invalid encrypted member key attestation — the creator '
                 'member key did not authorize this backup',
             operation: 'createGroup',
           );
@@ -195,39 +186,25 @@ class GroupEndpoint extends SignedPowEndpoint {
       session,
       'listMyGroups',
       () async {
-        final outerPayload =
-            '$challenge:${GroupMethods.listMyGroups}:$callerDeviceSigningPublicKeyHex';
-        await verifySignedPow(
+        // The caller must be an active device because returned data is
+        // wrapped to the caller's own encryption key.
+        final activeCaller = await guard(
           session,
-          challenge,
-          proofOfWork,
-          callerDeviceSigningPublicKeyHex,
-          signature,
-          outerPayload,
-        );
-
-        // The caller must be an ACTIVE device — the returned blob is now
-        // wrapped to the caller's own encryption key, so a revoked device
-        // must not be able to fetch it.
-        final callerDeviceRow =
-            await AllRows.deviceBySigningKeyIncludingRevoked(
-              session,
-              callerDeviceSigningPublicKeyHex,
-            );
-        final activeCaller = AnonAccountHelpers.requireActiveDevice(
-          callerDeviceRow,
-          callerDeviceSigningPublicKeyHex,
-          'listMyGroups',
+          challenge: challenge,
+          proofOfWork: proofOfWork,
+          signature: signature,
+          callerDeviceSigningPublicKeyHex: callerDeviceSigningPublicKeyHex,
+          methodName: GroupMethods.listMyGroups,
         );
 
         final members = await ActiveRows.membershipsForAccount(
           session,
-          activeCaller.anonAccountId,
+          activeCaller.accountId,
         );
 
         final grants = await ActiveRows.grantsForDevice(
           session,
-          activeCaller.id!,
+          activeCaller.device.id!,
         );
         final grantByMemberId = {for (final g in grants) g.groupMemberId: g};
 
@@ -336,7 +313,8 @@ class GroupEndpoint extends SignedPowEndpoint {
         if (!memberKeyBackupOk) {
           throw AnonAccountExceptionFactory.createAuthenticationException(
             code: AnonAccountErrorCodes.cryptoInvalidSignature,
-            message: 'Invalid encrypted member key attestation — the new '
+            message:
+                'Invalid encrypted member key attestation — the new '
                 'member key did not authorize this backup',
             operation: 'addGroupMember',
           );
@@ -884,15 +862,17 @@ class GroupEndpoint extends SignedPowEndpoint {
 
         final rows = await ActiveRows.membersOfGroup(session, groupId);
         return rows
-            .map((r) => GroupMemberView(
-                  memberId: r.id!,
-                  shareGroupId: r.shareGroupId,
-                  anonAccountId: r.anonAccountId,
-                  role: r.role,
-                  memberSigningPublicKeyHex: r.memberSigningPublicKeyHex,
-                  memberEncryptionPublicKeyHex: r.memberEncryptionPublicKeyHex,
-                  joinedAt: r.joinedAt,
-                ))
+            .map(
+              (r) => GroupMemberView(
+                memberId: r.id!,
+                shareGroupId: r.shareGroupId,
+                anonAccountId: r.anonAccountId,
+                role: r.role,
+                memberSigningPublicKeyHex: r.memberSigningPublicKeyHex,
+                memberEncryptionPublicKeyHex: r.memberEncryptionPublicKeyHex,
+                joinedAt: r.joinedAt,
+              ),
+            )
             .toList();
       },
       onFailure: authFailure,
@@ -1065,27 +1045,15 @@ class GroupEndpoint extends SignedPowEndpoint {
       session,
       'grantMemberDevice',
       () async {
-        final outerPayload =
-            '$challenge:${GroupMethods.grantMemberDevice}:$callerDeviceSigningPublicKeyHex';
-        await verifySignedPow(
+        // The caller must be an active device because this endpoint writes
+        // grants whose result is readable by the grantee.
+        await guard(
           session,
-          challenge,
-          proofOfWork,
-          callerDeviceSigningPublicKeyHex,
-          signature,
-          outerPayload,
-        );
-
-        // The caller must be an ACTIVE device — this endpoint writes grants
-        // and the result is readable by the grantee.
-        final callerDevice = await AllRows.deviceBySigningKeyIncludingRevoked(
-          session,
-          callerDeviceSigningPublicKeyHex,
-        );
-        AnonAccountHelpers.requireActiveDevice(
-          callerDevice,
-          callerDeviceSigningPublicKeyHex,
-          'grantMemberDevice',
+          challenge: challenge,
+          proofOfWork: proofOfWork,
+          signature: signature,
+          callerDeviceSigningPublicKeyHex: callerDeviceSigningPublicKeyHex,
+          methodName: GroupMethods.grantMemberDevice,
         );
 
         return await session.db.transaction((tx) async {

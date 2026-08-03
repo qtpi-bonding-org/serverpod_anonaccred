@@ -42,6 +42,7 @@ export 'src/generated/protocol.dart';
 // barrel already exports, and the two names collide otherwise.
 export 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 // Helper utilities
+export 'src/authenticated_caller.dart';
 export 'src/helpers.dart';
 // ShardRouting tenantType constants (shared between quanitya/episutra)
 export 'src/shard_tenant_type.dart';

@@ -154,36 +154,17 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
       session,
       'registerDeviceForAccount',
       () async {
-        await verifySignedPow(
+        final activeCaller = await guard(
           session,
-          challenge,
-          proofOfWork,
-          publicKeyHex,
-          signature,
-          '$challenge:registerDeviceForAccount:$publicKeyHex',
+          challenge: challenge,
+          proofOfWork: proofOfWork,
+          signature: signature,
+          callerDeviceSigningPublicKeyHex: publicKeyHex,
+          methodName: 'registerDeviceForAccount',
         );
 
         session.log(
-          'DeviceManagementEndpoint: Caller device key: ${publicKeyHex.substring(0, 10)}...',
-          level: LogLevel.info,
-        );
-
-        final callerDevice = await AllRows.deviceBySigningKeyIncludingRevoked(
-          session,
-          publicKeyHex,
-        );
-
-        // Not just "exists" — an active device. A revoked device pairing new
-        // devices would defeat revocation entirely, and we are about to
-        // persist a signed record of the grant.
-        final activeCaller = AnonAccountHelpers.requireActiveDevice(
-          callerDevice,
-          publicKeyHex,
-          'registerDeviceForAccount',
-        );
-
-        session.log(
-          'DeviceManagementEndpoint: Registering new device for account UUID: ${activeCaller.anonAccountId}',
+          'DeviceManagementEndpoint: Registering new device for account UUID: ${activeCaller.accountId}',
           level: LogLevel.info,
         );
 
@@ -207,7 +188,7 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
         final attestationValid = await CryptoUtils.verifySignature(
           message: AccountInnerPayloads.pairDevice(keys),
           signature: pairingAttestation,
-          publicKey: activeCaller.deviceSigningPublicKeyHex,
+          publicKey: activeCaller.signingPublicKeyHex,
         );
         if (!attestationValid) {
           throw AnonAccountExceptionFactory.createAuthenticationException(
@@ -221,11 +202,11 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
 
         final insertedDevice = await AnonAccountHelpers.insertDevice(
           session,
-          accountId: activeCaller.anonAccountId,
+          accountId: activeCaller.accountId,
           deviceKeys: keys,
           encryptedDataKey: newDeviceEncryptedDataKey,
           label: label,
-          addedByAttestorPublicKeyHex: activeCaller.deviceSigningPublicKeyHex,
+          addedByAttestorPublicKeyHex: activeCaller.signingPublicKeyHex,
           addedByAttestation: pairingAttestation,
           operation: 'registerDeviceForAccount',
         );

@@ -3,8 +3,6 @@ import '../protocol_failures.dart';
 import '../try_operation.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
-import '../helpers.dart';
-import '../queries/active_rows.dart';
 import 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 import 'signed_pow_endpoint.dart';
 
@@ -38,27 +36,14 @@ class DataKeyEndpoint extends SignedPowEndpoint {
       session,
       'retrieveEncryptedDataKey',
       () async {
-        final payload =
-            '$challenge:${DataKeyMethods.retrieveEncryptedDataKey}:$deviceSigningPublicKeyHex';
-        await verifySignedPow(
+        final activeDevice = (await guard(
           session,
-          challenge,
-          proofOfWork,
-          deviceSigningPublicKeyHex,
-          signature,
-          payload,
-        );
-
-        final device = await AllRows.deviceBySigningKeyIncludingRevoked(
-          session,
-          deviceSigningPublicKeyHex,
-        );
-
-        final activeDevice = AnonAccountHelpers.requireActiveDevice(
-          device,
-          deviceSigningPublicKeyHex,
-          'retrieveEncryptedDataKey',
-        );
+          challenge: challenge,
+          proofOfWork: proofOfWork,
+          signature: signature,
+          callerDeviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
+          methodName: DataKeyMethods.retrieveEncryptedDataKey,
+        )).device;
 
         return EncryptedDataKeyResponse(
           encryptedDataKey: activeDevice.encryptedDataKey,
