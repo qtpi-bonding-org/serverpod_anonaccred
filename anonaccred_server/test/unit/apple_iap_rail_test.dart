@@ -251,6 +251,49 @@ void main() {
         );
       });
 
+      test('throws when the only matching RailProduct is deactivated',
+          () async {
+        final session = sessionBuilder.build();
+        const txnId = 'txn_deactivated_product';
+        const productId = 'com.quanitya.deactivated_product';
+
+        await RailProduct.db.insertRow(
+          session,
+          RailProduct(
+            rail: PaymentRail.apple_iap,
+            storeProductId: productId,
+            isActive: false,
+          ),
+        );
+
+        mockClient.addMockTransaction(
+          txnId,
+          HistoryResponse(
+            'Sandbox',
+            null,
+            'com.quanitya.app',
+            false,
+            '',
+            [
+              _makeFakeSignedTransaction(
+                transactionId: txnId,
+                productId: productId,
+              ),
+            ],
+          ),
+        );
+
+        await expectLater(
+          appleRail.validateTransaction(
+            session: session,
+            transactionId: txnId,
+            productId: productId,
+            accountUuid: UuidValue.fromString(const Uuid().v4()),
+          ),
+          throwsA(isA<AnonAccountException>()),
+        );
+      });
+
       test('throws when Apple API returns empty transaction list', () async {
         final session = sessionBuilder.build();
         const txnId = 'txn_empty_response';
