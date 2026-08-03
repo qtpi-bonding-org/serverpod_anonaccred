@@ -35,6 +35,7 @@ void main() {
       memberEncryptedDataKey: 'BLOB1',
       deviceEncryptedDataKey: 'device-blob',
       joinedAt: DateTime.utc(2026, 5, 20),
+      encryptedMemberKey: 'MEMBER-KEY-BLOB1',
     );
     when(() => group.listMyGroups(
           challenge: any(named: 'challenge'),

@@ -32,10 +32,12 @@ import 'package:anonaccount_server/src/generated/group_membership_view.dart'
 import 'package:anonaccount_server/src/generated/group_member.dart' as _i13;
 import 'package:anonaccount_server/src/generated/group_member_role.dart'
     as _i14;
-import 'package:anonaccount_server/src/generated/grant_member_device_result.dart'
+import 'package:anonaccount_server/src/generated/group_member_view.dart'
     as _i15;
-import 'package:anonaccount_server/src/generated/member_device_grant.dart'
+import 'package:anonaccount_server/src/generated/grant_member_device_result.dart'
     as _i16;
+import 'package:anonaccount_server/src/generated/member_device_grant.dart'
+    as _i17;
 import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -1326,7 +1328,7 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Stream<_i13.GroupMember> monitorGroupMembership(
+  _i3.Stream<_i15.GroupMemberView> monitorGroupMembership(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -1334,7 +1336,7 @@ class _GroupEndpoint {
     required String callerDeviceSigningPublicKeyHex,
     required String memberSigningKeyHex,
   }) {
-    var _localTestStreamManager = _i1.TestStreamManager<_i13.GroupMember>();
+    var _localTestStreamManager = _i1.TestStreamManager<_i15.GroupMemberView>();
     _i1.callStreamFunctionAndHandleExceptions(
       () async {
         var _localUniqueSession =
@@ -1414,7 +1416,7 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<List<_i13.GroupMember>> listGroupMembers(
+  _i3.Future<List<_i15.GroupMemberView>> listGroupMembers(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
@@ -1451,7 +1453,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i13.GroupMember>>);
+                as _i3.Future<List<_i15.GroupMemberView>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1504,13 +1506,13 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<_i15.GrantMemberDeviceResult> grantMemberDevice(
+  _i3.Future<_i16.GrantMemberDeviceResult> grantMemberDevice(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required List<_i16.MemberDeviceGrant> grants,
+    required List<_i17.MemberDeviceGrant> grants,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1537,7 +1539,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i15.GrantMemberDeviceResult>);
+                as _i3.Future<_i16.GrantMemberDeviceResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

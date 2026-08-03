@@ -30,6 +30,7 @@ void main() {
       memberEncryptedDataKey: 'BLOB1',
       deviceEncryptedDataKey: null,
       joinedAt: DateTime.utc(2026, 5, 20),
+      encryptedMemberKey: 'MEMBER-KEY-BLOB1',
     );
     final row2 = wire.GroupMembershipView(
       memberId: wire.UuidValue.fromString('55555555-5555-4555-8555-555555555555'),
@@ -39,6 +40,7 @@ void main() {
       memberEncryptedDataKey: 'BLOB2',
       deviceEncryptedDataKey: 'DEVICE-BLOB2',
       joinedAt: DateTime.utc(2026, 5, 21),
+      encryptedMemberKey: 'MEMBER-KEY-BLOB2',
     );
     when(() => group.listMyGroups(
           challenge: any(named: 'challenge'),
@@ -60,8 +62,10 @@ void main() {
     expect(memberships[0].role, wire.GroupMemberRole.admin);
     expect(memberships[0].memberEncryptedDataKey, 'BLOB1');
     expect(memberships[0].deviceEncryptedDataKey, isNull);
+    expect(memberships[0].encryptedMemberKey, 'MEMBER-KEY-BLOB1');
     expect(memberships[1].groupId, '33333333-3333-4333-8333-333333333333');
     expect(memberships[1].memberId, row2.memberId);
     expect(memberships[1].deviceEncryptedDataKey, 'DEVICE-BLOB2');
+    expect(memberships[1].encryptedMemberKey, 'MEMBER-KEY-BLOB2');
   });
 }

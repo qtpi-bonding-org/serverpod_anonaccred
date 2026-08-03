@@ -241,6 +241,7 @@ class GroupEndpoint extends SignedPowEndpoint {
               memberEncryptedDataKey: m.encryptedDataKey,
               deviceEncryptedDataKey: grantByMemberId[m.id]?.encryptedDataKey,
               joinedAt: m.joinedAt,
+              encryptedMemberKey: m.encryptedMemberKey,
             ),
         ];
       },
@@ -473,9 +474,23 @@ class GroupEndpoint extends SignedPowEndpoint {
           addedByAttestation: attestationSig,
         );
         final insertedMember = await GroupMember.db.insertRow(session, member);
+        // Post the view, not the row: monitorGroupMembership has no
+        // ownership check on the member key it subscribes with, so any
+        // device with a valid outer signature can subscribe to another
+        // member's channel. GroupMemberView omits encryptedMemberKey and
+        // encryptedDataKey for exactly that reason.
         session.messages.postMessage(
           'group-membership-${insertedMember.memberSigningPublicKeyHex}',
-          insertedMember,
+          GroupMemberView(
+            memberId: insertedMember.id!,
+            shareGroupId: insertedMember.shareGroupId,
+            anonAccountId: insertedMember.anonAccountId,
+            role: insertedMember.role,
+            memberSigningPublicKeyHex: insertedMember.memberSigningPublicKeyHex,
+            memberEncryptionPublicKeyHex:
+                insertedMember.memberEncryptionPublicKeyHex,
+            joinedAt: insertedMember.joinedAt,
+          ),
         );
         return insertedMember;
       },
@@ -692,7 +707,7 @@ class GroupEndpoint extends SignedPowEndpoint {
     );
   }
 
-  Stream<GroupMember> monitorGroupMembership(
+  Stream<GroupMemberView> monitorGroupMembership(
     Session session, {
     required String challenge,
     required String proofOfWork,
@@ -712,7 +727,7 @@ class GroupEndpoint extends SignedPowEndpoint {
     );
 
     final channelName = 'group-membership-$memberSigningKeyHex';
-    final stream = session.messages.createStream<GroupMember>(channelName);
+    final stream = session.messages.createStream<GroupMemberView>(channelName);
 
     await for (final event in stream) {
       yield event;
@@ -801,7 +816,7 @@ class GroupEndpoint extends SignedPowEndpoint {
     );
   }
 
-  Future<List<GroupMember>> listGroupMembers(
+  Future<List<GroupMemberView>> listGroupMembers(
     Session session, {
     required String challenge,
     required String proofOfWork,
@@ -867,7 +882,18 @@ class GroupEndpoint extends SignedPowEndpoint {
           );
         }
 
-        return ActiveRows.membersOfGroup(session, groupId);
+        final rows = await ActiveRows.membersOfGroup(session, groupId);
+        return rows
+            .map((r) => GroupMemberView(
+                  memberId: r.id!,
+                  shareGroupId: r.shareGroupId,
+                  anonAccountId: r.anonAccountId,
+                  role: r.role,
+                  memberSigningPublicKeyHex: r.memberSigningPublicKeyHex,
+                  memberEncryptionPublicKeyHex: r.memberEncryptionPublicKeyHex,
+                  joinedAt: r.joinedAt,
+                ))
+            .toList();
       },
       onFailure: authFailure,
       code: AnonAccountErrorCodes.databaseError,

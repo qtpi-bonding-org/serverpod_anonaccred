@@ -1113,7 +1113,11 @@ void main() {
   expect(members, hasLength(2));
   expect(members.any((m) => m.role == GroupMemberRole.admin), isTrue);
   expect(members.any((m) => m.role == GroupMemberRole.member), isTrue);
-  expect(members.every((m) => !m.isRevoked), isTrue);
+  // No isRevoked field on GroupMemberView — the query already filters to
+  // active rows, and a hardcoded security flag on every row would be a
+  // constant, worse than an absent one.
+  final json = members.map((m) => m.toJson().keys).expand((k) => k).toSet();
+  expect(json, isNot(contains('isRevoked')));
 });
 
 test('listGroupMembers: rejected when caller is not a member', () async {

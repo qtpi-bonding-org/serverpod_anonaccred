@@ -1,0 +1,13 @@
+### What one member may see about another. Deliberately omits
+### encryptedMemberKey and encryptedDataKey: both are ciphertext only that
+### member can open, so publishing them to the group buys nothing and
+### invites harvesting against a future backup leak.
+class: GroupMemberView
+fields:
+  memberId: UuidValue
+  shareGroupId: UuidValue
+  anonAccountId: UuidValue
+  role: GroupMemberRole
+  memberSigningPublicKeyHex: String
+  memberEncryptionPublicKeyHex: String
+  joinedAt: DateTime

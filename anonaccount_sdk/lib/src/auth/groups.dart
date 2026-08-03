@@ -212,6 +212,7 @@ class AnonaccountGroups {
             memberEncryptedDataKey: r.memberEncryptedDataKey,
             deviceEncryptedDataKey: r.deviceEncryptedDataKey,
             joinedAt: r.joinedAt,
+            encryptedMemberKey: r.encryptedMemberKey,
           ),
         )
         .toList();

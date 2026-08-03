@@ -56,6 +56,10 @@ abstract class GroupMembership with _$GroupMembership {
     required String memberEncryptedDataKey,
     required String? deviceEncryptedDataKey,
     required DateTime joinedAt,
+    /// This membership's member key pair, encrypted with the account's
+    /// ultimate encryption public key. Opaque here — only recoverAccount,
+    /// holding the user's backup, can decrypt it.
+    required String encryptedMemberKey,
   }) = _GroupMembership;
 
   factory GroupMembership.fromJson(Map<String, dynamic> json) =>

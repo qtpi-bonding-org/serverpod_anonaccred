@@ -15,6 +15,7 @@ _GroupMembership _$GroupMembershipFromJson(Map<String, dynamic> json) =>
       memberEncryptedDataKey: json['memberEncryptedDataKey'] as String,
       deviceEncryptedDataKey: json['deviceEncryptedDataKey'] as String?,
       joinedAt: DateTime.parse(json['joinedAt'] as String),
+      encryptedMemberKey: json['encryptedMemberKey'] as String,
     );
 
 Map<String, dynamic> _$GroupMembershipToJson(_GroupMembership instance) =>
@@ -26,4 +27,5 @@ Map<String, dynamic> _$GroupMembershipToJson(_GroupMembership instance) =>
       'memberEncryptedDataKey': instance.memberEncryptedDataKey,
       'deviceEncryptedDataKey': instance.deviceEncryptedDataKey,
       'joinedAt': instance.joinedAt.toIso8601String(),
+      'encryptedMemberKey': instance.encryptedMemberKey,
     };

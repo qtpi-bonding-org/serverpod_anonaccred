@@ -455,5 +455,116 @@ void main() {
         throwsA(isA<AuthenticationException>()),
       );
     });
+
+    test('listGroupMembers never returns another member key backup',
+        () async {
+      final s = await _bootstrapGroup(sessionBuilder, endpoints);
+
+      final (_, inviteeUltPub) = SigningTestHelper.generateKeypair();
+      final invitee = await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: inviteeUltPub,
+        ultimateEncryptionPublicKeyHex: inviteeUltPub,
+      );
+      final (inviteeMemberPriv, inviteeMemberPub) =
+          SigningTestHelper.generateKeypair();
+      final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
+
+      final outerAdd = await _outer(
+        sessionBuilder,
+        endpoints,
+        'addGroupMember',
+        s.devicePub,
+        s.devicePriv,
+      );
+      final addInner = GroupInnerPayloads.addGroupMember(
+        s.group.id!,
+        invitee.id!,
+        GroupMemberRole.member.name,
+        PublicKeyDuo(
+          signingPublicKeyHex: inviteeMemberPub,
+          encryptionPublicKeyHex: inviteeMemberEnc,
+        ),
+      );
+      final addSig =
+          SigningTestHelper.signWith(addInner, s.creatorMemberPriv);
+      final inviteeBackupAttestation = SigningTestHelper.signWith(
+        GroupInnerPayloads.setEncryptedMemberKey(
+          s.groupUltSigPub,
+          invitee.id!,
+          inviteeMemberPub,
+          'INVITEE-BLOB',
+        ),
+        inviteeMemberPriv,
+      );
+      await endpoints.group.addGroupMember(
+        sessionBuilder,
+        challenge: outerAdd.challenge,
+        proofOfWork: outerAdd.pow,
+        signature: outerAdd.signature,
+        callerDeviceSigningPublicKeyHex: s.devicePub,
+        groupId: s.group.id!,
+        newMemberAccountId: invitee.id!,
+        role: GroupMemberRole.member,
+        memberKeys: PublicKeyDuo(
+          signingPublicKeyHex: inviteeMemberPub,
+          encryptionPublicKeyHex: inviteeMemberEnc,
+        ),
+        encryptedDataKey: 'wrapped',
+        callerMemberSigningPublicKeyHex: s.creatorMemberPub,
+        memberAuthSignature: addSig,
+        encryptedMemberKey: 'INVITEE-BLOB',
+        encryptedMemberKeyAttestation: inviteeBackupAttestation,
+      );
+
+      final outerList = await _outer(
+        sessionBuilder,
+        endpoints,
+        'listGroupMembers',
+        s.devicePub,
+        s.devicePriv,
+      );
+      final listInner = GroupInnerPayloads.listGroupMembers(s.group.id!);
+      final listSig =
+          SigningTestHelper.signWith(listInner, s.creatorMemberPriv);
+
+      final rows = await endpoints.group.listGroupMembers(
+        sessionBuilder,
+        challenge: outerList.challenge,
+        proofOfWork: outerList.pow,
+        signature: outerList.signature,
+        callerDeviceSigningPublicKeyHex: s.devicePub,
+        groupId: s.group.id!,
+        callerMemberSigningPublicKeyHex: s.creatorMemberPub,
+        memberAuthSignature: listSig,
+      );
+
+      expect(rows, hasLength(2));
+      final json = rows.map((r) => r.toJson().keys).expand((k) => k).toSet();
+      expect(json, isNot(contains('encryptedMemberKey')));
+      expect(json, isNot(contains('encryptedDataKey')));
+    });
+
+    test('listMyGroups returns the caller their own backup', () async {
+      final s = await _bootstrapGroup(sessionBuilder, endpoints);
+
+      final outer = await _outer(
+        sessionBuilder,
+        endpoints,
+        'listMyGroups',
+        s.devicePub,
+        s.devicePriv,
+      );
+
+      final rows = await endpoints.group.listMyGroups(
+        sessionBuilder,
+        challenge: outer.challenge,
+        proofOfWork: outer.pow,
+        signature: outer.signature,
+        callerDeviceSigningPublicKeyHex: s.devicePub,
+      );
+
+      expect(rows.single.encryptedMemberKey, 'CREATOR-BLOB');
+    });
   });
 }
