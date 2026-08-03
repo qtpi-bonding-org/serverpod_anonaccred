@@ -35,6 +35,11 @@ class IAPEndpoint extends JwtEndpoint {
       'validateAppleTransaction',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'validateAppleTransaction',
+        );
 
         // Validate parameters
         if (transactionId.isEmpty || productId.isEmpty) {
@@ -108,6 +113,11 @@ class IAPEndpoint extends JwtEndpoint {
       'validateGooglePurchase',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'validateGooglePurchase',
+        );
 
         // Validate parameters
         if (packageName.isEmpty || productId.isEmpty || purchaseToken.isEmpty) {

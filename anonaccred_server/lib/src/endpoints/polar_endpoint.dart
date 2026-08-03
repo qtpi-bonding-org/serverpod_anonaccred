@@ -36,6 +36,11 @@ class PolarEndpoint extends JwtEndpoint {
       'redeemLicenseKey',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'redeemLicenseKey',
+        );
 
         if (licenseKey.isEmpty) {
           throw AnonAccredExceptionFactory.createPaymentException(

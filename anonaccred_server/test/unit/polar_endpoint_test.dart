@@ -55,6 +55,28 @@ void main() {
 
     tearDown(PaymentManager.clearRails);
 
+    test('redeemLicenseKey rejects a revoked device', () async {
+      final session = sessionBuilder.build();
+      final device = (await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) => t.deviceSigningPublicKeyHex.equals('c' * 128),
+      ))!;
+      await AccountDevice.db.updateRow(
+        session,
+        device.copyWith(isRevoked: true),
+      );
+
+      await expectLater(
+        endpoints.polar.redeemLicenseKey(authenticated, 'some-license-key'),
+        throwsA(isA<AuthenticationException>()),
+      );
+
+      await AccountDevice.db.updateRow(
+        session,
+        device.copyWith(isRevoked: false),
+      );
+    });
+
     void registerRail() {
       PaymentManager.registerRail(
         PolarRail(

@@ -28,36 +28,46 @@ void main() {
     setUp(() async {
       // Register payment rails with mock clients for testing
       PaymentManager.clearRails();
-      PaymentManager.registerRail(AppleIAPRail(client: MockAppStoreServerClient()));
-      PaymentManager.registerRail(GoogleIAPRail(client: MockAndroidPublisherClient()));
+      PaymentManager.registerRail(
+        AppleIAPRail(client: MockAppStoreServerClient()),
+      );
+      PaymentManager.registerRail(
+        GoogleIAPRail(client: MockAndroidPublisherClient()),
+      );
 
       // Create test account and device for authenticated tests
-      testAccount = await AnonAccount.db.insertRow(sessionBuilder.build(), AnonAccount(
-        id: UuidValue.fromString(const Uuid().v4()),
-        ultimateSigningPublicKeyHex:
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 128-char hex for ECDSA P-256
-        encryptedDataKey: 'encrypted_data_key_test',
-        ultimateEncryptionPublicKeyHex:
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // ultimateEncryptionPublicKeyHex - using same key for testing
-      ));
+      testAccount = await AnonAccount.db.insertRow(
+        sessionBuilder.build(),
+        AnonAccount(
+          id: UuidValue.fromString(const Uuid().v4()),
+          ultimateSigningPublicKeyHex:
+              'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+              'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // Valid 128-char hex for ECDSA P-256
+          encryptedDataKey: 'encrypted_data_key_test',
+          ultimateEncryptionPublicKeyHex:
+              'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+              'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', // ultimateEncryptionPublicKeyHex - using same key for testing
+        ),
+      );
 
-      testDevice = await AccountDevice.db.insertRow(sessionBuilder.build(), AccountDevice(
-        anonAccountId: testAccount.id!,
-        deviceSigningPublicKeyHex:
-            'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
-            'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
-        deviceEncryptionPublicKeyHex:
-            '04fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
-            'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321',
-        addedByAttestorPublicKeyHex:
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
-            'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        addedByAttestation: 'test-attestation',
-        encryptedDataKey: 'encrypted_device_key_test',
-        label: 'Test Device',
-      ));
+      testDevice = await AccountDevice.db.insertRow(
+        sessionBuilder.build(),
+        AccountDevice(
+          anonAccountId: testAccount.id!,
+          deviceSigningPublicKeyHex:
+              'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
+              'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321', // Valid 128-char hex
+          deviceEncryptionPublicKeyHex:
+              '04fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321'
+              'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321',
+          addedByAttestorPublicKeyHex:
+              'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+              'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          addedByAttestation: 'test-attestation',
+          encryptedDataKey: 'encrypted_device_key_test',
+          label: 'Test Device',
+        ),
+      );
 
       // Create authenticated session builder with device scope
       // userIdentifier must be the UUID string so getAccountUuid() can parse it
@@ -73,6 +83,28 @@ void main() {
     tearDown(PaymentManager.clearRails);
 
     group('Apple IAP Endpoint Integration', () {
+      test('validateAppleTransaction rejects a revoked device', () async {
+        final session = sessionBuilder.build();
+        await AccountDevice.db.updateRow(
+          session,
+          testDevice.copyWith(isRevoked: true),
+        );
+
+        await expectLater(
+          endpoints.iAP.validateAppleTransaction(
+            authenticatedSessionBuilder,
+            'txn-revoked-device-test',
+            'product-revoked-device-test',
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+
+        await AccountDevice.db.updateRow(
+          session,
+          testDevice.copyWith(isRevoked: false),
+        );
+      });
+
       test('validateAppleTransaction fails without authentication', () async {
         expect(
           () => endpoints.iAP.validateAppleTransaction(
@@ -119,11 +151,14 @@ void main() {
             // If no error, the test passes (Apple not configured)
           } on Exception catch (e) {
             // Any exception is acceptable when Apple is not configured
-            expect(e.toString(), anyOf(
-              contains('configuration'),
-              contains('credentials'),
-              contains('Apple'),
-            ));
+            expect(
+              e.toString(),
+              anyOf(
+                contains('configuration'),
+                contains('credentials'),
+                contains('Apple'),
+              ),
+            );
           }
         },
       );
@@ -181,11 +216,14 @@ void main() {
             // If no error, the test passes (Google not configured)
           } on Exception catch (e) {
             // Any exception is acceptable when Google is not configured
-            expect(e.toString(), anyOf(
-              contains('configuration'),
-              contains('credentials'),
-              contains('Google'),
-            ));
+            expect(
+              e.toString(),
+              anyOf(
+                contains('configuration'),
+                contains('credentials'),
+                contains('Google'),
+              ),
+            );
           }
         },
       );
