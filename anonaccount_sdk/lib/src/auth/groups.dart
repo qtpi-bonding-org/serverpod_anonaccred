@@ -36,14 +36,23 @@ import '../crypto/key_gen.dart';
 import '../crypto/signing.dart';
 import '../models/created_group.dart';
 import '../models/group_membership.dart';
+import 'member_key_store.dart';
 import 'pow_signer.dart';
 
-/// High-level group lifecycle wrapper. Stateless. Each method takes the
-/// keys it needs explicitly — the SDK does not retain state between calls.
+/// High-level group lifecycle wrapper.
+///
+/// Holds no key material: [_memberKeys] is a handle to the consumer's store,
+/// and the device key is still passed per call. The consumer owns every
+/// private key this class touches.
 class AnonaccountGroups {
-  AnonaccountGroups(this._caller, {this.difficulty = PowSigner.defaultDifficulty});
+  AnonaccountGroups(
+    this._caller,
+    this._memberKeys, {
+    this.difficulty = PowSigner.defaultDifficulty,
+  });
 
   final Caller _caller;
+  final MemberKeyStore _memberKeys;
   // ignore: unused_field
   final int difficulty;
 

@@ -52,7 +52,8 @@ void main() {
 
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final callerDeviceHex = await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex();
-    final groups = AnonaccountGroups(caller, difficulty: 4);
+    final store = InMemoryMemberKeyStore();
+    final groups = AnonaccountGroups(caller, store, difficulty: 4);
     final created = await groups.createGroup(
       displayName: 'Family',
       callerDeviceKey: callerDeviceKey,
@@ -73,5 +74,16 @@ void main() {
           creatorMemberEncryptedDataKey: any(named: 'creatorMemberEncryptedDataKey'),
           groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
         )).called(1);
+  });
+
+  test('AnonaccountGroups takes a MemberKeyStore', () {
+    // Pins the constructor arity so a later refactor cannot quietly drop
+    // custody back out of the class.
+    final groups = AnonaccountGroups(
+      _FakeCaller(),
+      InMemoryMemberKeyStore(),
+      difficulty: 4,
+    );
+    expect(groups, isA<AnonaccountGroups>());
   });
 }

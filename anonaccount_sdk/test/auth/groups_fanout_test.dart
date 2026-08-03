@@ -173,7 +173,8 @@ void main() {
             grants: any(named: 'grants'),
           )).thenAnswer((_) async => stubResult);
 
-      final groups = AnonaccountGroups(caller, difficulty: 4);
+      final store = InMemoryMemberKeyStore();
+      final groups = AnonaccountGroups(caller, store, difficulty: 4);
       final result = await groups.grantAllDevices(
         memberId: memberId,
         groupDataKey: dataKey,
@@ -336,7 +337,8 @@ void main() {
             grants: any(named: 'grants'),
           )).thenAnswer((_) async => stubResult);
 
-      final groups = AnonaccountGroups(caller, difficulty: 4);
+      final store = InMemoryMemberKeyStore();
+      final groups = AnonaccountGroups(caller, store, difficulty: 4);
       await groups.grantAllDevices(
         memberId: memberId,
         groupDataKey: dataKey,
@@ -522,7 +524,8 @@ void main() {
             grants: any(named: 'grants'),
           )).thenAnswer((_) async => stubResult);
 
-      final groups = AnonaccountGroups(caller, difficulty: 4);
+      final store = InMemoryMemberKeyStore();
+      final groups = AnonaccountGroups(caller, store, difficulty: 4);
       final result = await groups.grantNewDevice(
         newDevice: newDevice,
         memberships: memberships,

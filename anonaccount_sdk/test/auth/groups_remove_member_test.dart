@@ -49,7 +49,8 @@ void main() {
 
     final callerMemberKey = await KeyGen.generateDeviceKey();
     final callerDeviceKey = await KeyGen.generateDeviceKey();
-    final groups = AnonaccountGroups(caller, difficulty: 4);
+    final store = InMemoryMemberKeyStore();
+    final groups = AnonaccountGroups(caller, store, difficulty: 4);
 
     final result = await groups.removeGroupMember(
       memberId: memberId,
