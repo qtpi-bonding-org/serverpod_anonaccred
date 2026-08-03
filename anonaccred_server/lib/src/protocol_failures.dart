@@ -11,21 +11,39 @@ PaymentException paymentFailure({
   required String message,
   required String operation,
   required Map<String, String> details,
-}) =>
-    PaymentException(
-      code: code,
-      message: message,
-      details: {'operation': operation, ...details},
-    );
+}) => PaymentException(
+  code: code,
+  message: message,
+  details: {'operation': operation, ...details},
+);
 
 InventoryException inventoryFailure({
   required String code,
   required String message,
   required String operation,
   required Map<String, String> details,
-}) =>
-    InventoryException(
-      code: code,
-      message: message,
-      details: {'operation': operation, ...details},
-    );
+}) => InventoryException(
+  code: code,
+  message: message,
+  details: {'operation': operation, ...details},
+);
+
+InventoryException Function({
+  required String code,
+  required String message,
+  required String operation,
+  required Map<String, String> details,
+})
+inventoryFailureWithTag(String? tag) {
+  return ({
+    required String code,
+    required String message,
+    required String operation,
+    required Map<String, String> details,
+  }) => InventoryException(
+    code: code,
+    message: message,
+    tag: tag,
+    details: {'operation': operation, ...details},
+  );
+}

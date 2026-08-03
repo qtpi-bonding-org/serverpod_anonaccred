@@ -7,22 +7,19 @@ import 'group_post_fulfillment_context.dart';
 import 'payments/payment_manager.dart';
 import 'post_fulfillment_context.dart';
 import 'price_registry.dart';
+import 'payments/rail_fulfillment_helpers.dart';
 
 /// Called after fulfillTransactionPayment() has granted all entitlements
 /// to an account-scoped target.
-typedef PostFulfillmentHook = Future<void> Function(
-  Session session,
-  PostFulfillmentContext context,
-);
+typedef PostFulfillmentHook =
+    Future<void> Function(Session session, PostFulfillmentContext context);
 
 /// Called after fulfillTransactionPayment() has granted all entitlements
 /// to a group-scoped target. Separate from [PostFulfillmentHook] so each
 /// parent app can opt in independently and each context carries its
 /// identity field non-nullably.
-typedef GroupPostFulfillmentHook = Future<void> Function(
-  Session session,
-  GroupPostFulfillmentContext context,
-);
+typedef GroupPostFulfillmentHook =
+    Future<void> Function(Session session, GroupPostFulfillmentContext context);
 
 /// Service for managing commerce operations (payments, fulfillment, and accreditation)
 ///
@@ -89,7 +86,8 @@ class CommerceManager {
     }
 
     // 2. Get price from PriceRegistry if customPrice not provided
-    final price = customPrice ?? PriceRegistry().getPrice(storeProductId) ?? 0.0;
+    final price =
+        customPrice ?? PriceRegistry().getPrice(storeProductId) ?? 0.0;
 
     // 3. Prepare internalTransactionId and Timestamp
     final internalTxId = const Uuid().v4();
@@ -98,7 +96,10 @@ class CommerceManager {
     // 4. Create EphemeralAccreditation (The identity link bridge)
     await EphemeralAccreditation.db.insertRow(
       session,
-      EphemeralAccreditation(accountUuid: accountUuid, transactionTimestamp: now),
+      EphemeralAccreditation(
+        accountUuid: accountUuid,
+        transactionTimestamp: now,
+      ),
       transaction: transaction,
     );
 
@@ -199,9 +200,9 @@ class CommerceManager {
       );
 
       // 4. Grant Entitlements from the Product SKU
-      final grants = await RailProductGrant.db.find(
+      final grants = await findGrantsForRailProduct(
         session,
-        where: (t) => t.railProductId.equals(payment.railProductId),
+        payment.railProductId,
         transaction: transaction,
       );
 

@@ -14,6 +14,7 @@ import '../payment_rail_interface.dart';
 import '../polar_client.dart';
 import '../redemption_target.dart';
 import '../polar_signature_validator.dart';
+import '../rail_fulfillment_helpers.dart';
 
 /// Polar.sh license-key payment rail.
 ///
@@ -106,10 +107,7 @@ class PolarRail implements PaymentRailInterface {
 
     // 1. Idempotency via ReceiptHash (hash of license_key UUID)
     final licenseHash = CryptoUtils.sha256Hash(validation.id);
-    final existing = await ReceiptHash.db.findFirstRow(
-      session,
-      where: (t) => t.hash.equals(licenseHash),
-    );
+    final existing = await findExistingReceipt(session, licenseHash);
     if (existing != null) {
       return PolarValidationResult(
         isValid: true,
@@ -120,26 +118,11 @@ class PolarRail implements PaymentRailInterface {
     }
 
     // 2. Look up RailProduct (storeProductId=benefit_id, rail=polar)
-    final railProduct = await RailProduct.db.findFirstRow(
+    final railProduct = await requireActiveRailProduct(
       session,
-      where: (t) =>
-          t.rail.equals(PaymentRail.polar) &
-          t.storeProductId.equals(validation.benefitId) &
-          t.isActive.equals(true),
+      PaymentRail.polar,
+      validation.benefitId,
     );
-
-    if (railProduct == null) {
-      throw AnonAccredExceptionFactory.createPaymentException(
-        code: AnonAccredErrorCodes.polarBenefitUnmapped,
-        message:
-            'No active RailProduct found for Polar benefit ${validation.benefitId}',
-        paymentRail: PaymentRail.polar.name,
-        details: {
-          'benefitId': validation.benefitId,
-          'licenseKeyId': validation.id,
-        },
-      );
-    }
 
     // 3. Determine product scope by inspecting the first grant's tag.
     //    Tag prefix `group_` → group-scope (matches groups-extension
@@ -182,8 +165,60 @@ class PolarRail implements PaymentRailInterface {
     String? deliveredTag;
     double? deliveredQuantity;
     final purchaseDate = DateTime.now().toUtc();
-    final internalTxId = internalTransactionId ?? const Uuid().v4();
 
+    final grants = await executeAtomicFulfillment(
+      session,
+      receiptHash: licenseHash,
+      rail: PaymentRail.polar,
+      railProduct: railProduct,
+      internalTransactionId: internalTransactionId,
+      purchaseDate: purchaseDate,
+      paymentRef: validation.id,
+      insertBridge: (tx) => switch (target) {
+        AccountTarget(:final accountUuid) =>
+          EphemeralAccreditation.db.insertRow(
+            session,
+            EphemeralAccreditation(
+              accountUuid: accountUuid,
+              transactionTimestamp: purchaseDate,
+            ),
+            transaction: tx,
+          ),
+        GroupTarget(:final shareGroupUuid, :final buyerAccountUuid) =>
+          EphemeralAccreditationGroup.db.insertRow(
+            session,
+            EphemeralAccreditationGroup(
+              accountUuid: buyerAccountUuid,
+              shareGroupUuid: shareGroupUuid,
+              transactionTimestamp: purchaseDate,
+            ),
+            transaction: tx,
+          ),
+      },
+      creditGrant: (grant, tx) => switch (target) {
+        AccountTarget(:final accountUuid) =>
+          EntitlementManager.grantEntitlementById(
+            session,
+            accountUuid: accountUuid,
+            entitlementId: grant.entitlementId,
+            quantity: grant.quantity,
+            transaction: tx,
+          ),
+        GroupTarget(:final shareGroupUuid) =>
+          GroupEntitlementManager.grantGroupEntitlementById(
+            session,
+            shareGroupUuid: shareGroupUuid,
+            entitlementId: grant.entitlementId,
+            quantity: grant.quantity,
+            transaction: tx,
+          ),
+      },
+    );
+    final metadata = firstGrantMetadata(grants, firstGrantEntitlement);
+    deliveredTag = metadata.tag;
+    deliveredQuantity = metadata.quantity;
+
+    /*
     await session.db.transaction((dbTransaction) async {
       // a. ReceiptHash for blind idempotency
       await ReceiptHash.db.insertRow(
@@ -259,7 +294,7 @@ class PolarRail implements PaymentRailInterface {
       // Capture first grant info for the response
       deliveredTag = firstGrantEntitlement.tag;
       deliveredQuantity = grantList.first.quantity;
-    });
+    });*/
 
     return PolarValidationResult(
       isValid: true,

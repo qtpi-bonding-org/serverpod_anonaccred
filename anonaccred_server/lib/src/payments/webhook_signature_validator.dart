@@ -7,6 +7,7 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
+import 'constant_time_compare.dart';
 
 /// Validates webhook signatures from Google Real-time Developer Notifications
 ///
@@ -30,7 +31,8 @@ class WebhookSignatureValidator {
     if (key == null || key.isEmpty) {
       throw AnonAccountExceptionFactory.createException(
         code: AnonAccredErrorCodes.configurationMissing,
-        message: 'GOOGLE_WEBHOOK_SIGNING_KEY environment variable is not configured',
+        message:
+            'GOOGLE_WEBHOOK_SIGNING_KEY environment variable is not configured',
         details: {'required_env_var': 'GOOGLE_WEBHOOK_SIGNING_KEY'},
       );
     }
@@ -84,34 +86,11 @@ class WebhookSignatureValidator {
       final computedSignature = digest.toString();
 
       // Compare signatures (constant-time comparison to prevent timing attacks)
-      return _constantTimeEquals(computedSignature, signature);
+      return constantTimeEquals(computedSignature, signature);
     } catch (e) {
       // If there's an error computing the signature, it's invalid
       return false;
     }
-  }
-
-  /// Constant-time string comparison to prevent timing attacks
-  ///
-  /// Compares two strings in constant time to prevent attackers from
-  /// using timing differences to guess valid signatures.
-  ///
-  /// Parameters:
-  /// - [a]: First string to compare
-  /// - [b]: Second string to compare
-  ///
-  /// Returns: true if strings are equal, false otherwise
-  static bool _constantTimeEquals(String a, String b) {
-    if (a.length != b.length) {
-      return false;
-    }
-
-    var result = 0;
-    for (var i = 0; i < a.length; i++) {
-      result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
-    }
-
-    return result == 0;
   }
 
   /// Validate webhook signature and throw on failure

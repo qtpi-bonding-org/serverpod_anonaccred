@@ -15,6 +15,7 @@ import '../../refund_manager.dart';
 import '../android_publisher_client.dart';
 import '../google_auth_client.dart';
 import '../payment_rail_interface.dart';
+import '../rail_fulfillment_helpers.dart';
 import '../webhook_signature_validator.dart';
 
 /// Google Play In-App Purchase payment rail implementation
@@ -251,10 +252,7 @@ class GoogleIAPRail implements PaymentRailInterface {
         final purchaseHash = CryptoUtils.sha256Hash(purchaseToken);
 
         // 2. Check for existing delivery via hash (idempotency)
-        final existingHash = await ReceiptHash.db.findFirstRow(
-          session,
-          where: (t) => t.hash.equals(purchaseHash),
-        );
+        final existingHash = await findExistingReceipt(session, purchaseHash);
 
         if (existingHash != null) {
           // Already handled - return success with fromCache
@@ -295,26 +293,54 @@ class GoogleIAPRail implements PaymentRailInterface {
         }
 
         // 4. Look up RailProduct from DB (replaces old env-var ProductMappingConfig)
-        final railProduct = await RailProduct.db.findFirstRow(
+        final railProduct = await requireActiveRailProduct(
           session,
-          where: (t) =>
-              t.rail.equals(PaymentRail.google_iap) &
-              t.storeProductId.equals(productId) &
-              t.isActive.equals(true),
+          PaymentRail.google_iap,
+          productId,
         );
-
-        if (railProduct == null) {
-          throw AnonAccountExceptionFactory.createException(
-            code: AnonAccredErrorCodes.configurationMissing,
-            message: 'No RailProduct found for Google product ID: $productId',
-            details: {'productId': productId},
-          );
-        }
 
         // 5. Atomic Transaction: Record permanent hash, ephemeral audit, financial record, and inventory credit
         String? deliveredTag;
         double? deliveredQuantity;
 
+        final purchaseTime = DateTime.fromMillisecondsSinceEpoch(
+          GooglePurchaseValidationResult._parseIntField(
+                purchase.purchaseTimeMillis,
+              ) ??
+              0,
+        );
+        final grants = await executeAtomicFulfillment(
+          session,
+          receiptHash: purchaseHash,
+          rail: PaymentRail.google_iap,
+          railProduct: railProduct,
+          internalTransactionId: internalTransactionId,
+          purchaseDate: purchaseTime,
+          paymentRef: purchase.orderId ?? '',
+          insertBridge: (tx) => EphemeralAccreditation.db.insertRow(
+            session,
+            EphemeralAccreditation(
+              accountUuid: accountUuid,
+              transactionTimestamp: purchaseTime,
+            ),
+            transaction: tx,
+          ),
+          creditGrant: (grant, tx) => EntitlementManager.grantEntitlementById(
+            session,
+            accountUuid: accountUuid,
+            entitlementId: grant.entitlementId,
+            quantity: grant.quantity,
+            transaction: tx,
+          ),
+        );
+        final firstGrantEntitlement = grants.isNotEmpty
+            ? await Entitlement.db.findById(session, grants.first.entitlementId)
+            : null;
+        final metadata = firstGrantMetadata(grants, firstGrantEntitlement);
+        deliveredTag = metadata.tag;
+        deliveredQuantity = metadata.quantity;
+
+        /*
         await session.db.transaction((dbTransaction) async {
           // a. Record the purchase hash permanently (blind idempotency)
           await ReceiptHash.db.insertRow(
@@ -391,10 +417,15 @@ class GoogleIAPRail implements PaymentRailInterface {
             deliveredTag = entitlement?.tag;
             deliveredQuantity = grants.first.quantity;
           }
-        });
+        });*/
 
         // 6. Acknowledge purchase (async, don't block)
-        _acknowledgePurchaseAsync(session, packageName, productId, purchaseToken);
+        _acknowledgePurchaseAsync(
+          session,
+          packageName,
+          productId,
+          purchaseToken,
+        );
 
         // 7. Always consume (all IAP products are consumable)
         _consumePurchaseAsync(session, packageName, productId, purchaseToken);

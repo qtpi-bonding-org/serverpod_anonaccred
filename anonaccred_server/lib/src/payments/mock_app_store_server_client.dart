@@ -1,5 +1,8 @@
 import 'package:app_store_server_sdk/app_store_server_sdk.dart';
 import 'app_store_server_client.dart';
+import 'mock_api_call.dart';
+
+export 'mock_api_call.dart' show ApiCall;
 
 /// Mock implementation of AppStoreServerClient for testing without real API calls.
 ///
@@ -54,15 +57,18 @@ class MockAppStoreServerClient implements AppStoreServerClient {
 
   @override
   Future<HistoryResponse> getTransactionInfo(String transactionId) async {
-    callLog.add(ApiCall('getTransactionInfo', {
-      'transactionId': transactionId,
-    }));
+    callLog.add(
+      ApiCall('getTransactionInfo', {'transactionId': transactionId}),
+    );
 
     if (_mockTransactions.containsKey(transactionId)) {
       return _mockTransactions[transactionId]!;
     }
 
-    throw const ApiException(404, error: ApiError(4040000, 'Transaction not found'));
+    throw const ApiException(
+      404,
+      error: ApiError(4040000, 'Transaction not found'),
+    );
   }
 
   @override
@@ -70,61 +76,35 @@ class MockAppStoreServerClient implements AppStoreServerClient {
     required String originalTransactionId,
     String? revision,
   }) async {
-    callLog.add(ApiCall('getTransactionHistory', {
-      'originalTransactionId': originalTransactionId,
-      'revision': revision ?? 'null',
-    }));
+    callLog.add(
+      ApiCall('getTransactionHistory', {
+        'originalTransactionId': originalTransactionId,
+        'revision': revision ?? 'null',
+      }),
+    );
 
     if (_mockHistories.containsKey(originalTransactionId)) {
       return _mockHistories[originalTransactionId]!;
     }
 
     // Return empty history if not found (not an error)
-    return const HistoryResponse('sandbox', null, 'com.example.app', false, '', []);
+    return const HistoryResponse(
+      'sandbox',
+      null,
+      'com.example.app',
+      false,
+      '',
+      [],
+    );
   }
 
   @override
   Future<OrderLookupResponse> lookUpOrderId(String orderId) async {
-    callLog.add(ApiCall('lookUpOrderId', {
-      'orderId': orderId,
-    }));
+    callLog.add(ApiCall('lookUpOrderId', {'orderId': orderId}));
 
-    throw const ApiException(501, error: ApiError(5010000, 'Not implemented in mock'));
-  }
-}
-
-/// Represents a single API call made through the mock client.
-///
-/// Used for test verification to ensure the correct API methods were called
-/// with the expected parameters.
-class ApiCall {
-
-  ApiCall(this.method, this.parameters);
-  /// The name of the API method that was called
-  final String method;
-
-  /// The parameters passed to the API method
-  final Map<String, String> parameters;
-
-  @override
-  String toString() => 'ApiCall{method: $method, parameters: $parameters}';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ApiCall &&
-          runtimeType == other.runtimeType &&
-          method == other.method &&
-          _mapsEqual(parameters, other.parameters);
-
-  @override
-  int get hashCode => method.hashCode ^ parameters.hashCode;
-
-  bool _mapsEqual(Map<String, String> a, Map<String, String> b) {
-    if (a.length != b.length) return false;
-    for (final key in a.keys) {
-      if (a[key] != b[key]) return false;
-    }
-    return true;
+    throw const ApiException(
+      501,
+      error: ApiError(5010000, 'Not implemented in mock'),
+    );
   }
 }

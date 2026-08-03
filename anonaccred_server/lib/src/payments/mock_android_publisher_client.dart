@@ -1,31 +1,9 @@
 import 'package:googleapis/androidpublisher/v3.dart';
 
 import 'android_publisher_client.dart';
+import 'mock_api_call.dart';
 
-/// Represents a single API call made through the mock client
-///
-/// Used for test verification to ensure the correct methods were called
-/// with the correct parameters.
-class ApiCall {
-
-  ApiCall(this.methodName, this.parameters);
-  final String methodName;
-  final Map<String, dynamic> parameters;
-
-  @override
-  String toString() => '$methodName($parameters)';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ApiCall &&
-          runtimeType == other.runtimeType &&
-          methodName == other.methodName &&
-          parameters == other.parameters;
-
-  @override
-  int get hashCode => methodName.hashCode ^ parameters.hashCode;
-}
+export 'mock_api_call.dart' show ApiCall;
 
 /// Mock implementation of AndroidPublisherClient for testing
 ///
@@ -87,11 +65,13 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
     required String productId,
     required String purchaseToken,
   }) async {
-    callLog.add(ApiCall('getPurchase', {
-      'packageName': packageName,
-      'productId': productId,
-      'purchaseToken': purchaseToken,
-    }));
+    callLog.add(
+      ApiCall('getPurchase', {
+        'packageName': packageName,
+        'productId': productId,
+        'purchaseToken': purchaseToken,
+      }),
+    );
 
     if (mockPurchases.containsKey(purchaseToken)) {
       return mockPurchases[purchaseToken]!;
@@ -116,11 +96,13 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
     required String productId,
     required String purchaseToken,
   }) async {
-    callLog.add(ApiCall('acknowledgePurchase', {
-      'packageName': packageName,
-      'productId': productId,
-      'purchaseToken': purchaseToken,
-    }));
+    callLog.add(
+      ApiCall('acknowledgePurchase', {
+        'packageName': packageName,
+        'productId': productId,
+        'purchaseToken': purchaseToken,
+      }),
+    );
 
     if (acknowledgePurchaseError != null) {
       throw acknowledgePurchaseError!;
@@ -143,11 +125,13 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
     required String productId,
     required String purchaseToken,
   }) async {
-    callLog.add(ApiCall('consumePurchase', {
-      'packageName': packageName,
-      'productId': productId,
-      'purchaseToken': purchaseToken,
-    }));
+    callLog.add(
+      ApiCall('consumePurchase', {
+        'packageName': packageName,
+        'productId': productId,
+        'purchaseToken': purchaseToken,
+      }),
+    );
 
     if (consumePurchaseError != null) {
       throw consumePurchaseError!;

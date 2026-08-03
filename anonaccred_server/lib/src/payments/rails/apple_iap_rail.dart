@@ -14,6 +14,7 @@ import '../app_store_server_client.dart';
 import '../apple_jwt_auth_client.dart';
 import '../notification_signature_validator.dart';
 import '../payment_rail_interface.dart';
+import '../rail_fulfillment_helpers.dart';
 import 'package:uuid/uuid.dart';
 
 /// Apple In-App Purchase payment rail implementation using app_store_server_sdk.
@@ -199,10 +200,7 @@ class AppleIAPRail implements PaymentRailInterface {
     final transactionHash = CryptoUtils.sha256Hash(transactionId);
 
     // 2. Check for existing delivery via hash (idempotency)
-    final existingHash = await ReceiptHash.db.findFirstRow(
-      session,
-      where: (t) => t.hash.equals(transactionHash),
-    );
+    final existingHash = await findExistingReceipt(session, transactionHash);
 
     if (existingHash != null) {
       // If we've seen this hash, it means coins were already delivered.
@@ -234,7 +232,9 @@ class AppleIAPRail implements PaymentRailInterface {
     final allDecoded = historyResponse.signedTransactions
         .map(_decodeSignedTransaction)
         .toList();
-    final decodedTransaction = allDecoded.cast<DecodedTransaction?>().firstWhere(
+    final decodedTransaction = allDecoded
+        .cast<DecodedTransaction?>()
+        .firstWhere(
           (t) => t!.transactionId == transactionId,
           orElse: () => null,
         );
@@ -263,98 +263,46 @@ class AppleIAPRail implements PaymentRailInterface {
     }
 
     // 6. Look up RailProduct from DB (replaces old env-var ProductMappingConfig)
-    final railProduct = await RailProduct.db.findFirstRow(
+    final railProduct = await requireActiveRailProduct(
       session,
-      where: (t) =>
-          t.rail.equals(PaymentRail.apple_iap) &
-          t.storeProductId.equals(resolvedProductId) &
-          t.isActive.equals(true),
+      PaymentRail.apple_iap,
+      resolvedProductId,
     );
 
-    if (railProduct == null) {
-      throw AnonAccountExceptionFactory.createException(
-        code: AnonAccredErrorCodes.configurationMissing,
-        message:
-            'No RailProduct found for Apple product ID: $resolvedProductId',
-        details: {'productId': resolvedProductId},
-      );
-    }
-
     // 7. Atomic Transaction: Record permanent hash, ephemeral audit, delivery, and credit inventory
-    String? deliveredTag;
-    double? deliveredQuantity;
-
-    await session.db.transaction((dbTransaction) async {
-      // a. Record the transaction hash permanently (blind idempotency)
-      await ReceiptHash.db.insertRow(
-        session,
-        ReceiptHash(hash: transactionHash, paymentRail: PaymentRail.apple_iap),
-        transaction: dbTransaction,
-      );
-
-      // b. Record the EPHEMERAL accreditation (Bridge account to time for 7-day refund support)
-      final purchaseDate = DateTime.fromMillisecondsSinceEpoch(
-        decodedTransaction.purchaseDate,
-      );
-
-      await EphemeralAccreditation.db.insertRow(
+    final purchaseDate = DateTime.fromMillisecondsSinceEpoch(
+      decodedTransaction.purchaseDate,
+    );
+    final grants = await executeAtomicFulfillment(
+      session,
+      receiptHash: transactionHash,
+      rail: PaymentRail.apple_iap,
+      railProduct: railProduct,
+      internalTransactionId: internalTransactionId,
+      purchaseDate: purchaseDate,
+      paymentRef: transactionId,
+      insertBridge: (tx) => EphemeralAccreditation.db.insertRow(
         session,
         EphemeralAccreditation(
           accountUuid: accountUuid,
           transactionTimestamp: purchaseDate,
         ),
-        transaction: dbTransaction,
-      );
-
-      // c. Create the PERMANENT financial record
-      final internalTxId = internalTransactionId ?? const Uuid().v4();
-
-      await TransactionPayment.db.insertRow(
+        transaction: tx,
+      ),
+      creditGrant: (grant, tx) => EntitlementManager.grantEntitlementById(
         session,
-        TransactionPayment(
-          railProductId: railProduct.id!,
-          internalTransactionId: internalTxId,
-          priceCurrency: Currency.USD,
-          price: 0.0,
-          paymentRail: PaymentRail.apple_iap,
-          paymentCurrency: Currency.USD,
-          paymentAmount: 0.0,
-          paymentRef: transactionId,
-          transactionTimestamp: purchaseDate,
-          clientReference: internalTxId,
-          status: OrderStatus.paid,
-        ),
-        transaction: dbTransaction,
-      );
-
-      // d. Credit user inventory based on grants
-      final grants = await RailProductGrant.db.find(
-        session,
-        where: (t) => t.railProductId.equals(railProduct.id!),
-        transaction: dbTransaction,
-      );
-
-      for (final grant in grants) {
-        await EntitlementManager.grantEntitlementById(
-          session,
-          accountUuid: accountUuid,
-          entitlementId: grant.entitlementId,
-          quantity: grant.quantity,
-          transaction: dbTransaction,
-        );
-      }
-
-      // Capture first grant info for the response
-      if (grants.isNotEmpty) {
-        final entitlement = await Entitlement.db.findById(
-          session,
-          grants.first.entitlementId,
-          transaction: dbTransaction,
-        );
-        deliveredTag = entitlement?.tag;
-        deliveredQuantity = grants.first.quantity;
-      }
-    });
+        accountUuid: accountUuid,
+        entitlementId: grant.entitlementId,
+        quantity: grant.quantity,
+        transaction: tx,
+      ),
+    );
+    final firstGrantEntitlement = grants.isNotEmpty
+        ? await Entitlement.db.findById(session, grants.first.entitlementId)
+        : null;
+    final metadata = firstGrantMetadata(grants, firstGrantEntitlement);
+    final deliveredTag = metadata.tag;
+    final deliveredQuantity = metadata.quantity;
 
     return AppleTransactionValidationResult(
       isValid: true,

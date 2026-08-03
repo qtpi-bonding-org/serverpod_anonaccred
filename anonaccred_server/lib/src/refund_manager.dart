@@ -4,6 +4,7 @@ import 'entitlement_manager.dart';
 import 'generated/protocol.dart';
 import 'group_entitlement_manager.dart';
 import 'refund_event.dart';
+import 'payments/rail_fulfillment_helpers.dart';
 
 /// What action the library should take after a refund.
 enum RefundAction {
@@ -223,10 +224,7 @@ class RefundManager {
     }
 
     // 5. Get grants for the rail product
-    final grants = await RailProductGrant.db.find(
-      session,
-      where: (t) => t.railProductId.equals(railProductId),
-    );
+    final grants = await findGrantsForRailProduct(session, railProductId);
 
     return RefundContext(
       receiptHash: hashRecord,
@@ -257,27 +255,8 @@ class RefundManager {
         // Revoke entitlements, then mark refunded.
         // Branch on whether this was a group purchase or individual.
         final reason = 'REFUND:${event.rail.name}:${event.paymentRef}';
-        if (context.shareGroupUuid != null && context.grants.isNotEmpty) {
-          for (final grant in context.grants) {
-            await GroupEntitlementManager.revokeGroupEntitlement(
-              session,
-              shareGroupUuid: context.shareGroupUuid!,
-              entitlementId: grant.entitlementId,
-              quantity: grant.quantity,
-              reason: reason,
-            );
-          }
-        } else if (context.accountUuid != null && context.grants.isNotEmpty) {
-          for (final grant in context.grants) {
-            await EntitlementManager.revokeEntitlement(
-              session,
-              accountUuid: context.accountUuid!,
-              entitlementId: grant.entitlementId,
-              quantity: grant.quantity,
-              reason: reason,
-            );
-          }
-        } else if (context.bridgeExpired) {
+        if (!await _revokeAllGrants(session, context, reason) &&
+            context.bridgeExpired) {
           session.log(
             'Refund revokeAll: bridge expired for paymentRef=${event.paymentRef}, '
             'skipping entitlement revocation.',
@@ -286,6 +265,38 @@ class RefundManager {
         }
         await _markRefunded(session, context.payment);
     }
+  }
+
+  static Future<bool> _revokeAllGrants(
+    Session session,
+    RefundContext context,
+    String reason,
+  ) async {
+    if (context.shareGroupUuid != null && context.grants.isNotEmpty) {
+      for (final grant in context.grants) {
+        await GroupEntitlementManager.revokeGroupEntitlement(
+          session,
+          shareGroupUuid: context.shareGroupUuid!,
+          entitlementId: grant.entitlementId,
+          quantity: grant.quantity,
+          reason: reason,
+        );
+      }
+      return true;
+    }
+    if (context.accountUuid != null && context.grants.isNotEmpty) {
+      for (final grant in context.grants) {
+        await EntitlementManager.revokeEntitlement(
+          session,
+          accountUuid: context.accountUuid!,
+          entitlementId: grant.entitlementId,
+          quantity: grant.quantity,
+          reason: reason,
+        );
+      }
+      return true;
+    }
+    return false;
   }
 
   /// Mark a TransactionPayment as refunded.

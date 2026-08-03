@@ -28,38 +28,33 @@ class GroupEntitlementManager {
     required int entitlementId,
     required double quantity,
     required Transaction transaction,
-  }) async {
-    EntitlementCore.requirePositiveAmount(quantity, operation: 'Group grant');
-
-    final existing = await GroupEntitlement.db.findFirstRow(
-      session,
-      where: (t) =>
-          t.shareGroupUuid.equals(shareGroupUuid) &
-          t.entitlementId.equals(entitlementId),
-      // FOR UPDATE prevents concurrent group grants from racing on the same
-      // balance row under Postgres READ COMMITTED isolation.
-      lockMode: LockMode.forUpdate,
-      transaction: transaction,
-    );
-
-    if (existing != null) {
-      await GroupEntitlement.db.updateRow(
+  }) => EntitlementCore.grantByKey(
         session,
-        existing.copyWith(balance: existing.balance + quantity),
-        transaction: transaction,
-      );
-    } else {
-      await GroupEntitlement.db.insertRow(
-        session,
-        GroupEntitlement(
-          shareGroupUuid: shareGroupUuid,
-          entitlementId: entitlementId,
-          balance: quantity,
+        quantity: quantity,
+        operation: 'Group grant',
+        findExisting: () => GroupEntitlement.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.shareGroupUuid.equals(shareGroupUuid) &
+              t.entitlementId.equals(entitlementId),
+          lockMode: LockMode.forUpdate,
+          transaction: transaction,
         ),
-        transaction: transaction,
+        updateBalance: (existing) => GroupEntitlement.db.updateRow(
+          session,
+          existing.copyWith(balance: existing.balance + quantity),
+          transaction: transaction,
+        ),
+        insertNew: () => GroupEntitlement.db.insertRow(
+          session,
+          GroupEntitlement(
+            shareGroupUuid: shareGroupUuid,
+            entitlementId: entitlementId,
+            balance: quantity,
+          ),
+          transaction: transaction,
+        ),
       );
-    }
-  }
 
   /// Grants entitlement to a group by tag.
   ///
@@ -104,7 +99,39 @@ class GroupEntitlementManager {
       operation: 'Group consumption',
     );
 
-    return tryOperation(
+    return EntitlementCore.consumeByKey(
+      session,
+      tag: tag,
+      amount: amount,
+      operationName: 'consumeGroupEntitlement',
+      findRecord: (entitlement, transaction) => GroupEntitlement.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.shareGroupUuid.equals(shareGroupUuid) &
+            t.entitlementId.equals(entitlement.id),
+        lockMode: LockMode.forUpdate,
+        transaction: transaction,
+      ),
+      balanceOf: (record) => record.balance,
+      applyDebit: (record, transaction) => GroupEntitlement.db.updateRow(
+        session,
+        record.copyWith(balance: record.balance - amount),
+        transaction: transaction,
+      ),
+      insertLog: (entitlement, transaction) => GroupConsumptionLog.db.insertRow(
+        session,
+        GroupConsumptionLog(
+          shareGroupUuid: shareGroupUuid,
+          entitlementId: entitlement.id!,
+          amount: amount,
+          reason: reason,
+          timestamp: DateTime.now(),
+          consumingAccountUuid: consumingAccountUuid,
+        ),
+        transaction: transaction,
+      ),
+    );
+    /*
       session,
       'consumeGroupEntitlement',
       () async {
@@ -167,7 +194,7 @@ class GroupEntitlementManager {
             details: details,
           ),
       code: AnonAccountErrorCodes.databaseError,
-    );
+    );*/
   }
 
   /// Revokes a group entitlement balance.
@@ -183,7 +210,39 @@ class GroupEntitlementManager {
   }) async {
     if (quantity <= 0) return;
 
-    return tryOperation(
+    return EntitlementCore.revokeByKey(
+      session,
+      quantity: quantity,
+      operationName: 'revokeGroupEntitlement',
+      extraDetails: {'entitlementId': entitlementId.toString()},
+      findRecord: (transaction) => GroupEntitlement.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.shareGroupUuid.equals(shareGroupUuid) &
+            t.entitlementId.equals(entitlementId),
+        lockMode: LockMode.forUpdate,
+        transaction: transaction,
+      ),
+      balanceOf: (record) => record.balance,
+      applyDebit: (record, debit, transaction) => GroupEntitlement.db.updateRow(
+        session,
+        record.copyWith(balance: record.balance - debit),
+        transaction: transaction,
+      ),
+      insertLog: (debit, transaction) => GroupConsumptionLog.db.insertRow(
+        session,
+        GroupConsumptionLog(
+          shareGroupUuid: shareGroupUuid,
+          entitlementId: entitlementId,
+          amount: debit,
+          reason: reason,
+          timestamp: DateTime.now(),
+          consumingAccountUuid: consumingAccountUuid,
+        ),
+        transaction: transaction,
+      ),
+    );
+    /*
       session,
       'revokeGroupEntitlement',
       () async {
@@ -226,7 +285,7 @@ class GroupEntitlementManager {
       onFailure: inventoryFailure,
       code: AnonAccountErrorCodes.databaseError,
       extraDetails: {'entitlementId': entitlementId.toString()},
-    );
+    );*/
   }
 
   /// Gets the current balance for a group entitlement by tag.
@@ -235,7 +294,18 @@ class GroupEntitlementManager {
     required UuidValue shareGroupUuid,
     required String tag,
   }) async {
-    return tryOperation(
+    return EntitlementCore.getBalanceByKey(
+      session,
+      tag: tag,
+      findRecord: (entitlement) => GroupEntitlement.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.shareGroupUuid.equals(shareGroupUuid) &
+            t.entitlementId.equals(entitlement.id),
+      ),
+      balanceOf: (record) => record.balance,
+    );
+    /*
       session,
       'getGroupEntitlementBalance',
       () async {
@@ -267,7 +337,7 @@ class GroupEntitlementManager {
             details: details,
           ),
       code: AnonAccountErrorCodes.databaseError,
-    );
+    );*/
   }
 
   /// Gets all entitlement balances for a group.

@@ -305,7 +305,7 @@ void main() {
         );
 
         expect(mockClient.callLog, hasLength(1));
-        expect(mockClient.callLog.first.methodName, equals('getPurchase'));
+        expect(mockClient.callLog.first.method, equals('getPurchase'));
       });
 
       test('throws when purchase is in canceled state (purchaseState=1)',
@@ -372,7 +372,7 @@ void main() {
             purchaseToken: token,
             accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
-          throwsA(isA<AnonAccountException>()),
+          throwsA(isA<PaymentException>()),
         );
       });
     });

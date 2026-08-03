@@ -212,7 +212,7 @@ void main() {
             productId: 'com.quanitya.coins_100', // different from what Apple returned
             accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
-          throwsA(isA<AnonAccountException>()),
+          throwsA(isA<PaymentException>()),
         );
       });
 
@@ -247,7 +247,7 @@ void main() {
             productId: productId,
             accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
-          throwsA(isA<AnonAccountException>()),
+          throwsA(isA<PaymentException>()),
         );
       });
 
@@ -290,7 +290,7 @@ void main() {
             productId: productId,
             accountUuid: UuidValue.fromString(const Uuid().v4()),
           ),
-          throwsA(isA<AnonAccountException>()),
+          throwsA(isA<PaymentException>()),
         );
       });
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'constant_time_compare.dart';
 
 /// Standard Webhooks signature validator for Polar.sh deliveries.
 ///
@@ -22,8 +23,8 @@ class PolarSignatureValidator {
   PolarSignatureValidator({
     required String secret,
     Duration tolerance = const Duration(minutes: 5),
-  })  : _key = _decodeSecret(secret),
-        _tolerance = tolerance;
+  }) : _key = _decodeSecret(secret),
+       _tolerance = tolerance;
 
   final List<int> _key;
   final Duration _tolerance;
@@ -65,7 +66,7 @@ class PolarSignatureValidator {
     // some intermediaries introduce.
     for (final entry in signatureHeader.split(RegExp(r'\s+'))) {
       if (!entry.startsWith('v1,')) continue;
-      if (_constantTimeEquals(entry.substring('v1,'.length), expected)) {
+      if (constantTimeEquals(entry.substring('v1,'.length), expected)) {
         return true;
       }
     }
@@ -84,15 +85,4 @@ class PolarSignatureValidator {
     return utf8.encode(secret);
   }
 
-  /// Constant-time compare on equal-length strings. Both inputs here
-  /// are base64-encoded SHA-256 outputs (always 44 chars including the
-  /// trailing `=`), so the length-prefix check is safe.
-  static bool _constantTimeEquals(String a, String b) {
-    if (a.length != b.length) return false;
-    var result = 0;
-    for (var i = 0; i < a.length; i++) {
-      result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
-    }
-    return result == 0;
-  }
 }
