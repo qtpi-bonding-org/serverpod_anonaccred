@@ -57,26 +57,26 @@ equally well-founded, and the difference explains most of the group world's gaps
 | | account ultimate key | member key |
 |---|---|---|
 | generated | at signup | per group, at join |
-| backed up | yes — user writes it down (`getUltimateKeyJwkOnce`) | **no** |
-| recoverable after total device loss | yes | **no** |
-| anchored to a parent | n/a — it is the top | **no** — only a server-side FK (`GroupMember.anonAccountId`) |
+| backed up | yes — user writes it down (`getUltimateKeyJwkOnce`) | **yes**, since the member-key-backup work — `GroupMember.encryptedMemberKey` |
+| recoverable after total device loss | yes | **yes** — `recoverAccount` decrypts it and writes it to the caller's `MemberKeyStore` |
+| anchored to a parent | n/a — it is the top | **yes, cryptographically** — wrapped to the account ultimate *encryption* key, not just a server-side FK |
 
-The member key is a root **with no parent and no backup**. Nothing cryptographic
-ties it to the account that owns it; the binding is a column the server asserts.
-So losing the device that joined loses the membership's authority permanently,
-including the ability to leave the group.
+The member key **is** anchored to the account now: its private half is wrapped to
+the account's ultimate encryption public key and stored on the row
+(`GroupMember.encryptedMemberKey`), signed by the member key itself so a relaying
+admin (`addGroupMember`'s invitee path) can neither substitute the ciphertext nor
+redirect it to another group or account. Losing the joining device no longer loses
+the membership: the same backup phrase that recovers the account now recovers
+every membership.
 
-The natural fix is to make the account the true root over it — wrap the member
-key's private half to the account's ultimate *encryption* key, so the one backup
-the user already keeps covers every membership. **That is not implementable
-today**: `getUltimateKeyJwkOnce()` wipes the ultimate key entirely, so no device
-retains the public half to wrap against, and fetching it from the server would let
-the server choose the recipient of a private key. Retaining the ultimate *public*
-key in the store after the wipe would close that — public halves are not secret —
-but it is a change to `AccountKeyStore` that nobody has made.
+This was implementable because `AccountKeyStore.getUltimateEncryptionPublicKeyHex()`
+now retains the ultimate key's *public* half past `getUltimateKeyJwkOnce()`'s wipe —
+public halves are not secret, so keeping it costs nothing and gives every later
+`createGroup` / `addGroupMember` call a wrap target without a server round trip.
+Newly paired devices receive the same two ultimate public keys over the pairing
+channel that already carries the account data key (`DevicePairingEvent`).
 
-Until then, the account is the ultimate root only *by convention*, not by
-construction. Recorded in the deviations table.
+The account is now the ultimate root by construction, not merely by convention.
 
 **Reason:** one mechanism, learned once — and the group world's more complete
 implementation acts as a reference for the account world, in both directions.
@@ -124,12 +124,14 @@ about. Once one private key is transportable, "who can reach this key" stops
 being answerable by looking at the schema. Designs that need to break this should
 expect scrutiny proportional to that.
 
-**The one exception, and it is currently theoretical: break-glass copies wrapped to
-a user-held backup key.** An identity root needs a recovery path, or losing every
-device loses the identity permanently. The account's ultimate key already has one —
-the user writes it down (`getUltimateKeyJwkOnce`). A root private key may therefore
-be wrapped to a key that exists *only* in a user-held backup, never to a key
-resident on a device.
+**The one exception, and it is now live: break-glass copies wrapped to a
+user-held backup key.** An identity root needs a recovery path, or losing every
+device loses the identity permanently. The account's ultimate key already had one —
+the user writes it down (`getUltimateKeyJwkOnce`) — and the member key now has one
+too: `GroupMember.encryptedMemberKey` wraps it to the account's ultimate encryption
+public key, so `recoverAccount` can decrypt it with the same backup phrase that
+recovers the account itself. A root private key may therefore be wrapped to a key
+that exists *only* in a user-held backup, never to a key resident on a device.
 
 The distinction is the whole point, so state which side any proposal is on:
 
@@ -350,12 +352,11 @@ widening group authorization:
 | Revoked principals keep every key they held; nothing rotates a data key on revocation (rule 13) | design-level | Open — inherent to flag-based revocation |
 | `anonaccred`'s JWT is issued per **account**, so any device of a member account can spend group entitlements regardless of per-device grants | `group_commerce_endpoint.dart:109-132` | Open |
 
-**Roots that can't be exercised or recovered** — three instances of one pattern:
+**Roots that can't be exercised or recovered** — was three instances of one pattern, now two:
 
 | Deviation | Where | Status |
 |---|---|---|
-| The member key is an identity root with no backup and no cryptographic parent — losing the joining device loses the membership permanently, including the ability to leave | design-level | Open — see "Two roots" above |
-| `createGroup` generates the group ultimate KeyDuo and discards it, so owner authority is unrecoverable on every group ever created — no admin can ever be granted or removed | `anonaccount_sdk/lib/src/auth/groups.dart:39`, `created_group.dart` | Open |
+| `createGroup` generates the group ultimate KeyDuo and discards it, so owner authority is unrecoverable on every group ever created — no admin can ever be granted or removed | `anonaccount_sdk/lib/src/auth/groups.dart`, `created_group.dart` | Open — the same construction that now backs up the member key (wrap to the account ultimate encryption key, store on the row) would fix this one too. P0's `GroupOwner` table is the schema half of an answer; the write path is still missing |
 | There is no way to change a `GroupMember.role`. `GroupMember.db.updateRow` appears twice, both setting `isRevoked` — yet two error messages advise "promote another member to admin first" | `group_endpoint.dart:592`, `:946` | Open — the advised operation does not exist |
 
 **Group-world gaps the account world doesn't have:**
