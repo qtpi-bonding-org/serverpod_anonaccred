@@ -1,6 +1,4 @@
 import 'package:serverpod/serverpod.dart';
-import 'package:anonaccount_server/anonaccount_server.dart';
-import 'protocol_failures.dart';
 import 'entitlement_manager.dart';
 import 'exception_factory.dart';
 import 'generated/protocol.dart';
@@ -265,25 +263,4 @@ class CommerceManager {
       }
     });
   }
-
-  /// Manually links an account to a transaction via timestamp (for reactive rails like IAPs).
-  static Future<void> accreditTransaction(
-    Session session, {
-    required UuidValue accountUuid,
-    required DateTime transactionTimestamp,
-  }) async => tryOperation(
-        session,
-        'accreditTransaction',
-        () async {
-          await EphemeralAccreditation.db.insertRow(
-            session,
-            EphemeralAccreditation(
-              accountUuid: accountUuid,
-              transactionTimestamp: transactionTimestamp,
-            ),
-          );
-        },
-        onFailure: paymentFailure,
-        code: AnonAccountErrorCodes.databaseError,
-      );
 }

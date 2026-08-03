@@ -168,13 +168,15 @@ class GoogleIAPRail implements PaymentRailInterface {
         );
       }
 
+      final purchaseTimeMillis = GooglePurchaseValidationResult._parseIntField(
+        purchase.purchaseTimeMillis,
+      );
+
       return PaymentResult(
         success: isValid,
         internalTransactionId: purchase.orderId ?? '',
-        transactionTimestamp: purchase.purchaseTimeMillis != null
-            ? DateTime.fromMillisecondsSinceEpoch(
-                purchase.purchaseTimeMillis! as int,
-              )
+        transactionTimestamp: purchaseTimeMillis != null
+            ? DateTime.fromMillisecondsSinceEpoch(purchaseTimeMillis)
             : null,
         errorMessage: isValid ? null : 'Purchase validation failed',
       );
@@ -311,9 +313,10 @@ class GoogleIAPRail implements PaymentRailInterface {
 
           // b. Record the EPHEMERAL accreditation (Bridge account to time for 7-day refund support)
           final purchaseTime = DateTime.fromMillisecondsSinceEpoch(
-            purchase.purchaseTimeMillis != null
-                ? int.parse(purchase.purchaseTimeMillis!)
-                : 0,
+            GooglePurchaseValidationResult._parseIntField(
+                  purchase.purchaseTimeMillis,
+                ) ??
+                0,
           );
 
           await EphemeralAccreditation.db.insertRow(
@@ -376,10 +379,10 @@ class GoogleIAPRail implements PaymentRailInterface {
         });
 
         // 6. Acknowledge purchase (async, don't block)
-        _acknowledgePurchaseAsync(packageName, productId, purchaseToken);
+        _acknowledgePurchaseAsync(session, packageName, productId, purchaseToken);
 
         // 7. Always consume (all IAP products are consumable)
-        _consumePurchaseAsync(packageName, productId, purchaseToken);
+        _consumePurchaseAsync(session, packageName, productId, purchaseToken);
 
         final base = GooglePurchaseValidationResult.fromProductPurchase(
           purchase,
@@ -414,6 +417,7 @@ class GoogleIAPRail implements PaymentRailInterface {
   ///
   /// Requirements 2.2: Use AndroidPublisherClient for acknowledgment
   Future<void> _acknowledgePurchaseAsync(
+    Session session,
     String packageName,
     String productId,
     String purchaseToken,
@@ -426,7 +430,7 @@ class GoogleIAPRail implements PaymentRailInterface {
       );
     } catch (e) {
       // Log but don't throw (async, non-blocking)
-      print('Failed to acknowledge purchase: $e');
+      session.log('Failed to acknowledge purchase: $e', level: LogLevel.error);
     }
   }
 
@@ -442,6 +446,7 @@ class GoogleIAPRail implements PaymentRailInterface {
   ///
   /// Requirements 2.3, 5.3, 5.5: Use AndroidPublisherClient for consumption
   Future<void> _consumePurchaseAsync(
+    Session session,
     String packageName,
     String productId,
     String purchaseToken,
@@ -454,7 +459,7 @@ class GoogleIAPRail implements PaymentRailInterface {
       );
     } catch (e) {
       // Log but don't throw (async, non-blocking)
-      print('Failed to consume purchase: $e');
+      session.log('Failed to consume purchase: $e', level: LogLevel.error);
     }
   }
 

@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccount_server/src/crypto_utils.dart';
@@ -7,6 +10,7 @@ import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
 import 'package:anonaccred_server/src/refund_manager.dart';
+import 'package:crypto/crypto.dart';
 import 'package:googleapis/androidpublisher/v3.dart' show ProductPurchase;
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
@@ -397,6 +401,169 @@ void main() {
         expect(mockClient.callLog, isEmpty);
       });
     });
+
+    group('purchaseTimeMillis parsing', () {
+      test(
+        'validatePurchase still delivers the purchase when purchaseTimeMillis '
+        'is a non-numeric string',
+        () async {
+          final session = sessionBuilder.build();
+          const token = 'token_malformed_purchase_time';
+          const productId = 'com.quanitya.coins_malformed_time';
+
+          final account = await AnonAccount.db.insertRow(
+            session,
+            AnonAccount(
+              id: UuidValue.fromString(const Uuid().v4()),
+              ultimateSigningPublicKeyHex: _randomHex(),
+              encryptedDataKey: 'encrypted_data_key',
+              ultimateEncryptionPublicKeyHex: _randomHex(),
+            ),
+          );
+
+          final entitlement = await Entitlement.db.insertRow(
+            session,
+            Entitlement(
+              tag: 'coins_malformed_time',
+              name: 'Coins',
+              type: EntitlementType.consumable,
+              serverValidated: true,
+            ),
+          );
+
+          final railProduct = await RailProduct.db.insertRow(
+            session,
+            RailProduct(
+              rail: PaymentRail.google_iap,
+              storeProductId: productId,
+              isActive: true,
+            ),
+          );
+
+          await RailProductGrant.db.insertRow(
+            session,
+            RailProductGrant(
+              railProductId: railProduct.id!,
+              entitlementId: entitlement.id!,
+              quantity: 100,
+            ),
+          );
+
+          mockClient.addMockPurchase(
+            token,
+            ProductPurchase(
+              purchaseState: 0,
+              consumptionState: 0,
+              orderId: 'order_malformed_time',
+              // Google's androidpublisher API types this field as a decimal
+              // string. A malformed value here must not sink an otherwise
+              // valid purchase.
+              purchaseTimeMillis: 'not-a-number',
+            ),
+          );
+
+          final result = await googleRail.validatePurchase(
+            session: session,
+            packageName: 'com.quanitya.app',
+            productId: productId,
+            purchaseToken: token,
+            accountUuid: account.id!,
+          );
+
+          expect(result.isValid, isTrue);
+        },
+      );
+    });
+
+    group('async ack/consume failure logging', () {
+      test(
+        'does not fall back to print() when acknowledgePurchase fails',
+        () async {
+          final session = sessionBuilder.build();
+          const token = 'token_ack_failure_logging';
+          const productId = 'com.quanitya.coins_ack_failure';
+
+          final account = await AnonAccount.db.insertRow(
+            session,
+            AnonAccount(
+              id: UuidValue.fromString(const Uuid().v4()),
+              ultimateSigningPublicKeyHex: _randomHex(),
+              encryptedDataKey: 'encrypted_data_key',
+              ultimateEncryptionPublicKeyHex: _randomHex(),
+            ),
+          );
+
+          final entitlement = await Entitlement.db.insertRow(
+            session,
+            Entitlement(
+              tag: 'coins_ack_failure',
+              name: 'Coins',
+              type: EntitlementType.consumable,
+              serverValidated: true,
+            ),
+          );
+
+          final railProduct = await RailProduct.db.insertRow(
+            session,
+            RailProduct(
+              rail: PaymentRail.google_iap,
+              storeProductId: productId,
+              isActive: true,
+            ),
+          );
+
+          await RailProductGrant.db.insertRow(
+            session,
+            RailProductGrant(
+              railProductId: railProduct.id!,
+              entitlementId: entitlement.id!,
+              quantity: 100,
+            ),
+          );
+
+          mockClient
+            ..addMockPurchase(
+              token,
+              ProductPurchase(
+                purchaseState: 0,
+                consumptionState: 0,
+                orderId: 'order_ack_failure',
+              ),
+            )
+            ..acknowledgePurchaseError = Exception('transient network error');
+
+          final capturedPrints = <String>[];
+
+          await runZoned(
+            () async {
+              final result = await googleRail.validatePurchase(
+                session: session,
+                packageName: 'com.quanitya.app',
+                productId: productId,
+                purchaseToken: token,
+                accountUuid: account.id!,
+              );
+              expect(result.isValid, isTrue);
+
+              // Flush the microtask queue so the unawaited
+              // _acknowledgePurchaseAsync call's catch block runs.
+              await Future<void>.delayed(Duration.zero);
+            },
+            zoneSpecification: ZoneSpecification(
+              print: (self, parent, zone, line) => capturedPrints.add(line),
+            ),
+          );
+
+          expect(
+            capturedPrints,
+            isEmpty,
+            reason:
+                'acknowledgePurchase failures must go through session.log, '
+                'not print()',
+          );
+        },
+      );
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -512,5 +679,60 @@ void main() {
         equals('Missing webhook signature, payload, or session'),
       );
     });
+
+    test(
+      'processCallback does not throw when a validated purchase carries a '
+      'purchaseTimeMillis',
+      () async {
+        final session = sessionBuilder.build();
+        const token = 'token_callback_timestamp';
+        const payload = '{"notificationType":"SUBSCRIPTION_PURCHASED"}';
+        final signingKey = Platform.environment['GOOGLE_WEBHOOK_SIGNING_KEY']!;
+        final signature = Hmac(sha256, utf8.encode(signingKey))
+            .convert(utf8.encode(payload))
+            .toString();
+
+        mockClient.addMockPurchase(
+          token,
+          ProductPurchase(
+            purchaseState: 0,
+            consumptionState: 0,
+            orderId: 'order_callback_timestamp',
+            purchaseTimeMillis: '1700000000000',
+          ),
+        );
+
+        final result = await googleRail.processCallback({
+          'package_name': 'com.quanitya.app',
+          'product_id': 'com.quanitya.coins_100',
+          'purchase_token': token,
+          'order_id': 'order_callback_timestamp',
+          'signature': signature,
+          'payload': payload,
+          'session': session,
+        });
+
+        expect(result.success, isTrue);
+        expect(
+          result.transactionTimestamp,
+          equals(DateTime.fromMillisecondsSinceEpoch(1700000000000)),
+        );
+      },
+      skip: Platform.environment['GOOGLE_WEBHOOK_SIGNING_KEY'] == null
+          ? 'requires GOOGLE_WEBHOOK_SIGNING_KEY in the process environment '
+              '(WebhookSignatureValidator reads it directly; run with '
+              'GOOGLE_WEBHOOK_SIGNING_KEY=<any value> dart test to exercise '
+              'this test)'
+          : null,
+    );
   });
+}
+
+String _randomHex() {
+  final random = Random();
+  final buffer = StringBuffer();
+  for (var i = 0; i < 128; i++) {
+    buffer.write(random.nextInt(16).toRadixString(16));
+  }
+  return buffer.toString();
 }
