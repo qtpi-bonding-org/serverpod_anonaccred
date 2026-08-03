@@ -15,7 +15,10 @@ void main() {
       // Step 2: Client generates ECDSA P-256 key pair (simulated)
       final keyPair = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
       final publicKey = await keyPair.publicKey.exportRawKey();
-      final publicKeyHex = publicKey.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      // exportRawKey() already returns SEC1 uncompressed (0x04 || X || Y,
+      // 65 bytes) — don't drop the leading byte, or the hex comes out at
+      // 128 chars instead of the 130 PublicKeyFormat requires.
+      final publicKeyHex = publicKey.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Step 3: Client signs the challenge (simulated)
       // Do NOT pre-hash: both webcrypto signBytes(Hash.sha256) and
@@ -41,7 +44,8 @@ void main() {
       // Client A generates key pair
       final keyPairA = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
       final publicKeyA = await keyPairA.publicKey.exportRawKey();
-      final publicKeyAHex = publicKeyA.sublist(1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      // Same reason as above — keep the full SEC1 uncompressed export.
+      final publicKeyAHex = publicKeyA.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
       // Client B generates different key pair
       final keyPairB = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
