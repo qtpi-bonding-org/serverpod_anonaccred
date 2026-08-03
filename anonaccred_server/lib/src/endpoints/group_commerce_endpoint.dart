@@ -28,6 +28,11 @@ class GroupCommerceEndpoint extends JwtEndpoint {
       'getGroupEntitlements',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'getGroupEntitlements',
+        );
         await _requireGroupMember(session, accountUuid, shareGroupUuid);
 
         return await GroupEntitlementManager.getGroupEntitlements(
@@ -52,6 +57,11 @@ class GroupCommerceEndpoint extends JwtEndpoint {
       'getGroupEntitlementBalance',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'getGroupEntitlementBalance',
+        );
         await _requireGroupMember(session, accountUuid, shareGroupUuid);
 
         return await GroupEntitlementManager.getGroupEntitlementBalance(
@@ -81,6 +91,11 @@ class GroupCommerceEndpoint extends JwtEndpoint {
       'consumeGroupEntitlement',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'consumeGroupEntitlement',
+        );
         await _requireGroupMember(session, accountUuid, shareGroupUuid);
 
         return await GroupEntitlementUtils.tryConsumeGroup(

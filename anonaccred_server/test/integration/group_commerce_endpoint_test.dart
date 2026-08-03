@@ -114,6 +114,31 @@ void main() {
       );
     });
 
+    test('getGroupEntitlements rejects a revoked device', () async {
+      final session = sessionBuilder.build();
+      final device = (await AccountDevice.db.findFirstRow(
+        session,
+        where: (t) => t.deviceSigningPublicKeyHex.equals(validPublicKey),
+      ))!;
+      await AccountDevice.db.updateRow(
+        session,
+        device.copyWith(isRevoked: true),
+      );
+
+      await expectLater(
+        endpoints.groupCommerce.getGroupEntitlements(
+          authenticatedSessionBuilder,
+          testGroup.id!,
+        ),
+        throwsA(isA<AuthenticationException>()),
+      );
+
+      await AccountDevice.db.updateRow(
+        session,
+        device.copyWith(isRevoked: false),
+      );
+    });
+
     test('getGroupEntitlements returns empty for unfunded group', () async {
       final results = await endpoints.groupCommerce.getGroupEntitlements(
         authenticatedSessionBuilder,
@@ -159,52 +184,54 @@ void main() {
       );
     });
 
-    test('consumeGroupEntitlement: happy path with sufficient balance',
-        () async {
-      final session = sessionBuilder.build();
-      final existing = await Entitlement.db.findFirstRow(
-        session,
-        where: (t) => t.tag.equals('group_api_calls'),
-      );
-      if (existing == null) {
-        await Entitlement.db.insertRow(
+    test(
+      'consumeGroupEntitlement: happy path with sufficient balance',
+      () async {
+        final session = sessionBuilder.build();
+        final existing = await Entitlement.db.findFirstRow(
           session,
-          Entitlement(
-            name: 'Group API Calls',
+          where: (t) => t.tag.equals('group_api_calls'),
+        );
+        if (existing == null) {
+          await Entitlement.db.insertRow(
+            session,
+            Entitlement(
+              name: 'Group API Calls',
+              tag: 'group_api_calls',
+              type: EntitlementType.consumable,
+              serverValidated: true,
+            ),
+          );
+        }
+        await session.db.transaction((txn) async {
+          await GroupEntitlementManager.grantGroupEntitlement(
+            session,
+            shareGroupUuid: testGroup.id!,
             tag: 'group_api_calls',
-            type: EntitlementType.consumable,
-            serverValidated: true,
-          ),
+            quantity: 200.0,
+            transaction: txn,
+          );
+        });
+
+        final result = await endpoints.groupCommerce.consumeGroupEntitlement(
+          authenticatedSessionBuilder,
+          testGroup.id!,
+          'group_api_calls',
+          50.0,
         );
-      }
-      await session.db.transaction((txn) async {
-        await GroupEntitlementManager.grantGroupEntitlement(
+        expect(result.success, isTrue);
+        expect(result.availableBalance, equals(150.0));
+
+        // Verify log row was written with consumingAccountUuid attribution.
+        final logs = await GroupConsumptionLog.db.find(
           session,
-          shareGroupUuid: testGroup.id!,
-          tag: 'group_api_calls',
-          quantity: 200.0,
-          transaction: txn,
+          where: (t) => t.shareGroupUuid.equals(testGroup.id!),
         );
-      });
-
-      final result = await endpoints.groupCommerce.consumeGroupEntitlement(
-        authenticatedSessionBuilder,
-        testGroup.id!,
-        'group_api_calls',
-        50.0,
-      );
-      expect(result.success, isTrue);
-      expect(result.availableBalance, equals(150.0));
-
-      // Verify log row was written with consumingAccountUuid attribution.
-      final logs = await GroupConsumptionLog.db.find(
-        session,
-        where: (t) => t.shareGroupUuid.equals(testGroup.id!),
-      );
-      expect(logs, hasLength(1));
-      expect(logs.single.consumingAccountUuid, equals(testAccount.id));
-      expect(logs.single.amount, equals(50.0));
-    });
+        expect(logs, hasLength(1));
+        expect(logs.single.consumingAccountUuid, equals(testAccount.id));
+        expect(logs.single.amount, equals(50.0));
+      },
+    );
 
     test('consumeGroupEntitlement: fails on insufficient balance', () async {
       final session = sessionBuilder.build();
