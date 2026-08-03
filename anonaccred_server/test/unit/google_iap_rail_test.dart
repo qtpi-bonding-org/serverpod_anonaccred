@@ -266,6 +266,28 @@ void main() {
     });
 
     group('error paths — no DB writes occur', () {
+      test(
+        'rejects a package name outside GOOGLE_PACKAGE_NAME before API access',
+        () async {
+          final session = sessionBuilder.build();
+
+          await expectLater(
+            googleRail.validatePurchase(
+              session: session,
+              packageName: 'com.someone.else',
+              productId: 'com.quanitya.coins_100',
+              purchaseToken: 'token_wrong_package',
+              accountUuid: UuidValue.fromString(const Uuid().v4()),
+            ),
+            throwsA(isA<PaymentException>()),
+          );
+          expect(mockClient.callLog, isEmpty);
+        },
+        skip: Platform.environment['GOOGLE_PACKAGE_NAME'] == null
+            ? 'requires GOOGLE_PACKAGE_NAME'
+            : null,
+      );
+
       test('throws when Google API returns ApiRequestError for unknown token',
           () async {
         final session = sessionBuilder.build();

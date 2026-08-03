@@ -267,7 +267,8 @@ class AppleIAPRail implements PaymentRailInterface {
       session,
       where: (t) =>
           t.rail.equals(PaymentRail.apple_iap) &
-          t.storeProductId.equals(resolvedProductId),
+          t.storeProductId.equals(resolvedProductId) &
+          t.isActive.equals(true),
     );
 
     if (railProduct == null) {

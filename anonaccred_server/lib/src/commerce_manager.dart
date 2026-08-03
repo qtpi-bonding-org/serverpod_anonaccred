@@ -146,6 +146,7 @@ class CommerceManager {
       final payment = await TransactionPayment.db.findFirstRow(
         session,
         where: (t) => t.internalTransactionId.equals(internalTransactionId),
+        lockMode: LockMode.forUpdate,
         transaction: transaction,
       );
 

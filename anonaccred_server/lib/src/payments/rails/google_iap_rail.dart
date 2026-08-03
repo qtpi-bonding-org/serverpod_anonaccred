@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:googleapis/androidpublisher/v3.dart' hide RefundEvent;
 import 'package:serverpod/serverpod.dart';
@@ -264,6 +265,19 @@ class GoogleIAPRail implements PaymentRailInterface {
           );
         }
 
+        final expectedPackageName = Platform.environment['GOOGLE_PACKAGE_NAME'];
+        if (expectedPackageName != null &&
+            expectedPackageName.isNotEmpty &&
+            packageName != expectedPackageName) {
+          throw AnonAccredExceptionFactory.createPaymentException(
+            code: AnonAccredErrorCodes.paymentValidationFailed,
+            message:
+                'packageName "$packageName" does not match the configured '
+                'GOOGLE_PACKAGE_NAME',
+            details: {'packageName': packageName},
+          );
+        }
+
         // 2. Validate with Google API
         final purchase = await _publisherClient.getPurchase(
           packageName: packageName,
@@ -285,7 +299,8 @@ class GoogleIAPRail implements PaymentRailInterface {
           session,
           where: (t) =>
               t.rail.equals(PaymentRail.google_iap) &
-              t.storeProductId.equals(productId),
+              t.storeProductId.equals(productId) &
+              t.isActive.equals(true),
         );
 
         if (railProduct == null) {

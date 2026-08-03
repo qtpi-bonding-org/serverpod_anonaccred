@@ -29,6 +29,9 @@ class EntitlementManager {
       where: (t) =>
           t.accountUuid.equals(accountUuid) &
           t.entitlementId.equals(entitlementId),
+      // FOR UPDATE prevents concurrent grants from racing on the same
+      // balance row under Postgres READ COMMITTED isolation.
+      lockMode: LockMode.forUpdate,
       transaction: transaction,
     );
 

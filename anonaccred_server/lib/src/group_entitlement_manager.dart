@@ -36,6 +36,9 @@ class GroupEntitlementManager {
       where: (t) =>
           t.shareGroupUuid.equals(shareGroupUuid) &
           t.entitlementId.equals(entitlementId),
+      // FOR UPDATE prevents concurrent group grants from racing on the same
+      // balance row under Postgres READ COMMITTED isolation.
+      lockMode: LockMode.forUpdate,
       transaction: transaction,
     );
 
