@@ -1,6 +1,8 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../helpers.dart';
 import '../services/public_challenge_service.dart';
+import '../authenticated_caller.dart';
 import 'pow_endpoint.dart';
 
 /// Endpoint with full PoW + ECDSA signature verification + rate limiting.
@@ -22,6 +24,7 @@ abstract class SignedPowEndpoint extends PowEndpoint {
   Future<PublicChallengeResponse> getChallenge(Session session) async {
     throw UnsupportedError('Use EntrypointEndpoint.getChallenge() instead');
   }
+
   /// Endpoint type for rate limiting bucketing.
   ///
   /// Override in subclasses to separate rate limit counters per endpoint.
@@ -61,6 +64,31 @@ abstract class SignedPowEndpoint extends PowEndpoint {
       payload,
       endpointType: endpointType,
       rateLimitPerHour: rateLimitPerHour,
+    );
+  }
+
+  /// Verifies the signed outer envelope and resolves an active caller.
+  Future<AuthenticatedCaller> guard(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required String methodName,
+  }) async {
+    final payload = '$challenge:$methodName:$callerDeviceSigningPublicKeyHex';
+    await verifySignedPow(
+      session,
+      challenge,
+      proofOfWork,
+      callerDeviceSigningPublicKeyHex,
+      signature,
+      payload,
+    );
+    return AnonAccountHelpers.requireCaller(
+      session,
+      callerDeviceSigningPublicKeyHex,
+      methodName,
     );
   }
 }

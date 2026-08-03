@@ -4,6 +4,8 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
 
+import '../test_helpers/signing_test_helper.dart';
+
 void main() {
   final random = Random();
 
@@ -349,6 +351,55 @@ void main() {
           );
         }
       });
+    });
+
+    group('requireAttestation', () {
+      test('accepts a valid signature', () async {
+        const message = 'test-message';
+        await AnonAccountHelpers.requireAttestation(
+          message: message,
+          signature: SigningTestHelper.sign(message),
+          publicKey: SigningTestHelper.testPublicKeyHex,
+          operation: 'testOp',
+          failureMessage: 'should not appear',
+        );
+      });
+
+      test('rejects an invalid signature with the supplied message', () async {
+        await expectLater(
+          AnonAccountHelpers.requireAttestation(
+            message: 'test-message',
+            signature: 'a' * 128,
+            publicKey: SigningTestHelper.testPublicKeyHex,
+            operation: 'testOp',
+            failureMessage: 'signature did not authorize this operation',
+          ),
+          throwsA(
+            isA<AuthenticationException>().having(
+              (error) => error.message,
+              'message',
+              'signature did not authorize this operation',
+            ),
+          ),
+        );
+      });
+    });
+
+    test('AuthenticatedCaller rejects a revoked device even when constructed directly', () {
+      final device = AccountDevice(
+        anonAccountId: UuidValue.fromString(
+          '00000000-0000-0000-0000-000000000003',
+        ),
+        deviceSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+        deviceEncryptionPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+        encryptedDataKey: 'x',
+        label: 'x',
+        addedByAttestorPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+        addedByAttestation: 'x',
+        isRevoked: true,
+      );
+
+      expect(() => AuthenticatedCaller(device), throwsStateError);
     });
   });
 }

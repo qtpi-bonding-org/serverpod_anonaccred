@@ -8,7 +8,6 @@ import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../helpers.dart';
-import '../queries/active_rows.dart';
 import 'signed_pow_endpoint.dart';
 
 /// Public device endpoints protected by hashcash proof-of-work.
@@ -142,30 +141,14 @@ class DeviceEndpoint extends SignedPowEndpoint {
       session,
       'signIn',
       () async {
-        // Verify PoW + signature + rate limit
-        final payload =
-            '$challenge:${DeviceMethods.signIn}:$devicePublicKeyHex';
-
-        await verifySignedPow(
+        final activeDevice = (await guard(
           session,
-          challenge,
-          proofOfWork,
-          devicePublicKeyHex,
-          signature,
-          payload,
-        );
-
-        // Look up device and verify it's active
-        final device = await AllRows.deviceBySigningKeyIncludingRevoked(
-          session,
-          devicePublicKeyHex,
-        );
-
-        final activeDevice = AnonAccountHelpers.requireActiveDevice(
-          device,
-          devicePublicKeyHex,
-          'signIn',
-        );
+          challenge: challenge,
+          proofOfWork: proofOfWork,
+          signature: signature,
+          callerDeviceSigningPublicKeyHex: devicePublicKeyHex,
+          methodName: DeviceMethods.signIn,
+        )).device;
 
         // Update last active timestamp
         await AccountDevice.db.updateRow(
