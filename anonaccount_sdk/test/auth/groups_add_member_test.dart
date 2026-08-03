@@ -79,6 +79,7 @@ void main() {
     final callerMemberKey = await KeyGen.generateDeviceKey();
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final store = InMemoryMemberKeyStore();
+    await store.storeMemberKey(groupId, callerMemberKey);
     final groups = AnonaccountGroups(caller, store, difficulty: 4);
 
     final result = await groups.addGroupMember(
@@ -88,7 +89,6 @@ void main() {
       newMemberSigningPubkeyHex: '04${'d' * 128}',
       newMemberEncryptionPublicKeyHex: '04${'e' * 128}',
       newMemberEncryptedDataKey: 'WRAPPED_KEY',
-      callerMemberKey: callerMemberKey,
       callerDeviceKey: callerDeviceKey,
     );
 
@@ -118,8 +118,44 @@ void main() {
 
     // challenge at index 0, callerMemberSigningPublicKeyHex at 1, memberAuthSignature at 2, groupUltimateSignature at 3
     expect(captured[0], 'CHAL-ADD');
-    expect(captured[1], isNotNull); // callerMemberSigningPublicKeyHex
+    // The signing key came from the store — nothing else supplies it now.
+    expect(
+      captured[1],
+      (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
+    );
     expect(captured[2], isNotNull); // memberAuthSignature — must be non-null
     expect(captured[3], isNull); // groupUltimateSignature — null for admin branch
+  });
+
+  test('addGroupMember throws StateError when no member key is stored for the group',
+      () async {
+    final caller = _FakeCaller();
+    final groupId = wire.UuidValue.fromString(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+    final groups =
+        AnonaccountGroups(caller, InMemoryMemberKeyStore(), difficulty: 4);
+
+    await expectLater(
+      groups.addGroupMember(
+        groupId: groupId,
+        newMemberAccountId: wire.UuidValue.fromString(
+          'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        ),
+        role: wire.GroupMemberRole.member,
+        newMemberSigningPubkeyHex: '04${'d' * 128}',
+        newMemberEncryptionPublicKeyHex: '04${'e' * 128}',
+        newMemberEncryptedDataKey: 'WRAPPED_KEY',
+        callerDeviceKey: await KeyGen.generateDeviceKey(),
+      ),
+      throwsA(isA<StateError>().having(
+        (e) => e.message,
+        'message',
+        allOf(contains('addGroupMember'), contains(groupId.toString())),
+      )),
+    );
+    // No stub on caller.entrypoint: reaching the wire would throw a mocktail
+    // error instead of the StateError, so this also pins that the throw lands
+    // before any proof-of-work.
   });
 }

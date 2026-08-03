@@ -56,6 +56,25 @@ class AnonaccountGroups {
   // ignore: unused_field
   final int difficulty;
 
+  /// Reads a member key that the operation cannot proceed without.
+  ///
+  /// [StateError] rather than [ArgumentError] because an absent key is not
+  /// caller-supplied bad input: the ArgumentErrors elsewhere in this class
+  /// mark arguments that are wrong, and this marks a precondition that is
+  /// missing.
+  Future<KeyDuo> _requireMemberKey(UuidValue groupId, String operation) async {
+    final key = await _memberKeys.getMemberKey(groupId);
+    if (key == null) {
+      throw StateError(
+        '$operation: no member key stored for group $groupId. The member key '
+        'for a group is written to the MemberKeyStore at createGroup and must '
+        'be restored there after a reinstall before group operations can be '
+        'signed.',
+      );
+    }
+    return key;
+  }
+
   /// Creates a new group. Generates a fresh group ultimate KeyDuo, a
   /// fresh creator-member KeyDuo, and a fresh AES-GCM data key locally.
   /// Wraps the data key to both keypairs and posts to the server.
@@ -170,10 +189,10 @@ class AnonaccountGroups {
 
   /// Adds a new member to a group (admin-tier auth branch only).
   ///
-  /// The caller must be an existing admin of the group. The caller signs
-  /// the inner payload with their own member key ([callerMemberKey]).
-  /// The new member's encrypted data key must be wrapped externally before
-  /// passing it here.
+  /// The caller must be an existing admin of the group. The caller signs the
+  /// inner payload with the member key its store holds for [groupId]. The new
+  /// member's encrypted data key must be wrapped externally before passing it
+  /// here.
   Future<GroupMember> addGroupMember({
     required UuidValue groupId,
     required UuidValue newMemberAccountId,
@@ -181,11 +200,11 @@ class AnonaccountGroups {
     required String newMemberSigningPubkeyHex,
     required String newMemberEncryptionPublicKeyHex,
     required String newMemberEncryptedDataKey,
-    required KeyDuo callerMemberKey,
     required KeyDuo callerDeviceKey,
   }) async {
+    final memberKey = await _requireMemberKey(groupId, 'addGroupMember');
     final callerMemberSigningPublicKeyHex =
-        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+        (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final memberKeysWire = PublicKeyDuo(
@@ -201,7 +220,7 @@ class AnonaccountGroups {
       memberKeysWire,
     );
     final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
+        await SigningCrypto.signChallenge(innerPayload, memberKey);
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
