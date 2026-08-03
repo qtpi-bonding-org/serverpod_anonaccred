@@ -2,12 +2,14 @@ account:
   - createAccount:
   - getChallenge:
   - verifySignedPow:
+  - guard:
   - verifyHashcash:
 dataKey:
   - retrieveEncryptedDataKey:
   - recoverEncryptedDataKey:
   - getChallenge:
   - verifySignedPow:
+  - guard:
   - verifyHashcash:
 device:
   - registerDevice:
@@ -15,6 +17,7 @@ device:
   - monitorRegistration:
   - getChallenge:
   - verifySignedPow:
+  - guard:
   - verifyHashcash:
 deviceManagement:
   - revokeDevice:
@@ -22,6 +25,7 @@ deviceManagement:
   - registerDeviceForAccount:
   - getChallenge:
   - verifySignedPow:
+  - guard:
   - verifyHashcash:
 entrypoint:
   - getChallenge:
@@ -38,4 +42,5 @@ group:
   - grantMemberDevice:
   - getChallenge:
   - verifySignedPow:
+  - guard:
   - verifyHashcash:

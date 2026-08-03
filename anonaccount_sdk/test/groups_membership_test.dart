@@ -36,6 +36,7 @@ void main() {
       deviceEncryptedDataKey: 'device-blob',
       joinedAt: DateTime.utc(2026, 5, 20),
       encryptedMemberKey: 'MEMBER-KEY-BLOB1',
+      encryptedUltimateKey: null,
     );
     when(() => group.listMyGroups(
           challenge: any(named: 'challenge'),
@@ -47,7 +48,7 @@ void main() {
 
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final store = InMemoryMemberKeyStore();
-    final groups = AnonaccountGroups(caller, store, difficulty: 4);
+    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
     final memberships =
         await groups.listMyGroups(callerDeviceKey: callerDeviceKey);
 

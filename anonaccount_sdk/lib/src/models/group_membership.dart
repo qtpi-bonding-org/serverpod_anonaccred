@@ -60,6 +60,7 @@ abstract class GroupMembership with _$GroupMembership {
     /// ultimate encryption public key. Opaque here — only recoverAccount,
     /// holding the user's backup, can decrypt it.
     required String encryptedMemberKey,
+    required String? encryptedUltimateKey,
   }) = _GroupMembership;
 
   factory GroupMembership.fromJson(Map<String, dynamic> json) =>

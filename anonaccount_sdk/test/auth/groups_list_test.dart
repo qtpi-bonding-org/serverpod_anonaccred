@@ -31,6 +31,7 @@ void main() {
       deviceEncryptedDataKey: null,
       joinedAt: DateTime.utc(2026, 5, 20),
       encryptedMemberKey: 'MEMBER-KEY-BLOB1',
+      encryptedUltimateKey: null,
     );
     final row2 = wire.GroupMembershipView(
       memberId: wire.UuidValue.fromString('55555555-5555-4555-8555-555555555555'),
@@ -41,6 +42,7 @@ void main() {
       deviceEncryptedDataKey: 'DEVICE-BLOB2',
       joinedAt: DateTime.utc(2026, 5, 21),
       encryptedMemberKey: 'MEMBER-KEY-BLOB2',
+      encryptedUltimateKey: null,
     );
     when(() => group.listMyGroups(
           challenge: any(named: 'challenge'),
@@ -52,7 +54,7 @@ void main() {
 
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final store = InMemoryMemberKeyStore();
-    final groups = AnonaccountGroups(caller, store, difficulty: 4);
+    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
     final memberships =
         await groups.listMyGroups(callerDeviceKey: callerDeviceKey);
 

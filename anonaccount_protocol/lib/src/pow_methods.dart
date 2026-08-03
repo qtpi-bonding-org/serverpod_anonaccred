@@ -124,4 +124,12 @@ abstract final class GroupInnerPayloads {
   ) =>
       'setEncryptedMemberKey:$groupUltimateSigningPublicKeyHex'
       ':$anonAccountId:$memberSigningPublicKeyHex:$encryptedMemberKey';
+
+  static String setEncryptedUltimateKey(
+    String groupUltimateSigningPublicKeyHex,
+    UuidValue anonAccountId,
+    String encryptedUltimateKey,
+  ) =>
+      'setEncryptedUltimateKey:$groupUltimateSigningPublicKeyHex'
+      ':$anonAccountId:$encryptedUltimateKey';
 }

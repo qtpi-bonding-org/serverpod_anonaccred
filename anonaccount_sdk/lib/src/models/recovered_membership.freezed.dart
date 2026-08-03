@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RecoveredMembership {
 
- String get groupId; UuidValue get memberId; bool get recovered;
+ String get groupId; UuidValue get memberId; bool get recovered; bool? get ownerKeyRecovered;
 /// Create a copy of RecoveredMembership
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $RecoveredMembershipCopyWith<RecoveredMembership> get copyWith => _$RecoveredMem
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecoveredMembership&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.recovered, recovered) || other.recovered == recovered));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecoveredMembership&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.recovered, recovered) || other.recovered == recovered)&&(identical(other.ownerKeyRecovered, ownerKeyRecovered) || other.ownerKeyRecovered == ownerKeyRecovered));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,groupId,memberId,recovered);
+int get hashCode => Object.hash(runtimeType,groupId,memberId,recovered,ownerKeyRecovered);
 
 @override
 String toString() {
-  return 'RecoveredMembership(groupId: $groupId, memberId: $memberId, recovered: $recovered)';
+  return 'RecoveredMembership(groupId: $groupId, memberId: $memberId, recovered: $recovered, ownerKeyRecovered: $ownerKeyRecovered)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $RecoveredMembershipCopyWith<$Res>  {
   factory $RecoveredMembershipCopyWith(RecoveredMembership value, $Res Function(RecoveredMembership) _then) = _$RecoveredMembershipCopyWithImpl;
 @useResult
 $Res call({
- String groupId, UuidValue memberId, bool recovered
+ String groupId, UuidValue memberId, bool recovered, bool? ownerKeyRecovered
 });
 
 
@@ -62,12 +62,13 @@ class _$RecoveredMembershipCopyWithImpl<$Res>
 
 /// Create a copy of RecoveredMembership
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? groupId = null,Object? memberId = null,Object? recovered = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? groupId = null,Object? memberId = null,Object? recovered = null,Object? ownerKeyRecovered = freezed,}) {
   return _then(_self.copyWith(
 groupId: null == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
 as String,memberId: null == memberId ? _self.memberId : memberId // ignore: cast_nullable_to_non_nullable
 as UuidValue,recovered: null == recovered ? _self.recovered : recovered // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,ownerKeyRecovered: freezed == ownerKeyRecovered ? _self.ownerKeyRecovered : ownerKeyRecovered // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 
@@ -152,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String groupId,  UuidValue memberId,  bool recovered)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String groupId,  UuidValue memberId,  bool recovered,  bool? ownerKeyRecovered)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RecoveredMembership() when $default != null:
-return $default(_that.groupId,_that.memberId,_that.recovered);case _:
+return $default(_that.groupId,_that.memberId,_that.recovered,_that.ownerKeyRecovered);case _:
   return orElse();
 
 }
@@ -173,10 +174,10 @@ return $default(_that.groupId,_that.memberId,_that.recovered);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String groupId,  UuidValue memberId,  bool recovered)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String groupId,  UuidValue memberId,  bool recovered,  bool? ownerKeyRecovered)  $default,) {final _that = this;
 switch (_that) {
 case _RecoveredMembership():
-return $default(_that.groupId,_that.memberId,_that.recovered);case _:
+return $default(_that.groupId,_that.memberId,_that.recovered,_that.ownerKeyRecovered);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -193,10 +194,10 @@ return $default(_that.groupId,_that.memberId,_that.recovered);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String groupId,  UuidValue memberId,  bool recovered)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String groupId,  UuidValue memberId,  bool recovered,  bool? ownerKeyRecovered)?  $default,) {final _that = this;
 switch (_that) {
 case _RecoveredMembership() when $default != null:
-return $default(_that.groupId,_that.memberId,_that.recovered);case _:
+return $default(_that.groupId,_that.memberId,_that.recovered,_that.ownerKeyRecovered);case _:
   return null;
 
 }
@@ -208,12 +209,13 @@ return $default(_that.groupId,_that.memberId,_that.recovered);case _:
 
 
 class _RecoveredMembership implements RecoveredMembership {
-  const _RecoveredMembership({required this.groupId, required this.memberId, required this.recovered});
+  const _RecoveredMembership({required this.groupId, required this.memberId, required this.recovered, required this.ownerKeyRecovered});
   
 
 @override final  String groupId;
 @override final  UuidValue memberId;
 @override final  bool recovered;
+@override final  bool? ownerKeyRecovered;
 
 /// Create a copy of RecoveredMembership
 /// with the given fields replaced by the non-null parameter values.
@@ -225,16 +227,16 @@ _$RecoveredMembershipCopyWith<_RecoveredMembership> get copyWith => __$Recovered
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecoveredMembership&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.recovered, recovered) || other.recovered == recovered));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecoveredMembership&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.recovered, recovered) || other.recovered == recovered)&&(identical(other.ownerKeyRecovered, ownerKeyRecovered) || other.ownerKeyRecovered == ownerKeyRecovered));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,groupId,memberId,recovered);
+int get hashCode => Object.hash(runtimeType,groupId,memberId,recovered,ownerKeyRecovered);
 
 @override
 String toString() {
-  return 'RecoveredMembership(groupId: $groupId, memberId: $memberId, recovered: $recovered)';
+  return 'RecoveredMembership(groupId: $groupId, memberId: $memberId, recovered: $recovered, ownerKeyRecovered: $ownerKeyRecovered)';
 }
 
 
@@ -245,7 +247,7 @@ abstract mixin class _$RecoveredMembershipCopyWith<$Res> implements $RecoveredMe
   factory _$RecoveredMembershipCopyWith(_RecoveredMembership value, $Res Function(_RecoveredMembership) _then) = __$RecoveredMembershipCopyWithImpl;
 @override @useResult
 $Res call({
- String groupId, UuidValue memberId, bool recovered
+ String groupId, UuidValue memberId, bool recovered, bool? ownerKeyRecovered
 });
 
 
@@ -262,12 +264,13 @@ class __$RecoveredMembershipCopyWithImpl<$Res>
 
 /// Create a copy of RecoveredMembership
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? groupId = null,Object? memberId = null,Object? recovered = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? groupId = null,Object? memberId = null,Object? recovered = null,Object? ownerKeyRecovered = freezed,}) {
   return _then(_RecoveredMembership(
 groupId: null == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
 as String,memberId: null == memberId ? _self.memberId : memberId // ignore: cast_nullable_to_non_nullable
 as UuidValue,recovered: null == recovered ? _self.recovered : recovered // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,ownerKeyRecovered: freezed == ownerKeyRecovered ? _self.ownerKeyRecovered : ownerKeyRecovered // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 

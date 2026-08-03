@@ -38,6 +38,7 @@ import '../crypto/signing.dart';
 import '../models/created_group.dart';
 import '../models/group_membership.dart';
 import 'member_key_store.dart';
+import 'group_owner_key_store.dart';
 import 'pow_signer.dart';
 
 /// High-level group lifecycle wrapper.
@@ -48,12 +49,14 @@ import 'pow_signer.dart';
 class AnonaccountGroups {
   AnonaccountGroups(
     this._caller,
-    this._memberKeys, {
+    this._memberKeys,
+    this._ownerKeys, {
     this.difficulty = PowSigner.defaultDifficulty,
   });
 
   final Caller _caller;
   final MemberKeyStore _memberKeys;
+  final GroupOwnerKeyStore _ownerKeys;
   // ignore: unused_field
   final int difficulty;
 
@@ -71,6 +74,17 @@ class AnonaccountGroups {
         'for a group is written to the MemberKeyStore at createGroup and must '
         'be restored there after a reinstall before group operations can be '
         'signed.',
+      );
+    }
+    return key;
+  }
+
+  Future<KeyDuo> _requireOwnerKey(UuidValue groupId, String operation) async {
+    final key = await _ownerKeys.getOwnerKey(groupId);
+    if (key == null) {
+      throw StateError(
+        '$operation: no owner key stored for group $groupId. Restore it '
+        'with recoverAccount before owner-tier operations.',
       );
     }
     return key;
@@ -143,6 +157,22 @@ class AnonaccountGroups {
       creatorMember,
     );
 
+    final groupUltimateKeyJwk =
+        await const KeyDuoSerializer().exportKeyDuoJwk(groupUltimate);
+    final creatorEncryptedUltimateKey = await AsymmetricCrypto.wrapForRecipient(
+      groupUltimateKeyJwk,
+      ultimateEncryptionKeyPair.publicKey,
+    );
+    final creatorEncryptedUltimateKeyAttestation =
+        await SigningCrypto.signChallenge(
+      GroupInnerPayloads.setEncryptedUltimateKey(
+        groupKeysWire.signingPublicKeyHex,
+        myAnonAccountId,
+        creatorEncryptedUltimateKey,
+      ),
+      groupUltimate,
+    );
+
     // Outer envelope signed by the user's device key.
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
@@ -168,9 +198,13 @@ class AnonaccountGroups {
       creatorEncryptedMemberKey: creatorEncryptedMemberKey,
       creatorEncryptedMemberKeyAttestation:
           creatorEncryptedMemberKeyAttestation,
+      creatorEncryptedUltimateKey: creatorEncryptedUltimateKey,
+      creatorEncryptedUltimateKeyAttestation:
+          creatorEncryptedUltimateKeyAttestation,
     );
 
     await _memberKeys.storeMemberKey(share.id!, creatorMember);
+    await _ownerKeys.storeOwnerKey(share.id!, groupUltimate);
 
     return CreatedGroup(
       groupId: share.id!.toString(),
@@ -213,6 +247,7 @@ class AnonaccountGroups {
             deviceEncryptedDataKey: r.deviceEncryptedDataKey,
             joinedAt: r.joinedAt,
             encryptedMemberKey: r.encryptedMemberKey,
+            encryptedUltimateKey: r.encryptedUltimateKey,
           ),
         )
         .toList();
@@ -328,6 +363,90 @@ class AnonaccountGroups {
       callerMemberSigningPublicKeyHex: callerMemberSigningPublicKeyHex,
       memberAuthSignature: memberAuthSignature,
       groupUltimateSignature: null,
+    );
+  }
+
+  Future<GroupMember> addGroupMemberAsOwner({
+    required UuidValue groupId,
+    required UuidValue newMemberAccountId,
+    required String newMemberSigningPubkeyHex,
+    required String newMemberEncryptionPublicKeyHex,
+    required String newMemberEncryptedDataKey,
+    required KeyDuo callerDeviceKey,
+    required String encryptedMemberKey,
+    required String encryptedMemberKeyAttestation,
+  }) async {
+    final ownerKey = await _requireOwnerKey(groupId, 'addGroupMemberAsOwner');
+    final callerDeviceSigningPublicKeyHex =
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final memberKeysWire = PublicKeyDuo(
+      signingPublicKeyHex: newMemberSigningPubkeyHex,
+      encryptionPublicKeyHex: newMemberEncryptionPublicKeyHex,
+    );
+    final innerPayload = GroupInnerPayloads.addGroupMember(
+      groupId,
+      newMemberAccountId,
+      GroupMemberRole.admin.name,
+      memberKeysWire,
+    );
+    final groupUltimateSignature =
+        await SigningCrypto.signChallenge(innerPayload, ownerKey);
+    final challengeResp = await _caller.entrypoint.getChallenge();
+    final envelope = await PowSigner.build(
+      challenge: challengeResp.challenge,
+      methodName: 'addGroupMember',
+      signingKey: callerDeviceKey,
+      publicKeyHex: callerDeviceSigningPublicKeyHex,
+      difficulty: challengeResp.difficulty,
+    );
+    return _caller.group.addGroupMember(
+      challenge: envelope.challenge,
+      proofOfWork: envelope.proofOfWork,
+      signature: envelope.signature,
+      callerDeviceSigningPublicKeyHex: envelope.publicKeyHex,
+      groupId: groupId,
+      newMemberAccountId: newMemberAccountId,
+      role: GroupMemberRole.admin,
+      memberKeys: memberKeysWire,
+      encryptedDataKey: newMemberEncryptedDataKey,
+      encryptedMemberKey: encryptedMemberKey,
+      encryptedMemberKeyAttestation: encryptedMemberKeyAttestation,
+      callerMemberSigningPublicKeyHex: null,
+      memberAuthSignature: null,
+      groupUltimateSignature: groupUltimateSignature,
+    );
+  }
+
+  Future<bool> removeGroupMemberAsOwner({
+    required UuidValue groupId,
+    required UuidValue memberId,
+    required KeyDuo callerDeviceKey,
+  }) async {
+    final ownerKey =
+        await _requireOwnerKey(groupId, 'removeGroupMemberAsOwner');
+    final callerDeviceSigningPublicKeyHex =
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final groupUltimateSignature = await SigningCrypto.signChallenge(
+      GroupInnerPayloads.removeGroupMember(memberId),
+      ownerKey,
+    );
+    final challengeResp = await _caller.entrypoint.getChallenge();
+    final envelope = await PowSigner.build(
+      challenge: challengeResp.challenge,
+      methodName: 'removeGroupMember',
+      signingKey: callerDeviceKey,
+      publicKeyHex: callerDeviceSigningPublicKeyHex,
+      difficulty: challengeResp.difficulty,
+    );
+    return _caller.group.removeGroupMember(
+      challenge: envelope.challenge,
+      proofOfWork: envelope.proofOfWork,
+      signature: envelope.signature,
+      callerDeviceSigningPublicKeyHex: envelope.publicKeyHex,
+      memberId: memberId,
+      callerMemberSigningPublicKeyHex: null,
+      memberAuthSignature: null,
+      groupUltimateSignature: groupUltimateSignature,
     );
   }
 

@@ -57,6 +57,8 @@ class GroupEndpoint extends SignedPowEndpoint {
     required String groupUltimateAttestation,
     required String creatorEncryptedMemberKey,
     required String creatorEncryptedMemberKeyAttestation,
+    required String creatorEncryptedUltimateKey,
+    required String creatorEncryptedUltimateKeyAttestation,
   }) async {
     return tryOperation(
       session,
@@ -134,31 +136,60 @@ class GroupEndpoint extends SignedPowEndpoint {
           );
         }
 
+        AnonAccountHelpers.validateNonEmpty(
+          creatorEncryptedUltimateKey,
+          'creatorEncryptedUltimateKey',
+          'createGroup',
+        );
+        await AnonAccountHelpers.requireAttestation(
+          message: GroupInnerPayloads.setEncryptedUltimateKey(
+            groupKeys.signingPublicKeyHex,
+            accountId,
+            creatorEncryptedUltimateKey,
+          ),
+          signature: creatorEncryptedUltimateKeyAttestation,
+          publicKey: groupKeys.signingPublicKeyHex,
+          operation: 'createGroup',
+          failureMessage: 'Invalid encrypted ultimate key attestation — the '
+              'group ultimate key did not authorize this backup',
+        );
+
         final now = DateTime.now();
-        final group = ShareGroup(
-          ultimateSigningPublicKeyHex: groupKeys.signingPublicKeyHex,
-          ultimateEncryptionPublicKeyHex: groupKeys.encryptionPublicKeyHex,
-          encryptedDataKey: groupEncryptedDataKey,
-          createdAt: now,
-        );
-        final insertedGroup = await ShareGroup.db.insertRow(session, group);
-
-        final member = GroupMember(
-          shareGroupId: insertedGroup.id!,
-          anonAccountId: accountId,
-          role: GroupMemberRole.admin,
-          memberSigningPublicKeyHex: memberKeys.signingPublicKeyHex,
-          memberEncryptionPublicKeyHex: memberKeys.encryptionPublicKeyHex,
-          encryptedDataKey: creatorMemberEncryptedDataKey,
-          encryptedMemberKey: creatorEncryptedMemberKey,
-          joinedAt: now,
-          isRevoked: false,
-          addedByAttestorPublicKeyHex: groupKeys.signingPublicKeyHex,
-          addedByAttestation: groupUltimateAttestation,
-        );
-        await GroupMember.db.insertRow(session, member);
-
-        return insertedGroup;
+        return await session.db.transaction((tx) async {
+          final group = ShareGroup(
+            ultimateSigningPublicKeyHex: groupKeys.signingPublicKeyHex,
+            ultimateEncryptionPublicKeyHex: groupKeys.encryptionPublicKeyHex,
+            encryptedDataKey: groupEncryptedDataKey,
+            createdAt: now,
+          );
+          final insertedGroup =
+              await ShareGroup.db.insertRow(session, group, transaction: tx);
+          final member = GroupMember(
+            shareGroupId: insertedGroup.id!,
+            anonAccountId: accountId,
+            role: GroupMemberRole.admin,
+            memberSigningPublicKeyHex: memberKeys.signingPublicKeyHex,
+            memberEncryptionPublicKeyHex: memberKeys.encryptionPublicKeyHex,
+            encryptedDataKey: creatorMemberEncryptedDataKey,
+            encryptedMemberKey: creatorEncryptedMemberKey,
+            joinedAt: now,
+            isRevoked: false,
+            addedByAttestorPublicKeyHex: groupKeys.signingPublicKeyHex,
+            addedByAttestation: groupUltimateAttestation,
+          );
+          await GroupMember.db.insertRow(session, member, transaction: tx);
+          final owner = GroupOwner(
+            shareGroupId: insertedGroup.id!,
+            anonAccountId: accountId,
+            encryptedUltimateKey: creatorEncryptedUltimateKey,
+            addedByAttestorPublicKeyHex: groupKeys.signingPublicKeyHex,
+            addedByAttestation: creatorEncryptedUltimateKeyAttestation,
+            createdAt: now,
+            isRevoked: false,
+          );
+          await GroupOwner.db.insertRow(session, owner, transaction: tx);
+          return insertedGroup;
+        });
       },
       onFailure: authFailure,
       code: AnonAccountErrorCodes.databaseError,
@@ -208,9 +239,14 @@ class GroupEndpoint extends SignedPowEndpoint {
         );
         final grantByMemberId = {for (final g in grants) g.groupMemberId: g};
 
-        return [
-          for (final m in members)
-            GroupMembershipView(
+        final views = <GroupMembershipView>[];
+        for (final m in members) {
+          final owner = await ActiveRows.owner(
+            session,
+            m.shareGroupId,
+            activeCaller.accountId,
+          );
+          views.add(GroupMembershipView(
               memberId: m.id!,
               shareGroupId: m.shareGroupId,
               role: m.role,
@@ -219,8 +255,10 @@ class GroupEndpoint extends SignedPowEndpoint {
               deviceEncryptedDataKey: grantByMemberId[m.id]?.encryptedDataKey,
               joinedAt: m.joinedAt,
               encryptedMemberKey: m.encryptedMemberKey,
-            ),
-        ];
+              encryptedUltimateKey: owner?.encryptedUltimateKey,
+          ));
+        }
+        return views;
       },
       onFailure: authFailure,
       code: AnonAccountErrorCodes.databaseError,

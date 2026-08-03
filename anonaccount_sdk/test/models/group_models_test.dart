@@ -31,6 +31,7 @@ void main() {
       deviceEncryptedDataKey: 'device-blob',
       joinedAt: DateTime.utc(2026, 5, 20),
       encryptedMemberKey: 'MEMBER-KEY-BLOB',
+      encryptedUltimateKey: null,
     );
     final back = GroupMembership.fromJson(m.toJson());
     expect(back, m);

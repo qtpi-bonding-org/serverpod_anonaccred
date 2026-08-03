@@ -177,7 +177,7 @@ void main() {
           wire.UuidValue.fromString('88888888-8888-4888-8888-888888888888');
       final store = InMemoryMemberKeyStore();
       await store.storeMemberKey(groupId, memberKey);
-      final groups = AnonaccountGroups(caller, store, difficulty: 4);
+      final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
       final result = await groups.grantAllDevices(
         groupId: groupId,
         memberId: memberId,
@@ -344,7 +344,7 @@ void main() {
           wire.UuidValue.fromString('77777777-7777-4777-8777-777777777777');
       final store = InMemoryMemberKeyStore();
       await store.storeMemberKey(groupId, memberKey);
-      final groups = AnonaccountGroups(caller, store, difficulty: 4);
+      final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
       await groups.grantAllDevices(
         groupId: groupId,
         memberId: memberId,
@@ -496,6 +496,7 @@ void main() {
           deviceEncryptedDataKey: rootDeviceBlobForCaller,
           joinedAt: DateTime.utc(2026, 5, 20),
           encryptedMemberKey: 'root-encrypted-member-key',
+          encryptedUltimateKey: null,
         ),
         wire.GroupMembershipView(
           memberId: peerMemberId,
@@ -507,6 +508,7 @@ void main() {
           deviceEncryptedDataKey: peerDeviceBlobForCaller,
           joinedAt: DateTime.utc(2026, 5, 21),
           encryptedMemberKey: 'peer-encrypted-member-key',
+          encryptedUltimateKey: null,
         ),
       ];
 
@@ -540,7 +542,7 @@ void main() {
         wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
         rootMemberKey,
       );
-      final groups = AnonaccountGroups(caller, store, difficulty: 4);
+      final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
       final result = await groups.grantNewDevice(
         newDevice: newDevice,
         memberships: memberships,
@@ -676,7 +678,7 @@ void main() {
     await store.storeMemberKey(shareGroupId, staleMemberKey);
 
     await expectLater(
-      AnonaccountGroups(caller, store, difficulty: 4).grantNewDevice(
+      AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4).grantNewDevice(
         newDevice: newDevice,
         memberships: [
           wire.GroupMembershipView(
@@ -692,6 +694,7 @@ void main() {
             deviceEncryptedDataKey: blobForCaller,
             joinedAt: DateTime.utc(2026, 8, 2),
             encryptedMemberKey: 'member-encrypted-member-key',
+            encryptedUltimateKey: null,
           ),
         ],
         callerDeviceKey: callerKey,
@@ -709,6 +712,7 @@ void main() {
     final groups = AnonaccountGroups(
       _FakeCaller(),
       InMemoryMemberKeyStore(),
+      InMemoryGroupOwnerKeyStore(),
       difficulty: 4,
     );
 

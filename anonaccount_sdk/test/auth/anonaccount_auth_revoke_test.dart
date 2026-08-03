@@ -53,7 +53,7 @@ void main() {
     // Create auth with a fresh store
     final authStore = InMemoryAccountKeyStore();
     final memberStore = InMemoryMemberKeyStore();
-    final auth = AnonaccountAuth(caller, authStore, memberStore);
+    final auth = AnonaccountAuth(caller, authStore, memberStore, InMemoryGroupOwnerKeyStore());
     final targetId =
         UuidValue.fromString('11111111-1111-4111-8111-111111111111');
 

@@ -197,6 +197,49 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['payload'],
                   ),
         ),
+        'guard': _i1.MethodConnector(
+          name: 'guard',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'methodName': _i1.ParameterDescription(
+              name: 'methodName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['account'] as _i2.AccountEndpoint).guard(
+                session,
+                challenge: params['challenge'],
+                proofOfWork: params['proofOfWork'],
+                signature: params['signature'],
+                callerDeviceSigningPublicKeyHex:
+                    params['callerDeviceSigningPublicKeyHex'],
+                methodName: params['methodName'],
+              ),
+        ),
         'verifyHashcash': _i1.MethodConnector(
           name: 'verifyHashcash',
           params: {
@@ -356,6 +399,49 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['signature'],
                     params['payload'],
                   ),
+        ),
+        'guard': _i1.MethodConnector(
+          name: 'guard',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'methodName': _i1.ParameterDescription(
+              name: 'methodName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dataKey'] as _i3.DataKeyEndpoint).guard(
+                session,
+                challenge: params['challenge'],
+                proofOfWork: params['proofOfWork'],
+                signature: params['signature'],
+                callerDeviceSigningPublicKeyHex:
+                    params['callerDeviceSigningPublicKeyHex'],
+                methodName: params['methodName'],
+              ),
         ),
         'verifyHashcash': _i1.MethodConnector(
           name: 'verifyHashcash',
@@ -538,6 +624,49 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['signature'],
                     params['payload'],
                   ),
+        ),
+        'guard': _i1.MethodConnector(
+          name: 'guard',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'methodName': _i1.ParameterDescription(
+              name: 'methodName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['device'] as _i4.DeviceEndpoint).guard(
+                session,
+                challenge: params['challenge'],
+                proofOfWork: params['proofOfWork'],
+                signature: params['signature'],
+                callerDeviceSigningPublicKeyHex:
+                    params['callerDeviceSigningPublicKeyHex'],
+                methodName: params['methodName'],
+              ),
         ),
         'verifyHashcash': _i1.MethodConnector(
           name: 'verifyHashcash',
@@ -829,6 +958,52 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['payload'],
                       ),
         ),
+        'guard': _i1.MethodConnector(
+          name: 'guard',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'methodName': _i1.ParameterDescription(
+              name: 'methodName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['deviceManagement']
+                          as _i5.DeviceManagementEndpoint)
+                      .guard(
+                        session,
+                        challenge: params['challenge'],
+                        proofOfWork: params['proofOfWork'],
+                        signature: params['signature'],
+                        callerDeviceSigningPublicKeyHex:
+                            params['callerDeviceSigningPublicKeyHex'],
+                        methodName: params['methodName'],
+                      ),
+        ),
         'verifyHashcash': _i1.MethodConnector(
           name: 'verifyHashcash',
           params: {
@@ -961,6 +1136,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'creatorEncryptedUltimateKey': _i1.ParameterDescription(
+              name: 'creatorEncryptedUltimateKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'creatorEncryptedUltimateKeyAttestation': _i1.ParameterDescription(
+              name: 'creatorEncryptedUltimateKeyAttestation',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -982,6 +1167,10 @@ class Endpoints extends _i1.EndpointDispatch {
                 creatorEncryptedMemberKey: params['creatorEncryptedMemberKey'],
                 creatorEncryptedMemberKeyAttestation:
                     params['creatorEncryptedMemberKeyAttestation'],
+                creatorEncryptedUltimateKey:
+                    params['creatorEncryptedUltimateKey'],
+                creatorEncryptedUltimateKeyAttestation:
+                    params['creatorEncryptedUltimateKeyAttestation'],
               ),
         ),
         'listMyGroups': _i1.MethodConnector(
@@ -1449,6 +1638,49 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['signature'],
                     params['payload'],
                   ),
+        ),
+        'guard': _i1.MethodConnector(
+          name: 'guard',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'methodName': _i1.ParameterDescription(
+              name: 'methodName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['group'] as _i7.GroupEndpoint).guard(
+                session,
+                challenge: params['challenge'],
+                proofOfWork: params['proofOfWork'],
+                signature: params['signature'],
+                callerDeviceSigningPublicKeyHex:
+                    params['callerDeviceSigningPublicKeyHex'],
+                methodName: params['methodName'],
+              ),
         ),
         'verifyHashcash': _i1.MethodConnector(
           name: 'verifyHashcash',

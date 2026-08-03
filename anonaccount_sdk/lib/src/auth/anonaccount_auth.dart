@@ -27,16 +27,18 @@ import 'account_key_store.dart';
 import 'exceptions.dart';
 import 'groups.dart';
 import 'member_key_store.dart';
+import 'group_owner_key_store.dart';
 import 'pow_signer.dart';
 
 /// High-level account lifecycle wrapper. Key custody lives in the
 /// app-supplied [AccountKeyStore]; this class only drives the protocol.
 class AnonaccountAuth {
-  AnonaccountAuth(this._caller, this._store, this._memberKeys);
+  AnonaccountAuth(this._caller, this._store, this._memberKeys, this._ownerKeys);
 
   final Caller _caller;
   final AccountKeyStore _store;
   final MemberKeyStore _memberKeys;
+  final GroupOwnerKeyStore _ownerKeys;
 
   static String _hex(Uint8List b) =>
       b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
@@ -281,7 +283,7 @@ class AnonaccountAuth {
     // data key. Only the per-membership outcome comes back, because unlike
     // the single account data key there are N member keys and one row can
     // be individually corrupt.
-    final memberships = await AnonaccountGroups(_caller, _memberKeys)
+    final memberships = await AnonaccountGroups(_caller, _memberKeys, _ownerKeys)
         .listMyGroups(callerDeviceKey: deviceKey);
 
     final recovered = <RecoveredMembership>[];
@@ -302,10 +304,30 @@ class AnonaccountAuth {
         // Reported rather than thrown: one bad row must not cost the user
         // the account recovery that already succeeded.
       }
+      bool? ownerOk;
+      if (m.encryptedUltimateKey != null) {
+        ownerOk = false;
+        try {
+          final ownerJwk = await AsymmetricCrypto.unwrap(
+            m.encryptedUltimateKey!,
+            ultimatePrivateKey,
+          );
+          final ownerKey =
+              await const KeyDuoSerializer().importKeyDuoJwk(ownerJwk);
+          await _ownerKeys.storeOwnerKey(
+            UuidValue.fromString(m.groupId),
+            ownerKey,
+          );
+          ownerOk = true;
+        } catch (_) {
+          // Report an individual corrupt backup without aborting recovery.
+        }
+      }
       recovered.add(RecoveredMembership(
         groupId: m.groupId,
         memberId: m.memberId,
         recovered: ok,
+        ownerKeyRecovered: ownerOk,
       ));
     }
     return recovered;

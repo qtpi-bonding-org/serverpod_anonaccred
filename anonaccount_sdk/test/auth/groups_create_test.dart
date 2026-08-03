@@ -60,7 +60,7 @@ void main() {
     final ultimateEncHex =
         (await ultimateHolder.getUltimateEncryptionPublicKeyHex())!;
     final store = InMemoryMemberKeyStore();
-    final groups = AnonaccountGroups(caller, store, difficulty: 4);
+    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
     final created = await groups.createGroup(
       displayName: 'Family',
       callerDeviceKey: callerDeviceKey,
@@ -153,7 +153,7 @@ void main() {
     final ultimateJwk = (await ultimateHolder.getUltimateKeyJwkOnce())!;
 
     final store = InMemoryMemberKeyStore();
-    final groups = AnonaccountGroups(caller, store, difficulty: 4);
+    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final myAccountId = wire.UuidValue.fromString(
       '33333333-3333-4333-8333-333333333333',
@@ -255,7 +255,7 @@ void main() {
         (await ultimateHolder.getUltimateEncryptionPublicKeyHex())!;
 
     final groups =
-        AnonaccountGroups(caller, InMemoryMemberKeyStore(), difficulty: 4);
+        AnonaccountGroups(caller, InMemoryMemberKeyStore(), InMemoryGroupOwnerKeyStore(), difficulty: 4);
     final deviceKey = await KeyGen.generateDeviceKey();
 
     await groups.createGroup(
@@ -308,6 +308,7 @@ void main() {
     final groups = AnonaccountGroups(
       _FakeCaller(),
       InMemoryMemberKeyStore(),
+      InMemoryGroupOwnerKeyStore(),
       difficulty: 4,
     );
     expect(groups, isA<AnonaccountGroups>());

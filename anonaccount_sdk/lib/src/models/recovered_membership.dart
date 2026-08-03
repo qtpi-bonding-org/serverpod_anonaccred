@@ -16,5 +16,6 @@ abstract class RecoveredMembership with _$RecoveredMembership {
     required String groupId,
     required UuidValue memberId,
     required bool recovered,
+    required bool? ownerKeyRecovered,
   }) = _RecoveredMembership;
 }

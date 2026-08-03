@@ -83,7 +83,7 @@ void main() {
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final store = InMemoryMemberKeyStore();
     await store.storeMemberKey(groupId, callerMemberKey);
-    final groups = AnonaccountGroups(caller, store, difficulty: 4);
+    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
 
     final result = await groups.addGroupMember(
       groupId: groupId,
@@ -152,7 +152,7 @@ void main() {
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     );
     final groups =
-        AnonaccountGroups(caller, InMemoryMemberKeyStore(), difficulty: 4);
+        AnonaccountGroups(caller, InMemoryMemberKeyStore(), InMemoryGroupOwnerKeyStore(), difficulty: 4);
 
     await expectLater(
       groups.addGroupMember(

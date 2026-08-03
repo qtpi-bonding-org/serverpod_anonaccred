@@ -79,6 +79,7 @@ void _stubListMyGroups(
             deviceEncryptedDataKey: null,
             joinedAt: DateTime.utc(2026, 8, 2),
             encryptedMemberKey: encryptedMemberKey,
+            encryptedUltimateKey: null,
           ),
         ]);
 }
@@ -151,7 +152,7 @@ void main() {
     final store = InMemoryAccountKeyStore();
     final memberStore = InMemoryMemberKeyStore();
     _stubListMyGroups(group);
-    final auth = AnonaccountAuth(caller, store, memberStore);
+    final auth = AnonaccountAuth(caller, store, memberStore, InMemoryGroupOwnerKeyStore());
 
     await auth.recoverAccount(
       ultimateKeyJwk: seeded.ultimateJwk,
@@ -179,7 +180,7 @@ void main() {
     final store = InMemoryAccountKeyStore();
     final memberStore = InMemoryMemberKeyStore();
     _stubListMyGroups(group);
-    final auth = AnonaccountAuth(caller, store, memberStore);
+    final auth = AnonaccountAuth(caller, store, memberStore, InMemoryGroupOwnerKeyStore());
 
     await auth.recoverAccount(
       ultimateKeyJwk: seeded.ultimateJwk,
@@ -236,7 +237,7 @@ void main() {
     final store = InMemoryAccountKeyStore();
     final memberStore = InMemoryMemberKeyStore();
     _stubListMyGroups(group);
-    final auth = AnonaccountAuth(caller, store, memberStore);
+    final auth = AnonaccountAuth(caller, store, memberStore, InMemoryGroupOwnerKeyStore());
     await expectLater(
       auth.recoverAccount(ultimateKeyJwk: 'not-json', deviceLabel: 'x'),
       throwsA(isA<InvalidUltimateKeyException>()),
@@ -271,7 +272,7 @@ void main() {
 
     final store = InMemoryAccountKeyStore();
     final memberStore = InMemoryMemberKeyStore();
-    final auth = AnonaccountAuth(caller, store, memberStore);
+    final auth = AnonaccountAuth(caller, store, memberStore, InMemoryGroupOwnerKeyStore());
 
     final recovered = await auth.recoverAccount(
       ultimateKeyJwk: seeded.ultimateJwk,
@@ -305,7 +306,7 @@ void main() {
 
     final store = InMemoryAccountKeyStore();
     final memberStore = InMemoryMemberKeyStore();
-    final auth = AnonaccountAuth(caller, store, memberStore);
+    final auth = AnonaccountAuth(caller, store, memberStore, InMemoryGroupOwnerKeyStore());
 
     final recovered = await auth.recoverAccount(
       ultimateKeyJwk: seeded.ultimateJwk,
@@ -360,7 +361,7 @@ void main() {
 
     final store = InMemoryAccountKeyStore();
     final memberStore = InMemoryMemberKeyStore();
-    final auth = AnonaccountAuth(caller, store, memberStore);
+    final auth = AnonaccountAuth(caller, store, memberStore, InMemoryGroupOwnerKeyStore());
 
     await auth.recoverAccount(
       ultimateKeyJwk: seeded.ultimateJwk,

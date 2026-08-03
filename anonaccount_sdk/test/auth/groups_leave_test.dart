@@ -52,7 +52,7 @@ void main() {
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final store = InMemoryMemberKeyStore();
     await store.storeMemberKey(groupId, callerMemberKey);
-    final groups = AnonaccountGroups(caller, store, difficulty: 4);
+    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
 
     final result = await groups.leaveGroup(
       groupId: groupId,
@@ -118,7 +118,7 @@ void main() {
     final store = InMemoryMemberKeyStore();
     await store.storeMemberKey(groupId, await KeyGen.generateDeviceKey());
 
-    await AnonaccountGroups(caller, store, difficulty: 4).leaveGroup(
+    await AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4).leaveGroup(
       groupId: groupId,
       memberId: wire.UuidValue.fromString(
         'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
@@ -165,7 +165,7 @@ void main() {
     await store.storeMemberKey(groupId, key);
 
     await expectLater(
-      AnonaccountGroups(caller, store, difficulty: 4).leaveGroup(
+      AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4).leaveGroup(
         groupId: groupId,
         memberId: wire.UuidValue.fromString(
           'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
@@ -182,6 +182,7 @@ void main() {
     final groups = AnonaccountGroups(
       _FakeCaller(),
       InMemoryMemberKeyStore(),
+      InMemoryGroupOwnerKeyStore(),
       difficulty: 4,
     );
 

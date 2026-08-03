@@ -23,6 +23,7 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
     this.deviceEncryptedDataKey,
     required this.joinedAt,
     required this.encryptedMemberKey,
+    this.encryptedUltimateKey,
   });
 
   factory GroupMembershipView({
@@ -34,6 +35,7 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
     String? deviceEncryptedDataKey,
     required DateTime joinedAt,
     required String encryptedMemberKey,
+    String? encryptedUltimateKey,
   }) = _GroupMembershipViewImpl;
 
   factory GroupMembershipView.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -55,6 +57,8 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
         jsonSerialization['joinedAt'],
       ),
       encryptedMemberKey: jsonSerialization['encryptedMemberKey'] as String,
+      encryptedUltimateKey:
+          jsonSerialization['encryptedUltimateKey'] as String?,
     );
   }
 
@@ -74,6 +78,8 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
 
   String encryptedMemberKey;
 
+  String? encryptedUltimateKey;
+
   /// Returns a shallow copy of this [GroupMembershipView]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -86,6 +92,7 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
     String? deviceEncryptedDataKey,
     DateTime? joinedAt,
     String? encryptedMemberKey,
+    String? encryptedUltimateKey,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -100,6 +107,8 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
         'deviceEncryptedDataKey': deviceEncryptedDataKey,
       'joinedAt': joinedAt.toJson(),
       'encryptedMemberKey': encryptedMemberKey,
+      if (encryptedUltimateKey != null)
+        'encryptedUltimateKey': encryptedUltimateKey,
     };
   }
 
@@ -121,6 +130,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
     String? deviceEncryptedDataKey,
     required DateTime joinedAt,
     required String encryptedMemberKey,
+    String? encryptedUltimateKey,
   }) : super._(
          memberId: memberId,
          shareGroupId: shareGroupId,
@@ -130,6 +140,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
          deviceEncryptedDataKey: deviceEncryptedDataKey,
          joinedAt: joinedAt,
          encryptedMemberKey: encryptedMemberKey,
+         encryptedUltimateKey: encryptedUltimateKey,
        );
 
   /// Returns a shallow copy of this [GroupMembershipView]
@@ -145,6 +156,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
     Object? deviceEncryptedDataKey = _Undefined,
     DateTime? joinedAt,
     String? encryptedMemberKey,
+    Object? encryptedUltimateKey = _Undefined,
   }) {
     return GroupMembershipView(
       memberId: memberId ?? this.memberId,
@@ -159,6 +171,9 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
           : this.deviceEncryptedDataKey,
       joinedAt: joinedAt ?? this.joinedAt,
       encryptedMemberKey: encryptedMemberKey ?? this.encryptedMemberKey,
+      encryptedUltimateKey: encryptedUltimateKey is String?
+          ? encryptedUltimateKey
+          : this.encryptedUltimateKey,
     );
   }
 }

@@ -74,7 +74,7 @@ void main() {
   group('createAccount (local-only)', () {
     test('produces a complete AccountCreationResult without calling the wire',
         () async {
-      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore(), InMemoryMemberKeyStore());
+      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore(), InMemoryMemberKeyStore(), InMemoryGroupOwnerKeyStore());
       final result = await auth.createAccount(
         deviceLabel: 'iPhone-15',
         createdAt: DateTime.utc(2026),
@@ -114,7 +114,7 @@ void main() {
   group('registerAccount (wire submission)', () {
     test('calls account.createAccount with a duo whose halves differ and are SEC1',
         () async {
-      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore(), InMemoryMemberKeyStore());
+      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore(), InMemoryMemberKeyStore(), InMemoryGroupOwnerKeyStore());
       final created = await auth.createAccount(
         deviceLabel: 'iPhone-15',
         createdAt: DateTime.utc(2026),

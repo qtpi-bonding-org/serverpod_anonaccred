@@ -15,7 +15,7 @@ void main() {
     // Create auth with a fresh store
     final authStore = InMemoryAccountKeyStore();
     final memberStore = InMemoryMemberKeyStore();
-    final auth = AnonaccountAuth(_FakeCaller(), authStore, memberStore);
+    final auth = AnonaccountAuth(_FakeCaller(), authStore, memberStore, InMemoryGroupOwnerKeyStore());
 
     await expectLater(
       auth.deleteAccount(ultimateBackupJwk: seedUltimateJwk),

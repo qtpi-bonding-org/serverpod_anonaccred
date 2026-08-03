@@ -54,7 +54,7 @@ void main() {
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final store = InMemoryMemberKeyStore();
     await store.storeMemberKey(groupId, callerMemberKey);
-    final groups = AnonaccountGroups(caller, store, difficulty: 4);
+    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
 
     final result = await groups.removeGroupMember(
       groupId: groupId,
@@ -94,6 +94,7 @@ void main() {
     final groups = AnonaccountGroups(
       _FakeCaller(),
       InMemoryMemberKeyStore(),
+      InMemoryGroupOwnerKeyStore(),
       difficulty: 4,
     );
 

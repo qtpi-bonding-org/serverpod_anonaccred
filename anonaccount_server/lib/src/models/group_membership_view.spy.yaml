@@ -15,3 +15,4 @@ fields:
   # The caller's OWN backup. listMyGroups is already filtered to the
   # calling device's account, so this reaches nobody else.
   encryptedMemberKey: String
+  encryptedUltimateKey: String?
