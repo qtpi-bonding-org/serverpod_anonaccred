@@ -53,6 +53,8 @@ class GroupEndpoint extends SignedPowEndpoint {
     required PublicKeyDuo creatorMemberKeys,
     required String creatorMemberEncryptedDataKey,
     required String groupUltimateAttestation,
+    required String creatorEncryptedMemberKey,
+    required String creatorEncryptedMemberKeyAttestation,
   }) async {
     return tryOperation(
       session,
@@ -117,6 +119,30 @@ class GroupEndpoint extends SignedPowEndpoint {
           );
         }
 
+        AnonAccountHelpers.validateNonEmpty(
+          creatorEncryptedMemberKey,
+          'creatorEncryptedMemberKey',
+          'createGroup',
+        );
+        final memberKeyBackupOk = await CryptoUtils.verifySignature(
+          message: GroupInnerPayloads.setEncryptedMemberKey(
+            groupKeys.signingPublicKeyHex,
+            accountId,
+            memberKeys.signingPublicKeyHex,
+            creatorEncryptedMemberKey,
+          ),
+          signature: creatorEncryptedMemberKeyAttestation,
+          publicKey: memberKeys.signingPublicKeyHex,
+        );
+        if (!memberKeyBackupOk) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidSignature,
+            message: 'Invalid encrypted member key attestation — the creator '
+                'member key did not authorize this backup',
+            operation: 'createGroup',
+          );
+        }
+
         final now = DateTime.now();
         final group = ShareGroup(
           ultimateSigningPublicKeyHex: groupKeys.signingPublicKeyHex,
@@ -133,9 +159,7 @@ class GroupEndpoint extends SignedPowEndpoint {
           memberSigningPublicKeyHex: memberKeys.signingPublicKeyHex,
           memberEncryptionPublicKeyHex: memberKeys.encryptionPublicKeyHex,
           encryptedDataKey: creatorMemberEncryptedDataKey,
-          // TODO(member-key-backup): placeholder until the member-key-backup
-          // plan lands the write path for this column.
-          encryptedMemberKey: '',
+          encryptedMemberKey: creatorEncryptedMemberKey,
           joinedAt: now,
           isRevoked: false,
           addedByAttestorPublicKeyHex: groupKeys.signingPublicKeyHex,
@@ -217,6 +241,7 @@ class GroupEndpoint extends SignedPowEndpoint {
               memberEncryptedDataKey: m.encryptedDataKey,
               deviceEncryptedDataKey: grantByMemberId[m.id]?.encryptedDataKey,
               joinedAt: m.joinedAt,
+              encryptedMemberKey: m.encryptedMemberKey,
             ),
         ];
       },
@@ -246,6 +271,8 @@ class GroupEndpoint extends SignedPowEndpoint {
     required GroupMemberRole role,
     required PublicKeyDuo memberKeys,
     required String encryptedDataKey,
+    required String encryptedMemberKey,
+    required String encryptedMemberKeyAttestation,
     String? callerMemberSigningPublicKeyHex,
     String? memberAuthSignature,
     String? groupUltimateSignature,
@@ -274,6 +301,46 @@ class GroupEndpoint extends SignedPowEndpoint {
           'encryptedDataKey',
           'addGroupMember',
         );
+        AnonAccountHelpers.validateNonEmpty(
+          encryptedMemberKey,
+          'encryptedMemberKey',
+          'addGroupMember',
+        );
+
+        // Loaded here regardless of role: both the admin-role branch below
+        // and the member-key backup check need the group's ultimate signing
+        // key, so one lookup serves both instead of issuing two.
+        final backupGroup = await ShareGroup.db.findById(session, groupId);
+        if (backupGroup == null) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authAccountNotFound,
+            message: 'Group not found',
+            operation: 'addGroupMember',
+            details: {'groupId': groupId.toString()},
+          );
+        }
+
+        // Signed by the NEW member's key, not the caller's. The admin only
+        // relays this blob and must not be able to alter it, redirect it to
+        // another group, or bind it to another account.
+        final memberKeyBackupOk = await CryptoUtils.verifySignature(
+          message: GroupInnerPayloads.setEncryptedMemberKey(
+            backupGroup.ultimateSigningPublicKeyHex,
+            newMemberAccountId,
+            validatedMemberKeys.signingPublicKeyHex,
+            encryptedMemberKey,
+          ),
+          signature: encryptedMemberKeyAttestation,
+          publicKey: validatedMemberKeys.signingPublicKeyHex,
+        );
+        if (!memberKeyBackupOk) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidSignature,
+            message: 'Invalid encrypted member key attestation — the new '
+                'member key did not authorize this backup',
+            operation: 'addGroupMember',
+          );
+        }
 
         final innerPayload = GroupInnerPayloads.addGroupMember(
           groupId,
@@ -296,15 +363,7 @@ class GroupEndpoint extends SignedPowEndpoint {
               operation: 'addGroupMember',
             );
           }
-          final group = await ShareGroup.db.findById(session, groupId);
-          if (group == null) {
-            throw AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authAccountNotFound,
-              message: 'Group not found',
-              operation: 'addGroupMember',
-              details: {'groupId': groupId.toString()},
-            );
-          }
+          final group = backupGroup;
           final innerOk = await CryptoUtils.verifySignature(
             message: innerPayload,
             signature: groupUltimateSignature,
@@ -408,18 +467,30 @@ class GroupEndpoint extends SignedPowEndpoint {
           memberEncryptionPublicKeyHex:
               validatedMemberKeys.encryptionPublicKeyHex,
           encryptedDataKey: encryptedDataKey,
-          // TODO(member-key-backup): placeholder until the member-key-backup
-          // plan lands the write path for this column.
-          encryptedMemberKey: '',
+          encryptedMemberKey: encryptedMemberKey,
           joinedAt: now,
           isRevoked: false,
           addedByAttestorPublicKeyHex: attestingPubkey,
           addedByAttestation: attestationSig,
         );
         final insertedMember = await GroupMember.db.insertRow(session, member);
+        // Post the view, not the row: monitorGroupMembership has no
+        // ownership check on the member key it subscribes with, so any
+        // device with a valid outer signature can subscribe to another
+        // member's channel. GroupMemberView omits encryptedMemberKey and
+        // encryptedDataKey for exactly that reason.
         session.messages.postMessage(
           'group-membership-${insertedMember.memberSigningPublicKeyHex}',
-          insertedMember,
+          GroupMemberView(
+            memberId: insertedMember.id!,
+            shareGroupId: insertedMember.shareGroupId,
+            anonAccountId: insertedMember.anonAccountId,
+            role: insertedMember.role,
+            memberSigningPublicKeyHex: insertedMember.memberSigningPublicKeyHex,
+            memberEncryptionPublicKeyHex:
+                insertedMember.memberEncryptionPublicKeyHex,
+            joinedAt: insertedMember.joinedAt,
+          ),
         );
         return insertedMember;
       },
@@ -636,7 +707,7 @@ class GroupEndpoint extends SignedPowEndpoint {
     );
   }
 
-  Stream<GroupMember> monitorGroupMembership(
+  Stream<GroupMemberView> monitorGroupMembership(
     Session session, {
     required String challenge,
     required String proofOfWork,
@@ -656,7 +727,7 @@ class GroupEndpoint extends SignedPowEndpoint {
     );
 
     final channelName = 'group-membership-$memberSigningKeyHex';
-    final stream = session.messages.createStream<GroupMember>(channelName);
+    final stream = session.messages.createStream<GroupMemberView>(channelName);
 
     await for (final event in stream) {
       yield event;
@@ -745,7 +816,7 @@ class GroupEndpoint extends SignedPowEndpoint {
     );
   }
 
-  Future<List<GroupMember>> listGroupMembers(
+  Future<List<GroupMemberView>> listGroupMembers(
     Session session, {
     required String challenge,
     required String proofOfWork,
@@ -811,7 +882,18 @@ class GroupEndpoint extends SignedPowEndpoint {
           );
         }
 
-        return ActiveRows.membersOfGroup(session, groupId);
+        final rows = await ActiveRows.membersOfGroup(session, groupId);
+        return rows
+            .map((r) => GroupMemberView(
+                  memberId: r.id!,
+                  shareGroupId: r.shareGroupId,
+                  anonAccountId: r.anonAccountId,
+                  role: r.role,
+                  memberSigningPublicKeyHex: r.memberSigningPublicKeyHex,
+                  memberEncryptionPublicKeyHex: r.memberEncryptionPublicKeyHex,
+                  joinedAt: r.joinedAt,
+                ))
+            .toList();
       },
       onFailure: authFailure,
       code: AnonAccountErrorCodes.databaseError,

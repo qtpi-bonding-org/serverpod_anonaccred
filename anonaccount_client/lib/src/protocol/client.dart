@@ -29,10 +29,11 @@ import 'package:anonaccount_client/src/protocol/group_membership_view.dart'
     as _i11;
 import 'package:anonaccount_client/src/protocol/group_member.dart' as _i12;
 import 'package:anonaccount_client/src/protocol/group_member_role.dart' as _i13;
+import 'package:anonaccount_client/src/protocol/group_member_view.dart' as _i14;
 import 'package:anonaccount_client/src/protocol/grant_member_device_result.dart'
-    as _i14;
-import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
     as _i15;
+import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
+    as _i16;
 
 /// Account endpoint with PoW + signature protection.
 ///
@@ -469,6 +470,8 @@ class EndpointDeviceManagement extends EndpointSignedPow {
     required String pairingAttestation,
     required String newDeviceEncryptedDataKey,
     required String label,
+    required String ultimateEncryptionPublicKeyHex,
+    required String ultimateSigningPublicKeyHex,
   }) => caller.callServerEndpoint<_i7.AccountDevice>(
     'anonaccount.deviceManagement',
     'registerDeviceForAccount',
@@ -481,6 +484,8 @@ class EndpointDeviceManagement extends EndpointSignedPow {
       'pairingAttestation': pairingAttestation,
       'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
       'label': label,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
     },
   );
 
@@ -627,6 +632,8 @@ class EndpointGroup extends EndpointSignedPow {
     required _i4.PublicKeyDuo creatorMemberKeys,
     required String creatorMemberEncryptedDataKey,
     required String groupUltimateAttestation,
+    required String creatorEncryptedMemberKey,
+    required String creatorEncryptedMemberKeyAttestation,
   }) => caller.callServerEndpoint<_i10.ShareGroup>(
     'anonaccount.group',
     'createGroup',
@@ -640,6 +647,9 @@ class EndpointGroup extends EndpointSignedPow {
       'creatorMemberKeys': creatorMemberKeys,
       'creatorMemberEncryptedDataKey': creatorMemberEncryptedDataKey,
       'groupUltimateAttestation': groupUltimateAttestation,
+      'creatorEncryptedMemberKey': creatorEncryptedMemberKey,
+      'creatorEncryptedMemberKeyAttestation':
+          creatorEncryptedMemberKeyAttestation,
     },
   );
 
@@ -689,6 +699,8 @@ class EndpointGroup extends EndpointSignedPow {
     required _i13.GroupMemberRole role,
     required _i4.PublicKeyDuo memberKeys,
     required String encryptedDataKey,
+    required String encryptedMemberKey,
+    required String encryptedMemberKeyAttestation,
     String? callerMemberSigningPublicKeyHex,
     String? memberAuthSignature,
     String? groupUltimateSignature,
@@ -705,6 +717,8 @@ class EndpointGroup extends EndpointSignedPow {
       'role': role,
       'memberKeys': memberKeys,
       'encryptedDataKey': encryptedDataKey,
+      'encryptedMemberKey': encryptedMemberKey,
+      'encryptedMemberKeyAttestation': encryptedMemberKeyAttestation,
       'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
       'memberAuthSignature': memberAuthSignature,
       'groupUltimateSignature': groupUltimateSignature,
@@ -740,7 +754,7 @@ class EndpointGroup extends EndpointSignedPow {
     },
   );
 
-  _i2.Stream<_i12.GroupMember> monitorGroupMembership({
+  _i2.Stream<_i14.GroupMemberView> monitorGroupMembership({
     required String challenge,
     required String proofOfWork,
     required String signature,
@@ -748,8 +762,8 @@ class EndpointGroup extends EndpointSignedPow {
     required String memberSigningKeyHex,
   }) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i12.GroupMember>,
-        _i12.GroupMember
+        _i2.Stream<_i14.GroupMemberView>,
+        _i14.GroupMemberView
       >(
         'anonaccount.group',
         'monitorGroupMembership',
@@ -785,7 +799,7 @@ class EndpointGroup extends EndpointSignedPow {
     },
   );
 
-  _i2.Future<List<_i12.GroupMember>> listGroupMembers({
+  _i2.Future<List<_i14.GroupMemberView>> listGroupMembers({
     required String challenge,
     required String proofOfWork,
     required String signature,
@@ -793,7 +807,7 @@ class EndpointGroup extends EndpointSignedPow {
     required _i1.UuidValue groupId,
     required String callerMemberSigningPublicKeyHex,
     required String memberAuthSignature,
-  }) => caller.callServerEndpoint<List<_i12.GroupMember>>(
+  }) => caller.callServerEndpoint<List<_i14.GroupMemberView>>(
     'anonaccount.group',
     'listGroupMembers',
     {
@@ -839,13 +853,13 @@ class EndpointGroup extends EndpointSignedPow {
   /// `revokeDevice` between the grantee-active check and the insert could
   /// persist a signed record certifying a grant the system should have
   /// refused.
-  _i2.Future<_i14.GrantMemberDeviceResult> grantMemberDevice({
+  _i2.Future<_i15.GrantMemberDeviceResult> grantMemberDevice({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required List<_i15.MemberDeviceGrant> grants,
-  }) => caller.callServerEndpoint<_i14.GrantMemberDeviceResult>(
+    required List<_i16.MemberDeviceGrant> grants,
+  }) => caller.callServerEndpoint<_i15.GrantMemberDeviceResult>(
     'anonaccount.group',
     'grantMemberDevice',
     {

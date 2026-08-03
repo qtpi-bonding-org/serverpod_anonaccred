@@ -23,6 +23,7 @@ abstract class GroupMembershipView
     required this.memberEncryptedDataKey,
     this.deviceEncryptedDataKey,
     required this.joinedAt,
+    required this.encryptedMemberKey,
   });
 
   factory GroupMembershipView({
@@ -33,6 +34,7 @@ abstract class GroupMembershipView
     required String memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
     required DateTime joinedAt,
+    required String encryptedMemberKey,
   }) = _GroupMembershipViewImpl;
 
   factory GroupMembershipView.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -53,6 +55,7 @@ abstract class GroupMembershipView
       joinedAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['joinedAt'],
       ),
+      encryptedMemberKey: jsonSerialization['encryptedMemberKey'] as String,
     );
   }
 
@@ -70,6 +73,8 @@ abstract class GroupMembershipView
 
   DateTime joinedAt;
 
+  String encryptedMemberKey;
+
   /// Returns a shallow copy of this [GroupMembershipView]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -81,6 +86,7 @@ abstract class GroupMembershipView
     String? memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
     DateTime? joinedAt,
+    String? encryptedMemberKey,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -94,6 +100,7 @@ abstract class GroupMembershipView
       if (deviceEncryptedDataKey != null)
         'deviceEncryptedDataKey': deviceEncryptedDataKey,
       'joinedAt': joinedAt.toJson(),
+      'encryptedMemberKey': encryptedMemberKey,
     };
   }
 
@@ -109,6 +116,7 @@ abstract class GroupMembershipView
       if (deviceEncryptedDataKey != null)
         'deviceEncryptedDataKey': deviceEncryptedDataKey,
       'joinedAt': joinedAt.toJson(),
+      'encryptedMemberKey': encryptedMemberKey,
     };
   }
 
@@ -129,6 +137,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
     required String memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
     required DateTime joinedAt,
+    required String encryptedMemberKey,
   }) : super._(
          memberId: memberId,
          shareGroupId: shareGroupId,
@@ -137,6 +146,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
          memberEncryptedDataKey: memberEncryptedDataKey,
          deviceEncryptedDataKey: deviceEncryptedDataKey,
          joinedAt: joinedAt,
+         encryptedMemberKey: encryptedMemberKey,
        );
 
   /// Returns a shallow copy of this [GroupMembershipView]
@@ -151,6 +161,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
     String? memberEncryptedDataKey,
     Object? deviceEncryptedDataKey = _Undefined,
     DateTime? joinedAt,
+    String? encryptedMemberKey,
   }) {
     return GroupMembershipView(
       memberId: memberId ?? this.memberId,
@@ -164,6 +175,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
           ? deviceEncryptedDataKey
           : this.deviceEncryptedDataKey,
       joinedAt: joinedAt ?? this.joinedAt,
+      encryptedMemberKey: encryptedMemberKey ?? this.encryptedMemberKey,
     );
   }
 }

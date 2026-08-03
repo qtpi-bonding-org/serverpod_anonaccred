@@ -5,7 +5,8 @@ import 'package:anonaccount_client/src/protocol/client.dart'
 import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
     show PublicChallengeResponse;
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
-import 'package:anonaccount_sdk/anonaccount_sdk.dart' show AnonaccountAuth, InMemoryAccountKeyStore;
+import 'package:anonaccount_sdk/anonaccount_sdk.dart'
+    show AnonaccountAuth, InMemoryAccountKeyStore, InMemoryMemberKeyStore;
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -51,7 +52,8 @@ void main() {
 
     // Create auth with a fresh store
     final authStore = InMemoryAccountKeyStore();
-    final auth = AnonaccountAuth(caller, authStore);
+    final memberStore = InMemoryMemberKeyStore();
+    final auth = AnonaccountAuth(caller, authStore, memberStore);
     final targetId =
         UuidValue.fromString('11111111-1111-4111-8111-111111111111');
 

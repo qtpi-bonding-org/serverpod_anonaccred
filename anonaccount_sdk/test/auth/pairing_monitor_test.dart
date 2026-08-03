@@ -35,6 +35,8 @@ void main() {
   DevicePairingEvent makeEvent(String blob) => DevicePairingEvent(
         encryptedDataKey: blob,
         signingKeyHex: 'h' * 128,
+        ultimateEncryptionPublicKeyHex: '04${'a' * 128}',
+        ultimateSigningPublicKeyHex: '04${'b' * 128}',
       );
 
   test('monitorRegistration yields wire encryptedDataKey events as strings', () async {
@@ -50,7 +52,7 @@ void main() {
     final hex = (await store.getDeviceSigningPublicKeyHex())!;
     final pairing = AnonaccountPairing(caller, store, difficulty: 4);
     final values = await pairing.monitorRegistration(hex).toList();
-    expect(values, ['BLOB-A', 'BLOB-B']);
+    expect(values.map((v) => v.encryptedDataKey), ['BLOB-A', 'BLOB-B']);
   });
 
   test('yields a single emission when the server fires once', () async {
@@ -66,6 +68,28 @@ void main() {
     final hex = (await store.getDeviceSigningPublicKeyHex())!;
     final pairing = AnonaccountPairing(caller, store, difficulty: 4);
     final v = await pairing.monitorRegistration(hex).first;
-    expect(v, 'ONLY');
+    expect(v.encryptedDataKey, 'ONLY');
+  });
+
+  test('monitorRegistration delivers the account ultimate public keys',
+      () async {
+    // A paired device must be able to encrypt member keys later without
+    // another round trip.
+    when(() => device.monitorRegistration(
+          challenge: any(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          signature: any(named: 'signature'),
+          signingKeyHex: any(named: 'signingKeyHex'),
+        )).thenAnswer((_) => Stream.fromIterable([makeEvent('WRAPPED')]));
+
+    final store = InMemoryAccountKeyStore();
+    await store.generateAndStoreDeviceKey();
+    final hex = (await store.getDeviceSigningPublicKeyHex())!;
+    final pairing = AnonaccountPairing(caller, store, difficulty: 4);
+    final delivery = await pairing.monitorRegistration(hex).first;
+
+    expect(delivery.encryptedDataKey, 'WRAPPED');
+    expect(delivery.ultimateEncryptionPublicKeyHex, '04${'a' * 128}');
+    expect(delivery.ultimateSigningPublicKeyHex, '04${'b' * 128}');
   });
 }

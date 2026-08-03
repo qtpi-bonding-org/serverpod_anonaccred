@@ -737,6 +737,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'ultimateEncryptionPublicKeyHex': _i1.ParameterDescription(
+              name: 'ultimateEncryptionPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'ultimateSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -756,6 +766,10 @@ class Endpoints extends _i1.EndpointDispatch {
                         newDeviceEncryptedDataKey:
                             params['newDeviceEncryptedDataKey'],
                         label: params['label'],
+                        ultimateEncryptionPublicKeyHex:
+                            params['ultimateEncryptionPublicKeyHex'],
+                        ultimateSigningPublicKeyHex:
+                            params['ultimateSigningPublicKeyHex'],
                       ),
         ),
         'getChallenge': _i1.MethodConnector(
@@ -937,6 +951,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'creatorEncryptedMemberKey': _i1.ParameterDescription(
+              name: 'creatorEncryptedMemberKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'creatorEncryptedMemberKeyAttestation': _i1.ParameterDescription(
+              name: 'creatorEncryptedMemberKeyAttestation',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -955,6 +979,9 @@ class Endpoints extends _i1.EndpointDispatch {
                 creatorMemberEncryptedDataKey:
                     params['creatorMemberEncryptedDataKey'],
                 groupUltimateAttestation: params['groupUltimateAttestation'],
+                creatorEncryptedMemberKey: params['creatorEncryptedMemberKey'],
+                creatorEncryptedMemberKeyAttestation:
+                    params['creatorEncryptedMemberKeyAttestation'],
               ),
         ),
         'listMyGroups': _i1.MethodConnector(
@@ -1042,6 +1069,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'encryptedMemberKey': _i1.ParameterDescription(
+              name: 'encryptedMemberKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'encryptedMemberKeyAttestation': _i1.ParameterDescription(
+              name: 'encryptedMemberKeyAttestation',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
             'callerMemberSigningPublicKeyHex': _i1.ParameterDescription(
               name: 'callerMemberSigningPublicKeyHex',
               type: _i1.getType<String?>(),
@@ -1075,6 +1112,9 @@ class Endpoints extends _i1.EndpointDispatch {
                     role: params['role'],
                     memberKeys: params['memberKeys'],
                     encryptedDataKey: params['encryptedDataKey'],
+                    encryptedMemberKey: params['encryptedMemberKey'],
+                    encryptedMemberKeyAttestation:
+                        params['encryptedMemberKeyAttestation'],
                     callerMemberSigningPublicKeyHex:
                         params['callerMemberSigningPublicKeyHex'],
                     memberAuthSignature: params['memberAuthSignature'],

@@ -17,17 +17,25 @@ abstract class DevicePairingEvent
   DevicePairingEvent._({
     required this.encryptedDataKey,
     required this.signingKeyHex,
+    required this.ultimateEncryptionPublicKeyHex,
+    required this.ultimateSigningPublicKeyHex,
   });
 
   factory DevicePairingEvent({
     required String encryptedDataKey,
     required String signingKeyHex,
+    required String ultimateEncryptionPublicKeyHex,
+    required String ultimateSigningPublicKeyHex,
   }) = _DevicePairingEventImpl;
 
   factory DevicePairingEvent.fromJson(Map<String, dynamic> jsonSerialization) {
     return DevicePairingEvent(
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       signingKeyHex: jsonSerialization['signingKeyHex'] as String,
+      ultimateEncryptionPublicKeyHex:
+          jsonSerialization['ultimateEncryptionPublicKeyHex'] as String,
+      ultimateSigningPublicKeyHex:
+          jsonSerialization['ultimateSigningPublicKeyHex'] as String,
     );
   }
 
@@ -35,12 +43,18 @@ abstract class DevicePairingEvent
 
   String signingKeyHex;
 
+  String ultimateEncryptionPublicKeyHex;
+
+  String ultimateSigningPublicKeyHex;
+
   /// Returns a shallow copy of this [DevicePairingEvent]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   DevicePairingEvent copyWith({
     String? encryptedDataKey,
     String? signingKeyHex,
+    String? ultimateEncryptionPublicKeyHex,
+    String? ultimateSigningPublicKeyHex,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -48,6 +62,8 @@ abstract class DevicePairingEvent
       '__className__': 'anonaccount.DevicePairingEvent',
       'encryptedDataKey': encryptedDataKey,
       'signingKeyHex': signingKeyHex,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
     };
   }
 
@@ -57,6 +73,8 @@ abstract class DevicePairingEvent
       '__className__': 'anonaccount.DevicePairingEvent',
       'encryptedDataKey': encryptedDataKey,
       'signingKeyHex': signingKeyHex,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
     };
   }
 
@@ -70,9 +88,13 @@ class _DevicePairingEventImpl extends DevicePairingEvent {
   _DevicePairingEventImpl({
     required String encryptedDataKey,
     required String signingKeyHex,
+    required String ultimateEncryptionPublicKeyHex,
+    required String ultimateSigningPublicKeyHex,
   }) : super._(
          encryptedDataKey: encryptedDataKey,
          signingKeyHex: signingKeyHex,
+         ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
+         ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
        );
 
   /// Returns a shallow copy of this [DevicePairingEvent]
@@ -82,10 +104,16 @@ class _DevicePairingEventImpl extends DevicePairingEvent {
   DevicePairingEvent copyWith({
     String? encryptedDataKey,
     String? signingKeyHex,
+    String? ultimateEncryptionPublicKeyHex,
+    String? ultimateSigningPublicKeyHex,
   }) {
     return DevicePairingEvent(
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
       signingKeyHex: signingKeyHex ?? this.signingKeyHex,
+      ultimateEncryptionPublicKeyHex:
+          ultimateEncryptionPublicKeyHex ?? this.ultimateEncryptionPublicKeyHex,
+      ultimateSigningPublicKeyHex:
+          ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
     );
   }
 }

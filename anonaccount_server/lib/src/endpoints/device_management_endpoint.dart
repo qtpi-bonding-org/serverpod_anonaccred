@@ -143,6 +143,8 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
     required String pairingAttestation,
     required String newDeviceEncryptedDataKey,
     required String label,
+    required String ultimateEncryptionPublicKeyHex,
+    required String ultimateSigningPublicKeyHex,
   }) async {
     session.log(
       'DeviceManagementEndpoint: registerDeviceForAccount called',
@@ -189,6 +191,19 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
           newDeviceKeys,
           'registerDeviceForAccount',
         );
+        // validateNonEmpty, not validatePublicKey: the latter hardcodes
+        // 'publicKey' as the field name in its error, so two adjacent
+        // failures on these would be indistinguishable.
+        AnonAccountHelpers.validateNonEmpty(
+          ultimateEncryptionPublicKeyHex,
+          'ultimateEncryptionPublicKeyHex',
+          'registerDeviceForAccount',
+        );
+        AnonAccountHelpers.validateNonEmpty(
+          ultimateSigningPublicKeyHex,
+          'ultimateSigningPublicKeyHex',
+          'registerDeviceForAccount',
+        );
         final attestationValid = await CryptoUtils.verifySignature(
           message: AccountInnerPayloads.pairDevice(keys),
           signature: pairingAttestation,
@@ -222,6 +237,8 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
           DevicePairingEvent(
             encryptedDataKey: newDeviceEncryptedDataKey,
             signingKeyHex: newDeviceKeys.signingPublicKeyHex,
+            ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
+            ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
           ),
         );
 

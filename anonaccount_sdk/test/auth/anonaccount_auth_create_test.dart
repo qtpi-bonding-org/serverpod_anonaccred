@@ -15,7 +15,8 @@ class _FakeCaller extends Mock implements wire.Caller {}
 void main() {
   test('createAccount builds a verifiable, structurally-correct payload', () async {
     final store = InMemoryAccountKeyStore();
-    final auth = AnonaccountAuth(_FakeCaller(), store);
+    final memberStore = InMemoryMemberKeyStore();
+    final auth = AnonaccountAuth(_FakeCaller(), store, memberStore);
     final createdAt = DateTime.utc(2026, 1, 1, 12);
 
     final result = await auth.createAccount(

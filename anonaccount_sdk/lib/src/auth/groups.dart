@@ -27,6 +27,7 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart'
         EncryptionKeyPair,
         EncryptionPublicKeyHex,
         KeyDuo,
+        KeyDuoSerializer,
         SigningKeyPair,
         SigningPublicKeyHex;
 import 'package:webcrypto/webcrypto.dart';
@@ -81,6 +82,8 @@ class AnonaccountGroups {
   Future<CreatedGroup> createGroup({
     required String displayName,
     required KeyDuo callerDeviceKey,
+    required UuidValue myAnonAccountId,
+    required String ultimateEncryptionPublicKeyHex,
   }) async {
     // Group-scoped key material.
     final groupUltimate = await KeyGen.generateUltimateKey();
@@ -116,6 +119,30 @@ class AnonaccountGroups {
     final groupUltimateAttestation =
         await SigningCrypto.signChallenge(innerPayload, groupUltimate);
 
+    // The member key pair itself, encrypted with the account's ultimate
+    // encryption public key. Only the user's written-down backup can
+    // decrypt it — not this device, not the server, not the data keys.
+    final creatorMemberKeyJwk =
+        await const KeyDuoSerializer().exportKeyDuoJwk(creatorMember);
+    final ultimateEncryptionKeyPair =
+        await EncryptionKeyPair.importPublicKeySec1Hex(
+      EncryptionPublicKeyHex(ultimateEncryptionPublicKeyHex),
+    );
+    final creatorEncryptedMemberKey = await AsymmetricCrypto.wrapForRecipient(
+      creatorMemberKeyJwk,
+      ultimateEncryptionKeyPair.publicKey,
+    );
+    final creatorEncryptedMemberKeyAttestation =
+        await SigningCrypto.signChallenge(
+      GroupInnerPayloads.setEncryptedMemberKey(
+        groupKeysWire.signingPublicKeyHex,
+        myAnonAccountId,
+        memberKeysWire.signingPublicKeyHex,
+        creatorEncryptedMemberKey,
+      ),
+      creatorMember,
+    );
+
     // Outer envelope signed by the user's device key.
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
@@ -138,6 +165,9 @@ class AnonaccountGroups {
       creatorMemberKeys: memberKeysWire,
       creatorMemberEncryptedDataKey: creatorMemberEncryptedDataKey,
       groupUltimateAttestation: groupUltimateAttestation,
+      creatorEncryptedMemberKey: creatorEncryptedMemberKey,
+      creatorEncryptedMemberKeyAttestation:
+          creatorEncryptedMemberKeyAttestation,
     );
 
     await _memberKeys.storeMemberKey(share.id!, creatorMember);
@@ -182,6 +212,7 @@ class AnonaccountGroups {
             memberEncryptedDataKey: r.memberEncryptedDataKey,
             deviceEncryptedDataKey: r.deviceEncryptedDataKey,
             joinedAt: r.joinedAt,
+            encryptedMemberKey: r.encryptedMemberKey,
           ),
         )
         .toList();
@@ -193,6 +224,12 @@ class AnonaccountGroups {
   /// inner payload with the member key its store holds for [groupId]. The new
   /// member's encrypted data key must be wrapped externally before passing it
   /// here.
+  ///
+  /// [encryptedMemberKey] and [encryptedMemberKeyAttestation] are the
+  /// invitee's own member-key backup, produced and signed by the invitee
+  /// before this call — this method only relays them. The admin's SDK
+  /// cannot construct these: it holds neither the invitee's member private
+  /// key nor their account's ultimate public key.
   Future<GroupMember> addGroupMember({
     required UuidValue groupId,
     required UuidValue newMemberAccountId,
@@ -201,6 +238,8 @@ class AnonaccountGroups {
     required String newMemberEncryptionPublicKeyHex,
     required String newMemberEncryptedDataKey,
     required KeyDuo callerDeviceKey,
+    required String encryptedMemberKey,
+    required String encryptedMemberKeyAttestation,
   }) async {
     final memberKey = await _requireMemberKey(groupId, 'addGroupMember');
     final callerMemberSigningPublicKeyHex =
@@ -245,6 +284,8 @@ class AnonaccountGroups {
       callerMemberSigningPublicKeyHex: callerMemberSigningPublicKeyHex,
       memberAuthSignature: memberAuthSignature,
       groupUltimateSignature: null,
+      encryptedMemberKey: encryptedMemberKey,
+      encryptedMemberKeyAttestation: encryptedMemberKeyAttestation,
     );
   }
 

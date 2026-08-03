@@ -74,6 +74,9 @@ void main() {
               any(named: 'callerMemberSigningPublicKeyHex'),
           memberAuthSignature: any(named: 'memberAuthSignature'),
           groupUltimateSignature: any(named: 'groupUltimateSignature'),
+          encryptedMemberKey: any(named: 'encryptedMemberKey'),
+          encryptedMemberKeyAttestation:
+              any(named: 'encryptedMemberKeyAttestation'),
         )).thenAnswer((_) async => stubMember);
 
     final callerMemberKey = await KeyGen.generateDeviceKey();
@@ -90,6 +93,8 @@ void main() {
       newMemberEncryptionPublicKeyHex: '04${'e' * 128}',
       newMemberEncryptedDataKey: 'WRAPPED_KEY',
       callerDeviceKey: callerDeviceKey,
+      encryptedMemberKey: 'INVITEE-BLOB',
+      encryptedMemberKeyAttestation: 'INVITEE-SIG',
     );
 
     expect(result.id.toString(), 'cccccccc-cccc-4ccc-8ccc-cccccccccccc');
@@ -113,18 +118,31 @@ void main() {
             captureAny(named: 'callerMemberSigningPublicKeyHex'),
         memberAuthSignature: captureAny(named: 'memberAuthSignature'),
         groupUltimateSignature: captureAny(named: 'groupUltimateSignature'),
+        encryptedMemberKey: captureAny(named: 'encryptedMemberKey'),
+        encryptedMemberKeyAttestation:
+            captureAny(named: 'encryptedMemberKeyAttestation'),
       ),
     ).captured;
 
-    // challenge at index 0, callerMemberSigningPublicKeyHex at 1, memberAuthSignature at 2, groupUltimateSignature at 3
+    // mocktail's `captured` order follows the mocked method's declared
+    // parameter order (see client.dart's addGroupMember), not the order
+    // captureAny() appears in this verify() call: challenge(0),
+    // encryptedMemberKey(1), encryptedMemberKeyAttestation(2),
+    // callerMemberSigningPublicKeyHex(3), memberAuthSignature(4),
+    // groupUltimateSignature(5).
     expect(captured[0], 'CHAL-ADD');
+    // The invitee's backup is relayed untouched: the admin's SDK cannot
+    // construct these — it has neither the invitee's member private key nor
+    // their ultimate public key — so both must pass through byte-for-byte.
+    expect(captured[1], 'INVITEE-BLOB');
+    expect(captured[2], 'INVITEE-SIG');
     // The signing key came from the store — nothing else supplies it now.
     expect(
-      captured[1],
+      captured[3],
       (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
     );
-    expect(captured[2], isNotNull); // memberAuthSignature — must be non-null
-    expect(captured[3], isNull); // groupUltimateSignature — null for admin branch
+    expect(captured[4], isNotNull); // memberAuthSignature — must be non-null
+    expect(captured[5], isNull); // groupUltimateSignature — null for admin branch
   });
 
   test('addGroupMember throws StateError when no member key is stored for the group',
@@ -147,6 +165,8 @@ void main() {
         newMemberEncryptionPublicKeyHex: '04${'e' * 128}',
         newMemberEncryptedDataKey: 'WRAPPED_KEY',
         callerDeviceKey: await KeyGen.generateDeviceKey(),
+        encryptedMemberKey: 'INVITEE-BLOB',
+        encryptedMemberKeyAttestation: 'INVITEE-SIG',
       ),
       throwsA(isA<StateError>().having(
         (e) => e.message,

@@ -13,6 +13,7 @@ import 'package:webcrypto/webcrypto.dart';
 
 import '../crypto/asymmetric.dart';
 import '../models/generated_pairing_qr.dart';
+import '../models/pairing_delivery.dart';
 import '../models/scanned_pairing_qr.dart';
 import 'account_key_store.dart';
 import 'pow_signer.dart';
@@ -73,11 +74,13 @@ class AnonaccountPairing {
   }
 
   /// Side B (the joiner): opens a server-sent stream that fires once for
-  /// each wrapped-key event the server emits for this signing public key.
+  /// each pairing event the server emits for this signing public key.
   ///
-  /// Yields the `encryptedDataKey` blob from each event; the consumer
-  /// passes that blob to [completePairing] to unwrap the symmetric key.
-  Stream<String> monitorRegistration(String mySigningPubkeyHex) async* {
+  /// The consumer passes [PairingDelivery.encryptedDataKey] to
+  /// [completePairing] to unwrap the symmetric key. The ultimate public
+  /// keys ride along on the same channel because it already is this
+  /// device's trust basis — no additional round trip or signature.
+  Stream<PairingDelivery> monitorRegistration(String mySigningPubkeyHex) async* {
     final deviceKey = (await _store.getDeviceKey())!;
     final challengeResp = await _caller.entrypoint.getChallenge();
     final envelope = await PowSigner.build(
@@ -94,7 +97,11 @@ class AnonaccountPairing {
           signature: envelope.signature,
           signingKeyHex: envelope.publicKeyHex,
         )
-        .map((e) => e.encryptedDataKey);
+        .map((e) => PairingDelivery(
+              encryptedDataKey: e.encryptedDataKey,
+              ultimateEncryptionPublicKeyHex: e.ultimateEncryptionPublicKeyHex,
+              ultimateSigningPublicKeyHex: e.ultimateSigningPublicKeyHex,
+            ));
   }
 
   /// Side A (the approver, an existing paired device): wraps our account
@@ -106,6 +113,18 @@ class AnonaccountPairing {
   }) async {
     final ourDeviceKey = (await _store.getDeviceKey())!;
     final ourSymmetricKey = (await _store.getSymmetricDataKey())!;
+    final ultimateEncryptionPublicKeyHex =
+        await _store.getUltimateEncryptionPublicKeyHex();
+    final ultimateSigningPublicKeyHex =
+        await _store.getUltimateSigningPublicKeyHex();
+    if (ultimateEncryptionPublicKeyHex == null ||
+        ultimateSigningPublicKeyHex == null) {
+      throw StateError(
+        'registerPairedDevice: this device\'s store has no ultimate public '
+        'keys. Side A itself never learned them, so pairing would silently '
+        'produce a device that can never write a group member-key backup.',
+      );
+    }
     final theirEncryptionKeyPair = await EncryptionKeyPair.importPublicKeySec1Hex(
       EncryptionPublicKeyHex(scanned.theirEncryptionPubkeyHex),
     );
@@ -143,6 +162,8 @@ class AnonaccountPairing {
           .join(),
       newDeviceEncryptedDataKey: wrappedSymKey,
       label: label,
+      ultimateEncryptionPublicKeyHex: ultimateEncryptionPublicKeyHex,
+      ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
     );
   }
 }

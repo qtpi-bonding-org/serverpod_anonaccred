@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 // ignore: implementation_imports
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
-    show KeyDuo, EncryptionKeyPair;
+    show KeyDuo, EncryptionKeyPair, KeyDuoSerializer;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
@@ -21,18 +21,22 @@ import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
 
 import '../crypto/asymmetric.dart';
 import '../models/account_creation_result.dart';
+import '../models/recovered_membership.dart';
 import '../models/registration_payload.dart';
 import 'account_key_store.dart';
 import 'exceptions.dart';
+import 'groups.dart';
+import 'member_key_store.dart';
 import 'pow_signer.dart';
 
 /// High-level account lifecycle wrapper. Key custody lives in the
 /// app-supplied [AccountKeyStore]; this class only drives the protocol.
 class AnonaccountAuth {
-  AnonaccountAuth(this._caller, this._store);
+  AnonaccountAuth(this._caller, this._store, this._memberKeys);
 
   final Caller _caller;
   final AccountKeyStore _store;
+  final MemberKeyStore _memberKeys;
 
   static String _hex(Uint8List b) =>
       b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
@@ -176,7 +180,7 @@ class AnonaccountAuth {
   ///
   /// Do NOT call [registerAccount] afterwards — that submits `createAccount`,
   /// which rejects an ultimate key that already has an account.
-  Future<void> recoverAccount({
+  Future<List<RecoveredMembership>> recoverAccount({
     required String ultimateKeyJwk,
     required String deviceLabel,
   }) async {
@@ -268,6 +272,43 @@ class AnonaccountAuth {
       encryptedDataKey: deviceBlob,
       label: deviceLabel,
     );
+
+    // Group memberships. Ordered after registerDevice because listMyGroups
+    // is authorized by the calling device, which only exists from here on.
+    //
+    // Recovered keys are written to the MemberKeyStore, never returned —
+    // the same custody convention this method already uses for the account
+    // data key. Only the per-membership outcome comes back, because unlike
+    // the single account data key there are N member keys and one row can
+    // be individually corrupt.
+    final memberships = await AnonaccountGroups(_caller, _memberKeys)
+        .listMyGroups(callerDeviceKey: deviceKey);
+
+    final recovered = <RecoveredMembership>[];
+    for (final m in memberships) {
+      var ok = false;
+      try {
+        final jwk = await AsymmetricCrypto.unwrap(
+          m.encryptedMemberKey,
+          ultimatePrivateKey,
+        );
+        final memberKey = await const KeyDuoSerializer().importKeyDuoJwk(jwk);
+        await _memberKeys.storeMemberKey(
+          UuidValue.fromString(m.groupId),
+          memberKey,
+        );
+        ok = true;
+      } catch (_) {
+        // Reported rather than thrown: one bad row must not cost the user
+        // the account recovery that already succeeded.
+      }
+      recovered.add(RecoveredMembership(
+        groupId: m.groupId,
+        memberId: m.memberId,
+        recovered: ok,
+      ));
+    }
+    return recovered;
   }
 
   /// Revokes a device from the caller's account.

@@ -13,6 +13,7 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
   String? _symmetricJwk;
   String? _deviceHex;
   String? _ultimateHex;
+  String? _ultimateEncryptionHex;
 
   @override
   Future<void> generateAccountKeys() async {
@@ -20,6 +21,8 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
     _device = await KeyGen.generateDeviceKey();
     _symmetricJwk = await KeyGen.generateSymmetricKeyJwk();
     _ultimateHex = await _ultimate!.signingKeyPair.exportPublicKeySec1Hex();
+    _ultimateEncryptionHex =
+        await _ultimate!.encryptionKeyPair.exportPublicKeySec1Hex();
     _deviceHex = await _device!.signingKeyPair.exportPublicKeySec1Hex();
   }
 
@@ -78,6 +81,10 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
   Future<String?> getUltimateSigningPublicKeyHex() async => _ultimateHex;
 
   @override
+  Future<String?> getUltimateEncryptionPublicKeyHex() async =>
+      _ultimateEncryptionHex;
+
+  @override
   Future<String?> getUltimateKeyJwkOnce() async {
     final u = _ultimate;
     if (u == null) return null;
@@ -91,6 +98,7 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
     final u = await const KeyDuoSerializer().importKeyDuoJwk(jwk);
     _ultimate = u;
     _ultimateHex = await u.signingKeyPair.exportPublicKeySec1Hex();
+    _ultimateEncryptionHex = await u.encryptionKeyPair.exportPublicKeySec1Hex();
     return u;
   }
 }

@@ -495,6 +495,7 @@ void main() {
           memberEncryptedDataKey: 'root-member-blob',
           deviceEncryptedDataKey: rootDeviceBlobForCaller,
           joinedAt: DateTime.utc(2026, 5, 20),
+          encryptedMemberKey: 'root-encrypted-member-key',
         ),
         wire.GroupMembershipView(
           memberId: peerMemberId,
@@ -505,6 +506,7 @@ void main() {
           memberEncryptedDataKey: 'peer-member-blob',
           deviceEncryptedDataKey: peerDeviceBlobForCaller,
           joinedAt: DateTime.utc(2026, 5, 21),
+          encryptedMemberKey: 'peer-encrypted-member-key',
         ),
       ];
 
@@ -689,6 +691,7 @@ void main() {
             memberEncryptedDataKey: 'member-blob',
             deviceEncryptedDataKey: blobForCaller,
             joinedAt: DateTime.utc(2026, 8, 2),
+            encryptedMemberKey: 'member-encrypted-member-key',
           ),
         ],
         callerDeviceKey: callerKey,

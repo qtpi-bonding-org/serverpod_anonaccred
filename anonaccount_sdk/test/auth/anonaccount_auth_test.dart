@@ -13,6 +13,8 @@ import 'package:anonaccount_protocol/anonaccount_protocol.dart'
 import 'package:anonaccount_sdk/src/auth/anonaccount_auth.dart';
 // ignore: implementation_imports
 import 'package:anonaccount_sdk/src/auth/in_memory_account_key_store.dart';
+// ignore: implementation_imports
+import 'package:anonaccount_sdk/src/auth/in_memory_member_key_store.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -72,7 +74,7 @@ void main() {
   group('createAccount (local-only)', () {
     test('produces a complete AccountCreationResult without calling the wire',
         () async {
-      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore());
+      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore(), InMemoryMemberKeyStore());
       final result = await auth.createAccount(
         deviceLabel: 'iPhone-15',
         createdAt: DateTime.utc(2026),
@@ -112,7 +114,7 @@ void main() {
   group('registerAccount (wire submission)', () {
     test('calls account.createAccount with a duo whose halves differ and are SEC1',
         () async {
-      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore());
+      final auth = AnonaccountAuth(caller, InMemoryAccountKeyStore(), InMemoryMemberKeyStore());
       final created = await auth.createAccount(
         deviceLabel: 'iPhone-15',
         createdAt: DateTime.utc(2026),

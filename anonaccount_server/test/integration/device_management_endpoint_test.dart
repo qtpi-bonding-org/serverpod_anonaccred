@@ -172,6 +172,8 @@ void main() {
           pairingAttestation: pairingAttestation,
           newDeviceEncryptedDataKey: 'paired-device-data-key',
           label: 'paired-device',
+          ultimateEncryptionPublicKeyHex: 'ultimate-enc-pub',
+          ultimateSigningPublicKeyHex: 'ultimate-sig-pub',
         ),
         throwsA(isA<AuthenticationException>()),
       );
@@ -217,6 +219,8 @@ void main() {
           pairingAttestation: pairingAttestation,
           newDeviceEncryptedDataKey: 'paired-device-data-key',
           label: 'paired-device',
+          ultimateEncryptionPublicKeyHex: 'ultimate-enc-pub',
+          ultimateSigningPublicKeyHex: 'ultimate-sig-pub',
         ),
         throwsA(isA<AuthenticationException>()),
       );
@@ -257,6 +261,8 @@ void main() {
         pairingAttestation: pairingAttestation,
         newDeviceEncryptedDataKey: 'paired-device-data-key',
         label: 'paired-device',
+        ultimateEncryptionPublicKeyHex: 'ultimate-enc-pub',
+        ultimateSigningPublicKeyHex: 'ultimate-sig-pub',
       );
 
       expect(device.addedByAttestorPublicKeyHex, s.devicePub);
