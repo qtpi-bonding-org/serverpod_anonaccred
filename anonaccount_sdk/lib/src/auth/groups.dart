@@ -250,22 +250,23 @@ class AnonaccountGroups {
 
   /// Removes (revokes) a group member (admin-tier auth branch only).
   ///
-  /// The caller must be an admin. Signs the inner payload with their
-  /// own member key ([callerMemberKey]).
+  /// The caller must be an admin. Signs the inner payload with the member key
+  /// its store holds for [groupId].
   Future<bool> removeGroupMember({
+    required UuidValue groupId,
     required UuidValue memberId,
-    required KeyDuo callerMemberKey,
     required KeyDuo callerDeviceKey,
   }) async {
+    final memberKey = await _requireMemberKey(groupId, 'removeGroupMember');
     final callerMemberSigningPublicKeyHex =
-        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+        (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Inner payload — signed by the caller's member key.
     final innerPayload = GroupInnerPayloads.removeGroupMember(memberId);
     final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
+        await SigningCrypto.signChallenge(innerPayload, memberKey);
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
@@ -291,19 +292,20 @@ class AnonaccountGroups {
 
   /// Leaves a group — the caller removes themselves using their member key.
   Future<bool> leaveGroup({
+    required UuidValue groupId,
     required UuidValue memberId,
-    required KeyDuo callerMemberKey,
     required KeyDuo callerDeviceKey,
   }) async {
+    final memberKey = await _requireMemberKey(groupId, 'leaveGroup');
     final memberSigningPublicKeyHex =
-        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+        (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Inner payload — signed by the caller's member key.
     final innerPayload = GroupInnerPayloads.leaveGroup(memberId);
     final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
+        await SigningCrypto.signChallenge(innerPayload, memberKey);
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
@@ -315,7 +317,7 @@ class AnonaccountGroups {
       difficulty: challengeResp.difficulty,
     );
 
-    return _caller.group.leaveGroup(
+    final left = await _caller.group.leaveGroup(
       challenge: envelope.challenge,
       proofOfWork: envelope.proofOfWork,
       signature: envelope.signature,
@@ -324,6 +326,9 @@ class AnonaccountGroups {
       memberSigningPublicKeyHex: memberSigningPublicKeyHex,
       memberAuthSignature: memberAuthSignature,
     );
+    // A throw from the wire call skips this, leaving custody intact.
+    await _memberKeys.removeMemberKey(groupId);
+    return left;
   }
 
   /// Low-level forwarder: sends a batch of already-attested
