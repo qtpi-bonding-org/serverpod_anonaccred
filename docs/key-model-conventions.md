@@ -372,7 +372,7 @@ widening group authorization:
 
 | Deviation | Where | Status |
 |---|---|---|
-| `keyEpoch` exists on `AccountDevice` and `ShareGroup` — leaf on one side, root on the other — and is never read or written | both models | Open — inert |
+| `keyEpoch` exists on `AccountDevice` and `ShareGroup` — leaf on one side, root on the other — and is never read or written | both models | Not a deviation — reserved ahead of a future key-rotation feature, so rotation won't need its own migration when it ships |
 | `webcrypto` dev-dependency versions differ between the two server packages (`^0.6.0` vs `^0.5.3`) | both `pubspec.yaml` | Open — harmless, separately resolved |
 
 **Fixed by round 1** — listed only so nobody re-adds them from an old draft:
