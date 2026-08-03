@@ -15,6 +15,11 @@ class CommerceEndpoint extends JwtEndpoint {
       'getEntitlements',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'getEntitlements',
+        );
 
         // Get entitlements using EntitlementManager
         final entitlements = await EntitlementManager.getAccountEntitlements(
@@ -36,6 +41,11 @@ class CommerceEndpoint extends JwtEndpoint {
       'getEntitlementBalance',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'getEntitlementBalance',
+        );
 
         // Get balance using EntitlementManager
         final balance = await EntitlementManager.getEntitlementBalance(
@@ -62,6 +72,11 @@ class CommerceEndpoint extends JwtEndpoint {
       'consumeEntitlement',
       () async {
         final accountUuid = getAccountUuid(session);
+        await AnonAccountHelpers.requireCaller(
+          session,
+          getDevicePublicKey(session),
+          'consumeEntitlement',
+        );
 
         // Attempt consumption using EntitlementUtils
         final result = await EntitlementUtils.tryConsume(
