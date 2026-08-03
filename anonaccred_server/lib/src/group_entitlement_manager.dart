@@ -2,7 +2,6 @@ import 'package:serverpod/serverpod.dart';
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'protocol_failures.dart';
 import 'entitlement_core.dart';
-import 'exception_factory.dart';
 import 'generated/protocol.dart';
 
 /// High-level service for managing group-scoped entitlements.
