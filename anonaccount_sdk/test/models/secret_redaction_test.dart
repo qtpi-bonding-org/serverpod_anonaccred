@@ -40,29 +40,18 @@ void main() {
       }
     });
 
-    test('CreatedGroup hides the group data key and the member key', () async {
+    test('CreatedGroup hides the group data key', () async {
       final dataKey = await AesGcmSecretKey.generateKey(256);
       final raw = base64Url.encode(await dataKey.exportRawKey());
-      final memberKey = await KeyGen.generateDeviceKey();
-      final memberJwk =
-          await const KeyDuoSerializer().exportKeyDuoJwk(memberKey);
 
       final created = CreatedGroup(
         groupId: 'g',
         displayName: 'g',
         groupDataKey: dataKey,
-        memberKey: memberKey,
         createdAt: DateTime.utc(2026, 8, 2),
       );
 
       expect(created.toString(), isNot(contains(raw.replaceAll('=', ''))));
-      final memberEntries = (jsonDecode(memberJwk) as Map<String, dynamic>)
-          ['keys'] as List<dynamic>;
-      for (final key in memberEntries.cast<Map<String, dynamic>>()) {
-        final d = key['d'] as String?;
-        if (d == null) continue;
-        expect(created.toString(), isNot(contains(d)));
-      }
     });
   });
 

@@ -22,15 +22,15 @@ _RegistrationPayload _$RegistrationPayloadFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$RegistrationPayloadToJson(
-        _RegistrationPayload instance) =>
-    <String, dynamic>{
-      'devicePublicKeyHex': instance.devicePublicKeyHex,
-      'deviceEncryptionPublicKeyHex': instance.deviceEncryptionPublicKeyHex,
-      'ultimatePublicKeyHex': instance.ultimatePublicKeyHex,
-      'ultimateEncryptionPublicKeyHex': instance.ultimateEncryptionPublicKeyHex,
-      'recoveryBlob': instance.recoveryBlob,
-      'deviceBlob': instance.deviceBlob,
-      'deviceKeyAttestation': instance.deviceKeyAttestation,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'version': instance.version,
-    };
+  _RegistrationPayload instance,
+) => <String, dynamic>{
+  'devicePublicKeyHex': instance.devicePublicKeyHex,
+  'deviceEncryptionPublicKeyHex': instance.deviceEncryptionPublicKeyHex,
+  'ultimatePublicKeyHex': instance.ultimatePublicKeyHex,
+  'ultimateEncryptionPublicKeyHex': instance.ultimateEncryptionPublicKeyHex,
+  'recoveryBlob': instance.recoveryBlob,
+  'deviceBlob': instance.deviceBlob,
+  'deviceKeyAttestation': instance.deviceKeyAttestation,
+  'createdAt': instance.createdAt.toIso8601String(),
+  'version': instance.version,
+};

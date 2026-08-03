@@ -63,17 +63,44 @@ void main() {
     expect(created.groupId, '11111111-1111-4111-8111-111111111111');
     expect(created.groupDataKey, isA<AesGcmSecretKey>());
 
-    verify(() => group.createGroup(
+    final verification = verify(() => group.createGroup(
           challenge: 'CHAL-G',
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
           callerDeviceSigningPublicKeyHex: callerDeviceHex.value,
           groupUltimateKeys: any(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
-          creatorMemberKeys: any(named: 'creatorMemberKeys'),
-          creatorMemberEncryptedDataKey: any(named: 'creatorMemberEncryptedDataKey'),
+          creatorMemberKeys: captureAny(named: 'creatorMemberKeys'),
+          creatorMemberEncryptedDataKey:
+              any(named: 'creatorMemberEncryptedDataKey'),
           groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
-        )).called(1);
+        ));
+    verification.called(1);
+
+    // The creator's member key reaches custody, filed under the new group id.
+    final stored = await store.getMemberKey(
+      wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
+    );
+    expect(stored, isNotNull);
+
+    // And it is the key whose public half went over the wire as
+    // creatorMemberKeys, not merely some key.
+    final sentDuo = verification.captured.single as wire.PublicKeyDuo;
+    final storedHex =
+        (await stored!.signingKeyPair.exportPublicKeySec1Hex()).value;
+    expect(storedHex, sentDuo.signingPublicKeyHex);
+  });
+
+  test('CreatedGroup exposes no member key', () async {
+    // The member key reaches the store, never the caller. Pins the field's
+    // absence so it cannot be reintroduced without this failing.
+    final created = CreatedGroup(
+      groupId: 'g',
+      displayName: 'g',
+      groupDataKey: await AesGcmSecretKey.generateKey(256),
+      createdAt: DateTime.utc(2026, 8, 2),
+    );
+    expect(created.toString(), isNot(contains('memberKey')));
   });
 
   test('AnonaccountGroups takes a MemberKeyStore', () {

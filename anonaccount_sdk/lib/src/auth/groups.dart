@@ -121,11 +121,12 @@ class AnonaccountGroups {
       groupUltimateAttestation: groupUltimateAttestation,
     );
 
+    await _memberKeys.storeMemberKey(share.id!, creatorMember);
+
     return CreatedGroup(
       groupId: share.id!.toString(),
       displayName: displayName,
       groupDataKey: dataKey,
-      memberKey: creatorMember, // was discarded; now surfaced for persistence
       createdAt: share.createdAt,
     );
   }
