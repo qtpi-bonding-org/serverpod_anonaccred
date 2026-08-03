@@ -107,4 +107,21 @@ abstract final class GroupInnerPayloads {
   ) =>
       'grantMemberDevice:$memberId:${deviceKeys.signingPublicKeyHex}'
       ':${deviceKeys.encryptionPublicKeyHex}:$encryptedDataKey';
+
+  /// Signed by the member signing key whose pair is inside
+  /// [encryptedMemberKey]. Binds the blob to one group, one account, and
+  /// one member key, and covers the ciphertext itself — so a party merely
+  /// relaying it (the admin, in addGroupMember) can neither substitute the
+  /// blob nor redirect it to another group or account.
+  ///
+  /// Identifies the group by its ultimate signing key rather than its id,
+  /// because at createGroup time the group has no id yet.
+  static String setEncryptedMemberKey(
+    String groupUltimateSigningPublicKeyHex,
+    UuidValue anonAccountId,
+    String memberSigningPublicKeyHex,
+    String encryptedMemberKey,
+  ) =>
+      'setEncryptedMemberKey:$groupUltimateSigningPublicKeyHex'
+      ':$anonAccountId:$memberSigningPublicKeyHex:$encryptedMemberKey';
 }

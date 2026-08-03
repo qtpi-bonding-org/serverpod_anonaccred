@@ -39,4 +39,31 @@ void main() {
       'grantMemberDevice:$memberId:04${'a' * 128}:04${'b' * 128}:CIPHERTEXT',
     );
   });
+
+  final acct = UuidValue.fromString('11111111-1111-4111-8111-111111111111');
+  final other = UuidValue.fromString('22222222-2222-4222-8222-222222222222');
+
+  test('setEncryptedMemberKey emits all four bound values', () {
+    expect(
+      GroupInnerPayloads.setEncryptedMemberKey('04gg', acct, '04aa', 'CT'),
+      'setEncryptedMemberKey:04gg:$acct:04aa:CT',
+    );
+  });
+
+  test('each bound field changes the signed message', () {
+    final base =
+        GroupInnerPayloads.setEncryptedMemberKey('04gg', acct, '04aa', 'CT');
+    // Group: stops an admin of two groups redirecting the invitee's tuple.
+    expect(GroupInnerPayloads.setEncryptedMemberKey('04hh', acct, '04aa', 'CT'),
+        isNot(base));
+    // Account: stops the blob being bound to someone else's membership.
+    expect(GroupInnerPayloads.setEncryptedMemberKey('04gg', other, '04aa', 'CT'),
+        isNot(base));
+    // Member key.
+    expect(GroupInnerPayloads.setEncryptedMemberKey('04gg', acct, '04bb', 'CT'),
+        isNot(base));
+    // Ciphertext: stops a relaying admin swapping the blob.
+    expect(GroupInnerPayloads.setEncryptedMemberKey('04gg', acct, '04aa', 'XX'),
+        isNot(base));
+  });
 }
