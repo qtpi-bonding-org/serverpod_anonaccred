@@ -27,6 +27,7 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart'
         EncryptionKeyPair,
         EncryptionPublicKeyHex,
         KeyDuo,
+        KeyDuoSerializer,
         SigningKeyPair,
         SigningPublicKeyHex;
 import 'package:webcrypto/webcrypto.dart';
@@ -81,6 +82,8 @@ class AnonaccountGroups {
   Future<CreatedGroup> createGroup({
     required String displayName,
     required KeyDuo callerDeviceKey,
+    required UuidValue myAnonAccountId,
+    required String ultimateEncryptionPublicKeyHex,
   }) async {
     // Group-scoped key material.
     final groupUltimate = await KeyGen.generateUltimateKey();
@@ -116,6 +119,30 @@ class AnonaccountGroups {
     final groupUltimateAttestation =
         await SigningCrypto.signChallenge(innerPayload, groupUltimate);
 
+    // The member key pair itself, encrypted with the account's ultimate
+    // encryption public key. Only the user's written-down backup can
+    // decrypt it — not this device, not the server, not the data keys.
+    final creatorMemberKeyJwk =
+        await const KeyDuoSerializer().exportKeyDuoJwk(creatorMember);
+    final ultimateEncryptionKeyPair =
+        await EncryptionKeyPair.importPublicKeySec1Hex(
+      EncryptionPublicKeyHex(ultimateEncryptionPublicKeyHex),
+    );
+    final creatorEncryptedMemberKey = await AsymmetricCrypto.wrapForRecipient(
+      creatorMemberKeyJwk,
+      ultimateEncryptionKeyPair.publicKey,
+    );
+    final creatorEncryptedMemberKeyAttestation =
+        await SigningCrypto.signChallenge(
+      GroupInnerPayloads.setEncryptedMemberKey(
+        groupKeysWire.signingPublicKeyHex,
+        myAnonAccountId,
+        memberKeysWire.signingPublicKeyHex,
+        creatorEncryptedMemberKey,
+      ),
+      creatorMember,
+    );
+
     // Outer envelope signed by the user's device key.
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
@@ -138,6 +165,9 @@ class AnonaccountGroups {
       creatorMemberKeys: memberKeysWire,
       creatorMemberEncryptedDataKey: creatorMemberEncryptedDataKey,
       groupUltimateAttestation: groupUltimateAttestation,
+      creatorEncryptedMemberKey: creatorEncryptedMemberKey,
+      creatorEncryptedMemberKeyAttestation:
+          creatorEncryptedMemberKeyAttestation,
     );
 
     await _memberKeys.storeMemberKey(share.id!, creatorMember);

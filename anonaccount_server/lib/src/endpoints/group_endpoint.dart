@@ -53,6 +53,8 @@ class GroupEndpoint extends SignedPowEndpoint {
     required PublicKeyDuo creatorMemberKeys,
     required String creatorMemberEncryptedDataKey,
     required String groupUltimateAttestation,
+    required String creatorEncryptedMemberKey,
+    required String creatorEncryptedMemberKeyAttestation,
   }) async {
     return tryOperation(
       session,
@@ -117,6 +119,30 @@ class GroupEndpoint extends SignedPowEndpoint {
           );
         }
 
+        AnonAccountHelpers.validateNonEmpty(
+          creatorEncryptedMemberKey,
+          'creatorEncryptedMemberKey',
+          'createGroup',
+        );
+        final memberKeyBackupOk = await CryptoUtils.verifySignature(
+          message: GroupInnerPayloads.setEncryptedMemberKey(
+            groupKeys.signingPublicKeyHex,
+            accountId,
+            memberKeys.signingPublicKeyHex,
+            creatorEncryptedMemberKey,
+          ),
+          signature: creatorEncryptedMemberKeyAttestation,
+          publicKey: memberKeys.signingPublicKeyHex,
+        );
+        if (!memberKeyBackupOk) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidSignature,
+            message: 'Invalid encrypted member key attestation — the creator '
+                'member key did not authorize this backup',
+            operation: 'createGroup',
+          );
+        }
+
         final now = DateTime.now();
         final group = ShareGroup(
           ultimateSigningPublicKeyHex: groupKeys.signingPublicKeyHex,
@@ -133,9 +159,7 @@ class GroupEndpoint extends SignedPowEndpoint {
           memberSigningPublicKeyHex: memberKeys.signingPublicKeyHex,
           memberEncryptionPublicKeyHex: memberKeys.encryptionPublicKeyHex,
           encryptedDataKey: creatorMemberEncryptedDataKey,
-          // TODO(member-key-backup): placeholder until the member-key-backup
-          // plan lands the write path for this column.
-          encryptedMemberKey: '',
+          encryptedMemberKey: creatorEncryptedMemberKey,
           joinedAt: now,
           isRevoked: false,
           addedByAttestorPublicKeyHex: groupKeys.signingPublicKeyHex,

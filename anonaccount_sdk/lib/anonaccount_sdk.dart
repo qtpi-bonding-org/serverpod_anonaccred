@@ -6,7 +6,7 @@ library anonaccount_sdk;
 
 // Re-exports of upstream types consumers will need.
 export 'package:dart_jwk_duo/dart_jwk_duo.dart'
-    show KeyDuo, IKeyDuo, SigningKeyPair, EncryptionKeyPair;
+    show KeyDuo, IKeyDuo, SigningKeyPair, EncryptionKeyPair, KeyDuoSerializer;
 export 'package:webcrypto/webcrypto.dart'
     show AesGcmSecretKey, EcdhPublicKey, EcdhPrivateKey, EllipticCurve;
 

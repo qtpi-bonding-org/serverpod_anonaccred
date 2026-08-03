@@ -95,6 +95,15 @@ Future<
   final innerPayload =
       'createGroup:$groupUltSigPub:$groupUltEnc:$creatorMemberSigPub:$creatorMemberEnc';
   final attestation = SigningTestHelper.signWith(innerPayload, groupUltSigPriv);
+  final backupAttestation = SigningTestHelper.signWith(
+    GroupInnerPayloads.setEncryptedMemberKey(
+      groupUltSigPub,
+      account.id!,
+      creatorMemberSigPub,
+      'wrapped-member-key',
+    ),
+    creatorMemberSigPriv,
+  );
 
   final group = await endpoints.group.createGroup(
     sessionBuilder,
@@ -113,6 +122,8 @@ Future<
     ),
     creatorMemberEncryptedDataKey: 'wrapped',
     groupUltimateAttestation: attestation,
+    creatorEncryptedMemberKey: 'wrapped-member-key',
+    creatorEncryptedMemberKeyAttestation: backupAttestation,
   );
 
   return (
@@ -419,6 +430,8 @@ void main() {
           groupEncryptedDataKey: 'wrapped',
           creatorMemberEncryptedDataKey: 'wrapped',
           groupUltimateAttestation: attestation,
+          creatorEncryptedMemberKey: 'wrapped-member-key',
+          creatorEncryptedMemberKeyAttestation: 'irrelevant',
         ),
         throwsA(isA<AuthenticationException>()),
       );
@@ -477,6 +490,8 @@ void main() {
           ),
           creatorMemberEncryptedDataKey: 'wrapped',
           groupUltimateAttestation: badAttestation,
+          creatorEncryptedMemberKey: 'wrapped-member-key',
+          creatorEncryptedMemberKeyAttestation: 'irrelevant',
         ),
         throwsA(isA<Exception>()),
       );

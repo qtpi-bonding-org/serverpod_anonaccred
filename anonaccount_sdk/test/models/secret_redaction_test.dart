@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
-import 'package:dart_jwk_duo/dart_jwk_duo.dart' show KeyDuoSerializer;
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';
 

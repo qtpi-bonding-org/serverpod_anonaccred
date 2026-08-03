@@ -937,6 +937,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'creatorEncryptedMemberKey': _i1.ParameterDescription(
+              name: 'creatorEncryptedMemberKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'creatorEncryptedMemberKeyAttestation': _i1.ParameterDescription(
+              name: 'creatorEncryptedMemberKeyAttestation',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -955,6 +965,9 @@ class Endpoints extends _i1.EndpointDispatch {
                 creatorMemberEncryptedDataKey:
                     params['creatorMemberEncryptedDataKey'],
                 groupUltimateAttestation: params['groupUltimateAttestation'],
+                creatorEncryptedMemberKey: params['creatorEncryptedMemberKey'],
+                creatorEncryptedMemberKeyAttestation:
+                    params['creatorEncryptedMemberKeyAttestation'],
               ),
         ),
         'listMyGroups': _i1.MethodConnector(
