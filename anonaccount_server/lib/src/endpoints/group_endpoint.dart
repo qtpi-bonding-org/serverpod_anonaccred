@@ -710,7 +710,9 @@ class GroupEndpoint extends SignedPowEndpoint {
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
+    required UuidValue groupId,
     required String memberSigningKeyHex,
+    required String memberAuthSignature,
   }) async* {
     final outerPayload =
         '$challenge:${GroupMethods.monitorGroupMembership}:$callerDeviceSigningPublicKeyHex';
@@ -721,6 +723,26 @@ class GroupEndpoint extends SignedPowEndpoint {
       callerDeviceSigningPublicKeyHex,
       signature,
       outerPayload,
+    );
+
+    final activeCaller = await AnonAccountHelpers.requireCaller(
+      session,
+      callerDeviceSigningPublicKeyHex,
+      'monitorGroupMembership',
+    );
+    await AnonAccountHelpers.requireAttestation(
+      message: GroupInnerPayloads.monitorGroupMembership(groupId),
+      signature: memberAuthSignature,
+      publicKey: memberSigningKeyHex,
+      operation: 'monitorGroupMembership',
+      failureMessage: 'Invalid member attestation for monitorGroupMembership',
+    );
+    await AnonAccountHelpers.requireMemberStanding(
+      session,
+      activeCaller,
+      memberSigningKeyHex,
+      groupId,
+      'monitorGroupMembership',
     );
 
     final channelName = 'group-membership-$memberSigningKeyHex';

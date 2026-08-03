@@ -88,6 +88,9 @@ abstract final class GroupInnerPayloads {
 
   static String getGroup(UuidValue groupId) => 'getGroup:$groupId';
 
+  static String monitorGroupMembership(UuidValue groupId) =>
+      'monitorGroupMembership:$groupId';
+
   static String listGroupMembers(UuidValue groupId) =>
       'listGroupMembers:$groupId';
 

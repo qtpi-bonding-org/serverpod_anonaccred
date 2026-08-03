@@ -32,6 +32,7 @@ class AnonAccountErrorCodes {
   static const String authDeviceNotFound = 'AUTH_DEVICE_NOT_FOUND';
   static const String authDeviceRevoked = 'AUTH_DEVICE_REVOKED';
   static const String authAccountNotFound = 'AUTH_ACCOUNT_NOT_FOUND';
+  static const String authAccountRevoked = 'AUTH_ACCOUNT_REVOKED';
   static const String authDuplicateDevice = 'AUTH_DUPLICATE_DEVICE';
   static const String authChallengeExpired = 'AUTH_CHALLENGE_EXPIRED';
 

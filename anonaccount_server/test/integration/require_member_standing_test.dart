@@ -192,5 +192,49 @@ void main() {
         throwsA(isA<AuthenticationException>()),
       );
     });
+
+    test('throws authAccountRevoked for a revoked membership', () async {
+      final (_, ultimatePub) = SigningTestHelper.generateKeypair();
+      final account = await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: ultimatePub,
+        ultimateEncryptionPublicKeyHex: ultimatePub,
+      );
+      final caller = await callerFor(account.id!);
+      final membership = await membershipFor(account.id!);
+      final session = (sessionBuilder as InternalTestSessionBuilder)
+          .internalBuild(endpoint: 'test', method: 'revoke');
+      try {
+        final row = (await GroupMember.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.shareGroupId.equals(membership.groupId) &
+              t.memberSigningPublicKeyHex.equals(membership.memberPub),
+        ))!;
+        await GroupMember.db.updateRow(session, row.copyWith(isRevoked: true));
+      } finally {
+        await session.close();
+      }
+
+      expect(
+        () => AnonAccountHelpers.requireMemberStanding(
+          (sessionBuilder as InternalTestSessionBuilder).internalBuild(
+            endpoint: 'test',
+            method: 'call',
+          ),
+          caller,
+          membership.memberPub,
+          membership.groupId,
+          'testOp',
+        ),
+        throwsA(
+          isA<AuthenticationException>().having(
+            (e) => e.code,
+            'code',
+            AnonAccountErrorCodes.authAccountRevoked,
+          ),
+        ),
+      );
+    });
   });
 }

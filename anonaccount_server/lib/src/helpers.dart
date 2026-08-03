@@ -294,6 +294,31 @@ class AnonAccountHelpers {
     return foundDevice;
   }
 
+  /// Require an active group membership so revoked and unknown keys can be
+  /// reported distinctly.
+  static GroupMember requireActiveMember(
+    GroupMember? member,
+    String memberSigningPublicKeyHex,
+    String operation,
+  ) {
+    final found = requireEntity(
+      member,
+      AnonAccountErrorCodes.authAccountNotFound,
+      'No membership found for this member key',
+      operation,
+      {'memberSigningPublicKeyHex': memberSigningPublicKeyHex},
+    );
+    if (found.isRevoked) {
+      throw AnonAccountExceptionFactory.createAuthenticationException(
+        code: AnonAccountErrorCodes.authAccountRevoked,
+        message: 'Membership has been revoked',
+        operation: operation,
+        details: {'memberId': found.id.toString()},
+      );
+    }
+    return found;
+  }
+
   /// Resolves a caller device and requires it to be active.
   static Future<AuthenticatedCaller> requireCaller(
     Session session,
@@ -342,19 +367,17 @@ class AnonAccountHelpers {
     String operation, {
     Transaction? transaction,
   }) async {
-    final membership = await ActiveRows.callerMembershipByMemberKey(
+    final row = await AllRows.memberBySigningKeyIncludingRevoked(
       session,
       groupId,
       memberSigningPublicKeyHex,
       transaction: transaction,
     );
-    if (membership == null) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.authAccountNotFound,
-        message: 'No active membership for caller in this group',
-        operation: operation,
-      );
-    }
+    final membership = requireActiveMember(
+      row,
+      memberSigningPublicKeyHex,
+      operation,
+    );
     if (membership.anonAccountId != caller.accountId) {
       throw AnonAccountExceptionFactory.createAuthenticationException(
         code: AnonAccountErrorCodes.authInvalidSignature,

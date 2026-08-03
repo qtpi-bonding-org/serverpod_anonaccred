@@ -13,14 +13,19 @@ void main() {
     group('validateNonEmpty', () {
       test('should pass for valid non-empty string', () {
         expect(
-          () => AnonAccountHelpers.validateNonEmpty('valid', 'testField', 'testOp'),
+          () => AnonAccountHelpers.validateNonEmpty(
+            'valid',
+            'testField',
+            'testOp',
+          ),
           returnsNormally,
         );
       });
 
       test('should throw for null string', () {
         expect(
-          () => AnonAccountHelpers.validateNonEmpty(null, 'testField', 'testOp'),
+          () =>
+              AnonAccountHelpers.validateNonEmpty(null, 'testField', 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
@@ -40,31 +45,43 @@ void main() {
           final operation = 'op${random.nextInt(100)}';
 
           expect(
-            () => AnonAccountHelpers.validateNonEmpty(validString, fieldName, operation),
+            () => AnonAccountHelpers.validateNonEmpty(
+              validString,
+              fieldName,
+              operation,
+            ),
             returnsNormally,
           );
         }
       });
 
-      test('property: validateNonEmpty should reject null and empty strings', () {
-        // Property-based test with 5 iterations for development
-        for (var i = 0; i < 5; i++) {
-          final fieldName = 'field${random.nextInt(100)}';
-          final operation = 'op${random.nextInt(100)}';
+      test(
+        'property: validateNonEmpty should reject null and empty strings',
+        () {
+          // Property-based test with 5 iterations for development
+          for (var i = 0; i < 5; i++) {
+            final fieldName = 'field${random.nextInt(100)}';
+            final operation = 'op${random.nextInt(100)}';
 
-          // Test null
-          expect(
-            () => AnonAccountHelpers.validateNonEmpty(null, fieldName, operation),
-            throwsA(isA<AuthenticationException>()),
-          );
+            // Test null
+            expect(
+              () => AnonAccountHelpers.validateNonEmpty(
+                null,
+                fieldName,
+                operation,
+              ),
+              throwsA(isA<AuthenticationException>()),
+            );
 
-          // Test empty string
-          expect(
-            () => AnonAccountHelpers.validateNonEmpty('', fieldName, operation),
-            throwsA(isA<AuthenticationException>()),
-          );
-        }
-      });
+            // Test empty string
+            expect(
+              () =>
+                  AnonAccountHelpers.validateNonEmpty('', fieldName, operation),
+              throwsA(isA<AuthenticationException>()),
+            );
+          }
+        },
+      );
     });
 
     group('validatePublicKey', () {
@@ -92,18 +109,21 @@ void main() {
         );
       });
 
-      test('property: validatePublicKey should accept valid ECDSA P-256 keys', () {
-        // Property-based test with 5 iterations for development
-        for (var i = 0; i < 5; i++) {
-          final validKey = _generateFakePublicKeyString(random);
-          final operation = 'op${random.nextInt(100)}';
+      test(
+        'property: validatePublicKey should accept valid ECDSA P-256 keys',
+        () {
+          // Property-based test with 5 iterations for development
+          for (var i = 0; i < 5; i++) {
+            final validKey = _generateFakePublicKeyString(random);
+            final operation = 'op${random.nextInt(100)}';
 
-          expect(
-            () => AnonAccountHelpers.validatePublicKey(validKey, operation),
-            returnsNormally,
-          );
-        }
-      });
+            expect(
+              () => AnonAccountHelpers.validatePublicKey(validKey, operation),
+              returnsNormally,
+            );
+          }
+        },
+      );
 
       test('property: validatePublicKey should reject invalid keys', () {
         // Property-based test with 5 iterations for development
@@ -176,7 +196,11 @@ void main() {
           ultimateEncryptionPublicKeyHex: _generateFakePublicKeyString(random),
         );
 
-        final result = AnonAccountHelpers.requireAccount(account, '1', 'testOp');
+        final result = AnonAccountHelpers.requireAccount(
+          account,
+          '1',
+          'testOp',
+        );
         expect(result, equals(account));
       });
 
@@ -194,12 +218,18 @@ void main() {
             id: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
             ultimateSigningPublicKeyHex: _generateFakePublicKeyString(random),
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
-            ultimateEncryptionPublicKeyHex: _generateFakePublicKeyString(random),
+            ultimateEncryptionPublicKeyHex: _generateFakePublicKeyString(
+              random,
+            ),
           );
           final accountIdentifier = 'account-${random.nextInt(1000) + 1}';
           final operation = 'op${random.nextInt(100)}';
 
-          final result = AnonAccountHelpers.requireAccount(account, accountIdentifier, operation);
+          final result = AnonAccountHelpers.requireAccount(
+            account,
+            accountIdentifier,
+            operation,
+          );
           expect(result, equals(account));
         }
       });
@@ -210,7 +240,9 @@ void main() {
         final deviceSigningKey = _generateFakePublicKeyString(random);
         final device = AccountDevice(
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
-          anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+          anonAccountId: UuidValue.fromString(
+            '550e8400-e29b-41d4-a716-446655440000',
+          ),
           deviceSigningPublicKeyHex: deviceSigningKey,
           deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
@@ -219,8 +251,11 @@ void main() {
           addedByAttestation: 'test-attestation',
         );
 
-        final result =
-            AnonAccountHelpers.requireDevice(device, deviceSigningKey, 'testOp');
+        final result = AnonAccountHelpers.requireDevice(
+          device,
+          deviceSigningKey,
+          'testOp',
+        );
         expect(result, equals(device));
       });
 
@@ -237,8 +272,12 @@ void main() {
         for (var i = 0; i < 5; i++) {
           final deviceSigningKey = _generateFakePublicKeyString(random);
           final device = AccountDevice(
-            id: UuidValue.fromString('00000000-0000-0000-0000-${(i + 1).toString().padLeft(12, '0')}'),
-            anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+            id: UuidValue.fromString(
+              '00000000-0000-0000-0000-${(i + 1).toString().padLeft(12, '0')}',
+            ),
+            anonAccountId: UuidValue.fromString(
+              '550e8400-e29b-41d4-a716-446655440000',
+            ),
             deviceSigningPublicKeyHex: deviceSigningKey,
             deviceEncryptionPublicKeyHex: deviceSigningKey,
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
@@ -249,7 +288,11 @@ void main() {
           final publicKey = _generateFakePublicKeyString(random);
           final operation = 'op${random.nextInt(100)}';
 
-          final result = AnonAccountHelpers.requireDevice(device, publicKey, operation);
+          final result = AnonAccountHelpers.requireDevice(
+            device,
+            publicKey,
+            operation,
+          );
           expect(result, equals(device));
         }
       });
@@ -260,7 +303,9 @@ void main() {
         final deviceSigningKey = _generateFakePublicKeyString(random);
         final device = AccountDevice(
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
-          anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+          anonAccountId: UuidValue.fromString(
+            '550e8400-e29b-41d4-a716-446655440000',
+          ),
           deviceSigningPublicKeyHex: deviceSigningKey,
           deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
@@ -271,14 +316,18 @@ void main() {
         );
 
         final result = AnonAccountHelpers.requireActiveDevice(
-            device, deviceSigningKey, 'testOp');
+          device,
+          deviceSigningKey,
+          'testOp',
+        );
         expect(result, equals(device));
       });
 
       test('should throw when device is null', () {
         final publicKey = _generateFakePublicKeyString(random);
         expect(
-          () => AnonAccountHelpers.requireActiveDevice(null, publicKey, 'testOp'),
+          () =>
+              AnonAccountHelpers.requireActiveDevice(null, publicKey, 'testOp'),
           throwsA(isA<AuthenticationException>()),
         );
       });
@@ -287,7 +336,9 @@ void main() {
         final deviceSigningKey = _generateFakePublicKeyString(random);
         final device = AccountDevice(
           id: UuidValue.fromString('00000000-0000-0000-0000-000000000003'),
-          anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+          anonAccountId: UuidValue.fromString(
+            '550e8400-e29b-41d4-a716-446655440000',
+          ),
           deviceSigningPublicKeyHex: deviceSigningKey,
           deviceEncryptionPublicKeyHex: deviceSigningKey,
           encryptedDataKey: 'encrypted',
@@ -299,41 +350,59 @@ void main() {
 
         expect(
           () => AnonAccountHelpers.requireActiveDevice(
-              device, deviceSigningKey, 'testOp'),
+            device,
+            deviceSigningKey,
+            'testOp',
+          ),
           throwsA(isA<AuthenticationException>()),
         );
       });
 
-      test('property: requireActiveDevice should return non-revoked devices', () {
-        // Property-based test with 5 iterations for development
-        for (var i = 0; i < 5; i++) {
-          final deviceSigningKey = _generateFakePublicKeyString(random);
-          final device = AccountDevice(
-            id: UuidValue.fromString('00000000-0000-0000-0001-${(i + 1).toString().padLeft(12, '0')}'),
-            anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-            deviceSigningPublicKeyHex: deviceSigningKey,
-            deviceEncryptionPublicKeyHex: deviceSigningKey,
-            encryptedDataKey: 'encrypted${random.nextInt(1000)}',
-            label: 'device${random.nextInt(1000)}',
-            addedByAttestorPublicKeyHex: deviceSigningKey,
-            addedByAttestation: 'test-attestation',
-            isRevoked: false, // Always non-revoked for this property
-          );
-          final publicKey = _generateFakePublicKeyString(random);
-          final operation = 'op${random.nextInt(100)}';
+      test(
+        'property: requireActiveDevice should return non-revoked devices',
+        () {
+          // Property-based test with 5 iterations for development
+          for (var i = 0; i < 5; i++) {
+            final deviceSigningKey = _generateFakePublicKeyString(random);
+            final device = AccountDevice(
+              id: UuidValue.fromString(
+                '00000000-0000-0000-0001-${(i + 1).toString().padLeft(12, '0')}',
+              ),
+              anonAccountId: UuidValue.fromString(
+                '550e8400-e29b-41d4-a716-446655440000',
+              ),
+              deviceSigningPublicKeyHex: deviceSigningKey,
+              deviceEncryptionPublicKeyHex: deviceSigningKey,
+              encryptedDataKey: 'encrypted${random.nextInt(1000)}',
+              label: 'device${random.nextInt(1000)}',
+              addedByAttestorPublicKeyHex: deviceSigningKey,
+              addedByAttestation: 'test-attestation',
+              isRevoked: false, // Always non-revoked for this property
+            );
+            final publicKey = _generateFakePublicKeyString(random);
+            final operation = 'op${random.nextInt(100)}';
 
-          final result = AnonAccountHelpers.requireActiveDevice(device, publicKey, operation);
-          expect(result, equals(device));
-        }
-      });
+            final result = AnonAccountHelpers.requireActiveDevice(
+              device,
+              publicKey,
+              operation,
+            );
+            expect(result, equals(device));
+          }
+        },
+      );
 
       test('property: requireActiveDevice should reject revoked devices', () {
         // Property-based test with 5 iterations for development
         for (var i = 0; i < 5; i++) {
           final deviceSigningKey = _generateFakePublicKeyString(random);
           final device = AccountDevice(
-            id: UuidValue.fromString('00000000-0000-0000-0002-${(i + 1).toString().padLeft(12, '0')}'),
-            anonAccountId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+            id: UuidValue.fromString(
+              '00000000-0000-0000-0002-${(i + 1).toString().padLeft(12, '0')}',
+            ),
+            anonAccountId: UuidValue.fromString(
+              '550e8400-e29b-41d4-a716-446655440000',
+            ),
             deviceSigningPublicKeyHex: deviceSigningKey,
             deviceEncryptionPublicKeyHex: deviceSigningKey,
             encryptedDataKey: 'encrypted${random.nextInt(1000)}',
@@ -346,10 +415,81 @@ void main() {
           final operation = 'op${random.nextInt(100)}';
 
           expect(
-            () => AnonAccountHelpers.requireActiveDevice(device, publicKey, operation),
+            () => AnonAccountHelpers.requireActiveDevice(
+              device,
+              publicKey,
+              operation,
+            ),
             throwsA(isA<AuthenticationException>()),
           );
         }
+      });
+    });
+
+    group('requireActiveMember', () {
+      GroupMember member({required bool revoked}) => GroupMember(
+        shareGroupId: UuidValue.fromString(
+          '11111111-1111-4111-8111-111111111111',
+        ),
+        anonAccountId: UuidValue.fromString(
+          '22222222-2222-4222-8222-222222222222',
+        ),
+        role: GroupMemberRole.member,
+        memberSigningPublicKeyHex: '04${'a' * 128}',
+        memberEncryptionPublicKeyHex: '04${'b' * 128}',
+        encryptedDataKey: 'x',
+        encryptedMemberKey: 'x',
+        joinedAt: DateTime.now(),
+        isRevoked: revoked,
+        addedByAttestorPublicKeyHex: '04${'c' * 128}',
+        addedByAttestation: 'x',
+      );
+
+      test('returns an active membership', () {
+        final value = member(revoked: false);
+        expect(
+          AnonAccountHelpers.requireActiveMember(
+            value,
+            value.memberSigningPublicKeyHex,
+            'testOp',
+          ),
+          same(value),
+        );
+      });
+
+      test('throws authAccountNotFound when no membership exists', () {
+        expect(
+          () => AnonAccountHelpers.requireActiveMember(
+            null,
+            '04${'a' * 128}',
+            'testOp',
+          ),
+          throwsA(
+            isA<AuthenticationException>().having(
+              (e) => e.code,
+              'code',
+              AnonAccountErrorCodes.authAccountNotFound,
+            ),
+          ),
+        );
+      });
+
+      test('throws authAccountRevoked for a revoked membership', () {
+        final value = member(revoked: true);
+        expect(
+          () => AnonAccountHelpers.requireActiveMember(
+            value,
+            value.memberSigningPublicKeyHex,
+            'testOp',
+          ),
+          throwsA(
+            isA<AuthenticationException>().having(
+              (e) => e.code,
+              'code',
+              AnonAccountErrorCodes.authAccountRevoked,
+            ),
+          ),
+        );
       });
     });
 
@@ -385,30 +525,37 @@ void main() {
       });
     });
 
-    test('AuthenticatedCaller rejects a revoked device even when constructed directly', () {
-      final device = AccountDevice(
-        anonAccountId: UuidValue.fromString(
-          '00000000-0000-0000-0000-000000000003',
-        ),
-        deviceSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
-        deviceEncryptionPublicKeyHex: SigningTestHelper.testPublicKeyHex,
-        encryptedDataKey: 'x',
-        label: 'x',
-        addedByAttestorPublicKeyHex: SigningTestHelper.testPublicKeyHex,
-        addedByAttestation: 'x',
-        isRevoked: true,
-      );
+    test(
+      'AuthenticatedCaller rejects a revoked device even when constructed directly',
+      () {
+        final device = AccountDevice(
+          anonAccountId: UuidValue.fromString(
+            '00000000-0000-0000-0000-000000000003',
+          ),
+          deviceSigningPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+          deviceEncryptionPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+          encryptedDataKey: 'x',
+          label: 'x',
+          addedByAttestorPublicKeyHex: SigningTestHelper.testPublicKeyHex,
+          addedByAttestation: 'x',
+          isRevoked: true,
+        );
 
-      expect(() => AuthenticatedCaller(device), throwsStateError);
-    });
+        expect(() => AuthenticatedCaller(device), throwsStateError);
+      },
+    );
   });
 }
 
 // Test data generators - These generate FAKE data for testing, not real cryptographic keys
 String _generateRandomNonEmptyString(Random random) {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   final length = random.nextInt(50) + 1; // 1-50 characters
-  return List.generate(length, (index) => chars[random.nextInt(chars.length)]).join();
+  return List.generate(
+    length,
+    (index) => chars[random.nextInt(chars.length)],
+  ).join();
 }
 
 String _generateFakePublicKeyString(Random random) {
@@ -416,8 +563,10 @@ String _generateFakePublicKeyString(Random random) {
   // starting with '04') — CryptoUtils.isValidPublicKey no longer accepts
   // the legacy 128-hex bare form (Task 3 of the principal parity plan).
   const chars = '0123456789abcdef';
-  final body =
-      List.generate(128, (index) => chars[random.nextInt(chars.length)]).join();
+  final body = List.generate(
+    128,
+    (index) => chars[random.nextInt(chars.length)],
+  ).join();
   return '04$body';
 }
 

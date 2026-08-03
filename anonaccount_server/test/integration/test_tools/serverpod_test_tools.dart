@@ -1508,7 +1508,9 @@ class _GroupEndpoint {
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
+    required _i2.UuidValue groupId,
     required String memberSigningKeyHex,
+    required String memberAuthSignature,
   }) {
     var _localTestStreamManager = _i1.TestStreamManager<_i16.GroupMemberView>();
     _i1.callStreamFunctionAndHandleExceptions(
@@ -1529,7 +1531,9 @@ class _GroupEndpoint {
                 'signature': signature,
                 'callerDeviceSigningPublicKeyHex':
                     callerDeviceSigningPublicKeyHex,
+                'groupId': groupId,
                 'memberSigningKeyHex': memberSigningKeyHex,
+                'memberAuthSignature': memberAuthSignature,
               },
               requestedInputStreams: [],
               serializationManager: _serializationManager,

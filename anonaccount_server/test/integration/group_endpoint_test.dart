@@ -1094,6 +1094,60 @@ void main() {
       },
     );
 
+    test(
+      'getGroup: rejected with authAccountRevoked for a revoked member key',
+      () async {
+        final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+        final session = (sessionBuilder as InternalTestSessionBuilder)
+            .internalBuild(endpoint: 'test', method: 'revokeCreatorMembership');
+        try {
+          final creatorRow = (await GroupMember.db.findFirstRow(
+            session,
+            where: (t) =>
+                t.memberSigningPublicKeyHex.equals(s.creatorMemberSigPub),
+          ))!;
+          await GroupMember.db.updateRow(
+            session,
+            creatorRow.copyWith(isRevoked: true),
+          );
+        } finally {
+          await session.close();
+        }
+
+        final outer = await _outer(
+          sessionBuilder,
+          endpoints,
+          'getGroup',
+          s.devicePub,
+          s.devicePriv,
+        );
+        final innerSig = SigningTestHelper.signWith(
+          GroupInnerPayloads.getGroup(s.group.id!),
+          s.creatorMemberSigPriv,
+        );
+
+        expect(
+          () => endpoints.group.getGroup(
+            sessionBuilder,
+            challenge: outer.challenge,
+            proofOfWork: outer.pow,
+            signature: outer.signature,
+            callerDeviceSigningPublicKeyHex: s.devicePub,
+            groupId: s.group.id!,
+            callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
+            memberAuthSignature: innerSig,
+          ),
+          throwsA(
+            isA<AuthenticationException>().having(
+              (e) => e.code,
+              'code',
+              AnonAccountErrorCodes.authAccountRevoked,
+            ),
+          ),
+        );
+      },
+    );
+
     test('listGroupMembers: returns active members only', () async {
       final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
 
@@ -1610,6 +1664,161 @@ void main() {
       );
     });
 
+    test('a member can rejoin a group after leaving', () async {
+      final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+
+      final (_, secondAdminUltPub) = SigningTestHelper.generateKeypair();
+      final secondAdminAccount = await createTestAccount(
+        sessionBuilder,
+        ultimateSigningPublicKeyHex: secondAdminUltPub,
+        ultimateEncryptionPublicKeyHex: secondAdminUltPub,
+      );
+      final (secondAdminDevicePriv, secondAdminDevicePub) =
+          SigningTestHelper.generateKeypair();
+      await createTestDevice(
+        sessionBuilder,
+        anonAccountId: secondAdminAccount.id!,
+        deviceSigningPublicKeyHex: secondAdminDevicePub,
+      );
+      final (secondAdminMemberPriv, secondAdminMemberPub) =
+          SigningTestHelper.generateKeypair();
+      final (_, secondAdminMemberEnc) = SigningTestHelper.generateKeypair();
+
+      final addOuter = await _outer(
+        sessionBuilder,
+        endpoints,
+        'addGroupMember',
+        s.devicePub,
+        s.devicePriv,
+      );
+      final addInnerPayload = GroupInnerPayloads.addGroupMember(
+        s.group.id!,
+        secondAdminAccount.id!,
+        GroupMemberRole.admin.name,
+        PublicKeyDuo(
+          signingPublicKeyHex: secondAdminMemberPub,
+          encryptionPublicKeyHex: secondAdminMemberEnc,
+        ),
+      );
+      final addSignature = SigningTestHelper.signWith(
+        addInnerPayload,
+        s.groupUltSigPriv,
+      );
+      final addBackup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: secondAdminAccount.id!,
+        memberSigningPublicKeyHex: secondAdminMemberPub,
+        memberSigningPrivateKeyHex: secondAdminMemberPriv,
+      );
+      await endpoints.group.addGroupMember(
+        sessionBuilder,
+        challenge: addOuter.challenge,
+        proofOfWork: addOuter.pow,
+        signature: addOuter.signature,
+        callerDeviceSigningPublicKeyHex: s.devicePub,
+        groupId: s.group.id!,
+        newMemberAccountId: secondAdminAccount.id!,
+        role: GroupMemberRole.admin,
+        memberKeys: PublicKeyDuo(
+          signingPublicKeyHex: secondAdminMemberPub,
+          encryptionPublicKeyHex: secondAdminMemberEnc,
+        ),
+        encryptedDataKey: 'wrapped',
+        encryptedMemberKey: addBackup.blob,
+        encryptedMemberKeyAttestation: addBackup.attestation,
+        groupUltimateSignature: addSignature,
+      );
+
+      final lookup = (sessionBuilder as InternalTestSessionBuilder)
+          .internalBuild(endpoint: 'test', method: 'lookupCreatorMembership');
+      late final GroupMember creatorMembership;
+      try {
+        creatorMembership = (await GroupMember.db.findFirstRow(
+          lookup,
+          where: (t) =>
+              t.memberSigningPublicKeyHex.equals(s.creatorMemberSigPub),
+        ))!;
+      } finally {
+        await lookup.close();
+      }
+
+      final leaveOuter = await _outer(
+        sessionBuilder,
+        endpoints,
+        'leaveGroup',
+        s.devicePub,
+        s.devicePriv,
+      );
+      final leaveSignature = SigningTestHelper.signWith(
+        GroupInnerPayloads.leaveGroup(creatorMembership.id!),
+        s.creatorMemberSigPriv,
+      );
+      expect(
+        await endpoints.group.leaveGroup(
+          sessionBuilder,
+          challenge: leaveOuter.challenge,
+          proofOfWork: leaveOuter.pow,
+          signature: leaveOuter.signature,
+          callerDeviceSigningPublicKeyHex: s.devicePub,
+          memberId: creatorMembership.id!,
+          memberSigningPublicKeyHex: s.creatorMemberSigPub,
+          memberAuthSignature: leaveSignature,
+        ),
+        isTrue,
+      );
+
+      final (rejoinMemberPriv, rejoinMemberPub) =
+          SigningTestHelper.generateKeypair();
+      final (_, rejoinMemberEnc) = SigningTestHelper.generateKeypair();
+      final rejoinOuter = await _outer(
+        sessionBuilder,
+        endpoints,
+        'addGroupMember',
+        secondAdminDevicePub,
+        secondAdminDevicePriv,
+      );
+      final rejoinInnerSig = SigningTestHelper.signWith(
+        GroupInnerPayloads.addGroupMember(
+          s.group.id!,
+          s.account.id!,
+          GroupMemberRole.member.name,
+          PublicKeyDuo(
+            signingPublicKeyHex: rejoinMemberPub,
+            encryptionPublicKeyHex: rejoinMemberEnc,
+          ),
+        ),
+        secondAdminMemberPriv,
+      );
+      final rejoinBackup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: s.account.id!,
+        memberSigningPublicKeyHex: rejoinMemberPub,
+        memberSigningPrivateKeyHex: rejoinMemberPriv,
+      );
+      final rejoined = await endpoints.group.addGroupMember(
+        sessionBuilder,
+        challenge: rejoinOuter.challenge,
+        proofOfWork: rejoinOuter.pow,
+        signature: rejoinOuter.signature,
+        callerDeviceSigningPublicKeyHex: secondAdminDevicePub,
+        groupId: s.group.id!,
+        newMemberAccountId: s.account.id!,
+        role: GroupMemberRole.member,
+        memberKeys: PublicKeyDuo(
+          signingPublicKeyHex: rejoinMemberPub,
+          encryptionPublicKeyHex: rejoinMemberEnc,
+        ),
+        encryptedDataKey: 'wrapped',
+        encryptedMemberKey: rejoinBackup.blob,
+        encryptedMemberKeyAttestation: rejoinBackup.attestation,
+        callerMemberSigningPublicKeyHex: secondAdminMemberPub,
+        memberAuthSignature: rejoinInnerSig,
+      );
+
+      expect(rejoined.anonAccountId, s.account.id);
+      expect(rejoined.isRevoked, isFalse);
+    });
+
     test('monitorGroupMembership: rejected for invalid device key', () async {
       final (memberPriv, memberPub) = SigningTestHelper.generateKeypair();
       final (_, unknownPub) = SigningTestHelper.generateKeypair();
@@ -1632,7 +1841,9 @@ void main() {
         proofOfWork: pow,
         signature: sig,
         callerDeviceSigningPublicKeyHex: unknownPub,
+        groupId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
         memberSigningKeyHex: memberPub,
+        memberAuthSignature: 'irrelevant',
       );
 
       expect(() async => await stream.first, throwsA(isA<Exception>()));
@@ -1642,8 +1853,6 @@ void main() {
       'monitorGroupMembership: opens without throwing for valid device',
       () async {
         final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
-        final (_, freshMemberPub) = SigningTestHelper.generateKeypair();
-
         final outer = await _outer(
           sessionBuilder,
           endpoints,
@@ -1658,11 +1867,48 @@ void main() {
           proofOfWork: outer.pow,
           signature: outer.signature,
           callerDeviceSigningPublicKeyHex: s.devicePub,
-          memberSigningKeyHex: freshMemberPub,
+          groupId: s.group.id!,
+          memberSigningKeyHex: s.creatorMemberSigPub,
+          memberAuthSignature: SigningTestHelper.signWith(
+            GroupInnerPayloads.monitorGroupMembership(s.group.id!),
+            s.creatorMemberSigPriv,
+          ),
         );
-        expect(stream, isNotNull);
+        final subscription = stream.listen((_) {});
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await subscription.cancel();
       },
     );
+
+    test('monitorGroupMembership: rejected for a member key with no standing '
+        'in this group', () async {
+      final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+      final other = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+      final outer = await _outer(
+        sessionBuilder,
+        endpoints,
+        GroupMethods.monitorGroupMembership,
+        s.devicePub,
+        s.devicePriv,
+      );
+      final memberAuthSignature = SigningTestHelper.signWith(
+        GroupInnerPayloads.monitorGroupMembership(s.group.id!),
+        other.creatorMemberSigPriv,
+      );
+
+      final stream = endpoints.group.monitorGroupMembership(
+        sessionBuilder,
+        challenge: outer.challenge,
+        proofOfWork: outer.pow,
+        signature: outer.signature,
+        callerDeviceSigningPublicKeyHex: s.devicePub,
+        groupId: s.group.id!,
+        memberSigningKeyHex: other.creatorMemberSigPub,
+        memberAuthSignature: memberAuthSignature,
+      );
+
+      expect(() async => await stream.first, throwsA(isA<Exception>()));
+    });
 
     test(
       'removeGroupMember: rejected when removing an admin without owner sig',

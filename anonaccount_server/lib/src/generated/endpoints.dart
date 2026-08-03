@@ -1730,8 +1730,18 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'groupId': _i1.ParameterDescription(
+              name: 'groupId',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
             'memberSigningKeyHex': _i1.ParameterDescription(
               name: 'memberSigningKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'memberAuthSignature': _i1.ParameterDescription(
+              name: 'memberAuthSignature',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -1751,7 +1761,9 @@ class Endpoints extends _i1.EndpointDispatch {
                     signature: params['signature'],
                     callerDeviceSigningPublicKeyHex:
                         params['callerDeviceSigningPublicKeyHex'],
+                    groupId: params['groupId'],
                     memberSigningKeyHex: params['memberSigningKeyHex'],
+                    memberAuthSignature: params['memberAuthSignature'],
                   ),
         ),
       },

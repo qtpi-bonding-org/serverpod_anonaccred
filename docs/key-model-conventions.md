@@ -361,10 +361,7 @@ widening group authorization:
 
 | Deviation | Where | Status |
 |---|---|---|
-| `group_member_unique_idx` on `(shareGroupId, anonAccountId)` is unconditional, so leaving a group is permanent — an account id is not regenerable (rule 13) | `migrations/…/definition.sql:92` | Open |
-| No `requireActiveMember`: group endpoints inline an `isRevoked` filter, so "membership revoked" and "never a member" return the same error code, where the account side distinguishes them | `group_endpoint.dart` | Open |
 | `anonaccred`'s group endpoints authorize on the membership row alone, no inner signature (rule 5), while `GroupEndpoint` demands a member-key signature — two authorization models in one system | `group_commerce_endpoint.dart:109-132` | Justified, not a gap — see B1 in `docs/superpowers/patterns/2026-08-02/RULES-CANDIDATES.md`: hashcash PoW is too slow for commerce/IAP flows, so `anonaccred` uses a JWT there instead of a per-call signature. Deliberate boundary, now stated explicitly rather than left to infer |
-| `monitorGroupMembership` has no authorization past the outer envelope; the channel name is a caller-supplied member key, and member keys are public | `group_endpoint.dart:642-667` | Open |
 | The group data key reaches only the member key, not the account's devices (rule 2's fan-out) | design-level | Being fixed — group parity unit A |
 
 **Inert or cosmetic:**
@@ -382,6 +379,21 @@ unique `device_signing_key_idx`; `registerDeviceForAccount` checks the caller wi
 both key halves; every public key is SEC1 130-hex with purpose in the field name;
 unique indexes sit on the signing key of all four principals; `createAccount` is
 transactional; `dart_jwk_duo` 2.0.0 gives both key-pair types the same hex surface.
+
+**Also already fixed by round 1**, mis-stated as still open until this plan checked
+it: `group_member_unique_idx` was already made partial (`WHERE "isRevoked" = false`,
+`migrations/20260802130448042/definition.sql:94-98`) in the same P0 pass that made
+`GroupOwner`/`GroupMemberDevice`'s active-row indexes partial. `ActiveRows.memberInGroup`
+already filters `isRevoked = false` to match. Rejoining a group after leaving works
+today; nothing was broken, only undocumented and untested.
+
+**Fixed by the group-world-gaps plan**
+(`docs/superpowers/plans/2026-08-03-group-world-gaps.md`): `requireActiveMember`
+(mirrors `requireActiveDevice`) now distinguishes a revoked membership
+(`authAccountRevoked`) from no membership at all (`authAccountNotFound`), wired into
+`requireMemberStanding`'s standing check. `monitorGroupMembership` now requires a
+member-key attestation and passes `requireMemberStanding` before opening its stream,
+closing the "anyone who's seen a member key can watch" gap.
 
 **Fixed by the endpoint-auth-interface plan** (phases 1+2,
 `docs/superpowers/plans/2026-08-03-endpoint-auth-interface.md` and
