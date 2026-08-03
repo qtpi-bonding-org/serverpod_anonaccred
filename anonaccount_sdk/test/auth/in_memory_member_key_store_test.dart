@@ -53,4 +53,22 @@ void main() {
     await store.removeMemberKey(groupA);
     expect(await store.getMemberKey(groupB), same(key));
   });
+
+  test('rejoining a group leaves only the fresh member key retrievable',
+      () async {
+    // leaveGroup calls removeMemberKey; the rejoin then files a fresh key
+    // under the same group id. The old key must not be reachable after.
+    final store = InMemoryMemberKeyStore();
+    final oldKey = await KeyGen.generateDeviceKey();
+    await store.storeMemberKey(groupA, oldKey);
+
+    await store.removeMemberKey(groupA);
+    expect(await store.getMemberKey(groupA), isNull);
+
+    final newKey = await KeyGen.generateDeviceKey();
+    await store.storeMemberKey(groupA, newKey);
+
+    expect(await store.getMemberKey(groupA), same(newKey));
+    expect(await store.getMemberKey(groupA), isNot(same(oldKey)));
+  });
 }

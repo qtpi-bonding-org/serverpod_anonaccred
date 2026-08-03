@@ -56,7 +56,7 @@ class AnonaccountGroups {
   // ignore: unused_field
   final int difficulty;
 
-  /// Reads a member key that the operation cannot proceed without.
+  /// Reads the member key an operation requires, or throws.
   ///
   /// [StateError] rather than [ArgumentError] because an absent key is not
   /// caller-supplied bad input: the ArgumentErrors elsewhere in this class
