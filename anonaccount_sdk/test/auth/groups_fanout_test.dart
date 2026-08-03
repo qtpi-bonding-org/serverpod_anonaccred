@@ -173,11 +173,15 @@ void main() {
             grants: any(named: 'grants'),
           )).thenAnswer((_) async => stubResult);
 
-      final groups = AnonaccountGroups(caller, difficulty: 4);
+      final groupId =
+          wire.UuidValue.fromString('88888888-8888-4888-8888-888888888888');
+      final store = InMemoryMemberKeyStore();
+      await store.storeMemberKey(groupId, memberKey);
+      final groups = AnonaccountGroups(caller, store, difficulty: 4);
       final result = await groups.grantAllDevices(
+        groupId: groupId,
         memberId: memberId,
         groupDataKey: dataKey,
-        memberKey: memberKey,
         callerDeviceKey: callerKey,
       );
 
@@ -336,11 +340,15 @@ void main() {
             grants: any(named: 'grants'),
           )).thenAnswer((_) async => stubResult);
 
-      final groups = AnonaccountGroups(caller, difficulty: 4);
+      final groupId =
+          wire.UuidValue.fromString('77777777-7777-4777-8777-777777777777');
+      final store = InMemoryMemberKeyStore();
+      await store.storeMemberKey(groupId, memberKey);
+      final groups = AnonaccountGroups(caller, store, difficulty: 4);
       await groups.grantAllDevices(
+        groupId: groupId,
         memberId: memberId,
         groupDataKey: dataKey,
-        memberKey: memberKey,
         callerDeviceKey: callerKey,
       );
 
@@ -522,13 +530,18 @@ void main() {
             grants: any(named: 'grants'),
           )).thenAnswer((_) async => stubResult);
 
-      final groups = AnonaccountGroups(caller, difficulty: 4);
+      // Filed under the root membership's shareGroupId, not its memberId —
+      // the store is group-keyed. The peer membership's group is left
+      // unseeded, which is what drives its grantedDevice branch.
+      final store = InMemoryMemberKeyStore();
+      await store.storeMemberKey(
+        wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
+        rootMemberKey,
+      );
+      final groups = AnonaccountGroups(caller, store, difficulty: 4);
       final result = await groups.grantNewDevice(
         newDevice: newDevice,
         memberships: memberships,
-        memberKeys: {
-          rootMemberId: rootMemberKey,
-        },
         callerDeviceKey: callerKey,
       );
 
@@ -606,4 +619,108 @@ void main() {
       expect(peerUnwrapped, peerDataKeyJwk);
     },
   );
+
+  test('grantNewDevice throws StateError when the stored key does not match the row',
+      () async {
+    // The shape a rejoin leaves behind: a key is present for the group, but it
+    // belongs to the previous membership.
+    final caller = _FakeCaller();
+    final entrypoint = _FakeEntrypoint();
+    final group = _FakeGroup();
+    when(() => caller.entrypoint).thenReturn(entrypoint);
+    when(() => caller.group).thenReturn(group);
+    when(() => entrypoint.getChallenge()).thenAnswer(
+      (_) async => wire.PublicChallengeResponse(
+        challenge: 'CHAL-STALE',
+        difficulty: 4,
+        expiresAt: 9999999999,
+      ),
+    );
+
+    final callerKey = await KeyGen.generateDeviceKey();
+    final newDeviceKey = await KeyGen.generateDeviceKey();
+    final newDeviceSigningHex =
+        (await newDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final newDeviceEncHex =
+        (await newDeviceKey.encryptionKeyPair.exportPublicKeySec1Hex()).value;
+    final callerHex =
+        (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+
+    final newDevice = wire.AccountDevice(
+      id: wire.UuidValue.fromString('44444444-4444-4444-8444-444444444444'),
+      anonAccountId:
+          wire.UuidValue.fromString('55555555-5555-4555-8555-555555555555'),
+      deviceSigningPublicKeyHex: newDeviceSigningHex,
+      deviceEncryptionPublicKeyHex: newDeviceEncHex,
+      encryptedDataKey: 'wrapped-by-approver',
+      label: 'new-device',
+      addedByAttestorPublicKeyHex: callerHex,
+      addedByAttestation: 'att',
+      isRevoked: false,
+    );
+
+    final shareGroupId =
+        wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111');
+    final dataKey = await AesGcmSecretKey.generateKey(256);
+    final blobForCaller = await AsymmetricCrypto.wrapForRecipient(
+      jsonEncode(await dataKey.exportJsonWebKey()),
+      callerKey.encryptionKeyPair.publicKey,
+    );
+
+    // The row names one member key; the store holds a different one.
+    final rowMemberKey = await KeyGen.generateDeviceKey();
+    final staleMemberKey = await KeyGen.generateDeviceKey();
+    final store = InMemoryMemberKeyStore();
+    await store.storeMemberKey(shareGroupId, staleMemberKey);
+
+    await expectLater(
+      AnonaccountGroups(caller, store, difficulty: 4).grantNewDevice(
+        newDevice: newDevice,
+        memberships: [
+          wire.GroupMembershipView(
+            memberId: wire.UuidValue.fromString(
+              'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+            ),
+            shareGroupId: shareGroupId,
+            role: wire.GroupMemberRole.admin,
+            memberSigningPublicKeyHex:
+                (await rowMemberKey.signingKeyPair.exportPublicKeySec1Hex())
+                    .value,
+            memberEncryptedDataKey: 'member-blob',
+            deviceEncryptedDataKey: blobForCaller,
+            joinedAt: DateTime.utc(2026, 8, 2),
+          ),
+        ],
+        callerDeviceKey: callerKey,
+      ),
+      throwsA(isA<StateError>().having(
+        (e) => e.message,
+        'message',
+        contains('stale'),
+      )),
+    );
+  });
+
+  test('grantAllDevices throws StateError when no member key is stored',
+      () async {
+    final groups = AnonaccountGroups(
+      _FakeCaller(),
+      InMemoryMemberKeyStore(),
+      difficulty: 4,
+    );
+
+    await expectLater(
+      groups.grantAllDevices(
+        groupId: wire.UuidValue.fromString(
+          '88888888-8888-4888-8888-888888888888',
+        ),
+        memberId: wire.UuidValue.fromString(
+          '99999999-9999-4999-8999-999999999999',
+        ),
+        groupDataKey: await AesGcmSecretKey.generateKey(256),
+        callerDeviceKey: await KeyGen.generateDeviceKey(),
+      ),
+      throwsA(isA<StateError>()),
+    );
+  });
 }

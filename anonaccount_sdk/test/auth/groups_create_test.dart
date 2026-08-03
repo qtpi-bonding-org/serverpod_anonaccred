@@ -52,7 +52,8 @@ void main() {
 
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final callerDeviceHex = await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex();
-    final groups = AnonaccountGroups(caller, difficulty: 4);
+    final store = InMemoryMemberKeyStore();
+    final groups = AnonaccountGroups(caller, store, difficulty: 4);
     final created = await groups.createGroup(
       displayName: 'Family',
       callerDeviceKey: callerDeviceKey,
@@ -62,16 +63,54 @@ void main() {
     expect(created.groupId, '11111111-1111-4111-8111-111111111111');
     expect(created.groupDataKey, isA<AesGcmSecretKey>());
 
-    verify(() => group.createGroup(
+    final verification = verify(() => group.createGroup(
           challenge: 'CHAL-G',
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
           callerDeviceSigningPublicKeyHex: callerDeviceHex.value,
           groupUltimateKeys: any(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
-          creatorMemberKeys: any(named: 'creatorMemberKeys'),
-          creatorMemberEncryptedDataKey: any(named: 'creatorMemberEncryptedDataKey'),
+          creatorMemberKeys: captureAny(named: 'creatorMemberKeys'),
+          creatorMemberEncryptedDataKey:
+              any(named: 'creatorMemberEncryptedDataKey'),
           groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
-        )).called(1);
+        ));
+    verification.called(1);
+
+    // The creator's member key reaches custody, filed under the new group id.
+    final stored = await store.getMemberKey(
+      wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
+    );
+    expect(stored, isNotNull);
+
+    // And it is the key whose public half went over the wire as
+    // creatorMemberKeys, not merely some key.
+    final sentDuo = verification.captured.single as wire.PublicKeyDuo;
+    final storedHex =
+        (await stored!.signingKeyPair.exportPublicKeySec1Hex()).value;
+    expect(storedHex, sentDuo.signingPublicKeyHex);
+  });
+
+  test('CreatedGroup exposes no member key', () async {
+    // The member key reaches the store, never the caller. Pins the field's
+    // absence so it cannot be reintroduced without this failing.
+    final created = CreatedGroup(
+      groupId: 'g',
+      displayName: 'g',
+      groupDataKey: await AesGcmSecretKey.generateKey(256),
+      createdAt: DateTime.utc(2026, 8, 2),
+    );
+    expect(created.toString(), isNot(contains('memberKey')));
+  });
+
+  test('AnonaccountGroups takes a MemberKeyStore', () {
+    // Pins the constructor arity so a later refactor cannot quietly drop
+    // custody back out of the class.
+    final groups = AnonaccountGroups(
+      _FakeCaller(),
+      InMemoryMemberKeyStore(),
+      difficulty: 4,
+    );
+    expect(groups, isA<AnonaccountGroups>());
   });
 }

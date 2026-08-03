@@ -36,16 +36,44 @@ import '../crypto/key_gen.dart';
 import '../crypto/signing.dart';
 import '../models/created_group.dart';
 import '../models/group_membership.dart';
+import 'member_key_store.dart';
 import 'pow_signer.dart';
 
-/// High-level group lifecycle wrapper. Stateless. Each method takes the
-/// keys it needs explicitly — the SDK does not retain state between calls.
+/// High-level group lifecycle wrapper.
+///
+/// Holds no key material: [_memberKeys] is a handle to the consumer's store,
+/// and the device key is still passed per call. The consumer owns every
+/// private key this class touches.
 class AnonaccountGroups {
-  AnonaccountGroups(this._caller, {this.difficulty = PowSigner.defaultDifficulty});
+  AnonaccountGroups(
+    this._caller,
+    this._memberKeys, {
+    this.difficulty = PowSigner.defaultDifficulty,
+  });
 
   final Caller _caller;
+  final MemberKeyStore _memberKeys;
   // ignore: unused_field
   final int difficulty;
+
+  /// Reads the member key an operation requires, or throws.
+  ///
+  /// [StateError] rather than [ArgumentError] because an absent key is not
+  /// caller-supplied bad input: the ArgumentErrors elsewhere in this class
+  /// mark arguments that are wrong, and this marks a precondition that is
+  /// missing.
+  Future<KeyDuo> _requireMemberKey(UuidValue groupId, String operation) async {
+    final key = await _memberKeys.getMemberKey(groupId);
+    if (key == null) {
+      throw StateError(
+        '$operation: no member key stored for group $groupId. The member key '
+        'for a group is written to the MemberKeyStore at createGroup and must '
+        'be restored there after a reinstall before group operations can be '
+        'signed.',
+      );
+    }
+    return key;
+  }
 
   /// Creates a new group. Generates a fresh group ultimate KeyDuo, a
   /// fresh creator-member KeyDuo, and a fresh AES-GCM data key locally.
@@ -112,11 +140,12 @@ class AnonaccountGroups {
       groupUltimateAttestation: groupUltimateAttestation,
     );
 
+    await _memberKeys.storeMemberKey(share.id!, creatorMember);
+
     return CreatedGroup(
       groupId: share.id!.toString(),
       displayName: displayName,
       groupDataKey: dataKey,
-      memberKey: creatorMember, // was discarded; now surfaced for persistence
       createdAt: share.createdAt,
     );
   }
@@ -160,10 +189,10 @@ class AnonaccountGroups {
 
   /// Adds a new member to a group (admin-tier auth branch only).
   ///
-  /// The caller must be an existing admin of the group. The caller signs
-  /// the inner payload with their own member key ([callerMemberKey]).
-  /// The new member's encrypted data key must be wrapped externally before
-  /// passing it here.
+  /// The caller must be an existing admin of the group. The caller signs the
+  /// inner payload with the member key its store holds for [groupId]. The new
+  /// member's encrypted data key must be wrapped externally before passing it
+  /// here.
   Future<GroupMember> addGroupMember({
     required UuidValue groupId,
     required UuidValue newMemberAccountId,
@@ -171,11 +200,11 @@ class AnonaccountGroups {
     required String newMemberSigningPubkeyHex,
     required String newMemberEncryptionPublicKeyHex,
     required String newMemberEncryptedDataKey,
-    required KeyDuo callerMemberKey,
     required KeyDuo callerDeviceKey,
   }) async {
+    final memberKey = await _requireMemberKey(groupId, 'addGroupMember');
     final callerMemberSigningPublicKeyHex =
-        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+        (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final memberKeysWire = PublicKeyDuo(
@@ -191,7 +220,7 @@ class AnonaccountGroups {
       memberKeysWire,
     );
     final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
+        await SigningCrypto.signChallenge(innerPayload, memberKey);
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
@@ -221,22 +250,23 @@ class AnonaccountGroups {
 
   /// Removes (revokes) a group member (admin-tier auth branch only).
   ///
-  /// The caller must be an admin. Signs the inner payload with their
-  /// own member key ([callerMemberKey]).
+  /// The caller must be an admin. Signs the inner payload with the member key
+  /// its store holds for [groupId].
   Future<bool> removeGroupMember({
+    required UuidValue groupId,
     required UuidValue memberId,
-    required KeyDuo callerMemberKey,
     required KeyDuo callerDeviceKey,
   }) async {
+    final memberKey = await _requireMemberKey(groupId, 'removeGroupMember');
     final callerMemberSigningPublicKeyHex =
-        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+        (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Inner payload — signed by the caller's member key.
     final innerPayload = GroupInnerPayloads.removeGroupMember(memberId);
     final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
+        await SigningCrypto.signChallenge(innerPayload, memberKey);
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
@@ -262,19 +292,20 @@ class AnonaccountGroups {
 
   /// Leaves a group — the caller removes themselves using their member key.
   Future<bool> leaveGroup({
+    required UuidValue groupId,
     required UuidValue memberId,
-    required KeyDuo callerMemberKey,
     required KeyDuo callerDeviceKey,
   }) async {
+    final memberKey = await _requireMemberKey(groupId, 'leaveGroup');
     final memberSigningPublicKeyHex =
-        (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+        (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
     // Inner payload — signed by the caller's member key.
     final innerPayload = GroupInnerPayloads.leaveGroup(memberId);
     final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, callerMemberKey);
+        await SigningCrypto.signChallenge(innerPayload, memberKey);
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
@@ -286,7 +317,7 @@ class AnonaccountGroups {
       difficulty: challengeResp.difficulty,
     );
 
-    return _caller.group.leaveGroup(
+    final left = await _caller.group.leaveGroup(
       challenge: envelope.challenge,
       proofOfWork: envelope.proofOfWork,
       signature: envelope.signature,
@@ -295,6 +326,9 @@ class AnonaccountGroups {
       memberSigningPublicKeyHex: memberSigningPublicKeyHex,
       memberAuthSignature: memberAuthSignature,
     );
+    // A throw from the wire call skips this, leaving custody intact.
+    await _memberKeys.removeMemberKey(groupId);
+    return left;
   }
 
   /// Low-level forwarder: sends a batch of already-attested
@@ -336,17 +370,18 @@ class AnonaccountGroups {
   /// Join-time fan-out: wraps the group data key to every non-revoked
   /// device on the account, **including the caller itself** (the
   /// self-grant invariant — see spec §"The two grant moments"), and
-  /// sends one batched `grantMemberDevice` call attested by
-  /// [memberKey].
+  /// sends one batched `grantMemberDevice` call attested by the member key
+  /// the caller's store holds for [groupId].
   ///
-  /// `listDevices` does not filter revoked devices
-  /// (`device_management_endpoint.dart:114-119`), so this method does.
+  /// `listDevices` does not filter revoked devices, so this method does.
   Future<GrantMemberDeviceResult> grantAllDevices({
+    required UuidValue groupId,
     required UuidValue memberId,
     required AesGcmSecretKey groupDataKey,
-    required KeyDuo memberKey,
     required KeyDuo callerDeviceKey,
   }) async {
+    final memberKey = await _requireMemberKey(groupId, 'grantAllDevices');
+
     // 1. List every device on the account and filter out revoked.
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
@@ -424,12 +459,12 @@ class AnonaccountGroups {
   /// Pair-time fan-out: grant one [newDevice] access to every
   /// membership the caller holds.
   ///
-  /// For each membership, the attestor is per item: `memberKey` when the caller
-  /// holds that membership's member key (look it up in [memberKeys] by
-  /// the membership's id), and `grantedDevice` when the caller only holds
-  /// a device-level grant (i.e., no member key). That attestation
-  /// is signed by [callerDeviceKey] — the only key the caller has
-  /// standing in for that membership.
+  /// For each membership, the attestor is per item: `memberKey` when the
+  /// caller's store holds that group's member key, and `grantedDevice` when it
+  /// does not — an account reaching a membership through a device grant rather
+  /// than by being the member holds no member key for it. That attestation is
+  /// signed by [callerDeviceKey], the only key the caller has standing in for
+  /// that membership.
   ///
   /// The data key for each membership is taken from the membership's
   /// `deviceEncryptedDataKey` (the caller device's own grant row) and
@@ -440,7 +475,6 @@ class AnonaccountGroups {
   Future<GrantMemberDeviceResult> grantNewDevice({
     required wire.AccountDevice newDevice,
     required List<wire.GroupMembershipView> memberships,
-    required Map<UuidValue, KeyDuo> memberKeys,
     required KeyDuo callerDeviceKey,
   }) async {
     if (newDevice.id == null) {
@@ -495,12 +529,25 @@ class AnonaccountGroups {
         newDeviceEncryptionPubkey.publicKey,
       );
 
-      final memberKey = memberKeys[m.memberId];
+      final stored = await _memberKeys.getMemberKey(m.shareGroupId);
       final GrantAttestor attestor;
       final KeyDuo attestorKey;
-      if (memberKey != null) {
+      if (stored != null) {
+        // Compared with != rather than case-insensitively: both sides come
+        // from exportPublicKeySec1Hex, so a casing difference would mean two
+        // different encoders produced them — a defect worth surfacing.
+        final storedHex =
+            (await stored.signingKeyPair.exportPublicKeySec1Hex()).value;
+        if (storedHex != m.memberSigningPublicKeyHex) {
+          throw StateError(
+            'grantNewDevice: the member key stored for group ${m.shareGroupId} '
+            'is stale — its signing public key does not match membership '
+            '${m.memberId}. Rejoining a group mints a fresh member key under '
+            'the same group id; store the new one to replace it.',
+          );
+        }
         attestor = GrantAttestor.memberKey;
-        attestorKey = memberKey;
+        attestorKey = stored;
       } else {
         attestor = GrantAttestor.grantedDevice;
         attestorKey = callerDeviceKey;

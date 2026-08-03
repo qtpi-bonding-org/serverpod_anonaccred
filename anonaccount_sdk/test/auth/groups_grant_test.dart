@@ -78,7 +78,8 @@ void main() {
       final memberSigningPublicKeyHex =
           (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
-      final groups = AnonaccountGroups(caller, difficulty: 4);
+      final store = InMemoryMemberKeyStore();
+      final groups = AnonaccountGroups(caller, store, difficulty: 4);
 
       // grantMemberDevice is a low-level forwarder — Task 7's
       // grantAllDevices/grantNewDevice do the per-item signing (they hold

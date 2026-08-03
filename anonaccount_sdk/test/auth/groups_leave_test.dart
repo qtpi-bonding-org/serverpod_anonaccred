@@ -45,13 +45,18 @@ void main() {
           memberAuthSignature: any(named: 'memberAuthSignature'),
         )).thenAnswer((_) async => true);
 
+    final groupId = wire.UuidValue.fromString(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
     final callerMemberKey = await KeyGen.generateDeviceKey();
     final callerDeviceKey = await KeyGen.generateDeviceKey();
-    final groups = AnonaccountGroups(caller, difficulty: 4);
+    final store = InMemoryMemberKeyStore();
+    await store.storeMemberKey(groupId, callerMemberKey);
+    final groups = AnonaccountGroups(caller, store, difficulty: 4);
 
     final result = await groups.leaveGroup(
+      groupId: groupId,
       memberId: memberId,
-      callerMemberKey: callerMemberKey,
       callerDeviceKey: callerDeviceKey,
     );
 
@@ -80,5 +85,117 @@ void main() {
     expect(captured[1].toString(), memberId.toString());
     expect(captured[2], expectedMemberPubkeyHex); // caller's own member pubkey hex
     expect(captured[3], isNotNull); // memberAuthSignature — must be non-null
+  });
+
+  test('leaveGroup removes the member key after the server confirms departure',
+      () async {
+    final caller = _FakeCaller();
+    final entrypoint = _FakeEntrypoint();
+    final group = _FakeGroup();
+    when(() => caller.entrypoint).thenReturn(entrypoint);
+    when(() => caller.group).thenReturn(group);
+    when(() => entrypoint.getChallenge()).thenAnswer(
+      (_) async => wire.PublicChallengeResponse(
+        challenge: 'CHAL-LV2',
+        difficulty: 4,
+        expiresAt: 9999999999,
+      ),
+    );
+    when(() => group.leaveGroup(
+          challenge: any(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          signature: any(named: 'signature'),
+          callerDeviceSigningPublicKeyHex:
+              any(named: 'callerDeviceSigningPublicKeyHex'),
+          memberId: any(named: 'memberId'),
+          memberSigningPublicKeyHex: any(named: 'memberSigningPublicKeyHex'),
+          memberAuthSignature: any(named: 'memberAuthSignature'),
+        )).thenAnswer((_) async => true);
+
+    final groupId = wire.UuidValue.fromString(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+    final store = InMemoryMemberKeyStore();
+    await store.storeMemberKey(groupId, await KeyGen.generateDeviceKey());
+
+    await AnonaccountGroups(caller, store, difficulty: 4).leaveGroup(
+      groupId: groupId,
+      memberId: wire.UuidValue.fromString(
+        'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+      ),
+      callerDeviceKey: await KeyGen.generateDeviceKey(),
+    );
+
+    expect(await store.getMemberKey(groupId), isNull);
+  });
+
+  test('leaveGroup keeps the member key when the server rejects the departure',
+      () async {
+    // GroupEndpoint.leaveGroup has one `return true` and otherwise throws, so
+    // a rejection arrives as an exception, never as `false`. Driving this with
+    // a `false` return would pin behaviour the server cannot produce.
+    final caller = _FakeCaller();
+    final entrypoint = _FakeEntrypoint();
+    final group = _FakeGroup();
+    when(() => caller.entrypoint).thenReturn(entrypoint);
+    when(() => caller.group).thenReturn(group);
+    when(() => entrypoint.getChallenge()).thenAnswer(
+      (_) async => wire.PublicChallengeResponse(
+        challenge: 'CHAL-LV3',
+        difficulty: 4,
+        expiresAt: 9999999999,
+      ),
+    );
+    when(() => group.leaveGroup(
+          challenge: any(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          signature: any(named: 'signature'),
+          callerDeviceSigningPublicKeyHex:
+              any(named: 'callerDeviceSigningPublicKeyHex'),
+          memberId: any(named: 'memberId'),
+          memberSigningPublicKeyHex: any(named: 'memberSigningPublicKeyHex'),
+          memberAuthSignature: any(named: 'memberAuthSignature'),
+        )).thenThrow(Exception('Cannot leave as the last admin'));
+
+    final groupId = wire.UuidValue.fromString(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+    final key = await KeyGen.generateDeviceKey();
+    final store = InMemoryMemberKeyStore();
+    await store.storeMemberKey(groupId, key);
+
+    await expectLater(
+      AnonaccountGroups(caller, store, difficulty: 4).leaveGroup(
+        groupId: groupId,
+        memberId: wire.UuidValue.fromString(
+          'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+        ),
+        callerDeviceKey: await KeyGen.generateDeviceKey(),
+      ),
+      throwsA(isA<Exception>()),
+    );
+    expect(await store.getMemberKey(groupId), same(key));
+  });
+
+  test('leaveGroup throws StateError when no member key is stored for the group',
+      () async {
+    final groups = AnonaccountGroups(
+      _FakeCaller(),
+      InMemoryMemberKeyStore(),
+      difficulty: 4,
+    );
+
+    await expectLater(
+      groups.leaveGroup(
+        groupId: wire.UuidValue.fromString(
+          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        ),
+        memberId: wire.UuidValue.fromString(
+          'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+        ),
+        callerDeviceKey: await KeyGen.generateDeviceKey(),
+      ),
+      throwsA(isA<StateError>()),
+    );
   });
 }
