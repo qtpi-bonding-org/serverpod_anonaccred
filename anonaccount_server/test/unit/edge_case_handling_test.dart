@@ -144,6 +144,8 @@ void main() {
             pairingAttestation: 'invalid',
             newDeviceEncryptedDataKey: 'encrypted_data_key',
             label: 'Test Device',
+            ultimateEncryptionPublicKeyHex: 'irrelevant',
+            ultimateSigningPublicKeyHex: 'irrelevant',
           ),
           throwsA(isA<AuthenticationException>()),
         );

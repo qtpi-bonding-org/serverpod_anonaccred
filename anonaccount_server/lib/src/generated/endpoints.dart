@@ -737,6 +737,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'ultimateEncryptionPublicKeyHex': _i1.ParameterDescription(
+              name: 'ultimateEncryptionPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'ultimateSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'ultimateSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -756,6 +766,10 @@ class Endpoints extends _i1.EndpointDispatch {
                         newDeviceEncryptedDataKey:
                             params['newDeviceEncryptedDataKey'],
                         label: params['label'],
+                        ultimateEncryptionPublicKeyHex:
+                            params['ultimateEncryptionPublicKeyHex'],
+                        ultimateSigningPublicKeyHex:
+                            params['ultimateSigningPublicKeyHex'],
                       ),
         ),
         'getChallenge': _i1.MethodConnector(

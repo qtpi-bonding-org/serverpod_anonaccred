@@ -470,6 +470,8 @@ class EndpointDeviceManagement extends EndpointSignedPow {
     required String pairingAttestation,
     required String newDeviceEncryptedDataKey,
     required String label,
+    required String ultimateEncryptionPublicKeyHex,
+    required String ultimateSigningPublicKeyHex,
   }) => caller.callServerEndpoint<_i7.AccountDevice>(
     'anonaccount.deviceManagement',
     'registerDeviceForAccount',
@@ -482,6 +484,8 @@ class EndpointDeviceManagement extends EndpointSignedPow {
       'pairingAttestation': pairingAttestation,
       'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
       'label': label,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
     },
   );
 

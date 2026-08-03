@@ -899,6 +899,8 @@ class _DeviceManagementEndpoint {
     required String pairingAttestation,
     required String newDeviceEncryptedDataKey,
     required String label,
+    required String ultimateEncryptionPublicKeyHex,
+    required String ultimateSigningPublicKeyHex,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -920,6 +922,8 @@ class _DeviceManagementEndpoint {
             'pairingAttestation': pairingAttestation,
             'newDeviceEncryptedDataKey': newDeviceEncryptedDataKey,
             'label': label,
+            'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+            'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
           }),
           serializationManager: _serializationManager,
         );

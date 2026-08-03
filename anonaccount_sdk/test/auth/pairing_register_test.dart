@@ -62,6 +62,10 @@ void main() {
           pairingAttestation: any(named: 'pairingAttestation'),
           newDeviceEncryptedDataKey: any(named: 'newDeviceEncryptedDataKey'),
           label: any(named: 'label'),
+          ultimateEncryptionPublicKeyHex:
+              any(named: 'ultimateEncryptionPublicKeyHex'),
+          ultimateSigningPublicKeyHex:
+              any(named: 'ultimateSigningPublicKeyHex'),
         )).thenAnswer((_) async => stubResponse);
 
     final ourStore = InMemoryAccountKeyStore();
@@ -89,12 +93,53 @@ void main() {
         newDeviceKeys: captureAny(named: 'newDeviceKeys'),
         pairingAttestation: any(named: 'pairingAttestation'),
         newDeviceEncryptedDataKey: any(named: 'newDeviceEncryptedDataKey'),
-        label: 'iPhone')).captured;
+        label: 'iPhone',
+        ultimateEncryptionPublicKeyHex:
+            any(named: 'ultimateEncryptionPublicKeyHex'),
+        ultimateSigningPublicKeyHex:
+            any(named: 'ultimateSigningPublicKeyHex'))).captured;
     final capturedKeys = captured.single as PublicKeyDuo;
     expect(capturedKeys.signingPublicKeyHex, theirHex);
     expect(
       capturedKeys.signingPublicKeyHex,
       isNot(capturedKeys.encryptionPublicKeyHex),
+    );
+  });
+
+  test('registerPairedDevice throws StateError when our store has no ultimate keys',
+      () async {
+    when(() => dm.registerDeviceForAccount(
+          challenge: any(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          publicKeyHex: any(named: 'publicKeyHex'),
+          signature: any(named: 'signature'),
+          newDeviceKeys: any(named: 'newDeviceKeys'),
+          pairingAttestation: any(named: 'pairingAttestation'),
+          newDeviceEncryptedDataKey: any(named: 'newDeviceEncryptedDataKey'),
+          label: any(named: 'label'),
+          ultimateEncryptionPublicKeyHex:
+              any(named: 'ultimateEncryptionPublicKeyHex'),
+          ultimateSigningPublicKeyHex:
+              any(named: 'ultimateSigningPublicKeyHex'),
+        )).thenAnswer((_) async => throw StateError('should not be reached'));
+
+    // A device that only paired, never generated or imported an ultimate
+    // key — the shape Side A takes when it is itself a paired-in device
+    // whose own pairing predates this feature.
+    final ourStore = InMemoryAccountKeyStore();
+    await ourStore.generateAndStoreDeviceKey();
+    await ourStore.storeSymmetricDataKeyJwk(await KeyGen.generateSymmetricKeyJwk());
+
+    final theirStore = InMemoryAccountKeyStore();
+    final theirPairing = AnonaccountPairing(_FakeCaller(), theirStore);
+    final theirQr = await theirPairing.beginPairing(deviceLabel: 'their-device');
+
+    final pairing = AnonaccountPairing(caller, ourStore, difficulty: 4);
+    final scanned = pairing.parseQr(theirQr.qrPayloadJson);
+
+    await expectLater(
+      pairing.registerPairedDevice(scanned: scanned, label: 'iPhone'),
+      throwsA(isA<StateError>()),
     );
   });
 }

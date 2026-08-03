@@ -2,3 +2,9 @@ class: DevicePairingEvent
 fields:
   encryptedDataKey: String
   signingKeyHex: String
+  # The account's ultimate public keys. The encryption half lets this
+  # device encrypt member keys for group backups; the signing half lets it
+  # later check anything the server claims about this account's keys.
+  # Public material only — never the private halves.
+  ultimateEncryptionPublicKeyHex: String
+  ultimateSigningPublicKeyHex: String
