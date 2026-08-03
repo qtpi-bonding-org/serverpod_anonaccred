@@ -42,7 +42,7 @@ dev_dependencies:
   lints: '>=3.0.0 <7.0.0'
   serverpod_test: 3.4.1
   test: ^1.25.5
-  webcrypto: ^0.5.3
+  webcrypto: ^0.6.0
 
 dependency_overrides:
   # Pin relic_* to 1.1.x. relic_core 1.2.0 added a `Cache` class that
