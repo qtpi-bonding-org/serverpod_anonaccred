@@ -12,30 +12,6 @@ import 'queries/active_rows.dart';
 /// Simple static helper functions to reduce code duplication
 /// No complex abstractions, caching, or infrastructure
 class AnonAccountHelpers {
-  /// Resolve the account UUID from a device signing public key.
-  ///
-  /// Looks up the device by its signing key and returns the associated accountUuid.
-  /// Used for JWT token management (issuance, revocation).
-  static Future<UuidValue> resolveAccountUuid(
-    Session session,
-    String identifier,
-    String operation,
-  ) async {
-    final device = await AllRows.deviceBySigningKeyIncludingRevoked(
-      session,
-      identifier,
-    );
-    if (device == null) {
-      throw AnonAccountExceptionFactory.createAuthenticationException(
-        code: AnonAccountErrorCodes.authDeviceNotFound,
-        message: 'Device not found for public key',
-        operation: operation,
-        details: {'deviceSigningPublicKeyHex': identifier},
-      );
-    }
-    return device.anonAccountId;
-  }
-
   /// Resolve the account UUID from the ultimate signing public key.
   ///
   /// Looks up the account directly by its ultimate signing key.
@@ -61,22 +37,21 @@ class AnonAccountHelpers {
     return account.id!;
   }
 
-  /// Resolve the account UUID from either a device key or ultimate key.
-  ///
-  /// Tries device key first, then ultimate key. Useful for endpoints
-  /// that should accept either (e.g., listDevices).
+  /// Resolve the account UUID from either an active device key or an ultimate
+  /// key. A revoked device key is rejected rather than falling through to the
+  /// ultimate-key branch.
   static Future<UuidValue> resolveAccountUuidByAnyKey(
     Session session,
     String publicKeyHex,
     String operation,
   ) async {
-    // Try device key first
+    // Try device key first. If a row matches, it must be active.
     final device = await AllRows.deviceBySigningKeyIncludingRevoked(
       session,
       publicKeyHex,
     );
     if (device != null) {
-      return device.anonAccountId;
+      return requireActiveDevice(device, publicKeyHex, operation).anonAccountId;
     }
 
     // Try ultimate key

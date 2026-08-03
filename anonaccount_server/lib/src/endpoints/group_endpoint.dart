@@ -381,36 +381,23 @@ class GroupEndpoint extends SignedPowEndpoint {
               operation: 'addGroupMember',
             );
           }
-          final callerMembership = await ActiveRows.callerMembershipByMemberKey(
-            session,
-            groupId,
-            callerMemberSigningPublicKeyHex,
-          );
-          if (callerMembership == null) {
-            throw AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authAccountNotFound,
-              message:
-                  'No active membership for caller member key in this group',
-              operation: 'addGroupMember',
-            );
-          }
-          if (callerMembership.role != GroupMemberRole.admin) {
-            throw AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authInvalidSignature,
-              message: 'Caller is not an admin of this group',
-              operation: 'addGroupMember',
-            );
-          }
-          final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+          final activeCaller = await AnonAccountHelpers.requireCaller(
             session,
             callerDeviceSigningPublicKeyHex,
             'addGroupMember',
           );
-          if (callerMembership.anonAccountId != deviceAccountId) {
+          final callerMembership =
+              await AnonAccountHelpers.requireMemberStanding(
+                session,
+                activeCaller,
+                callerMemberSigningPublicKeyHex,
+                groupId,
+                'addGroupMember',
+              );
+          if (callerMembership.role != GroupMemberRole.admin) {
             throw AnonAccountExceptionFactory.createAuthenticationException(
               code: AnonAccountErrorCodes.authInvalidSignature,
-              message:
-                  'Caller member key is not bound to the device-resolved account',
+              message: 'Caller is not an admin of this group',
               operation: 'addGroupMember',
             );
           }
@@ -584,35 +571,23 @@ class GroupEndpoint extends SignedPowEndpoint {
               operation: 'removeGroupMember',
             );
           }
-          final callerMembership = await ActiveRows.callerMembershipByMemberKey(
-            session,
-            target.shareGroupId,
-            callerMemberSigningPublicKeyHex,
-          );
-          if (callerMembership == null) {
-            throw AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authAccountNotFound,
-              message: 'No active membership for caller in this group',
-              operation: 'removeGroupMember',
-            );
-          }
-          if (callerMembership.role != GroupMemberRole.admin) {
-            throw AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authInvalidSignature,
-              message: 'Caller is not an admin of this group',
-              operation: 'removeGroupMember',
-            );
-          }
-          final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+          final activeCaller = await AnonAccountHelpers.requireCaller(
             session,
             callerDeviceSigningPublicKeyHex,
             'removeGroupMember',
           );
-          if (callerMembership.anonAccountId != deviceAccountId) {
+          final callerMembership =
+              await AnonAccountHelpers.requireMemberStanding(
+                session,
+                activeCaller,
+                callerMemberSigningPublicKeyHex,
+                target.shareGroupId,
+                'removeGroupMember',
+              );
+          if (callerMembership.role != GroupMemberRole.admin) {
             throw AnonAccountExceptionFactory.createAuthenticationException(
               code: AnonAccountErrorCodes.authInvalidSignature,
-              message:
-                  'Caller member key is not bound to the device-resolved account',
+              message: 'Caller is not an admin of this group',
               operation: 'removeGroupMember',
             );
           }
@@ -751,32 +726,18 @@ class GroupEndpoint extends SignedPowEndpoint {
           );
         }
 
-        final callerMembership = await ActiveRows.callerMembershipByMemberKey(
-          session,
-          groupId,
-          callerMemberSigningPublicKeyHex,
-        );
-        if (callerMembership == null) {
-          throw AnonAccountExceptionFactory.createAuthenticationException(
-            code: AnonAccountErrorCodes.authAccountNotFound,
-            message: 'No active membership for caller in this group',
-            operation: 'getGroup',
-          );
-        }
-
-        final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+        final activeCaller = await AnonAccountHelpers.requireCaller(
           session,
           callerDeviceSigningPublicKeyHex,
           'getGroup',
         );
-        if (callerMembership.anonAccountId != deviceAccountId) {
-          throw AnonAccountExceptionFactory.createAuthenticationException(
-            code: AnonAccountErrorCodes.authInvalidSignature,
-            message:
-                'Caller member key is not bound to the device-resolved account',
-            operation: 'getGroup',
-          );
-        }
+        await AnonAccountHelpers.requireMemberStanding(
+          session,
+          activeCaller,
+          callerMemberSigningPublicKeyHex,
+          groupId,
+          'getGroup',
+        );
 
         final group = await ShareGroup.db.findById(session, groupId);
         if (group == null) {
@@ -833,32 +794,18 @@ class GroupEndpoint extends SignedPowEndpoint {
           );
         }
 
-        final callerMembership = await ActiveRows.callerMembershipByMemberKey(
-          session,
-          groupId,
-          callerMemberSigningPublicKeyHex,
-        );
-        if (callerMembership == null) {
-          throw AnonAccountExceptionFactory.createAuthenticationException(
-            code: AnonAccountErrorCodes.authAccountNotFound,
-            message: 'No active membership for caller in this group',
-            operation: 'listGroupMembers',
-          );
-        }
-
-        final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+        final activeCaller = await AnonAccountHelpers.requireCaller(
           session,
           callerDeviceSigningPublicKeyHex,
           'listGroupMembers',
         );
-        if (callerMembership.anonAccountId != deviceAccountId) {
-          throw AnonAccountExceptionFactory.createAuthenticationException(
-            code: AnonAccountErrorCodes.authInvalidSignature,
-            message:
-                'Caller member key is not bound to the device-resolved account',
-            operation: 'listGroupMembers',
-          );
-        }
+        await AnonAccountHelpers.requireMemberStanding(
+          session,
+          activeCaller,
+          callerMemberSigningPublicKeyHex,
+          groupId,
+          'listGroupMembers',
+        );
 
         final rows = await ActiveRows.membersOfGroup(session, groupId);
         return rows
@@ -940,12 +887,12 @@ class GroupEndpoint extends SignedPowEndpoint {
           );
         }
 
-        final deviceAccountId = await AnonAccountHelpers.resolveAccountUuid(
+        final activeCaller = await AnonAccountHelpers.requireCaller(
           session,
           callerDeviceSigningPublicKeyHex,
           'leaveGroup',
         );
-        if (target.anonAccountId != deviceAccountId) {
+        if (target.anonAccountId != activeCaller.accountId) {
           throw AnonAccountExceptionFactory.createAuthenticationException(
             code: AnonAccountErrorCodes.authInvalidSignature,
             message:
