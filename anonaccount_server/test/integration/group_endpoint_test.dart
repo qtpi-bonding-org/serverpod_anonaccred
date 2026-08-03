@@ -1960,5 +1960,137 @@ void main() {
         throwsA(isA<AuthenticationException>()),
       );
     });
+
+    test(
+      'owner-tier admin grant works without member-tier parameters',
+      () async {
+        final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+        final (_, accountPub) = SigningTestHelper.generateKeypair();
+        final account = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: accountPub,
+          ultimateEncryptionPublicKeyHex: accountPub,
+        );
+        final (memberPriv, memberPub) = SigningTestHelper.generateKeypair();
+        final (_, memberEnc) = SigningTestHelper.generateKeypair();
+        final outer = await _outer(
+          sessionBuilder,
+          endpoints,
+          'addGroupMember',
+          s.devicePub,
+          s.devicePriv,
+        );
+        final keys = PublicKeyDuo(
+          signingPublicKeyHex: memberPub,
+          encryptionPublicKeyHex: memberEnc,
+        );
+        final signature = SigningTestHelper.signWith(
+          GroupInnerPayloads.addGroupMember(
+            s.group.id!,
+            account.id!,
+            GroupMemberRole.admin.name,
+            keys,
+          ),
+          s.groupUltSigPriv,
+        );
+        final backup = _memberKeyBackup(
+          groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+          anonAccountId: account.id!,
+          memberSigningPublicKeyHex: memberPub,
+          memberSigningPrivateKeyHex: memberPriv,
+        );
+        final member = await endpoints.group.addGroupMember(
+          sessionBuilder,
+          challenge: outer.challenge,
+          proofOfWork: outer.pow,
+          signature: outer.signature,
+          callerDeviceSigningPublicKeyHex: s.devicePub,
+          groupId: s.group.id!,
+          newMemberAccountId: account.id!,
+          role: GroupMemberRole.admin,
+          memberKeys: keys,
+          encryptedDataKey: 'data',
+          encryptedMemberKey: backup.blob,
+          encryptedMemberKeyAttestation: backup.attestation,
+          groupUltimateSignature: signature,
+        );
+        expect(member.role, GroupMemberRole.admin);
+      },
+    );
+
+    test(
+      'owner-tier removal works for an admin target without member parameters',
+      () async {
+        final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+        final (_, accountPub) = SigningTestHelper.generateKeypair();
+        final account = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: accountPub,
+          ultimateEncryptionPublicKeyHex: accountPub,
+        );
+        final (memberPriv, memberPub) = SigningTestHelper.generateKeypair();
+        final (_, memberEnc) = SigningTestHelper.generateKeypair();
+        final addOuter = await _outer(
+          sessionBuilder,
+          endpoints,
+          'addGroupMember',
+          s.devicePub,
+          s.devicePriv,
+        );
+        final keys = PublicKeyDuo(
+          signingPublicKeyHex: memberPub,
+          encryptionPublicKeyHex: memberEnc,
+        );
+        final backup = _memberKeyBackup(
+          groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+          anonAccountId: account.id!,
+          memberSigningPublicKeyHex: memberPub,
+          memberSigningPrivateKeyHex: memberPriv,
+        );
+        final admin = await endpoints.group.addGroupMember(
+          sessionBuilder,
+          challenge: addOuter.challenge,
+          proofOfWork: addOuter.pow,
+          signature: addOuter.signature,
+          callerDeviceSigningPublicKeyHex: s.devicePub,
+          groupId: s.group.id!,
+          newMemberAccountId: account.id!,
+          role: GroupMemberRole.admin,
+          memberKeys: keys,
+          encryptedDataKey: 'data',
+          encryptedMemberKey: backup.blob,
+          encryptedMemberKeyAttestation: backup.attestation,
+          groupUltimateSignature: SigningTestHelper.signWith(
+            GroupInnerPayloads.addGroupMember(
+              s.group.id!,
+              account.id!,
+              GroupMemberRole.admin.name,
+              keys,
+            ),
+            s.groupUltSigPriv,
+          ),
+        );
+        final removeOuter = await _outer(
+          sessionBuilder,
+          endpoints,
+          'removeGroupMember',
+          s.devicePub,
+          s.devicePriv,
+        );
+        final result = await endpoints.group.removeGroupMember(
+          sessionBuilder,
+          challenge: removeOuter.challenge,
+          proofOfWork: removeOuter.pow,
+          signature: removeOuter.signature,
+          callerDeviceSigningPublicKeyHex: s.devicePub,
+          memberId: admin.id!,
+          groupUltimateSignature: SigningTestHelper.signWith(
+            GroupInnerPayloads.removeGroupMember(admin.id!),
+            s.groupUltSigPriv,
+          ),
+        );
+        expect(result, isTrue);
+      },
+    );
   });
 }
