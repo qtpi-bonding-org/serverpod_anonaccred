@@ -4,5 +4,6 @@ export 'created_group.dart';
 export 'generated_pairing_qr.dart';
 export 'group_membership.dart';
 export 'pairing_delivery.dart';
+export 'recovered_membership.dart';
 export 'registration_payload.dart';
 export 'scanned_pairing_qr.dart';
