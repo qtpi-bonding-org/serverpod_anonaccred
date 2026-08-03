@@ -13,6 +13,7 @@ import 'package:anonaccount_protocol/anonaccount_protocol.dart'
 import 'package:anonaccount_sdk/src/auth/anonaccount_auth.dart';
 // ignore: implementation_imports
 import 'package:anonaccount_sdk/src/auth/in_memory_account_key_store.dart';
+import 'package:anonaccount_sdk/src/auth/in_memory_group_owner_key_store.dart';
 // ignore: implementation_imports
 import 'package:anonaccount_sdk/src/auth/in_memory_member_key_store.dart';
 import 'package:mocktail/mocktail.dart';

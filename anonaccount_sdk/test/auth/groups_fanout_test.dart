@@ -57,7 +57,8 @@ void main() {
     );
     return wire.AccountDevice(
       id: wire.UuidValue.fromString(id),
-      anonAccountId: anonAccountId ??
+      anonAccountId:
+          anonAccountId ??
           wire.UuidValue.fromString('00000000-0000-4000-8000-000000000001'),
       deviceSigningPublicKeyHex: signingHex,
       deviceEncryptionPublicKeyHex: encryptionHex,
@@ -69,184 +70,206 @@ void main() {
     );
   }
 
-  test(
-    'grantAllDevices grants every non-revoked sibling device AND the caller '
-    'itself, with scalar FKs and a real attestation',
-    () async {
-      final caller = _FakeCaller();
-      final entrypoint = _FakeEntrypoint();
-      final group = _FakeGroup();
-      final dm = _FakeDeviceManagement();
-      when(() => caller.entrypoint).thenReturn(entrypoint);
-      when(() => caller.group).thenReturn(group);
-      when(() => caller.deviceManagement).thenReturn(dm);
-      when(() => entrypoint.getChallenge()).thenAnswer(
-        (_) async => wire.PublicChallengeResponse(
-          challenge: 'CHAL-FANOUT',
-          difficulty: 4,
-          expiresAt: 9999999999,
+  test('grantAllDevices grants every non-revoked sibling device AND the caller '
+      'itself, with scalar FKs and a real attestation', () async {
+    final caller = _FakeCaller();
+    final entrypoint = _FakeEntrypoint();
+    final group = _FakeGroup();
+    final dm = _FakeDeviceManagement();
+    when(() => caller.entrypoint).thenReturn(entrypoint);
+    when(() => caller.group).thenReturn(group);
+    when(() => caller.deviceManagement).thenReturn(dm);
+    when(() => entrypoint.getChallenge()).thenAnswer(
+      (_) async => wire.PublicChallengeResponse(
+        challenge: 'CHAL-FANOUT',
+        difficulty: 4,
+        expiresAt: 9999999999,
+      ),
+    );
+
+    // Three devices on the account: the caller (self), a non-revoked
+    // sibling, and a revoked sibling. listDevices does NOT filter revoked
+    // (device_management_endpoint.dart:114-119), so the SDK must.
+    final callerKey = await KeyGen.generateDeviceKey();
+    final siblingKey = await KeyGen.generateDeviceKey();
+    final revokedKey = await KeyGen.generateDeviceKey();
+
+    final callerHex =
+        (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final siblingHex =
+        (await siblingKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final revokedHex =
+        (await revokedKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final callerEnc = (await EncryptionKeyPair.publicOnly(
+      publicKey: callerKey.encryptionKeyPair.publicKey,
+    ).exportPublicKeySec1Hex()).value;
+    final siblingEnc = (await EncryptionKeyPair.publicOnly(
+      publicKey: siblingKey.encryptionKeyPair.publicKey,
+    ).exportPublicKeySec1Hex()).value;
+    final revokedEnc = (await EncryptionKeyPair.publicOnly(
+      publicKey: revokedKey.encryptionKeyPair.publicKey,
+    ).exportPublicKeySec1Hex()).value;
+
+    final callerId = wire.UuidValue.fromString(
+      '11111111-1111-4111-8111-111111111111',
+    );
+    final siblingId = wire.UuidValue.fromString(
+      '22222222-2222-4222-8222-222222222222',
+    );
+    final revokedId = wire.UuidValue.fromString(
+      '33333333-3333-4333-8333-333333333333',
+    );
+
+    final dataKey = await AesGcmSecretKey.generateKey(256);
+    final callerDevice = await _makeDevice(
+      id: '11111111-1111-4111-8111-111111111111',
+      signingHex: callerHex,
+      encryptionHex: callerEnc,
+      dataKey: dataKey,
+    );
+    final siblingDevice = await _makeDevice(
+      id: '22222222-2222-4222-8222-222222222222',
+      signingHex: siblingHex,
+      encryptionHex: siblingEnc,
+      dataKey: dataKey,
+    );
+    final revokedDevice = await _makeDevice(
+      id: '33333333-3333-4333-8333-333333333333',
+      signingHex: revokedHex,
+      encryptionHex: revokedEnc,
+      dataKey: dataKey,
+      isRevoked: true,
+    );
+
+    when(
+      () => dm.listDevices(
+        challenge: any(named: 'challenge'),
+        proofOfWork: any(named: 'proofOfWork'),
+        publicKeyHex: any(named: 'publicKeyHex'),
+        signature: any(named: 'signature'),
+      ),
+    ).thenAnswer((_) async => [callerDevice, siblingDevice, revokedDevice]);
+
+    final memberId = wire.UuidValue.fromString(
+      '99999999-9999-4999-8999-999999999999',
+    );
+    final memberKey = await KeyGen.generateDeviceKey();
+    final memberSigningPublicKeyHex =
+        (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+
+    final stubResult = wire.GrantMemberDeviceResult(
+      granted: [
+        wire.MemberDeviceGrantOutcome(
+          groupMemberId: memberId,
+          accountDeviceId: callerId,
         ),
+        wire.MemberDeviceGrantOutcome(
+          groupMemberId: memberId,
+          accountDeviceId: siblingId,
+        ),
+      ],
+      alreadyGranted: const [],
+    );
+    when(
+      () => group.grantMemberDevice(
+        challenge: any(named: 'challenge'),
+        proofOfWork: any(named: 'proofOfWork'),
+        signature: any(named: 'signature'),
+        callerDeviceSigningPublicKeyHex: any(
+          named: 'callerDeviceSigningPublicKeyHex',
+        ),
+        grants: any(named: 'grants'),
+      ),
+    ).thenAnswer((_) async => stubResult);
+
+    final groupId = wire.UuidValue.fromString(
+      '88888888-8888-4888-8888-888888888888',
+    );
+    final store = InMemoryMemberKeyStore();
+    await store.storeMemberKey(groupId, memberKey);
+    final groups = AnonaccountGroups(
+      caller,
+      store,
+      InMemoryGroupOwnerKeyStore(),
+      difficulty: 4,
+    );
+    final result = await groups.grantAllDevices(
+      groupId: groupId,
+      memberId: memberId,
+      groupDataKey: dataKey,
+      callerDeviceKey: callerKey,
+    );
+
+    // Server result is forwarded.
+    expect(result.granted, hasLength(2));
+    expect(
+      result.granted.map((o) => o.accountDeviceId),
+      containsAll([callerId, siblingId]),
+    );
+    expect(result.alreadyGranted, isEmpty);
+
+    // Capture the grants the SDK actually sent.
+    final captured = verify(
+      () => group.grantMemberDevice(
+        challenge: captureAny(named: 'challenge'),
+        proofOfWork: captureAny(named: 'proofOfWork'),
+        signature: captureAny(named: 'signature'),
+        callerDeviceSigningPublicKeyHex: captureAny(
+          named: 'callerDeviceSigningPublicKeyHex',
+        ),
+        grants: captureAny(named: 'grants'),
+      ),
+    ).captured;
+
+    final sentGrants = captured.last as List<wire.MemberDeviceGrant>;
+    final sentIds = sentGrants.map((g) => g.accountDeviceId).toList();
+
+    // Both self and the non-revoked sibling are sent; the revoked one is
+    // filtered out.
+    expect(sentIds, contains(callerId));
+    expect(sentIds, contains(siblingId));
+    expect(sentIds, isNot(contains(revokedId)));
+    expect(sentGrants, hasLength(2));
+
+    // Shape: every MemberDeviceGrant carries scalar FKs only. The class
+    // itself has only scalar UuidValue fields (no relation objects), so
+    // this is a compile-time property — the test makes it explicit:
+    for (final g in sentGrants) {
+      expect(g.groupMemberId, memberId);
+      expect(g.accountDeviceId, isA<wire.UuidValue>());
+      expect(g.encryptedDataKey, isNotEmpty);
+      expect(g.attestorSigningPublicKeyHex, memberSigningPublicKeyHex);
+      expect(g.attestor, wire.GrantAttestor.memberKey);
+      expect(g.attestation, isNotEmpty);
+    }
+
+    // The attestation is real — verifies under the member signing key
+    // over the canonical payload covering (memberId, device duo, blob).
+    for (final g in sentGrants) {
+      final isCallerGrant = g.accountDeviceId == callerId;
+      final device = isCallerGrant ? callerDevice : siblingDevice;
+      final deviceDuo = wire.PublicKeyDuo(
+        signingPublicKeyHex: device.deviceSigningPublicKeyHex,
+        encryptionPublicKeyHex: device.deviceEncryptionPublicKeyHex,
       );
-
-      // Three devices on the account: the caller (self), a non-revoked
-      // sibling, and a revoked sibling. listDevices does NOT filter revoked
-      // (device_management_endpoint.dart:114-119), so the SDK must.
-      final callerKey = await KeyGen.generateDeviceKey();
-      final siblingKey = await KeyGen.generateDeviceKey();
-      final revokedKey = await KeyGen.generateDeviceKey();
-
-      final callerHex =
-          (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final siblingHex =
-          (await siblingKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final revokedHex =
-          (await revokedKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final callerEnc =
-          (await EncryptionKeyPair.publicOnly(
-                  publicKey: callerKey.encryptionKeyPair.publicKey)
-              .exportPublicKeySec1Hex()).value;
-      final siblingEnc =
-          (await EncryptionKeyPair.publicOnly(
-                  publicKey: siblingKey.encryptionKeyPair.publicKey)
-              .exportPublicKeySec1Hex()).value;
-      final revokedEnc =
-          (await EncryptionKeyPair.publicOnly(
-                  publicKey: revokedKey.encryptionKeyPair.publicKey)
-              .exportPublicKeySec1Hex()).value;
-
-      final callerId = wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111');
-      final siblingId = wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222');
-      final revokedId = wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333');
-
-      final dataKey = await AesGcmSecretKey.generateKey(256);
-      final callerDevice = await _makeDevice(
-        id: '11111111-1111-4111-8111-111111111111',
-        signingHex: callerHex,
-        encryptionHex: callerEnc,
-        dataKey: dataKey,
+      final ok = await SigningCrypto.verifyChallenge(
+        GroupInnerPayloads.grantMemberDevice(
+          g.groupMemberId,
+          deviceDuo,
+          g.encryptedDataKey,
+        ),
+        g.attestation,
+        memberKey,
       );
-      final siblingDevice = await _makeDevice(
-        id: '22222222-2222-4222-8222-222222222222',
-        signingHex: siblingHex,
-        encryptionHex: siblingEnc,
-        dataKey: dataKey,
+      expect(
+        ok,
+        isTrue,
+        reason:
+            'attestation must verify under the member signing key '
+            'over GroupInnerPayloads.grantMemberDevice',
       );
-      final revokedDevice = await _makeDevice(
-        id: '33333333-3333-4333-8333-333333333333',
-        signingHex: revokedHex,
-        encryptionHex: revokedEnc,
-        dataKey: dataKey,
-        isRevoked: true,
-      );
-
-      when(() => dm.listDevices(
-            challenge: any(named: 'challenge'),
-            proofOfWork: any(named: 'proofOfWork'),
-            publicKeyHex: any(named: 'publicKeyHex'),
-            signature: any(named: 'signature'),
-          )).thenAnswer((_) async => [callerDevice, siblingDevice, revokedDevice]);
-
-      final memberId = wire.UuidValue.fromString('99999999-9999-4999-8999-999999999999');
-      final memberKey = await KeyGen.generateDeviceKey();
-      final memberSigningPublicKeyHex =
-          (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-
-      final stubResult = wire.GrantMemberDeviceResult(
-        granted: [
-          wire.MemberDeviceGrantOutcome(
-            groupMemberId: memberId,
-            accountDeviceId: callerId,
-          ),
-          wire.MemberDeviceGrantOutcome(
-            groupMemberId: memberId,
-            accountDeviceId: siblingId,
-          ),
-        ],
-        alreadyGranted: const [],
-      );
-      when(() => group.grantMemberDevice(
-            challenge: any(named: 'challenge'),
-            proofOfWork: any(named: 'proofOfWork'),
-            signature: any(named: 'signature'),
-            callerDeviceSigningPublicKeyHex:
-                any(named: 'callerDeviceSigningPublicKeyHex'),
-            grants: any(named: 'grants'),
-          )).thenAnswer((_) async => stubResult);
-
-      final groupId =
-          wire.UuidValue.fromString('88888888-8888-4888-8888-888888888888');
-      final store = InMemoryMemberKeyStore();
-      await store.storeMemberKey(groupId, memberKey);
-      final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
-      final result = await groups.grantAllDevices(
-        groupId: groupId,
-        memberId: memberId,
-        groupDataKey: dataKey,
-        callerDeviceKey: callerKey,
-      );
-
-      // Server result is forwarded.
-      expect(result.granted, hasLength(2));
-      expect(result.granted.map((o) => o.accountDeviceId),
-          containsAll([callerId, siblingId]));
-      expect(result.alreadyGranted, isEmpty);
-
-      // Capture the grants the SDK actually sent.
-      final captured = verify(() => group.grantMemberDevice(
-            challenge: captureAny(named: 'challenge'),
-            proofOfWork: captureAny(named: 'proofOfWork'),
-            signature: captureAny(named: 'signature'),
-            callerDeviceSigningPublicKeyHex:
-                captureAny(named: 'callerDeviceSigningPublicKeyHex'),
-            grants: captureAny(named: 'grants'),
-          )).captured;
-
-      final sentGrants = captured.last as List<wire.MemberDeviceGrant>;
-      final sentIds = sentGrants.map((g) => g.accountDeviceId).toList();
-
-      // Both self and the non-revoked sibling are sent; the revoked one is
-      // filtered out.
-      expect(sentIds, contains(callerId));
-      expect(sentIds, contains(siblingId));
-      expect(sentIds, isNot(contains(revokedId)));
-      expect(sentGrants, hasLength(2));
-
-      // Shape: every MemberDeviceGrant carries scalar FKs only. The class
-      // itself has only scalar UuidValue fields (no relation objects), so
-      // this is a compile-time property — the test makes it explicit:
-      for (final g in sentGrants) {
-        expect(g.groupMemberId, memberId);
-        expect(g.accountDeviceId, isA<wire.UuidValue>());
-        expect(g.encryptedDataKey, isNotEmpty);
-        expect(g.attestorSigningPublicKeyHex, memberSigningPublicKeyHex);
-        expect(g.attestor, wire.GrantAttestor.memberKey);
-        expect(g.attestation, isNotEmpty);
-      }
-
-      // The attestation is real — verifies under the member signing key
-      // over the canonical payload covering (memberId, device duo, blob).
-      for (final g in sentGrants) {
-        final isCallerGrant = g.accountDeviceId == callerId;
-        final device = isCallerGrant ? callerDevice : siblingDevice;
-        final deviceDuo = wire.PublicKeyDuo(
-          signingPublicKeyHex: device.deviceSigningPublicKeyHex,
-          encryptionPublicKeyHex: device.deviceEncryptionPublicKeyHex,
-        );
-        final ok = await SigningCrypto.verifyChallenge(
-          GroupInnerPayloads.grantMemberDevice(
-            g.groupMemberId,
-            deviceDuo,
-            g.encryptedDataKey,
-          ),
-          g.attestation,
-          memberKey,
-        );
-        expect(ok, isTrue,
-            reason: 'attestation must verify under the member signing key '
-                'over GroupInnerPayloads.grantMemberDevice');
-      }
-    },
-  );
+    }
+  });
 
   test(
     'a granted sibling really can read the group: wraps to sibling encryption '
@@ -272,23 +295,25 @@ void main() {
       // access to the group data key.
       final d2Key = await KeyGen.generateDeviceKey();
       final d2Hex = (await d2Key.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final d2Enc =
-          (await EncryptionKeyPair.publicOnly(
-                  publicKey: d2Key.encryptionKeyPair.publicKey)
-              .exportPublicKeySec1Hex()).value;
+      final d2Enc = (await EncryptionKeyPair.publicOnly(
+        publicKey: d2Key.encryptionKeyPair.publicKey,
+      ).exportPublicKeySec1Hex()).value;
 
-      final d2Id = wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222');
+      final d2Id = wire.UuidValue.fromString(
+        '22222222-2222-4222-8222-222222222222',
+      );
 
       // The SDK treats the caller as itself, so include a self device that
       // matches the caller's signing hex.
       final callerKey = await KeyGen.generateDeviceKey();
       final callerHex =
           (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final callerEnc =
-          (await EncryptionKeyPair.publicOnly(
-                  publicKey: callerKey.encryptionKeyPair.publicKey)
-              .exportPublicKeySec1Hex()).value;
-      final callerId = wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111');
+      final callerEnc = (await EncryptionKeyPair.publicOnly(
+        publicKey: callerKey.encryptionKeyPair.publicKey,
+      ).exportPublicKeySec1Hex()).value;
+      final callerId = wire.UuidValue.fromString(
+        '11111111-1111-4111-8111-111111111111',
+      );
 
       final dataKey = await AesGcmSecretKey.generateKey(256);
       final dataKeyJwk = jsonEncode(await dataKey.exportJsonWebKey());
@@ -306,14 +331,18 @@ void main() {
         dataKey: dataKey,
       );
 
-      when(() => dm.listDevices(
-            challenge: any(named: 'challenge'),
-            proofOfWork: any(named: 'proofOfWork'),
-            publicKeyHex: any(named: 'publicKeyHex'),
-            signature: any(named: 'signature'),
-          )).thenAnswer((_) async => [callerDevice, d2Device]);
+      when(
+        () => dm.listDevices(
+          challenge: any(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          publicKeyHex: any(named: 'publicKeyHex'),
+          signature: any(named: 'signature'),
+        ),
+      ).thenAnswer((_) async => [callerDevice, d2Device]);
 
-      final memberId = wire.UuidValue.fromString('77777777-7777-4777-8777-777777777777');
+      final memberId = wire.UuidValue.fromString(
+        '77777777-7777-4777-8777-777777777777',
+      );
       final memberKey = await KeyGen.generateDeviceKey();
       final memberSigningPublicKeyHex =
           (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
@@ -331,20 +360,29 @@ void main() {
         ],
         alreadyGranted: const [],
       );
-      when(() => group.grantMemberDevice(
-            challenge: any(named: 'challenge'),
-            proofOfWork: any(named: 'proofOfWork'),
-            signature: any(named: 'signature'),
-            callerDeviceSigningPublicKeyHex:
-                any(named: 'callerDeviceSigningPublicKeyHex'),
-            grants: any(named: 'grants'),
-          )).thenAnswer((_) async => stubResult);
+      when(
+        () => group.grantMemberDevice(
+          challenge: any(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          signature: any(named: 'signature'),
+          callerDeviceSigningPublicKeyHex: any(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
+          grants: any(named: 'grants'),
+        ),
+      ).thenAnswer((_) async => stubResult);
 
-      final groupId =
-          wire.UuidValue.fromString('77777777-7777-4777-8777-777777777777');
+      final groupId = wire.UuidValue.fromString(
+        '77777777-7777-4777-8777-777777777777',
+      );
       final store = InMemoryMemberKeyStore();
       await store.storeMemberKey(groupId, memberKey);
-      final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
+      final groups = AnonaccountGroups(
+        caller,
+        store,
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
       await groups.grantAllDevices(
         groupId: groupId,
         memberId: memberId,
@@ -352,14 +390,17 @@ void main() {
         callerDeviceKey: callerKey,
       );
 
-      final captured = verify(() => group.grantMemberDevice(
-            challenge: captureAny(named: 'challenge'),
-            proofOfWork: captureAny(named: 'proofOfWork'),
-            signature: captureAny(named: 'signature'),
-            callerDeviceSigningPublicKeyHex:
-                captureAny(named: 'callerDeviceSigningPublicKeyHex'),
-            grants: captureAny(named: 'grants'),
-          )).captured;
+      final captured = verify(
+        () => group.grantMemberDevice(
+          challenge: captureAny(named: 'challenge'),
+          proofOfWork: captureAny(named: 'proofOfWork'),
+          signature: captureAny(named: 'signature'),
+          callerDeviceSigningPublicKeyHex: captureAny(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
+          grants: captureAny(named: 'grants'),
+        ),
+      ).captured;
       final sentGrants = captured.last as List<wire.MemberDeviceGrant>;
       final d2Grant = sentGrants.firstWhere(
         (g) => g.accountDeviceId == d2Id,
@@ -423,10 +464,9 @@ void main() {
       final callerKey = await KeyGen.generateDeviceKey();
       final callerHex =
           (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final callerEnc =
-          (await EncryptionKeyPair.publicOnly(
-                  publicKey: callerKey.encryptionKeyPair.publicKey)
-              .exportPublicKeySec1Hex()).value;
+      final callerEnc = (await EncryptionKeyPair.publicOnly(
+        publicKey: callerKey.encryptionKeyPair.publicKey,
+      ).exportPublicKeySec1Hex()).value;
 
       // The new device — generate and read its two public halves back out
       // as SEC1 hex, since the wire type is the hex and a fresh KeyDuo is
@@ -434,17 +474,17 @@ void main() {
       final newDeviceKeyDuo = await KeyGen.generateDeviceKey();
       final newDeviceSigningHex =
           (await newDeviceKeyDuo.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final newDeviceEncHex =
-          (await EncryptionKeyPair.publicOnly(
-                  publicKey: newDeviceKeyDuo.encryptionKeyPair.publicKey)
-              .exportPublicKeySec1Hex()).value;
+      final newDeviceEncHex = (await EncryptionKeyPair.publicOnly(
+        publicKey: newDeviceKeyDuo.encryptionKeyPair.publicKey,
+      ).exportPublicKeySec1Hex()).value;
 
       // The new device needs an id; AccountDevice on the wire carries one.
       // We construct a minimal row that lists `id` so the SDK can reference it.
       final newDevice = wire.AccountDevice(
         id: wire.UuidValue.fromString('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
-        anonAccountId:
-            wire.UuidValue.fromString('00000000-0000-4000-8000-000000000001'),
+        anonAccountId: wire.UuidValue.fromString(
+          '00000000-0000-4000-8000-000000000001',
+        ),
         deviceSigningPublicKeyHex: newDeviceSigningHex,
         deviceEncryptionPublicKeyHex: newDeviceEncHex,
         encryptedDataKey: 'wrapped-by-approver',
@@ -455,8 +495,9 @@ void main() {
       );
 
       // Root membership — caller holds the member key.
-      final rootMemberId =
-          wire.UuidValue.fromString('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+      final rootMemberId = wire.UuidValue.fromString(
+        'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      );
       final rootMemberKey = await KeyGen.generateDeviceKey();
       final rootMemberSigningPublicKeyHex =
           (await rootMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
@@ -464,8 +505,9 @@ void main() {
       final rootDataKeyJwk = jsonEncode(await rootDataKey.exportJsonWebKey());
 
       // Peer membership — caller holds only a grant, not the member key.
-      final peerMemberId =
-          wire.UuidValue.fromString('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+      final peerMemberId = wire.UuidValue.fromString(
+        'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      );
       final peerMemberKey = await KeyGen.generateDeviceKey();
       final peerMemberSigningPublicKeyHex =
           (await peerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
@@ -488,8 +530,9 @@ void main() {
       final memberships = [
         wire.GroupMembershipView(
           memberId: rootMemberId,
-          shareGroupId:
-              wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
+          shareGroupId: wire.UuidValue.fromString(
+            '11111111-1111-4111-8111-111111111111',
+          ),
           role: wire.GroupMemberRole.admin,
           memberSigningPublicKeyHex: rootMemberSigningPublicKeyHex,
           memberEncryptedDataKey: 'root-member-blob',
@@ -500,8 +543,9 @@ void main() {
         ),
         wire.GroupMembershipView(
           memberId: peerMemberId,
-          shareGroupId:
-              wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
+          shareGroupId: wire.UuidValue.fromString(
+            '22222222-2222-4222-8222-222222222222',
+          ),
           role: wire.GroupMemberRole.member,
           memberSigningPublicKeyHex: peerMemberSigningPublicKeyHex,
           memberEncryptedDataKey: 'peer-member-blob',
@@ -525,14 +569,17 @@ void main() {
         ],
         alreadyGranted: const [],
       );
-      when(() => group.grantMemberDevice(
-            challenge: any(named: 'challenge'),
-            proofOfWork: any(named: 'proofOfWork'),
-            signature: any(named: 'signature'),
-            callerDeviceSigningPublicKeyHex:
-                any(named: 'callerDeviceSigningPublicKeyHex'),
-            grants: any(named: 'grants'),
-          )).thenAnswer((_) async => stubResult);
+      when(
+        () => group.grantMemberDevice(
+          challenge: any(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          signature: any(named: 'signature'),
+          callerDeviceSigningPublicKeyHex: any(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
+          grants: any(named: 'grants'),
+        ),
+      ).thenAnswer((_) async => stubResult);
 
       // Filed under the root membership's shareGroupId, not its memberId —
       // the store is group-keyed. The peer membership's group is left
@@ -542,7 +589,12 @@ void main() {
         wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
         rootMemberKey,
       );
-      final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
+      final groups = AnonaccountGroups(
+        caller,
+        store,
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
       final result = await groups.grantNewDevice(
         newDevice: newDevice,
         memberships: memberships,
@@ -551,14 +603,17 @@ void main() {
 
       expect(result.granted, hasLength(2));
 
-      final captured = verify(() => group.grantMemberDevice(
-            challenge: captureAny(named: 'challenge'),
-            proofOfWork: captureAny(named: 'proofOfWork'),
-            signature: captureAny(named: 'signature'),
-            callerDeviceSigningPublicKeyHex:
-                captureAny(named: 'callerDeviceSigningPublicKeyHex'),
-            grants: captureAny(named: 'grants'),
-          )).captured;
+      final captured = verify(
+        () => group.grantMemberDevice(
+          challenge: captureAny(named: 'challenge'),
+          proofOfWork: captureAny(named: 'proofOfWork'),
+          signature: captureAny(named: 'signature'),
+          callerDeviceSigningPublicKeyHex: captureAny(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
+          grants: captureAny(named: 'grants'),
+        ),
+      ).captured;
       final sentGrants = captured.last as List<wire.MemberDeviceGrant>;
       expect(sentGrants, hasLength(2));
 
@@ -624,110 +679,123 @@ void main() {
     },
   );
 
-  test('grantNewDevice throws StateError when the stored key does not match the row',
-      () async {
-    // The shape a rejoin leaves behind: a key is present for the group, but it
-    // belongs to the previous membership.
-    final caller = _FakeCaller();
-    final entrypoint = _FakeEntrypoint();
-    final group = _FakeGroup();
-    when(() => caller.entrypoint).thenReturn(entrypoint);
-    when(() => caller.group).thenReturn(group);
-    when(() => entrypoint.getChallenge()).thenAnswer(
-      (_) async => wire.PublicChallengeResponse(
-        challenge: 'CHAL-STALE',
-        difficulty: 4,
-        expiresAt: 9999999999,
-      ),
-    );
+  test(
+    'grantNewDevice throws StateError when the stored key does not match the row',
+    () async {
+      // The shape a rejoin leaves behind: a key is present for the group, but it
+      // belongs to the previous membership.
+      final caller = _FakeCaller();
+      final entrypoint = _FakeEntrypoint();
+      final group = _FakeGroup();
+      when(() => caller.entrypoint).thenReturn(entrypoint);
+      when(() => caller.group).thenReturn(group);
+      when(() => entrypoint.getChallenge()).thenAnswer(
+        (_) async => wire.PublicChallengeResponse(
+          challenge: 'CHAL-STALE',
+          difficulty: 4,
+          expiresAt: 9999999999,
+        ),
+      );
 
-    final callerKey = await KeyGen.generateDeviceKey();
-    final newDeviceKey = await KeyGen.generateDeviceKey();
-    final newDeviceSigningHex =
-        (await newDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-    final newDeviceEncHex =
-        (await newDeviceKey.encryptionKeyPair.exportPublicKeySec1Hex()).value;
-    final callerHex =
-        (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final callerKey = await KeyGen.generateDeviceKey();
+      final newDeviceKey = await KeyGen.generateDeviceKey();
+      final newDeviceSigningHex =
+          (await newDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final newDeviceEncHex =
+          (await newDeviceKey.encryptionKeyPair.exportPublicKeySec1Hex()).value;
+      final callerHex =
+          (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
-    final newDevice = wire.AccountDevice(
-      id: wire.UuidValue.fromString('44444444-4444-4444-8444-444444444444'),
-      anonAccountId:
-          wire.UuidValue.fromString('55555555-5555-4555-8555-555555555555'),
-      deviceSigningPublicKeyHex: newDeviceSigningHex,
-      deviceEncryptionPublicKeyHex: newDeviceEncHex,
-      encryptedDataKey: 'wrapped-by-approver',
-      label: 'new-device',
-      addedByAttestorPublicKeyHex: callerHex,
-      addedByAttestation: 'att',
-      isRevoked: false,
-    );
+      final newDevice = wire.AccountDevice(
+        id: wire.UuidValue.fromString('44444444-4444-4444-8444-444444444444'),
+        anonAccountId: wire.UuidValue.fromString(
+          '55555555-5555-4555-8555-555555555555',
+        ),
+        deviceSigningPublicKeyHex: newDeviceSigningHex,
+        deviceEncryptionPublicKeyHex: newDeviceEncHex,
+        encryptedDataKey: 'wrapped-by-approver',
+        label: 'new-device',
+        addedByAttestorPublicKeyHex: callerHex,
+        addedByAttestation: 'att',
+        isRevoked: false,
+      );
 
-    final shareGroupId =
-        wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111');
-    final dataKey = await AesGcmSecretKey.generateKey(256);
-    final blobForCaller = await AsymmetricCrypto.wrapForRecipient(
-      jsonEncode(await dataKey.exportJsonWebKey()),
-      callerKey.encryptionKeyPair.publicKey,
-    );
+      final shareGroupId = wire.UuidValue.fromString(
+        '11111111-1111-4111-8111-111111111111',
+      );
+      final dataKey = await AesGcmSecretKey.generateKey(256);
+      final blobForCaller = await AsymmetricCrypto.wrapForRecipient(
+        jsonEncode(await dataKey.exportJsonWebKey()),
+        callerKey.encryptionKeyPair.publicKey,
+      );
 
-    // The row names one member key; the store holds a different one.
-    final rowMemberKey = await KeyGen.generateDeviceKey();
-    final staleMemberKey = await KeyGen.generateDeviceKey();
-    final store = InMemoryMemberKeyStore();
-    await store.storeMemberKey(shareGroupId, staleMemberKey);
+      // The row names one member key; the store holds a different one.
+      final rowMemberKey = await KeyGen.generateDeviceKey();
+      final staleMemberKey = await KeyGen.generateDeviceKey();
+      final store = InMemoryMemberKeyStore();
+      await store.storeMemberKey(shareGroupId, staleMemberKey);
 
-    await expectLater(
-      AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4).grantNewDevice(
-        newDevice: newDevice,
-        memberships: [
-          wire.GroupMembershipView(
-            memberId: wire.UuidValue.fromString(
-              'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      await expectLater(
+        AnonaccountGroups(
+          caller,
+          store,
+          InMemoryGroupOwnerKeyStore(),
+          difficulty: 4,
+        ).grantNewDevice(
+          newDevice: newDevice,
+          memberships: [
+            wire.GroupMembershipView(
+              memberId: wire.UuidValue.fromString(
+                'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+              ),
+              shareGroupId: shareGroupId,
+              role: wire.GroupMemberRole.admin,
+              memberSigningPublicKeyHex:
+                  (await rowMemberKey.signingKeyPair.exportPublicKeySec1Hex())
+                      .value,
+              memberEncryptedDataKey: 'member-blob',
+              deviceEncryptedDataKey: blobForCaller,
+              joinedAt: DateTime.utc(2026, 8, 2),
+              encryptedMemberKey: 'member-encrypted-member-key',
+              encryptedUltimateKey: null,
             ),
-            shareGroupId: shareGroupId,
-            role: wire.GroupMemberRole.admin,
-            memberSigningPublicKeyHex:
-                (await rowMemberKey.signingKeyPair.exportPublicKeySec1Hex())
-                    .value,
-            memberEncryptedDataKey: 'member-blob',
-            deviceEncryptedDataKey: blobForCaller,
-            joinedAt: DateTime.utc(2026, 8, 2),
-            encryptedMemberKey: 'member-encrypted-member-key',
-            encryptedUltimateKey: null,
+          ],
+          callerDeviceKey: callerKey,
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('stale'),
           ),
-        ],
-        callerDeviceKey: callerKey,
-      ),
-      throwsA(isA<StateError>().having(
-        (e) => e.message,
-        'message',
-        contains('stale'),
-      )),
-    );
-  });
-
-  test('grantAllDevices throws StateError when no member key is stored',
-      () async {
-    final groups = AnonaccountGroups(
-      _FakeCaller(),
-      InMemoryMemberKeyStore(),
-      InMemoryGroupOwnerKeyStore(),
-      difficulty: 4,
-    );
-
-    await expectLater(
-      groups.grantAllDevices(
-        groupId: wire.UuidValue.fromString(
-          '88888888-8888-4888-8888-888888888888',
         ),
-        memberId: wire.UuidValue.fromString(
-          '99999999-9999-4999-8999-999999999999',
+      );
+    },
+  );
+
+  test(
+    'grantAllDevices throws StateError when no member key is stored',
+    () async {
+      final groups = AnonaccountGroups(
+        _FakeCaller(),
+        InMemoryMemberKeyStore(),
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
+
+      await expectLater(
+        groups.grantAllDevices(
+          groupId: wire.UuidValue.fromString(
+            '88888888-8888-4888-8888-888888888888',
+          ),
+          memberId: wire.UuidValue.fromString(
+            '99999999-9999-4999-8999-999999999999',
+          ),
+          groupDataKey: await AesGcmSecretKey.generateKey(256),
+          callerDeviceKey: await KeyGen.generateDeviceKey(),
         ),
-        groupDataKey: await AesGcmSecretKey.generateKey(256),
-        callerDeviceKey: await KeyGen.generateDeviceKey(),
-      ),
-      throwsA(isA<StateError>()),
-    );
-  });
+        throwsA(isA<StateError>()),
+      );
+    },
+  );
 }

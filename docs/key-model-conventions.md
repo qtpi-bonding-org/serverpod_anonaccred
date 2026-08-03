@@ -355,7 +355,6 @@ widening group authorization:
 
 | Deviation | Where | Status |
 |---|---|---|
-| `createGroup` generates the group ultimate KeyDuo and discards it, so owner authority is unrecoverable on every group ever created — no admin can ever be granted or removed | `anonaccount_sdk/lib/src/auth/groups.dart`, `created_group.dart` | Open — the same construction that now backs up the member key (wrap to the account ultimate encryption key, store on the row) would fix this one too. P0's `GroupOwner` table is the schema half of an answer; the write path is still missing |
 | There is no way to change a `GroupMember.role`. `GroupMember.db.updateRow` appears twice, both setting `isRevoked` — yet two error messages advise "promote another member to admin first" | `group_endpoint.dart:592`, `:946` | Open — the advised operation does not exist |
 
 **Group-world gaps the account world doesn't have:**
@@ -364,7 +363,7 @@ widening group authorization:
 |---|---|---|
 | `group_member_unique_idx` on `(shareGroupId, anonAccountId)` is unconditional, so leaving a group is permanent — an account id is not regenerable (rule 13) | `migrations/…/definition.sql:92` | Open |
 | No `requireActiveMember`: group endpoints inline an `isRevoked` filter, so "membership revoked" and "never a member" return the same error code, where the account side distinguishes them | `group_endpoint.dart` | Open |
-| `anonaccred`'s group endpoints authorize on the membership row alone, no inner signature (rule 5), while `GroupEndpoint` demands a member-key signature — two authorization models in one system | `group_commerce_endpoint.dart:109-132` | Open — decide which wins |
+| `anonaccred`'s group endpoints authorize on the membership row alone, no inner signature (rule 5), while `GroupEndpoint` demands a member-key signature — two authorization models in one system | `group_commerce_endpoint.dart:109-132` | Justified, not a gap — see B1 in `docs/superpowers/patterns/2026-08-02/RULES-CANDIDATES.md`: hashcash PoW is too slow for commerce/IAP flows, so `anonaccred` uses a JWT there instead of a per-call signature. Deliberate boundary, now stated explicitly rather than left to infer |
 | `monitorGroupMembership` has no authorization past the outer envelope; the channel name is a caller-supplied member key, and member keys are public | `group_endpoint.dart:642-667` | Open |
 | The group data key reaches only the member key, not the account's devices (rule 2's fan-out) | design-level | Being fixed — group parity unit A |
 
@@ -393,5 +392,12 @@ those six now resolves the caller through `AnonAccountHelpers.requireCaller` (or
 for the five group-member-tier sites, `requireMemberStanding` on top of it), both of
 which reject a revoked device. `listDevices`'s ultimate-key fallback path is
 untouched — the ultimate key was never revocable, so there was nothing to fix there.
+
+**Fixed by the group-owner-key-backup plan**
+(`docs/superpowers/plans/2026-08-03-group-owner-key-backup.md`): the group
+ultimate key is wrapped to the creator's account ultimate encryption key,
+persisted in `GroupOwner`, and recovered by `recoverAccount`. The SDK now
+provides `addGroupMemberAsOwner` and `removeGroupMemberAsOwner`; co-ownership
+remains out of scope.
 
 If you fix one, delete its row. If you add one, add a row and say why.

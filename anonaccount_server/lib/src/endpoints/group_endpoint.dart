@@ -150,7 +150,8 @@ class GroupEndpoint extends SignedPowEndpoint {
           signature: creatorEncryptedUltimateKeyAttestation,
           publicKey: groupKeys.signingPublicKeyHex,
           operation: 'createGroup',
-          failureMessage: 'Invalid encrypted ultimate key attestation — the '
+          failureMessage:
+              'Invalid encrypted ultimate key attestation — the '
               'group ultimate key did not authorize this backup',
         );
 
@@ -162,8 +163,11 @@ class GroupEndpoint extends SignedPowEndpoint {
             encryptedDataKey: groupEncryptedDataKey,
             createdAt: now,
           );
-          final insertedGroup =
-              await ShareGroup.db.insertRow(session, group, transaction: tx);
+          final insertedGroup = await ShareGroup.db.insertRow(
+            session,
+            group,
+            transaction: tx,
+          );
           final member = GroupMember(
             shareGroupId: insertedGroup.id!,
             anonAccountId: accountId,
@@ -246,7 +250,8 @@ class GroupEndpoint extends SignedPowEndpoint {
             m.shareGroupId,
             activeCaller.accountId,
           );
-          views.add(GroupMembershipView(
+          views.add(
+            GroupMembershipView(
               memberId: m.id!,
               shareGroupId: m.shareGroupId,
               role: m.role,
@@ -256,7 +261,8 @@ class GroupEndpoint extends SignedPowEndpoint {
               joinedAt: m.joinedAt,
               encryptedMemberKey: m.encryptedMemberKey,
               encryptedUltimateKey: owner?.encryptedUltimateKey,
-          ));
+            ),
+          );
         }
         return views;
       },

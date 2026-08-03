@@ -129,6 +129,15 @@ _bootstrapOwnerWithGroup(
     ),
     creatorMemberSigPriv,
   );
+  const ownerBlob = 'wrapped-owner-key';
+  final ownerBackupAttestation = SigningTestHelper.signWith(
+    GroupInnerPayloads.setEncryptedUltimateKey(
+      groupUltSigPub,
+      account.id!,
+      ownerBlob,
+    ),
+    groupUltSigPriv,
+  );
 
   final group = await endpoints.group.createGroup(
     sessionBuilder,
@@ -149,6 +158,8 @@ _bootstrapOwnerWithGroup(
     groupUltimateAttestation: attestation,
     creatorEncryptedMemberKey: 'wrapped-member-key',
     creatorEncryptedMemberKeyAttestation: backupAttestation,
+    creatorEncryptedUltimateKey: ownerBlob,
+    creatorEncryptedUltimateKeyAttestation: ownerBackupAttestation,
   );
 
   return (
@@ -444,6 +455,8 @@ void main() {
             groupUltimateAttestation: attestation,
             creatorEncryptedMemberKey: 'wrapped-member-key',
             creatorEncryptedMemberKeyAttestation: 'irrelevant',
+            creatorEncryptedUltimateKey: 'irrelevant',
+            creatorEncryptedUltimateKeyAttestation: 'irrelevant',
           ),
           throwsA(isA<AuthenticationException>()),
         );
@@ -506,6 +519,8 @@ void main() {
           groupUltimateAttestation: badAttestation,
           creatorEncryptedMemberKey: 'wrapped-member-key',
           creatorEncryptedMemberKeyAttestation: 'irrelevant',
+          creatorEncryptedUltimateKey: 'irrelevant',
+          creatorEncryptedUltimateKeyAttestation: 'irrelevant',
         ),
         throwsA(isA<Exception>()),
       );

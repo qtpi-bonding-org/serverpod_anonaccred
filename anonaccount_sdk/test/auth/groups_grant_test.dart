@@ -64,14 +64,17 @@ void main() {
         alreadyGranted: const [],
       );
 
-      when(() => group.grantMemberDevice(
-            challenge: any(named: 'challenge'),
-            proofOfWork: any(named: 'proofOfWork'),
-            signature: any(named: 'signature'),
-            callerDeviceSigningPublicKeyHex:
-                any(named: 'callerDeviceSigningPublicKeyHex'),
-            grants: any(named: 'grants'),
-          )).thenAnswer((_) async => stubResult);
+      when(
+        () => group.grantMemberDevice(
+          challenge: any(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          signature: any(named: 'signature'),
+          callerDeviceSigningPublicKeyHex: any(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
+          grants: any(named: 'grants'),
+        ),
+      ).thenAnswer((_) async => stubResult);
 
       final memberKey = await KeyGen.generateDeviceKey();
       final callerDeviceKey = await KeyGen.generateDeviceKey();
@@ -79,7 +82,12 @@ void main() {
           (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
 
       final store = InMemoryMemberKeyStore();
-      final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
+      final groups = AnonaccountGroups(
+        caller,
+        store,
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
 
       // grantMemberDevice is a low-level forwarder — Task 7's
       // grantAllDevices/grantNewDevice do the per-item signing (they hold
@@ -87,11 +95,7 @@ void main() {
       // exactly as those callers would, and confirm the SDK forwards it
       // unmodified.
       final realAttestation = await SigningCrypto.signChallenge(
-        GroupInnerPayloads.grantMemberDevice(
-          memberId,
-          granteeDuo,
-          wrappedBlob,
-        ),
+        GroupInnerPayloads.grantMemberDevice(memberId, granteeDuo, wrappedBlob),
         memberKey,
       );
 
@@ -121,8 +125,9 @@ void main() {
           challenge: captureAny(named: 'challenge'),
           proofOfWork: captureAny(named: 'proofOfWork'),
           signature: captureAny(named: 'signature'),
-          callerDeviceSigningPublicKeyHex:
-              captureAny(named: 'callerDeviceSigningPublicKeyHex'),
+          callerDeviceSigningPublicKeyHex: captureAny(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
           grants: captureAny(named: 'grants'),
         ),
       ).captured;
@@ -155,9 +160,13 @@ void main() {
         sent.attestation,
         memberKey,
       );
-      expect(ok, isTrue,
-          reason: 'inner attestation must verify under the member signing '
-              'key over GroupInnerPayloads.grantMemberDevice');
+      expect(
+        ok,
+        isTrue,
+        reason:
+            'inner attestation must verify under the member signing '
+            'key over GroupInnerPayloads.grantMemberDevice',
+      );
 
       // The attestation must NOT verify a different wrapped-key value —
       // confirms the payload the caller signed binds the ciphertext.
@@ -170,9 +179,13 @@ void main() {
         sent.attestation,
         memberKey,
       );
-      expect(tamperedOk, isFalse,
-          reason: 'an attestation must bind the wrapped-key value, '
-              'so swapping the blob must invalidate it');
+      expect(
+        tamperedOk,
+        isFalse,
+        reason:
+            'an attestation must bind the wrapped-key value, '
+            'so swapping the blob must invalidate it',
+      );
     },
   );
 }

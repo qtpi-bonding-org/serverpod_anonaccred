@@ -4,7 +4,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 class _FakeCaller extends Mock implements wire.Caller {}
+
 class _FakeEntrypoint extends Mock implements wire.EndpointEntrypoint {}
+
 class _FakeGroup extends Mock implements wire.EndpointGroup {}
 
 void main() {
@@ -17,64 +19,82 @@ void main() {
     );
   });
 
-  test('createGroup generates fresh group keys, wraps to self, returns CreatedGroup', () async {
-    final caller = _FakeCaller();
-    final entrypoint = _FakeEntrypoint();
-    final group = _FakeGroup();
-    when(() => caller.entrypoint).thenReturn(entrypoint);
-    when(() => caller.group).thenReturn(group);
-    when(() => entrypoint.getChallenge()).thenAnswer(
-      (_) async => wire.PublicChallengeResponse(
-        challenge: 'CHAL-G',
-        difficulty: 4,
-        expiresAt: 9999999999,
-      ),
-    );
+  test(
+    'createGroup generates fresh group keys, wraps to self, returns CreatedGroup',
+    () async {
+      final caller = _FakeCaller();
+      final entrypoint = _FakeEntrypoint();
+      final group = _FakeGroup();
+      when(() => caller.entrypoint).thenReturn(entrypoint);
+      when(() => caller.group).thenReturn(group);
+      when(() => entrypoint.getChallenge()).thenAnswer(
+        (_) async => wire.PublicChallengeResponse(
+          challenge: 'CHAL-G',
+          difficulty: 4,
+          expiresAt: 9999999999,
+        ),
+      );
 
-    final stubReturn = wire.ShareGroup(
-      id: wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
-      ultimateSigningPublicKeyHex: '04${'u' * 128}',
-      ultimateEncryptionPublicKeyHex: '04${'v' * 128}',
-      encryptedDataKey: 'WRAPPED',
-      createdAt: DateTime.utc(2026, 5, 20),
-    );
-    when(() => group.createGroup(
+      final stubReturn = wire.ShareGroup(
+        id: wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
+        ultimateSigningPublicKeyHex: '04${'u' * 128}',
+        ultimateEncryptionPublicKeyHex: '04${'v' * 128}',
+        encryptedDataKey: 'WRAPPED',
+        createdAt: DateTime.utc(2026, 5, 20),
+      );
+      when(
+        () => group.createGroup(
           challenge: any(named: 'challenge'),
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex: any(named: 'callerDeviceSigningPublicKeyHex'),
+          callerDeviceSigningPublicKeyHex: any(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
           groupUltimateKeys: any(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
           creatorMemberKeys: any(named: 'creatorMemberKeys'),
-          creatorMemberEncryptedDataKey: any(named: 'creatorMemberEncryptedDataKey'),
+          creatorMemberEncryptedDataKey: any(
+            named: 'creatorMemberEncryptedDataKey',
+          ),
           groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
           creatorEncryptedMemberKey: any(named: 'creatorEncryptedMemberKey'),
-          creatorEncryptedMemberKeyAttestation:
-              any(named: 'creatorEncryptedMemberKeyAttestation'),
-        )).thenAnswer((_) async => stubReturn);
+          creatorEncryptedMemberKeyAttestation: any(
+            named: 'creatorEncryptedMemberKeyAttestation',
+          ),
+          creatorEncryptedUltimateKey: any(named: 'creatorEncryptedUltimateKey'),
+          creatorEncryptedUltimateKeyAttestation: any(named: 'creatorEncryptedUltimateKeyAttestation'),
+        ),
+      ).thenAnswer((_) async => stubReturn);
 
-    final callerDeviceKey = await KeyGen.generateDeviceKey();
-    final callerDeviceHex = await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex();
-    final ultimateHolder = InMemoryAccountKeyStore();
-    await ultimateHolder.generateAccountKeys();
-    final ultimateEncHex =
-        (await ultimateHolder.getUltimateEncryptionPublicKeyHex())!;
-    final store = InMemoryMemberKeyStore();
-    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
-    final created = await groups.createGroup(
-      displayName: 'Family',
-      callerDeviceKey: callerDeviceKey,
-      myAnonAccountId: wire.UuidValue.fromString(
-        '99999999-9999-4999-8999-999999999999',
-      ),
-      ultimateEncryptionPublicKeyHex: ultimateEncHex,
-    );
+      final callerDeviceKey = await KeyGen.generateDeviceKey();
+      final callerDeviceHex = await callerDeviceKey.signingKeyPair
+          .exportPublicKeySec1Hex();
+      final ultimateHolder = InMemoryAccountKeyStore();
+      await ultimateHolder.generateAccountKeys();
+      final ultimateEncHex = (await ultimateHolder
+          .getUltimateEncryptionPublicKeyHex())!;
+      final store = InMemoryMemberKeyStore();
+      final groups = AnonaccountGroups(
+        caller,
+        store,
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
+      final created = await groups.createGroup(
+        displayName: 'Family',
+        callerDeviceKey: callerDeviceKey,
+        myAnonAccountId: wire.UuidValue.fromString(
+          '99999999-9999-4999-8999-999999999999',
+        ),
+        ultimateEncryptionPublicKeyHex: ultimateEncHex,
+      );
 
-    expect(created.displayName, 'Family');
-    expect(created.groupId, '11111111-1111-4111-8111-111111111111');
-    expect(created.groupDataKey, isA<AesGcmSecretKey>());
+      expect(created.displayName, 'Family');
+      expect(created.groupId, '11111111-1111-4111-8111-111111111111');
+      expect(created.groupDataKey, isA<AesGcmSecretKey>());
 
-    final verification = verify(() => group.createGroup(
+      final verification = verify(
+        () => group.createGroup(
           challenge: 'CHAL-G',
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
@@ -82,128 +102,157 @@ void main() {
           groupUltimateKeys: any(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
           creatorMemberKeys: captureAny(named: 'creatorMemberKeys'),
-          creatorMemberEncryptedDataKey:
-              any(named: 'creatorMemberEncryptedDataKey'),
+          creatorMemberEncryptedDataKey: any(
+            named: 'creatorMemberEncryptedDataKey',
+          ),
           groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
           creatorEncryptedMemberKey: any(named: 'creatorEncryptedMemberKey'),
-          creatorEncryptedMemberKeyAttestation:
-              any(named: 'creatorEncryptedMemberKeyAttestation'),
-        ));
-    verification.called(1);
+          creatorEncryptedMemberKeyAttestation: any(
+            named: 'creatorEncryptedMemberKeyAttestation',
+          ),
+          creatorEncryptedUltimateKey: any(named: 'creatorEncryptedUltimateKey'),
+          creatorEncryptedUltimateKeyAttestation: any(named: 'creatorEncryptedUltimateKeyAttestation'),
+        ),
+      );
+      verification.called(1);
 
-    // The creator's member key reaches custody, filed under the new group id.
-    final stored = await store.getMemberKey(
-      wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
-    );
-    expect(stored, isNotNull);
+      // The creator's member key reaches custody, filed under the new group id.
+      final stored = await store.getMemberKey(
+        wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
+      );
+      expect(stored, isNotNull);
 
-    // And it is the key whose public half went over the wire as
-    // creatorMemberKeys, not merely some key.
-    final sentDuo = verification.captured.single as wire.PublicKeyDuo;
-    final storedHex =
-        (await stored!.signingKeyPair.exportPublicKeySec1Hex()).value;
-    expect(storedHex, sentDuo.signingPublicKeyHex);
-  });
+      // And it is the key whose public half went over the wire as
+      // creatorMemberKeys, not merely some key.
+      final sentDuo = verification.captured.single as wire.PublicKeyDuo;
+      final storedHex =
+          (await stored!.signingKeyPair.exportPublicKeySec1Hex()).value;
+      expect(storedHex, sentDuo.signingPublicKeyHex);
+    },
+  );
 
-  test('createGroup encrypts the member key with the ultimate encryption key',
-      () async {
-    final caller = _FakeCaller();
-    final entrypoint = _FakeEntrypoint();
-    final group = _FakeGroup();
-    when(() => caller.entrypoint).thenReturn(entrypoint);
-    when(() => caller.group).thenReturn(group);
-    when(() => entrypoint.getChallenge()).thenAnswer(
-      (_) async => wire.PublicChallengeResponse(
-        challenge: 'CHAL-BK',
-        difficulty: 4,
-        expiresAt: 9999999999,
-      ),
-    );
-    when(() => group.createGroup(
+  test(
+    'createGroup encrypts the member key with the ultimate encryption key',
+    () async {
+      final caller = _FakeCaller();
+      final entrypoint = _FakeEntrypoint();
+      final group = _FakeGroup();
+      when(() => caller.entrypoint).thenReturn(entrypoint);
+      when(() => caller.group).thenReturn(group);
+      when(() => entrypoint.getChallenge()).thenAnswer(
+        (_) async => wire.PublicChallengeResponse(
+          challenge: 'CHAL-BK',
+          difficulty: 4,
+          expiresAt: 9999999999,
+        ),
+      );
+      when(
+        () => group.createGroup(
           challenge: any(named: 'challenge'),
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex:
-              any(named: 'callerDeviceSigningPublicKeyHex'),
+          callerDeviceSigningPublicKeyHex: any(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
           groupUltimateKeys: any(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
           creatorMemberKeys: any(named: 'creatorMemberKeys'),
-          creatorMemberEncryptedDataKey:
-              any(named: 'creatorMemberEncryptedDataKey'),
-          groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
-          creatorEncryptedMemberKey:
-              captureAny(named: 'creatorEncryptedMemberKey'),
-          creatorEncryptedMemberKeyAttestation:
-              any(named: 'creatorEncryptedMemberKeyAttestation'),
-        )).thenAnswer((_) async => wire.ShareGroup(
-          id: wire.UuidValue.fromString(
-            '11111111-1111-4111-8111-111111111111',
+          creatorMemberEncryptedDataKey: any(
+            named: 'creatorMemberEncryptedDataKey',
           ),
+          groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
+          creatorEncryptedMemberKey: captureAny(
+            named: 'creatorEncryptedMemberKey',
+          ),
+          creatorEncryptedMemberKeyAttestation: any(
+            named: 'creatorEncryptedMemberKeyAttestation',
+          ),
+          creatorEncryptedUltimateKey: any(named: 'creatorEncryptedUltimateKey'),
+          creatorEncryptedUltimateKeyAttestation: any(named: 'creatorEncryptedUltimateKeyAttestation'),
+        ),
+      ).thenAnswer(
+        (_) async => wire.ShareGroup(
+          id: wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
           ultimateSigningPublicKeyHex: '04${'u' * 128}',
           ultimateEncryptionPublicKeyHex: '04${'v' * 128}',
           encryptedDataKey: 'WRAPPED',
           createdAt: DateTime.utc(2026, 8, 2),
-        ));
+        ),
+      );
 
-    // A real ultimate key, so the test can decrypt what the SDK produced.
-    final ultimateHolder = InMemoryAccountKeyStore();
-    await ultimateHolder.generateAccountKeys();
-    final ultimateEncHex =
-        (await ultimateHolder.getUltimateEncryptionPublicKeyHex())!;
-    final ultimateJwk = (await ultimateHolder.getUltimateKeyJwkOnce())!;
+      // A real ultimate key, so the test can decrypt what the SDK produced.
+      final ultimateHolder = InMemoryAccountKeyStore();
+      await ultimateHolder.generateAccountKeys();
+      final ultimateEncHex = (await ultimateHolder
+          .getUltimateEncryptionPublicKeyHex())!;
+      final ultimateJwk = (await ultimateHolder.getUltimateKeyJwkOnce())!;
 
-    final store = InMemoryMemberKeyStore();
-    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
-    final callerDeviceKey = await KeyGen.generateDeviceKey();
-    final myAccountId = wire.UuidValue.fromString(
-      '33333333-3333-4333-8333-333333333333',
-    );
+      final store = InMemoryMemberKeyStore();
+      final groups = AnonaccountGroups(
+        caller,
+        store,
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
+      final callerDeviceKey = await KeyGen.generateDeviceKey();
+      final myAccountId = wire.UuidValue.fromString(
+        '33333333-3333-4333-8333-333333333333',
+      );
 
-    await groups.createGroup(
-      displayName: 'g',
-      callerDeviceKey: callerDeviceKey,
-      myAnonAccountId: myAccountId,
-      ultimateEncryptionPublicKeyHex: ultimateEncHex,
-    );
+      await groups.createGroup(
+        displayName: 'g',
+        callerDeviceKey: callerDeviceKey,
+        myAnonAccountId: myAccountId,
+        ultimateEncryptionPublicKeyHex: ultimateEncHex,
+      );
 
-    final captured = verify(() => group.createGroup(
+      final captured = verify(
+        () => group.createGroup(
           challenge: any(named: 'challenge'),
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex:
-              any(named: 'callerDeviceSigningPublicKeyHex'),
+          callerDeviceSigningPublicKeyHex: any(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
           groupUltimateKeys: any(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
           creatorMemberKeys: any(named: 'creatorMemberKeys'),
-          creatorMemberEncryptedDataKey:
-              any(named: 'creatorMemberEncryptedDataKey'),
+          creatorMemberEncryptedDataKey: any(
+            named: 'creatorMemberEncryptedDataKey',
+          ),
           groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
-          creatorEncryptedMemberKey:
-              captureAny(named: 'creatorEncryptedMemberKey'),
-          creatorEncryptedMemberKeyAttestation:
-              any(named: 'creatorEncryptedMemberKeyAttestation'),
-        )).captured;
-    final blob = captured.single as String;
+          creatorEncryptedMemberKey: captureAny(
+            named: 'creatorEncryptedMemberKey',
+          ),
+          creatorEncryptedMemberKeyAttestation: any(
+            named: 'creatorEncryptedMemberKeyAttestation',
+          ),
+          creatorEncryptedUltimateKey: any(named: 'creatorEncryptedUltimateKey'),
+          creatorEncryptedUltimateKeyAttestation: any(named: 'creatorEncryptedUltimateKeyAttestation'),
+        ),
+      ).captured;
+      final blob = captured.single as String;
 
-    // The blob must decrypt with the ultimate ENCRYPTION private key and
-    // yield the very member key pair the store now holds.
-    final verifier = InMemoryAccountKeyStore();
-    final ultimate = await verifier.importUltimateKeyJwk(ultimateJwk);
-    final recoveredJwk = await AsymmetricCrypto.unwrap(
-      blob,
-      ultimate.encryptionKeyPair.privateKey!,
-    );
-    final recovered = await const KeyDuoSerializer().importKeyDuoJwk(
-      recoveredJwk,
-    );
-    final storedMemberKey = (await store.getMemberKey(
-      wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
-    ))!;
-    expect(
-      (await recovered.signingKeyPair.exportPublicKeySec1Hex()).value,
-      (await storedMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
-    );
-  });
+      // The blob must decrypt with the ultimate ENCRYPTION private key and
+      // yield the very member key pair the store now holds.
+      final verifier = InMemoryAccountKeyStore();
+      final ultimate = await verifier.importUltimateKeyJwk(ultimateJwk);
+      final recoveredJwk = await AsymmetricCrypto.unwrap(
+        blob,
+        ultimate.encryptionKeyPair.privateKey!,
+      );
+      final recovered = await const KeyDuoSerializer().importKeyDuoJwk(
+        recoveredJwk,
+      );
+      final storedMemberKey = (await store.getMemberKey(
+        wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
+      ))!;
+      expect(
+        (await recovered.signingKeyPair.exportPublicKeySec1Hex()).value,
+        (await storedMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
+      );
+    },
+  );
 
   test('no device-resident key opens the member key backup', () async {
     // The property that separates this from the escrow design that was
@@ -223,39 +272,51 @@ void main() {
         expiresAt: 9999999999,
       ),
     );
-    when(() => group.createGroup(
-          challenge: any(named: 'challenge'),
-          proofOfWork: any(named: 'proofOfWork'),
-          signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex:
-              any(named: 'callerDeviceSigningPublicKeyHex'),
-          groupUltimateKeys: any(named: 'groupUltimateKeys'),
-          groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
-          creatorMemberKeys: any(named: 'creatorMemberKeys'),
-          creatorMemberEncryptedDataKey:
-              any(named: 'creatorMemberEncryptedDataKey'),
-          groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
-          creatorEncryptedMemberKey:
-              captureAny(named: 'creatorEncryptedMemberKey'),
-          creatorEncryptedMemberKeyAttestation:
-              any(named: 'creatorEncryptedMemberKeyAttestation'),
-        )).thenAnswer((_) async => wire.ShareGroup(
-          id: wire.UuidValue.fromString(
-            '22222222-2222-4222-8222-222222222222',
+    when(
+      () => group.createGroup(
+        challenge: any(named: 'challenge'),
+        proofOfWork: any(named: 'proofOfWork'),
+        signature: any(named: 'signature'),
+        callerDeviceSigningPublicKeyHex: any(
+          named: 'callerDeviceSigningPublicKeyHex',
+        ),
+        groupUltimateKeys: any(named: 'groupUltimateKeys'),
+        groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
+        creatorMemberKeys: any(named: 'creatorMemberKeys'),
+        creatorMemberEncryptedDataKey: any(
+          named: 'creatorMemberEncryptedDataKey',
+        ),
+        groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
+        creatorEncryptedMemberKey: captureAny(
+          named: 'creatorEncryptedMemberKey',
+        ),
+          creatorEncryptedMemberKeyAttestation: any(
+            named: 'creatorEncryptedMemberKeyAttestation',
           ),
-          ultimateSigningPublicKeyHex: '04${'u' * 128}',
-          ultimateEncryptionPublicKeyHex: '04${'v' * 128}',
-          encryptedDataKey: 'WRAPPED',
-          createdAt: DateTime.utc(2026, 8, 2),
-        ));
+          creatorEncryptedUltimateKey: any(named: 'creatorEncryptedUltimateKey'),
+          creatorEncryptedUltimateKeyAttestation: any(named: 'creatorEncryptedUltimateKeyAttestation'),
+      ),
+    ).thenAnswer(
+      (_) async => wire.ShareGroup(
+        id: wire.UuidValue.fromString('22222222-2222-4222-8222-222222222222'),
+        ultimateSigningPublicKeyHex: '04${'u' * 128}',
+        ultimateEncryptionPublicKeyHex: '04${'v' * 128}',
+        encryptedDataKey: 'WRAPPED',
+        createdAt: DateTime.utc(2026, 8, 2),
+      ),
+    );
 
     final ultimateHolder = InMemoryAccountKeyStore();
     await ultimateHolder.generateAccountKeys();
-    final ultimateEncHex =
-        (await ultimateHolder.getUltimateEncryptionPublicKeyHex())!;
+    final ultimateEncHex = (await ultimateHolder
+        .getUltimateEncryptionPublicKeyHex())!;
 
-    final groups =
-        AnonaccountGroups(caller, InMemoryMemberKeyStore(), InMemoryGroupOwnerKeyStore(), difficulty: 4);
+    final groups = AnonaccountGroups(
+      caller,
+      InMemoryMemberKeyStore(),
+      InMemoryGroupOwnerKeyStore(),
+      difficulty: 4,
+    );
     final deviceKey = await KeyGen.generateDeviceKey();
 
     await groups.createGroup(
@@ -266,23 +327,35 @@ void main() {
       ),
       ultimateEncryptionPublicKeyHex: ultimateEncHex,
     );
-    final blob = verify(() => group.createGroup(
-          challenge: any(named: 'challenge'),
-          proofOfWork: any(named: 'proofOfWork'),
-          signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex:
-              any(named: 'callerDeviceSigningPublicKeyHex'),
-          groupUltimateKeys: any(named: 'groupUltimateKeys'),
-          groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
-          creatorMemberKeys: any(named: 'creatorMemberKeys'),
-          creatorMemberEncryptedDataKey:
-              any(named: 'creatorMemberEncryptedDataKey'),
-          groupUltimateAttestation: any(named: 'groupUltimateAttestation'),
-          creatorEncryptedMemberKey:
-              captureAny(named: 'creatorEncryptedMemberKey'),
-          creatorEncryptedMemberKeyAttestation:
-              any(named: 'creatorEncryptedMemberKeyAttestation'),
-        )).captured.single as String;
+    final blob =
+        verify(
+              () => group.createGroup(
+                challenge: any(named: 'challenge'),
+                proofOfWork: any(named: 'proofOfWork'),
+                signature: any(named: 'signature'),
+                callerDeviceSigningPublicKeyHex: any(
+                  named: 'callerDeviceSigningPublicKeyHex',
+                ),
+                groupUltimateKeys: any(named: 'groupUltimateKeys'),
+                groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
+                creatorMemberKeys: any(named: 'creatorMemberKeys'),
+                creatorMemberEncryptedDataKey: any(
+                  named: 'creatorMemberEncryptedDataKey',
+                ),
+                groupUltimateAttestation: any(
+                  named: 'groupUltimateAttestation',
+                ),
+                creatorEncryptedMemberKey: captureAny(
+                  named: 'creatorEncryptedMemberKey',
+                ),
+                creatorEncryptedMemberKeyAttestation: any(
+                  named: 'creatorEncryptedMemberKeyAttestation',
+                ),
+                creatorEncryptedUltimateKey: any(named: 'creatorEncryptedUltimateKey'),
+                creatorEncryptedUltimateKeyAttestation: any(named: 'creatorEncryptedUltimateKeyAttestation'),
+              ),
+            ).captured.single
+            as String;
 
     await expectLater(
       AsymmetricCrypto.unwrap(blob, deviceKey.encryptionKeyPair.privateKey!),

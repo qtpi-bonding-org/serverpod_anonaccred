@@ -26,14 +26,16 @@ Future<({String challenge, String pow, String signature})> _outer(
 /// createGroup time. Task 4's tests need an existing group to invite into;
 /// they don't exercise createGroup itself, so any valid backup suffices.
 Future<
-    ({
-      String devicePriv,
-      String devicePub,
-      ShareGroup group,
-      String groupUltSigPub,
-      String creatorMemberPriv,
-      String creatorMemberPub,
-    })> _bootstrapGroup(
+  ({
+    String devicePriv,
+    String devicePub,
+    ShareGroup group,
+    String groupUltSigPub,
+    String creatorMemberPriv,
+    String creatorMemberPub,
+  })
+>
+_bootstrapGroup(
   TestSessionBuilder sessionBuilder,
   TestEndpoints endpoints,
 ) async {
@@ -50,8 +52,7 @@ Future<
     deviceSigningPublicKeyHex: devicePub,
   );
 
-  final (groupUltSigPriv, groupUltSigPub) =
-      SigningTestHelper.generateKeypair();
+  final (groupUltSigPriv, groupUltSigPub) = SigningTestHelper.generateKeypair();
   final (_, groupUltEnc) = SigningTestHelper.generateKeypair();
   final (creatorMemberPriv, creatorMemberPub) =
       SigningTestHelper.generateKeypair();
@@ -66,8 +67,10 @@ Future<
   );
   final innerPayload =
       'createGroup:$groupUltSigPub:$groupUltEnc:$creatorMemberPub:$creatorMemberEnc';
-  final groupAttestation =
-      SigningTestHelper.signWith(innerPayload, groupUltSigPriv);
+  final groupAttestation = SigningTestHelper.signWith(
+    innerPayload,
+    groupUltSigPriv,
+  );
   final backupAttestation = SigningTestHelper.signWith(
     GroupInnerPayloads.setEncryptedMemberKey(
       groupUltSigPub,
@@ -76,6 +79,15 @@ Future<
       'CREATOR-BLOB',
     ),
     creatorMemberPriv,
+  );
+  const ownerBlob = 'OWNER-BLOB';
+  final ownerBackupAttestation = SigningTestHelper.signWith(
+    GroupInnerPayloads.setEncryptedUltimateKey(
+      groupUltSigPub,
+      account.id!,
+      ownerBlob,
+    ),
+    groupUltSigPriv,
   );
 
   final group = await endpoints.group.createGroup(
@@ -97,6 +109,8 @@ Future<
     groupUltimateAttestation: groupAttestation,
     creatorEncryptedMemberKey: 'CREATOR-BLOB',
     creatorEncryptedMemberKeyAttestation: backupAttestation,
+    creatorEncryptedUltimateKey: ownerBlob,
+    creatorEncryptedUltimateKeyAttestation: ownerBackupAttestation,
   );
 
   return (
@@ -143,8 +157,10 @@ void main() {
       );
       final innerPayload =
           'createGroup:$groupUltSigPub:$groupUltEnc:$creatorMemberPub:$creatorMemberEnc';
-      final groupAttestation =
-          SigningTestHelper.signWith(innerPayload, groupUltSigPriv);
+      final groupAttestation = SigningTestHelper.signWith(
+        innerPayload,
+        groupUltSigPriv,
+      );
 
       final blob = 'CREATOR-BLOB';
       final backupAttestation = SigningTestHelper.signWith(
@@ -176,6 +192,15 @@ void main() {
         groupUltimateAttestation: groupAttestation,
         creatorEncryptedMemberKey: blob,
         creatorEncryptedMemberKeyAttestation: backupAttestation,
+        creatorEncryptedUltimateKey: 'OWNER-BLOB',
+        creatorEncryptedUltimateKeyAttestation: SigningTestHelper.signWith(
+          GroupInnerPayloads.setEncryptedUltimateKey(
+            groupUltSigPub,
+            account.id!,
+            'OWNER-BLOB',
+          ),
+          groupUltSigPriv,
+        ),
       );
 
       final row = await GroupMember.db.findFirstRow(
@@ -185,142 +210,152 @@ void main() {
       expect(row!.encryptedMemberKey, blob);
     });
 
-    test('createGroup rejects a backup not signed by the creator member key',
-        () async {
-      final (_, accUltPub) = SigningTestHelper.generateKeypair();
-      final account = await createTestAccount(
-        sessionBuilder,
-        ultimateSigningPublicKeyHex: accUltPub,
-        ultimateEncryptionPublicKeyHex: accUltPub,
-      );
-      final (devicePriv, devicePub) = SigningTestHelper.generateKeypair();
-      await createTestDevice(
-        sessionBuilder,
-        anonAccountId: account.id!,
-        deviceSigningPublicKeyHex: devicePub,
-      );
+    test(
+      'createGroup rejects a backup not signed by the creator member key',
+      () async {
+        final (_, accUltPub) = SigningTestHelper.generateKeypair();
+        final account = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: accUltPub,
+          ultimateEncryptionPublicKeyHex: accUltPub,
+        );
+        final (devicePriv, devicePub) = SigningTestHelper.generateKeypair();
+        await createTestDevice(
+          sessionBuilder,
+          anonAccountId: account.id!,
+          deviceSigningPublicKeyHex: devicePub,
+        );
 
-      final (groupUltSigPriv, groupUltSigPub) =
-          SigningTestHelper.generateKeypair();
-      final (_, groupUltEnc) = SigningTestHelper.generateKeypair();
-      final (_, creatorMemberPub) = SigningTestHelper.generateKeypair();
-      final (_, creatorMemberEnc) = SigningTestHelper.generateKeypair();
-      final (wrongPriv, _) = SigningTestHelper.generateKeypair();
+        final (groupUltSigPriv, groupUltSigPub) =
+            SigningTestHelper.generateKeypair();
+        final (_, groupUltEnc) = SigningTestHelper.generateKeypair();
+        final (_, creatorMemberPub) = SigningTestHelper.generateKeypair();
+        final (_, creatorMemberEnc) = SigningTestHelper.generateKeypair();
+        final (wrongPriv, _) = SigningTestHelper.generateKeypair();
 
-      final outer = await _outer(
-        sessionBuilder,
-        endpoints,
-        'createGroup',
-        devicePub,
-        devicePriv,
-      );
-      final innerPayload =
-          'createGroup:$groupUltSigPub:$groupUltEnc:$creatorMemberPub:$creatorMemberEnc';
-      final groupAttestation =
-          SigningTestHelper.signWith(innerPayload, groupUltSigPriv);
+        final outer = await _outer(
+          sessionBuilder,
+          endpoints,
+          'createGroup',
+          devicePub,
+          devicePriv,
+        );
+        final innerPayload =
+            'createGroup:$groupUltSigPub:$groupUltEnc:$creatorMemberPub:$creatorMemberEnc';
+        final groupAttestation = SigningTestHelper.signWith(
+          innerPayload,
+          groupUltSigPriv,
+        );
 
-      // Signed by a key that is not the creator member key.
-      final backupAttestation = SigningTestHelper.signWith(
-        GroupInnerPayloads.setEncryptedMemberKey(
-          groupUltSigPub,
-          account.id!,
-          creatorMemberPub,
-          'CREATOR-BLOB',
-        ),
-        wrongPriv,
-      );
+        // Signed by a key that is not the creator member key.
+        final backupAttestation = SigningTestHelper.signWith(
+          GroupInnerPayloads.setEncryptedMemberKey(
+            groupUltSigPub,
+            account.id!,
+            creatorMemberPub,
+            'CREATOR-BLOB',
+          ),
+          wrongPriv,
+        );
 
-      await expectLater(
-        endpoints.group.createGroup(
+        await expectLater(
+          endpoints.group.createGroup(
+            sessionBuilder,
+            challenge: outer.challenge,
+            proofOfWork: outer.pow,
+            signature: outer.signature,
+            callerDeviceSigningPublicKeyHex: devicePub,
+            groupUltimateKeys: PublicKeyDuo(
+              signingPublicKeyHex: groupUltSigPub,
+              encryptionPublicKeyHex: groupUltEnc,
+            ),
+            groupEncryptedDataKey: 'wrapped',
+            creatorMemberKeys: PublicKeyDuo(
+              signingPublicKeyHex: creatorMemberPub,
+              encryptionPublicKeyHex: creatorMemberEnc,
+            ),
+            creatorMemberEncryptedDataKey: 'wrapped',
+            groupUltimateAttestation: groupAttestation,
+            creatorEncryptedMemberKey: 'CREATOR-BLOB',
+            creatorEncryptedMemberKeyAttestation: backupAttestation,
+            creatorEncryptedUltimateKey: 'irrelevant',
+            creatorEncryptedUltimateKeyAttestation: 'irrelevant',
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      },
+    );
+
+    test(
+      'addGroupMember persists the invitee backup the admin relayed',
+      () async {
+        final s = await _bootstrapGroup(sessionBuilder, endpoints);
+
+        final (_, inviteeUltPub) = SigningTestHelper.generateKeypair();
+        final invitee = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: inviteeUltPub,
+          ultimateEncryptionPublicKeyHex: inviteeUltPub,
+        );
+        final (inviteeMemberPriv, inviteeMemberPub) =
+            SigningTestHelper.generateKeypair();
+        final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
+
+        final outer = await _outer(
+          sessionBuilder,
+          endpoints,
+          'addGroupMember',
+          s.devicePub,
+          s.devicePriv,
+        );
+        final innerPayload = GroupInnerPayloads.addGroupMember(
+          s.group.id!,
+          invitee.id!,
+          GroupMemberRole.member.name,
+          PublicKeyDuo(
+            signingPublicKeyHex: inviteeMemberPub,
+            encryptionPublicKeyHex: inviteeMemberEnc,
+          ),
+        );
+        final innerSig = SigningTestHelper.signWith(
+          innerPayload,
+          s.creatorMemberPriv,
+        );
+
+        final blob = 'INVITEE-BLOB';
+        final backupAttestation = SigningTestHelper.signWith(
+          GroupInnerPayloads.setEncryptedMemberKey(
+            s.groupUltSigPub,
+            invitee.id!,
+            inviteeMemberPub,
+            blob,
+          ),
+          inviteeMemberPriv,
+        );
+
+        final row = await endpoints.group.addGroupMember(
           sessionBuilder,
           challenge: outer.challenge,
           proofOfWork: outer.pow,
           signature: outer.signature,
-          callerDeviceSigningPublicKeyHex: devicePub,
-          groupUltimateKeys: PublicKeyDuo(
-            signingPublicKeyHex: groupUltSigPub,
-            encryptionPublicKeyHex: groupUltEnc,
+          callerDeviceSigningPublicKeyHex: s.devicePub,
+          groupId: s.group.id!,
+          newMemberAccountId: invitee.id!,
+          role: GroupMemberRole.member,
+          memberKeys: PublicKeyDuo(
+            signingPublicKeyHex: inviteeMemberPub,
+            encryptionPublicKeyHex: inviteeMemberEnc,
           ),
-          groupEncryptedDataKey: 'wrapped',
-          creatorMemberKeys: PublicKeyDuo(
-            signingPublicKeyHex: creatorMemberPub,
-            encryptionPublicKeyHex: creatorMemberEnc,
-          ),
-          creatorMemberEncryptedDataKey: 'wrapped',
-          groupUltimateAttestation: groupAttestation,
-          creatorEncryptedMemberKey: 'CREATOR-BLOB',
-          creatorEncryptedMemberKeyAttestation: backupAttestation,
-        ),
-        throwsA(isA<AuthenticationException>()),
-      );
-    });
+          encryptedDataKey: 'wrapped',
+          callerMemberSigningPublicKeyHex: s.creatorMemberPub,
+          memberAuthSignature: innerSig,
+          encryptedMemberKey: blob,
+          encryptedMemberKeyAttestation: backupAttestation,
+        );
 
-    test('addGroupMember persists the invitee backup the admin relayed',
-        () async {
-      final s = await _bootstrapGroup(sessionBuilder, endpoints);
-
-      final (_, inviteeUltPub) = SigningTestHelper.generateKeypair();
-      final invitee = await createTestAccount(
-        sessionBuilder,
-        ultimateSigningPublicKeyHex: inviteeUltPub,
-        ultimateEncryptionPublicKeyHex: inviteeUltPub,
-      );
-      final (inviteeMemberPriv, inviteeMemberPub) =
-          SigningTestHelper.generateKeypair();
-      final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
-
-      final outer = await _outer(
-        sessionBuilder,
-        endpoints,
-        'addGroupMember',
-        s.devicePub,
-        s.devicePriv,
-      );
-      final innerPayload = GroupInnerPayloads.addGroupMember(
-        s.group.id!,
-        invitee.id!,
-        GroupMemberRole.member.name,
-        PublicKeyDuo(
-          signingPublicKeyHex: inviteeMemberPub,
-          encryptionPublicKeyHex: inviteeMemberEnc,
-        ),
-      );
-      final innerSig =
-          SigningTestHelper.signWith(innerPayload, s.creatorMemberPriv);
-
-      final blob = 'INVITEE-BLOB';
-      final backupAttestation = SigningTestHelper.signWith(
-        GroupInnerPayloads.setEncryptedMemberKey(
-          s.groupUltSigPub,
-          invitee.id!,
-          inviteeMemberPub,
-          blob,
-        ),
-        inviteeMemberPriv,
-      );
-
-      final row = await endpoints.group.addGroupMember(
-        sessionBuilder,
-        challenge: outer.challenge,
-        proofOfWork: outer.pow,
-        signature: outer.signature,
-        callerDeviceSigningPublicKeyHex: s.devicePub,
-        groupId: s.group.id!,
-        newMemberAccountId: invitee.id!,
-        role: GroupMemberRole.member,
-        memberKeys: PublicKeyDuo(
-          signingPublicKeyHex: inviteeMemberPub,
-          encryptionPublicKeyHex: inviteeMemberEnc,
-        ),
-        encryptedDataKey: 'wrapped',
-        callerMemberSigningPublicKeyHex: s.creatorMemberPub,
-        memberAuthSignature: innerSig,
-        encryptedMemberKey: blob,
-        encryptedMemberKeyAttestation: backupAttestation,
-      );
-
-      expect(row.encryptedMemberKey, blob);
-    });
+        expect(row.encryptedMemberKey, blob);
+      },
+    );
 
     test('a relaying admin cannot substitute a different backup', () async {
       final s = await _bootstrapGroup(sessionBuilder, endpoints);
@@ -351,8 +386,10 @@ void main() {
           encryptionPublicKeyHex: inviteeMemberEnc,
         ),
       );
-      final innerSig =
-          SigningTestHelper.signWith(innerPayload, s.creatorMemberPriv);
+      final innerSig = SigningTestHelper.signWith(
+        innerPayload,
+        s.creatorMemberPriv,
+      );
 
       // Signature is over the invitee's real blob; the admin sends another.
       final backupAttestation = SigningTestHelper.signWith(
@@ -389,8 +426,7 @@ void main() {
       );
     });
 
-    test('the admin member key cannot authorize the invitee backup',
-        () async {
+    test('the admin member key cannot authorize the invitee backup', () async {
       final s = await _bootstrapGroup(sessionBuilder, endpoints);
 
       final (_, inviteeUltPub) = SigningTestHelper.generateKeypair();
@@ -418,8 +454,10 @@ void main() {
           encryptionPublicKeyHex: inviteeMemberEnc,
         ),
       );
-      final innerSig =
-          SigningTestHelper.signWith(innerPayload, s.creatorMemberPriv);
+      final innerSig = SigningTestHelper.signWith(
+        innerPayload,
+        s.creatorMemberPriv,
+      );
 
       // Signed by the ADMIN's member key, not the invitee's.
       final backupAttestation = SigningTestHelper.signWith(
@@ -456,8 +494,7 @@ void main() {
       );
     });
 
-    test('listGroupMembers never returns another member key backup',
-        () async {
+    test('listGroupMembers never returns another member key backup', () async {
       final s = await _bootstrapGroup(sessionBuilder, endpoints);
 
       final (_, inviteeUltPub) = SigningTestHelper.generateKeypair();
@@ -486,8 +523,7 @@ void main() {
           encryptionPublicKeyHex: inviteeMemberEnc,
         ),
       );
-      final addSig =
-          SigningTestHelper.signWith(addInner, s.creatorMemberPriv);
+      final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberPriv);
       final inviteeBackupAttestation = SigningTestHelper.signWith(
         GroupInnerPayloads.setEncryptedMemberKey(
           s.groupUltSigPub,
@@ -525,8 +561,10 @@ void main() {
         s.devicePriv,
       );
       final listInner = GroupInnerPayloads.listGroupMembers(s.group.id!);
-      final listSig =
-          SigningTestHelper.signWith(listInner, s.creatorMemberPriv);
+      final listSig = SigningTestHelper.signWith(
+        listInner,
+        s.creatorMemberPriv,
+      );
 
       final rows = await endpoints.group.listGroupMembers(
         sessionBuilder,

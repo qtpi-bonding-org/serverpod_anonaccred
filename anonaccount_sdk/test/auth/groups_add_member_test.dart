@@ -59,31 +59,41 @@ void main() {
       addedByAttestation: 'test-attestation',
     );
 
-    when(() => group.addGroupMember(
-          challenge: any(named: 'challenge'),
-          proofOfWork: any(named: 'proofOfWork'),
-          signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex:
-              any(named: 'callerDeviceSigningPublicKeyHex'),
-          groupId: any(named: 'groupId'),
-          newMemberAccountId: any(named: 'newMemberAccountId'),
-          role: any(named: 'role'),
-          memberKeys: any(named: 'memberKeys'),
-          encryptedDataKey: any(named: 'encryptedDataKey'),
-          callerMemberSigningPublicKeyHex:
-              any(named: 'callerMemberSigningPublicKeyHex'),
-          memberAuthSignature: any(named: 'memberAuthSignature'),
-          groupUltimateSignature: any(named: 'groupUltimateSignature'),
-          encryptedMemberKey: any(named: 'encryptedMemberKey'),
-          encryptedMemberKeyAttestation:
-              any(named: 'encryptedMemberKeyAttestation'),
-        )).thenAnswer((_) async => stubMember);
+    when(
+      () => group.addGroupMember(
+        challenge: any(named: 'challenge'),
+        proofOfWork: any(named: 'proofOfWork'),
+        signature: any(named: 'signature'),
+        callerDeviceSigningPublicKeyHex: any(
+          named: 'callerDeviceSigningPublicKeyHex',
+        ),
+        groupId: any(named: 'groupId'),
+        newMemberAccountId: any(named: 'newMemberAccountId'),
+        role: any(named: 'role'),
+        memberKeys: any(named: 'memberKeys'),
+        encryptedDataKey: any(named: 'encryptedDataKey'),
+        callerMemberSigningPublicKeyHex: any(
+          named: 'callerMemberSigningPublicKeyHex',
+        ),
+        memberAuthSignature: any(named: 'memberAuthSignature'),
+        groupUltimateSignature: any(named: 'groupUltimateSignature'),
+        encryptedMemberKey: any(named: 'encryptedMemberKey'),
+        encryptedMemberKeyAttestation: any(
+          named: 'encryptedMemberKeyAttestation',
+        ),
+      ),
+    ).thenAnswer((_) async => stubMember);
 
     final callerMemberKey = await KeyGen.generateDeviceKey();
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final store = InMemoryMemberKeyStore();
     await store.storeMemberKey(groupId, callerMemberKey);
-    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
+    final groups = AnonaccountGroups(
+      caller,
+      store,
+      InMemoryGroupOwnerKeyStore(),
+      difficulty: 4,
+    );
 
     final result = await groups.addGroupMember(
       groupId: groupId,
@@ -107,20 +117,23 @@ void main() {
         challenge: captureAny(named: 'challenge'),
         proofOfWork: any(named: 'proofOfWork'),
         signature: any(named: 'signature'),
-        callerDeviceSigningPublicKeyHex:
-            any(named: 'callerDeviceSigningPublicKeyHex'),
+        callerDeviceSigningPublicKeyHex: any(
+          named: 'callerDeviceSigningPublicKeyHex',
+        ),
         groupId: any(named: 'groupId'),
         newMemberAccountId: any(named: 'newMemberAccountId'),
         role: any(named: 'role'),
         memberKeys: any(named: 'memberKeys'),
         encryptedDataKey: any(named: 'encryptedDataKey'),
-        callerMemberSigningPublicKeyHex:
-            captureAny(named: 'callerMemberSigningPublicKeyHex'),
+        callerMemberSigningPublicKeyHex: captureAny(
+          named: 'callerMemberSigningPublicKeyHex',
+        ),
         memberAuthSignature: captureAny(named: 'memberAuthSignature'),
         groupUltimateSignature: captureAny(named: 'groupUltimateSignature'),
         encryptedMemberKey: captureAny(named: 'encryptedMemberKey'),
-        encryptedMemberKeyAttestation:
-            captureAny(named: 'encryptedMemberKeyAttestation'),
+        encryptedMemberKeyAttestation: captureAny(
+          named: 'encryptedMemberKeyAttestation',
+        ),
       ),
     ).captured;
 
@@ -142,40 +155,51 @@ void main() {
       (await callerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
     );
     expect(captured[4], isNotNull); // memberAuthSignature — must be non-null
-    expect(captured[5], isNull); // groupUltimateSignature — null for admin branch
+    expect(
+      captured[5],
+      isNull,
+    ); // groupUltimateSignature — null for admin branch
   });
 
-  test('addGroupMember throws StateError when no member key is stored for the group',
-      () async {
-    final caller = _FakeCaller();
-    final groupId = wire.UuidValue.fromString(
-      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    );
-    final groups =
-        AnonaccountGroups(caller, InMemoryMemberKeyStore(), InMemoryGroupOwnerKeyStore(), difficulty: 4);
+  test(
+    'addGroupMember throws StateError when no member key is stored for the group',
+    () async {
+      final caller = _FakeCaller();
+      final groupId = wire.UuidValue.fromString(
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      );
+      final groups = AnonaccountGroups(
+        caller,
+        InMemoryMemberKeyStore(),
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
 
-    await expectLater(
-      groups.addGroupMember(
-        groupId: groupId,
-        newMemberAccountId: wire.UuidValue.fromString(
-          'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      await expectLater(
+        groups.addGroupMember(
+          groupId: groupId,
+          newMemberAccountId: wire.UuidValue.fromString(
+            'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          ),
+          role: wire.GroupMemberRole.member,
+          newMemberSigningPubkeyHex: '04${'d' * 128}',
+          newMemberEncryptionPublicKeyHex: '04${'e' * 128}',
+          newMemberEncryptedDataKey: 'WRAPPED_KEY',
+          callerDeviceKey: await KeyGen.generateDeviceKey(),
+          encryptedMemberKey: 'INVITEE-BLOB',
+          encryptedMemberKeyAttestation: 'INVITEE-SIG',
         ),
-        role: wire.GroupMemberRole.member,
-        newMemberSigningPubkeyHex: '04${'d' * 128}',
-        newMemberEncryptionPublicKeyHex: '04${'e' * 128}',
-        newMemberEncryptedDataKey: 'WRAPPED_KEY',
-        callerDeviceKey: await KeyGen.generateDeviceKey(),
-        encryptedMemberKey: 'INVITEE-BLOB',
-        encryptedMemberKeyAttestation: 'INVITEE-SIG',
-      ),
-      throwsA(isA<StateError>().having(
-        (e) => e.message,
-        'message',
-        allOf(contains('addGroupMember'), contains(groupId.toString())),
-      )),
-    );
-    // No stub on caller.entrypoint: reaching the wire would throw a mocktail
-    // error instead of the StateError, so this also pins that the throw lands
-    // before any proof-of-work.
-  });
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('addGroupMember'), contains(groupId.toString())),
+          ),
+        ),
+      );
+      // No stub on caller.entrypoint: reaching the wire would throw a mocktail
+      // error instead of the StateError, so this also pins that the throw lands
+      // before any proof-of-work.
+    },
+  );
 }

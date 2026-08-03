@@ -6,7 +6,8 @@ import 'package:anonaccount_client/src/protocol/public_challenge_response.dart'
     show PublicChallengeResponse;
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart'
-    show AnonaccountAuth, InMemoryAccountKeyStore, InMemoryMemberKeyStore;
+    show AnonaccountAuth, InMemoryAccountKeyStore, InMemoryMemberKeyStore,
+        InMemoryGroupOwnerKeyStore;
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 

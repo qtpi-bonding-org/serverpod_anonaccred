@@ -123,55 +123,61 @@ class AnonaccountGroups {
     );
     final creatorMemberEncryptedDataKey =
         await AsymmetricCrypto.wrapForRecipient(
-      dataKeyJwk,
-      creatorMember.encryptionKeyPair.publicKey,
-    );
+          dataKeyJwk,
+          creatorMember.encryptionKeyPair.publicKey,
+        );
 
     // Inner attestation: group's ultimate key signs the inner payload.
-    final innerPayload =
-        GroupInnerPayloads.createGroup(groupKeysWire, memberKeysWire);
-    final groupUltimateAttestation =
-        await SigningCrypto.signChallenge(innerPayload, groupUltimate);
+    final innerPayload = GroupInnerPayloads.createGroup(
+      groupKeysWire,
+      memberKeysWire,
+    );
+    final groupUltimateAttestation = await SigningCrypto.signChallenge(
+      innerPayload,
+      groupUltimate,
+    );
 
     // The member key pair itself, encrypted with the account's ultimate
     // encryption public key. Only the user's written-down backup can
     // decrypt it — not this device, not the server, not the data keys.
-    final creatorMemberKeyJwk =
-        await const KeyDuoSerializer().exportKeyDuoJwk(creatorMember);
+    final creatorMemberKeyJwk = await const KeyDuoSerializer().exportKeyDuoJwk(
+      creatorMember,
+    );
     final ultimateEncryptionKeyPair =
         await EncryptionKeyPair.importPublicKeySec1Hex(
-      EncryptionPublicKeyHex(ultimateEncryptionPublicKeyHex),
-    );
+          EncryptionPublicKeyHex(ultimateEncryptionPublicKeyHex),
+        );
     final creatorEncryptedMemberKey = await AsymmetricCrypto.wrapForRecipient(
       creatorMemberKeyJwk,
       ultimateEncryptionKeyPair.publicKey,
     );
     final creatorEncryptedMemberKeyAttestation =
         await SigningCrypto.signChallenge(
-      GroupInnerPayloads.setEncryptedMemberKey(
-        groupKeysWire.signingPublicKeyHex,
-        myAnonAccountId,
-        memberKeysWire.signingPublicKeyHex,
-        creatorEncryptedMemberKey,
-      ),
-      creatorMember,
-    );
+          GroupInnerPayloads.setEncryptedMemberKey(
+            groupKeysWire.signingPublicKeyHex,
+            myAnonAccountId,
+            memberKeysWire.signingPublicKeyHex,
+            creatorEncryptedMemberKey,
+          ),
+          creatorMember,
+        );
 
-    final groupUltimateKeyJwk =
-        await const KeyDuoSerializer().exportKeyDuoJwk(groupUltimate);
+    final groupUltimateKeyJwk = await const KeyDuoSerializer().exportKeyDuoJwk(
+      groupUltimate,
+    );
     final creatorEncryptedUltimateKey = await AsymmetricCrypto.wrapForRecipient(
       groupUltimateKeyJwk,
       ultimateEncryptionKeyPair.publicKey,
     );
     final creatorEncryptedUltimateKeyAttestation =
         await SigningCrypto.signChallenge(
-      GroupInnerPayloads.setEncryptedUltimateKey(
-        groupKeysWire.signingPublicKeyHex,
-        myAnonAccountId,
-        creatorEncryptedUltimateKey,
-      ),
-      groupUltimate,
-    );
+          GroupInnerPayloads.setEncryptedUltimateKey(
+            groupKeysWire.signingPublicKeyHex,
+            myAnonAccountId,
+            creatorEncryptedUltimateKey,
+          ),
+          groupUltimate,
+        );
 
     // Outer envelope signed by the user's device key.
     final callerDeviceSigningPublicKeyHex =
@@ -293,8 +299,10 @@ class AnonaccountGroups {
       role.name,
       memberKeysWire,
     );
-    final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, memberKey);
+    final memberAuthSignature = await SigningCrypto.signChallenge(
+      innerPayload,
+      memberKey,
+    );
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
@@ -341,8 +349,10 @@ class AnonaccountGroups {
 
     // Inner payload — signed by the caller's member key.
     final innerPayload = GroupInnerPayloads.removeGroupMember(memberId);
-    final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, memberKey);
+    final memberAuthSignature = await SigningCrypto.signChallenge(
+      innerPayload,
+      memberKey,
+    );
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
@@ -389,8 +399,10 @@ class AnonaccountGroups {
       GroupMemberRole.admin.name,
       memberKeysWire,
     );
-    final groupUltimateSignature =
-        await SigningCrypto.signChallenge(innerPayload, ownerKey);
+    final groupUltimateSignature = await SigningCrypto.signChallenge(
+      innerPayload,
+      ownerKey,
+    );
     final challengeResp = await _caller.entrypoint.getChallenge();
     final envelope = await PowSigner.build(
       challenge: challengeResp.challenge,
@@ -422,8 +434,10 @@ class AnonaccountGroups {
     required UuidValue memberId,
     required KeyDuo callerDeviceKey,
   }) async {
-    final ownerKey =
-        await _requireOwnerKey(groupId, 'removeGroupMemberAsOwner');
+    final ownerKey = await _requireOwnerKey(
+      groupId,
+      'removeGroupMemberAsOwner',
+    );
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final groupUltimateSignature = await SigningCrypto.signChallenge(
@@ -464,8 +478,10 @@ class AnonaccountGroups {
 
     // Inner payload — signed by the caller's member key.
     final innerPayload = GroupInnerPayloads.leaveGroup(memberId);
-    final memberAuthSignature =
-        await SigningCrypto.signChallenge(innerPayload, memberKey);
+    final memberAuthSignature = await SigningCrypto.signChallenge(
+      innerPayload,
+      memberKey,
+    );
 
     // Outer envelope — signed by the caller's device key.
     final challengeResp = await _caller.entrypoint.getChallenge();
@@ -559,8 +575,9 @@ class AnonaccountGroups {
       publicKeyHex: listEnvelope.publicKeyHex,
       signature: listEnvelope.signature,
     );
-    final liveDevices =
-        devices.where((d) => !(d.isRevoked)).toList(growable: false);
+    final liveDevices = devices
+        .where((d) => !(d.isRevoked))
+        .toList(growable: false);
 
     // 2. Build one MemberDeviceGrant per non-revoked device. The caller
     //    device is included unconditionally — every AccountDevice row
@@ -590,11 +607,7 @@ class AnonaccountGroups {
         encryptionPublicKeyHex: device.deviceEncryptionPublicKeyHex,
       );
       final attestation = await SigningCrypto.signChallenge(
-        GroupInnerPayloads.grantMemberDevice(
-          memberId,
-          deviceDuo,
-          wrappedBlob,
-        ),
+        GroupInnerPayloads.grantMemberDevice(memberId, deviceDuo, wrappedBlob),
         memberKey,
       );
       grants.add(
@@ -610,10 +623,7 @@ class AnonaccountGroups {
     }
 
     // 3. Forward the batch.
-    return grantMemberDevice(
-      grants: grants,
-      callerDeviceKey: callerDeviceKey,
-    );
+    return grantMemberDevice(grants: grants, callerDeviceKey: callerDeviceKey);
   }
 
   /// Pair-time fan-out: grant one [newDevice] access to every
@@ -644,14 +654,13 @@ class AnonaccountGroups {
         'device).',
       );
     }
-    final newDeviceSigningHex =
-        (await (await _newDeviceSigningKeyPair(newDevice))
-                .exportPublicKeySec1Hex())
-            .value;
+    final newDeviceSigningHex = (await (await _newDeviceSigningKeyPair(
+      newDevice,
+    )).exportPublicKeySec1Hex()).value;
     final newDeviceEncryptionPubkey =
         await EncryptionKeyPair.importPublicKeySec1Hex(
-      EncryptionPublicKeyHex(newDevice.deviceEncryptionPublicKeyHex),
-    );
+          EncryptionPublicKeyHex(newDevice.deviceEncryptionPublicKeyHex),
+        );
     final newDeviceDuo = PublicKeyDuo(
       signingPublicKeyHex: newDeviceSigningHex,
       encryptionPublicKeyHex: newDevice.deviceEncryptionPublicKeyHex,
@@ -673,18 +682,18 @@ class AnonaccountGroups {
       // Re-wrap the caller's grant blob to the new device's encryption
       // key. We unwrap with the caller's *device* private key, then
       // wrap to the new device's encryption pubkey.
-      final callerDevicePrivate =
-          callerDeviceKey.encryptionKeyPair.privateKey;
+      final callerDevicePrivate = callerDeviceKey.encryptionKeyPair.privateKey;
       if (callerDevicePrivate == null) {
         throw ArgumentError(
           'grantNewDevice: caller device key has no private encryption '
           'half; cannot unwrap the per-device grant blob to re-wrap it.',
         );
       }
-      final dataKeyJwk =
-          await AsymmetricCrypto.unwrap(callerBlob, callerDevicePrivate);
-      final newWrapped =
-          await AsymmetricCrypto.wrapForRecipient(
+      final dataKeyJwk = await AsymmetricCrypto.unwrap(
+        callerBlob,
+        callerDevicePrivate,
+      );
+      final newWrapped = await AsymmetricCrypto.wrapForRecipient(
         dataKeyJwk,
         newDeviceEncryptionPubkey.publicKey,
       );
@@ -734,10 +743,7 @@ class AnonaccountGroups {
       );
     }
 
-    return grantMemberDevice(
-      grants: grants,
-      callerDeviceKey: callerDeviceKey,
-    );
+    return grantMemberDevice(grants: grants, callerDeviceKey: callerDeviceKey);
   }
 
   // Internal helper: re-derives the new device's ECDSA signing pubkey
@@ -747,8 +753,7 @@ class AnonaccountGroups {
   // back with the typed wrapper.
   static Future<SigningKeyPair> _newDeviceSigningKeyPair(
     wire.AccountDevice newDevice,
-  ) =>
-      SigningKeyPair.importPublicKeySec1Hex(
-        SigningPublicKeyHex(newDevice.deviceSigningPublicKeyHex),
-      );
+  ) => SigningKeyPair.importPublicKeySec1Hex(
+    SigningPublicKeyHex(newDevice.deviceSigningPublicKeyHex),
+  );
 }

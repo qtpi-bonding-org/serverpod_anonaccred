@@ -46,22 +46,25 @@ class AnonaccountAuth {
   /// Hex-encoded ultimate-key signature over [message]. Used for device-key
   /// attestations on both the create-account and recover-account paths.
   Future<String> _signWithUltimate(String message) async => _hex(
-        (await _store
-            .signWithUltimateKey(Uint8List.fromList(utf8.encode(message))))!,
-      );
+    (await _store.signWithUltimateKey(
+      Uint8List.fromList(utf8.encode(message)),
+    ))!,
+  );
 
   /// The encryption-half SEC1 hex for an already-generated device key.
   Future<String> _deviceEncryptionPublicKeyHex() async {
     final devicePublicKey = (await _store.getDevicePublicKey())!;
-    return EncryptionKeyPair.publicOnly(publicKey: devicePublicKey)
-        .exportPublicKeySec1Hex();
+    return EncryptionKeyPair.publicOnly(
+      publicKey: devicePublicKey,
+    ).exportPublicKeySec1Hex();
   }
 
   /// The encryption-half SEC1 hex for the in-memory ultimate key.
   Future<String> _ultimateEncryptionPublicKeyHex() async {
     final ultimatePublicKey = (await _store.getUltimatePublicKey())!;
-    return EncryptionKeyPair.publicOnly(publicKey: ultimatePublicKey)
-        .exportPublicKeySec1Hex();
+    return EncryptionKeyPair.publicOnly(
+      publicKey: ultimatePublicKey,
+    ).exportPublicKeySec1Hex();
   }
 
   /// Local-only: has the [AccountKeyStore] generate a fresh ultimate +
@@ -87,15 +90,19 @@ class AnonaccountAuth {
   }) async {
     final devicePublicKeyHex = (await _store.getDeviceSigningPublicKeyHex())!;
     final deviceEncryptionPublicKeyHex = await _deviceEncryptionPublicKeyHex();
-    final ultimatePublicKeyHex =
-        (await _store.getUltimateSigningPublicKeyHex())!;
+    final ultimatePublicKeyHex = (await _store
+        .getUltimateSigningPublicKeyHex())!;
     final ultimateEncryptionPublicKeyHex =
         await _ultimateEncryptionPublicKeyHex();
     final symmetricJwk = (await _store.getSymmetricDataKeyJwk())!;
     final recoveryBlob = await AsymmetricCrypto.wrapForRecipient(
-        symmetricJwk, (await _store.getUltimatePublicKey())!);
+      symmetricJwk,
+      (await _store.getUltimatePublicKey())!,
+    );
     final deviceBlob = await AsymmetricCrypto.wrapForRecipient(
-        symmetricJwk, (await _store.getDevicePublicKey())!);
+      symmetricJwk,
+      (await _store.getDevicePublicKey())!,
+    );
     // Attestation covers BOTH halves of the device duo — the encryption key
     // becomes a wrap target, so it must be inside the signature rather than
     // beside it, or it can be substituted. Matches the server's
@@ -283,8 +290,11 @@ class AnonaccountAuth {
     // data key. Only the per-membership outcome comes back, because unlike
     // the single account data key there are N member keys and one row can
     // be individually corrupt.
-    final memberships = await AnonaccountGroups(_caller, _memberKeys, _ownerKeys)
-        .listMyGroups(callerDeviceKey: deviceKey);
+    final memberships = await AnonaccountGroups(
+      _caller,
+      _memberKeys,
+      _ownerKeys,
+    ).listMyGroups(callerDeviceKey: deviceKey);
 
     final recovered = <RecoveredMembership>[];
     for (final m in memberships) {
@@ -312,8 +322,9 @@ class AnonaccountAuth {
             m.encryptedUltimateKey!,
             ultimatePrivateKey,
           );
-          final ownerKey =
-              await const KeyDuoSerializer().importKeyDuoJwk(ownerJwk);
+          final ownerKey = await const KeyDuoSerializer().importKeyDuoJwk(
+            ownerJwk,
+          );
           await _ownerKeys.storeOwnerKey(
             UuidValue.fromString(m.groupId),
             ownerKey,
@@ -323,12 +334,14 @@ class AnonaccountAuth {
           // Report an individual corrupt backup without aborting recovery.
         }
       }
-      recovered.add(RecoveredMembership(
-        groupId: m.groupId,
-        memberId: m.memberId,
-        recovered: ok,
-        ownerKeyRecovered: ownerOk,
-      ));
+      recovered.add(
+        RecoveredMembership(
+          groupId: m.groupId,
+          memberId: m.memberId,
+          recovered: ok,
+          ownerKeyRecovered: ownerOk,
+        ),
+      );
     }
     return recovered;
   }

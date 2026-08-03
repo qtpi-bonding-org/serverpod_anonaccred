@@ -4,7 +4,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 class _FakeCaller extends Mock implements wire.Caller {}
+
 class _FakeEntrypoint extends Mock implements wire.EndpointEntrypoint {}
+
 class _FakeGroup extends Mock implements wire.EndpointGroup {}
 
 void main() {
@@ -23,8 +25,12 @@ void main() {
     );
 
     final row1 = wire.GroupMembershipView(
-      memberId: wire.UuidValue.fromString('44444444-4444-4444-8444-444444444444'),
-      shareGroupId: wire.UuidValue.fromString('11111111-1111-4111-8111-111111111111'),
+      memberId: wire.UuidValue.fromString(
+        '44444444-4444-4444-8444-444444444444',
+      ),
+      shareGroupId: wire.UuidValue.fromString(
+        '11111111-1111-4111-8111-111111111111',
+      ),
       role: wire.GroupMemberRole.admin,
       memberSigningPublicKeyHex: '04${'a' * 128}',
       memberEncryptedDataKey: 'BLOB1',
@@ -34,8 +40,12 @@ void main() {
       encryptedUltimateKey: null,
     );
     final row2 = wire.GroupMembershipView(
-      memberId: wire.UuidValue.fromString('55555555-5555-4555-8555-555555555555'),
-      shareGroupId: wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333'),
+      memberId: wire.UuidValue.fromString(
+        '55555555-5555-4555-8555-555555555555',
+      ),
+      shareGroupId: wire.UuidValue.fromString(
+        '33333333-3333-4333-8333-333333333333',
+      ),
       role: wire.GroupMemberRole.member,
       memberSigningPublicKeyHex: '04${'b' * 128}',
       memberEncryptedDataKey: 'BLOB2',
@@ -44,19 +54,28 @@ void main() {
       encryptedMemberKey: 'MEMBER-KEY-BLOB2',
       encryptedUltimateKey: null,
     );
-    when(() => group.listMyGroups(
-          challenge: any(named: 'challenge'),
-          proofOfWork: any(named: 'proofOfWork'),
-          signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex:
-              any(named: 'callerDeviceSigningPublicKeyHex'),
-        )).thenAnswer((_) async => [row1, row2]);
+    when(
+      () => group.listMyGroups(
+        challenge: any(named: 'challenge'),
+        proofOfWork: any(named: 'proofOfWork'),
+        signature: any(named: 'signature'),
+        callerDeviceSigningPublicKeyHex: any(
+          named: 'callerDeviceSigningPublicKeyHex',
+        ),
+      ),
+    ).thenAnswer((_) async => [row1, row2]);
 
     final callerDeviceKey = await KeyGen.generateDeviceKey();
     final store = InMemoryMemberKeyStore();
-    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
-    final memberships =
-        await groups.listMyGroups(callerDeviceKey: callerDeviceKey);
+    final groups = AnonaccountGroups(
+      caller,
+      store,
+      InMemoryGroupOwnerKeyStore(),
+      difficulty: 4,
+    );
+    final memberships = await groups.listMyGroups(
+      callerDeviceKey: callerDeviceKey,
+    );
 
     expect(memberships, hasLength(2));
     expect(memberships[0].groupId, '11111111-1111-4111-8111-111111111111');

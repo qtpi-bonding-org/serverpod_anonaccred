@@ -16,99 +16,118 @@ void main() {
     );
   });
 
-  test('removeGroupMember calls wire with member-key attestation, null ultimate', () async {
-    final caller = _FakeCaller();
-    final entrypoint = _FakeEntrypoint();
-    final group = _FakeGroup();
-    when(() => caller.entrypoint).thenReturn(entrypoint);
-    when(() => caller.group).thenReturn(group);
-    when(() => entrypoint.getChallenge()).thenAnswer(
-      (_) async => wire.PublicChallengeResponse(
-        challenge: 'CHAL-RM',
-        difficulty: 4,
-        expiresAt: 9999999999,
-      ),
-    );
+  test(
+    'removeGroupMember calls wire with member-key attestation, null ultimate',
+    () async {
+      final caller = _FakeCaller();
+      final entrypoint = _FakeEntrypoint();
+      final group = _FakeGroup();
+      when(() => caller.entrypoint).thenReturn(entrypoint);
+      when(() => caller.group).thenReturn(group);
+      when(() => entrypoint.getChallenge()).thenAnswer(
+        (_) async => wire.PublicChallengeResponse(
+          challenge: 'CHAL-RM',
+          difficulty: 4,
+          expiresAt: 9999999999,
+        ),
+      );
 
-    final memberId = wire.UuidValue.fromString(
-      'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
-    );
+      final memberId = wire.UuidValue.fromString(
+        'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      );
 
-    when(() => group.removeGroupMember(
+      when(
+        () => group.removeGroupMember(
           challenge: any(named: 'challenge'),
           proofOfWork: any(named: 'proofOfWork'),
           signature: any(named: 'signature'),
-          callerDeviceSigningPublicKeyHex:
-              any(named: 'callerDeviceSigningPublicKeyHex'),
+          callerDeviceSigningPublicKeyHex: any(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
           memberId: any(named: 'memberId'),
-          callerMemberSigningPublicKeyHex:
-              any(named: 'callerMemberSigningPublicKeyHex'),
+          callerMemberSigningPublicKeyHex: any(
+            named: 'callerMemberSigningPublicKeyHex',
+          ),
           memberAuthSignature: any(named: 'memberAuthSignature'),
           groupUltimateSignature: any(named: 'groupUltimateSignature'),
-        )).thenAnswer((_) async => true);
-
-    final groupId = wire.UuidValue.fromString(
-      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    );
-    final callerMemberKey = await KeyGen.generateDeviceKey();
-    final callerDeviceKey = await KeyGen.generateDeviceKey();
-    final store = InMemoryMemberKeyStore();
-    await store.storeMemberKey(groupId, callerMemberKey);
-    final groups = AnonaccountGroups(caller, store, InMemoryGroupOwnerKeyStore(), difficulty: 4);
-
-    final result = await groups.removeGroupMember(
-      groupId: groupId,
-      memberId: memberId,
-      callerDeviceKey: callerDeviceKey,
-    );
-
-    expect(result, isTrue);
-
-    // Verify wire call parameters.
-    final captured = verify(
-      () => group.removeGroupMember(
-        challenge: captureAny(named: 'challenge'),
-        proofOfWork: any(named: 'proofOfWork'),
-        signature: any(named: 'signature'),
-        callerDeviceSigningPublicKeyHex:
-            any(named: 'callerDeviceSigningPublicKeyHex'),
-        memberId: captureAny(named: 'memberId'),
-        callerMemberSigningPublicKeyHex:
-            captureAny(named: 'callerMemberSigningPublicKeyHex'),
-        memberAuthSignature: captureAny(named: 'memberAuthSignature'),
-        groupUltimateSignature: captureAny(named: 'groupUltimateSignature'),
-      ),
-    ).captured;
-
-    // Indices: challenge(0), memberId(1), callerMemberSigningPublicKeyHex(2),
-    //           memberAuthSignature(3), groupUltimateSignature(4)
-    expect(captured[0], 'CHAL-RM');
-    expect(captured[1].toString(), memberId.toString());
-    expect(captured[2], isNotNull); // callerMemberSigningPublicKeyHex
-    expect(captured[3], isNotNull); // memberAuthSignature
-    expect(captured[4], isNull);    // groupUltimateSignature — null for admin branch
-  });
-
-  test('removeGroupMember throws StateError when no member key is stored for the group',
-      () async {
-    final groups = AnonaccountGroups(
-      _FakeCaller(),
-      InMemoryMemberKeyStore(),
-      InMemoryGroupOwnerKeyStore(),
-      difficulty: 4,
-    );
-
-    await expectLater(
-      groups.removeGroupMember(
-        groupId: wire.UuidValue.fromString(
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         ),
-        memberId: wire.UuidValue.fromString(
-          'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      ).thenAnswer((_) async => true);
+
+      final groupId = wire.UuidValue.fromString(
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      );
+      final callerMemberKey = await KeyGen.generateDeviceKey();
+      final callerDeviceKey = await KeyGen.generateDeviceKey();
+      final store = InMemoryMemberKeyStore();
+      await store.storeMemberKey(groupId, callerMemberKey);
+      final groups = AnonaccountGroups(
+        caller,
+        store,
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
+
+      final result = await groups.removeGroupMember(
+        groupId: groupId,
+        memberId: memberId,
+        callerDeviceKey: callerDeviceKey,
+      );
+
+      expect(result, isTrue);
+
+      // Verify wire call parameters.
+      final captured = verify(
+        () => group.removeGroupMember(
+          challenge: captureAny(named: 'challenge'),
+          proofOfWork: any(named: 'proofOfWork'),
+          signature: any(named: 'signature'),
+          callerDeviceSigningPublicKeyHex: any(
+            named: 'callerDeviceSigningPublicKeyHex',
+          ),
+          memberId: captureAny(named: 'memberId'),
+          callerMemberSigningPublicKeyHex: captureAny(
+            named: 'callerMemberSigningPublicKeyHex',
+          ),
+          memberAuthSignature: captureAny(named: 'memberAuthSignature'),
+          groupUltimateSignature: captureAny(named: 'groupUltimateSignature'),
         ),
-        callerDeviceKey: await KeyGen.generateDeviceKey(),
-      ),
-      throwsA(isA<StateError>()),
-    );
-  });
+      ).captured;
+
+      // Indices: challenge(0), memberId(1), callerMemberSigningPublicKeyHex(2),
+      //           memberAuthSignature(3), groupUltimateSignature(4)
+      expect(captured[0], 'CHAL-RM');
+      expect(captured[1].toString(), memberId.toString());
+      expect(captured[2], isNotNull); // callerMemberSigningPublicKeyHex
+      expect(captured[3], isNotNull); // memberAuthSignature
+      expect(
+        captured[4],
+        isNull,
+      ); // groupUltimateSignature — null for admin branch
+    },
+  );
+
+  test(
+    'removeGroupMember throws StateError when no member key is stored for the group',
+    () async {
+      final groups = AnonaccountGroups(
+        _FakeCaller(),
+        InMemoryMemberKeyStore(),
+        InMemoryGroupOwnerKeyStore(),
+        difficulty: 4,
+      );
+
+      await expectLater(
+        groups.removeGroupMember(
+          groupId: wire.UuidValue.fromString(
+            'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          ),
+          memberId: wire.UuidValue.fromString(
+            'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+          ),
+          callerDeviceKey: await KeyGen.generateDeviceKey(),
+        ),
+        throwsA(isA<StateError>()),
+      );
+    },
+  );
 }

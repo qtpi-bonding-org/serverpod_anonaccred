@@ -84,11 +84,9 @@ abstract final class GroupInnerPayloads {
   static String removeGroupMember(UuidValue memberId) =>
       'removeGroupMember:$memberId';
 
-  static String leaveGroup(UuidValue memberId) =>
-      'leaveGroup:$memberId';
+  static String leaveGroup(UuidValue memberId) => 'leaveGroup:$memberId';
 
-  static String getGroup(UuidValue groupId) =>
-      'getGroup:$groupId';
+  static String getGroup(UuidValue groupId) => 'getGroup:$groupId';
 
   static String listGroupMembers(UuidValue groupId) =>
       'listGroupMembers:$groupId';
