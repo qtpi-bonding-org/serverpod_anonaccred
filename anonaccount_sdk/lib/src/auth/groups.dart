@@ -459,12 +459,12 @@ class AnonaccountGroups {
   /// Pair-time fan-out: grant one [newDevice] access to every
   /// membership the caller holds.
   ///
-  /// For each membership, the attestor is per item: `memberKey` when the caller
-  /// holds that membership's member key (look it up in [memberKeys] by
-  /// the membership's id), and `grantedDevice` when the caller only holds
-  /// a device-level grant (i.e., no member key). That attestation
-  /// is signed by [callerDeviceKey] — the only key the caller has
-  /// standing in for that membership.
+  /// For each membership, the attestor is per item: `memberKey` when the
+  /// caller's store holds that group's member key, and `grantedDevice` when it
+  /// does not — an account reaching a membership through a device grant rather
+  /// than by being the member holds no member key for it. That attestation is
+  /// signed by [callerDeviceKey], the only key the caller has standing in for
+  /// that membership.
   ///
   /// The data key for each membership is taken from the membership's
   /// `deviceEncryptedDataKey` (the caller device's own grant row) and
@@ -475,7 +475,6 @@ class AnonaccountGroups {
   Future<GrantMemberDeviceResult> grantNewDevice({
     required wire.AccountDevice newDevice,
     required List<wire.GroupMembershipView> memberships,
-    required Map<UuidValue, KeyDuo> memberKeys,
     required KeyDuo callerDeviceKey,
   }) async {
     if (newDevice.id == null) {
@@ -530,12 +529,25 @@ class AnonaccountGroups {
         newDeviceEncryptionPubkey.publicKey,
       );
 
-      final memberKey = memberKeys[m.memberId];
+      final stored = await _memberKeys.getMemberKey(m.shareGroupId);
       final GrantAttestor attestor;
       final KeyDuo attestorKey;
-      if (memberKey != null) {
+      if (stored != null) {
+        // Compared with != rather than case-insensitively: both sides come
+        // from exportPublicKeySec1Hex, so a casing difference would mean two
+        // different encoders produced them — a defect worth surfacing.
+        final storedHex =
+            (await stored.signingKeyPair.exportPublicKeySec1Hex()).value;
+        if (storedHex != m.memberSigningPublicKeyHex) {
+          throw StateError(
+            'grantNewDevice: the member key stored for group ${m.shareGroupId} '
+            'is stale — its signing public key does not match membership '
+            '${m.memberId}. Rejoining a group mints a fresh member key under '
+            'the same group id; store the new one to replace it.',
+          );
+        }
         attestor = GrantAttestor.memberKey;
-        attestorKey = memberKey;
+        attestorKey = stored;
       } else {
         attestor = GrantAttestor.grantedDevice;
         attestorKey = callerDeviceKey;
