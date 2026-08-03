@@ -1547,6 +1547,27 @@
             "isNullable": false,
             "columnDefault": "0",
             "dartType": "int"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "roleChangedAt",
+            "columnType": 4,
+            "isNullable": true,
+            "dartType": "DateTime?"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "roleChangedByAttestorPublicKeyHex",
+            "columnType": 0,
+            "isNullable": true,
+            "dartType": "String?"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "roleChangedByAttestation",
+            "columnType": 0,
+            "isNullable": true,
+            "dartType": "String?"
           }
         ],
         "foreignKeys": [

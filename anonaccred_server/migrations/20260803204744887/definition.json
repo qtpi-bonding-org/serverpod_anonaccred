@@ -1489,6 +1489,27 @@
           "isNullable": false,
           "columnDefault": "0",
           "dartType": "int"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "roleChangedAt",
+          "columnType": 4,
+          "isNullable": true,
+          "dartType": "DateTime?"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "roleChangedByAttestorPublicKeyHex",
+          "columnType": 0,
+          "isNullable": true,
+          "dartType": "String?"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "roleChangedByAttestation",
+          "columnType": 0,
+          "isNullable": true,
+          "dartType": "String?"
         }
       ],
       "foreignKeys": [
@@ -5319,12 +5340,12 @@
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "anonaccred",
-      "version": "20260803140054240"
+      "version": "20260803204744887"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "anonaccount",
-      "version": "20260802130448042"
+      "version": "20260803202213672"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",

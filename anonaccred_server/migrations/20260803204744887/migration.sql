@@ -257,12 +257,19 @@ CREATE TABLE "group_member" (
     "revokedByAttestorPublicKeyHex" text,
     "revokedByAttestation" text,
     "revokedAt" timestamp without time zone,
-    "keyEpoch" bigint NOT NULL DEFAULT 0
+    "keyEpoch" bigint NOT NULL DEFAULT 0,
+    "roleChangedAt" timestamp without time zone,
+    "roleChangedByAttestorPublicKeyHex" text,
+    "roleChangedByAttestation" text
 );
 
 -- Indexes
 CREATE UNIQUE INDEX "group_member_signing_key_idx" ON "group_member" USING btree ("memberSigningPublicKeyHex");
 CREATE UNIQUE INDEX "group_member_unique_idx" ON "group_member" USING btree ("shareGroupId", "anonAccountId");
+DROP INDEX IF EXISTS "group_member_unique_idx";
+CREATE UNIQUE INDEX "group_member_unique_idx"
+  ON "group_member" USING btree ("shareGroupId", "anonAccountId")
+  WHERE "isRevoked" = false;
 CREATE INDEX "group_member_account_idx" ON "group_member" USING btree ("anonAccountId");
 
 --
@@ -283,6 +290,10 @@ CREATE TABLE "group_member_device" (
 
 -- Indexes
 CREATE UNIQUE INDEX "group_member_device_active_idx" ON "group_member_device" USING btree ("groupMemberId", "accountDeviceId");
+DROP INDEX IF EXISTS "group_member_device_active_idx";
+CREATE UNIQUE INDEX "group_member_device_active_idx"
+  ON "group_member_device" USING btree ("groupMemberId", "accountDeviceId")
+  WHERE "isRevoked" = false;
 CREATE INDEX "group_member_device_device_idx" ON "group_member_device" USING btree ("accountDeviceId");
 
 --
@@ -305,6 +316,10 @@ CREATE TABLE "group_owner" (
 
 -- Indexes
 CREATE UNIQUE INDEX "group_owner_active_idx" ON "group_owner" USING btree ("shareGroupId", "anonAccountId");
+DROP INDEX IF EXISTS "group_owner_active_idx";
+CREATE UNIQUE INDEX "group_owner_active_idx"
+  ON "group_owner" USING btree ("shareGroupId", "anonAccountId")
+  WHERE "isRevoked" = false;
 CREATE INDEX "group_owner_account_idx" ON "group_owner" USING btree ("anonAccountId");
 
 --
@@ -1155,17 +1170,17 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 -- MIGRATION VERSION FOR anonaccred
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccred', '20260803140054240', now())
+    VALUES ('anonaccred', '20260803204744887', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260803140054240', "timestamp" = now();
+    DO UPDATE SET "version" = '20260803204744887', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR anonaccount
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccount', '20260802130448042', now())
+    VALUES ('anonaccount', '20260803202213672', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260802130448042', "timestamp" = now();
+    DO UPDATE SET "version" = '20260803202213672', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod
