@@ -370,17 +370,18 @@ class AnonaccountGroups {
   /// Join-time fan-out: wraps the group data key to every non-revoked
   /// device on the account, **including the caller itself** (the
   /// self-grant invariant — see spec §"The two grant moments"), and
-  /// sends one batched `grantMemberDevice` call attested by
-  /// [memberKey].
+  /// sends one batched `grantMemberDevice` call attested by the member key
+  /// the caller's store holds for [groupId].
   ///
-  /// `listDevices` does not filter revoked devices
-  /// (`device_management_endpoint.dart:114-119`), so this method does.
+  /// `listDevices` does not filter revoked devices, so this method does.
   Future<GrantMemberDeviceResult> grantAllDevices({
+    required UuidValue groupId,
     required UuidValue memberId,
     required AesGcmSecretKey groupDataKey,
-    required KeyDuo memberKey,
     required KeyDuo callerDeviceKey,
   }) async {
+    final memberKey = await _requireMemberKey(groupId, 'grantAllDevices');
+
     // 1. List every device on the account and filter out revoked.
     final callerDeviceSigningPublicKeyHex =
         (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;

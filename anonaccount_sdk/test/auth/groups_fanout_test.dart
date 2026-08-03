@@ -173,12 +173,15 @@ void main() {
             grants: any(named: 'grants'),
           )).thenAnswer((_) async => stubResult);
 
+      final groupId =
+          wire.UuidValue.fromString('88888888-8888-4888-8888-888888888888');
       final store = InMemoryMemberKeyStore();
+      await store.storeMemberKey(groupId, memberKey);
       final groups = AnonaccountGroups(caller, store, difficulty: 4);
       final result = await groups.grantAllDevices(
+        groupId: groupId,
         memberId: memberId,
         groupDataKey: dataKey,
-        memberKey: memberKey,
         callerDeviceKey: callerKey,
       );
 
@@ -337,12 +340,15 @@ void main() {
             grants: any(named: 'grants'),
           )).thenAnswer((_) async => stubResult);
 
+      final groupId =
+          wire.UuidValue.fromString('77777777-7777-4777-8777-777777777777');
       final store = InMemoryMemberKeyStore();
+      await store.storeMemberKey(groupId, memberKey);
       final groups = AnonaccountGroups(caller, store, difficulty: 4);
       await groups.grantAllDevices(
+        groupId: groupId,
         memberId: memberId,
         groupDataKey: dataKey,
-        memberKey: memberKey,
         callerDeviceKey: callerKey,
       );
 
@@ -609,4 +615,27 @@ void main() {
       expect(peerUnwrapped, peerDataKeyJwk);
     },
   );
+
+  test('grantAllDevices throws StateError when no member key is stored',
+      () async {
+    final groups = AnonaccountGroups(
+      _FakeCaller(),
+      InMemoryMemberKeyStore(),
+      difficulty: 4,
+    );
+
+    await expectLater(
+      groups.grantAllDevices(
+        groupId: wire.UuidValue.fromString(
+          '88888888-8888-4888-8888-888888888888',
+        ),
+        memberId: wire.UuidValue.fromString(
+          '99999999-9999-4999-8999-999999999999',
+        ),
+        groupDataKey: await AesGcmSecretKey.generateKey(256),
+        callerDeviceKey: await KeyGen.generateDeviceKey(),
+      ),
+      throwsA(isA<StateError>()),
+    );
+  });
 }
