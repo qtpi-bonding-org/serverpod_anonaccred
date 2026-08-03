@@ -49,3 +49,5 @@ export 'src/auth/pairing.dart';
 export 'src/auth/groups.dart';
 export 'src/auth/account_key_store.dart';
 export 'src/auth/in_memory_account_key_store.dart';
+export 'src/auth/member_key_store.dart';
+export 'src/auth/in_memory_member_key_store.dart';
