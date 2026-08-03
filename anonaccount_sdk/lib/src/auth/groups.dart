@@ -223,6 +223,12 @@ class AnonaccountGroups {
   /// inner payload with the member key its store holds for [groupId]. The new
   /// member's encrypted data key must be wrapped externally before passing it
   /// here.
+  ///
+  /// [encryptedMemberKey] and [encryptedMemberKeyAttestation] are the
+  /// invitee's own member-key backup, produced and signed by the invitee
+  /// before this call — this method only relays them. The admin's SDK
+  /// cannot construct these: it holds neither the invitee's member private
+  /// key nor their account's ultimate public key.
   Future<GroupMember> addGroupMember({
     required UuidValue groupId,
     required UuidValue newMemberAccountId,
@@ -231,6 +237,8 @@ class AnonaccountGroups {
     required String newMemberEncryptionPublicKeyHex,
     required String newMemberEncryptedDataKey,
     required KeyDuo callerDeviceKey,
+    required String encryptedMemberKey,
+    required String encryptedMemberKeyAttestation,
   }) async {
     final memberKey = await _requireMemberKey(groupId, 'addGroupMember');
     final callerMemberSigningPublicKeyHex =
@@ -275,6 +283,8 @@ class AnonaccountGroups {
       callerMemberSigningPublicKeyHex: callerMemberSigningPublicKeyHex,
       memberAuthSignature: memberAuthSignature,
       groupUltimateSignature: null,
+      encryptedMemberKey: encryptedMemberKey,
+      encryptedMemberKeyAttestation: encryptedMemberKeyAttestation,
     );
   }
 

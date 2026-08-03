@@ -1055,6 +1055,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'encryptedMemberKey': _i1.ParameterDescription(
+              name: 'encryptedMemberKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'encryptedMemberKeyAttestation': _i1.ParameterDescription(
+              name: 'encryptedMemberKeyAttestation',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
             'callerMemberSigningPublicKeyHex': _i1.ParameterDescription(
               name: 'callerMemberSigningPublicKeyHex',
               type: _i1.getType<String?>(),
@@ -1088,6 +1098,9 @@ class Endpoints extends _i1.EndpointDispatch {
                     role: params['role'],
                     memberKeys: params['memberKeys'],
                     encryptedDataKey: params['encryptedDataKey'],
+                    encryptedMemberKey: params['encryptedMemberKey'],
+                    encryptedMemberKeyAttestation:
+                        params['encryptedMemberKeyAttestation'],
                     callerMemberSigningPublicKeyHex:
                         params['callerMemberSigningPublicKeyHex'],
                     memberAuthSignature: params['memberAuthSignature'],

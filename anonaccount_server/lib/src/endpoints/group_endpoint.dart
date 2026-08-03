@@ -270,6 +270,8 @@ class GroupEndpoint extends SignedPowEndpoint {
     required GroupMemberRole role,
     required PublicKeyDuo memberKeys,
     required String encryptedDataKey,
+    required String encryptedMemberKey,
+    required String encryptedMemberKeyAttestation,
     String? callerMemberSigningPublicKeyHex,
     String? memberAuthSignature,
     String? groupUltimateSignature,
@@ -298,6 +300,46 @@ class GroupEndpoint extends SignedPowEndpoint {
           'encryptedDataKey',
           'addGroupMember',
         );
+        AnonAccountHelpers.validateNonEmpty(
+          encryptedMemberKey,
+          'encryptedMemberKey',
+          'addGroupMember',
+        );
+
+        // Loaded here regardless of role: both the admin-role branch below
+        // and the member-key backup check need the group's ultimate signing
+        // key, so one lookup serves both instead of issuing two.
+        final backupGroup = await ShareGroup.db.findById(session, groupId);
+        if (backupGroup == null) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authAccountNotFound,
+            message: 'Group not found',
+            operation: 'addGroupMember',
+            details: {'groupId': groupId.toString()},
+          );
+        }
+
+        // Signed by the NEW member's key, not the caller's. The admin only
+        // relays this blob and must not be able to alter it, redirect it to
+        // another group, or bind it to another account.
+        final memberKeyBackupOk = await CryptoUtils.verifySignature(
+          message: GroupInnerPayloads.setEncryptedMemberKey(
+            backupGroup.ultimateSigningPublicKeyHex,
+            newMemberAccountId,
+            validatedMemberKeys.signingPublicKeyHex,
+            encryptedMemberKey,
+          ),
+          signature: encryptedMemberKeyAttestation,
+          publicKey: validatedMemberKeys.signingPublicKeyHex,
+        );
+        if (!memberKeyBackupOk) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.cryptoInvalidSignature,
+            message: 'Invalid encrypted member key attestation — the new '
+                'member key did not authorize this backup',
+            operation: 'addGroupMember',
+          );
+        }
 
         final innerPayload = GroupInnerPayloads.addGroupMember(
           groupId,
@@ -320,15 +362,7 @@ class GroupEndpoint extends SignedPowEndpoint {
               operation: 'addGroupMember',
             );
           }
-          final group = await ShareGroup.db.findById(session, groupId);
-          if (group == null) {
-            throw AnonAccountExceptionFactory.createAuthenticationException(
-              code: AnonAccountErrorCodes.authAccountNotFound,
-              message: 'Group not found',
-              operation: 'addGroupMember',
-              details: {'groupId': groupId.toString()},
-            );
-          }
+          final group = backupGroup;
           final innerOk = await CryptoUtils.verifySignature(
             message: innerPayload,
             signature: groupUltimateSignature,
@@ -432,9 +466,7 @@ class GroupEndpoint extends SignedPowEndpoint {
           memberEncryptionPublicKeyHex:
               validatedMemberKeys.encryptionPublicKeyHex,
           encryptedDataKey: encryptedDataKey,
-          // TODO(member-key-backup): placeholder until the member-key-backup
-          // plan lands the write path for this column.
-          encryptedMemberKey: '',
+          encryptedMemberKey: encryptedMemberKey,
           joinedAt: now,
           isRevoked: false,
           addedByAttestorPublicKeyHex: attestingPubkey,

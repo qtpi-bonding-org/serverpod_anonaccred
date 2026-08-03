@@ -50,6 +50,28 @@ Future<({String challenge, String pow, String signature})> _outer(
   return (challenge: c.challenge, pow: pow, signature: sig);
 }
 
+/// A valid `setEncryptedMemberKey` blob + attestation for `addGroupMember`
+/// tests. The server never decrypts the blob, only verifies the signature
+/// over it — so a fixed placeholder string is sufficient content.
+({String blob, String attestation}) _memberKeyBackup({
+  required String groupUltimateSigningPublicKeyHex,
+  required UuidValue anonAccountId,
+  required String memberSigningPublicKeyHex,
+  required String memberSigningPrivateKeyHex,
+}) {
+  const blob = 'wrapped-member-key';
+  final attestation = SigningTestHelper.signWith(
+    GroupInnerPayloads.setEncryptedMemberKey(
+      groupUltimateSigningPublicKeyHex,
+      anonAccountId,
+      memberSigningPublicKeyHex,
+      blob,
+    ),
+    memberSigningPrivateKeyHex,
+  );
+  return (blob: blob, attestation: attestation);
+}
+
 /// One-stop bootstrap: account + device + a created group.
 /// Returns everything the caller needs to make further authorized calls.
 Future<
@@ -506,7 +528,7 @@ void main() {
         ultimateSigningPublicKeyHex: inviteeUltPub,
         ultimateEncryptionPublicKeyHex: inviteeUltPub,
       );
-      final (_, inviteeMemberSig) = SigningTestHelper.generateKeypair();
+      final (inviteeMemberPriv, inviteeMemberSig) = SigningTestHelper.generateKeypair();
       final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
 
       final outer = await _outer(
@@ -521,6 +543,12 @@ void main() {
           'addGroupMember:${s.group.id!}:${invitee.id!}:${role.name}:$inviteeMemberSig:$inviteeMemberEnc';
       final innerSig =
           SigningTestHelper.signWith(innerPayload, s.creatorMemberSigPriv);
+      final backup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: invitee.id!,
+        memberSigningPublicKeyHex: inviteeMemberSig,
+        memberSigningPrivateKeyHex: inviteeMemberPriv,
+      );
 
       final member = await endpoints.group.addGroupMember(
         sessionBuilder,
@@ -538,6 +566,8 @@ void main() {
         encryptedDataKey: 'wrapped-for-invitee',
         callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
         memberAuthSignature: innerSig,
+        encryptedMemberKey: backup.blob,
+        encryptedMemberKeyAttestation: backup.attestation,
       );
       expect(member.role, equals(GroupMemberRole.member));
       expect(member.addedByAttestorPublicKeyHex, equals(s.creatorMemberSigPub));
@@ -576,6 +606,12 @@ void main() {
           'addGroupMember:${s.group.id!}:${m2Account.id!}:${GroupMemberRole.member.name}:$m2MemberPub:$m2MemberEnc';
       final addSig =
           SigningTestHelper.signWith(addPayload, s.creatorMemberSigPriv);
+      final m2Backup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: m2Account.id!,
+        memberSigningPublicKeyHex: m2MemberPub,
+        memberSigningPrivateKeyHex: m2MemberPriv,
+      );
       await endpoints.group.addGroupMember(
         sessionBuilder,
         challenge: outerAdd.challenge,
@@ -592,6 +628,8 @@ void main() {
         encryptedDataKey: 'wrapped',
         callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
         memberAuthSignature: addSig,
+        encryptedMemberKey: m2Backup.blob,
+        encryptedMemberKeyAttestation: m2Backup.attestation,
       );
 
       // Now m2 (a non-admin member) tries to add an invitee.
@@ -601,7 +639,7 @@ void main() {
         ultimateSigningPublicKeyHex: victimUltPub,
         ultimateEncryptionPublicKeyHex: victimUltPub,
       );
-      final (_, vMemberSig) = SigningTestHelper.generateKeypair();
+      final (vMemberPriv, vMemberSig) = SigningTestHelper.generateKeypair();
       final (_, vMemberEnc) = SigningTestHelper.generateKeypair();
 
       final outer = await _outer(
@@ -614,6 +652,12 @@ void main() {
       final innerPayload =
           'addGroupMember:${s.group.id!}:${victim.id!}:${GroupMemberRole.member.name}:$vMemberSig:$vMemberEnc';
       final innerSig = SigningTestHelper.signWith(innerPayload, m2MemberPriv);
+      final backup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: victim.id!,
+        memberSigningPublicKeyHex: vMemberSig,
+        memberSigningPrivateKeyHex: vMemberPriv,
+      );
 
       expect(
         () => endpoints.group.addGroupMember(
@@ -632,6 +676,8 @@ void main() {
           encryptedDataKey: 'wrapped',
           callerMemberSigningPublicKeyHex: m2MemberPub,
           memberAuthSignature: innerSig,
+          encryptedMemberKey: backup.blob,
+          encryptedMemberKeyAttestation: backup.attestation,
         ),
         throwsA(isA<Exception>()),
       );
@@ -665,7 +711,7 @@ void main() {
         ultimateSigningPublicKeyHex: vUltPub,
         ultimateEncryptionPublicKeyHex: vUltPub,
       );
-      final (_, vMemberSig) = SigningTestHelper.generateKeypair();
+      final (vMemberPriv, vMemberSig) = SigningTestHelper.generateKeypair();
       final (_, vMemberEnc) = SigningTestHelper.generateKeypair();
 
       final outer = await _outer(
@@ -679,6 +725,12 @@ void main() {
           'addGroupMember:${s.group.id!}:${victim.id!}:${GroupMemberRole.member.name}:$vMemberSig:$vMemberEnc';
       final innerSig =
           SigningTestHelper.signWith(innerPayload, s.creatorMemberSigPriv);
+      final backup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: victim.id!,
+        memberSigningPublicKeyHex: vMemberSig,
+        memberSigningPrivateKeyHex: vMemberPriv,
+      );
 
       expect(
         () => endpoints.group.addGroupMember(
@@ -697,6 +749,8 @@ void main() {
           encryptedDataKey: 'wrapped',
           callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
           memberAuthSignature: innerSig,
+          encryptedMemberKey: backup.blob,
+          encryptedMemberKeyAttestation: backup.attestation,
         ),
         throwsA(isA<Exception>()),
       );
@@ -712,7 +766,7 @@ void main() {
         ultimateSigningPublicKeyHex: inviteeUltPub,
         ultimateEncryptionPublicKeyHex: inviteeUltPub,
       );
-      final (_, inviteeMemberSig) = SigningTestHelper.generateKeypair();
+      final (inviteeMemberPriv, inviteeMemberSig) = SigningTestHelper.generateKeypair();
       final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
 
       final outer = await _outer(
@@ -726,6 +780,12 @@ void main() {
           'addGroupMember:${s.group.id!}:${invitee.id!}:${GroupMemberRole.admin.name}:$inviteeMemberSig:$inviteeMemberEnc';
       final ownerSig =
           SigningTestHelper.signWith(innerPayload, s.groupUltSigPriv);
+      final backup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: invitee.id!,
+        memberSigningPublicKeyHex: inviteeMemberSig,
+        memberSigningPrivateKeyHex: inviteeMemberPriv,
+      );
 
       final member = await endpoints.group.addGroupMember(
         sessionBuilder,
@@ -742,6 +802,8 @@ void main() {
         ),
         encryptedDataKey: 'wrapped',
         groupUltimateSignature: ownerSig,
+        encryptedMemberKey: backup.blob,
+        encryptedMemberKeyAttestation: backup.attestation,
       );
       expect(member.role, equals(GroupMemberRole.admin));
       expect(member.addedByAttestorPublicKeyHex, equals(s.groupUltSigPub));
@@ -756,7 +818,7 @@ void main() {
         ultimateSigningPublicKeyHex: inviteeUltPub,
         ultimateEncryptionPublicKeyHex: inviteeUltPub,
       );
-      final (_, inviteeMemberSig) = SigningTestHelper.generateKeypair();
+      final (inviteeMemberPriv, inviteeMemberSig) = SigningTestHelper.generateKeypair();
       final (_, inviteeMemberEnc) = SigningTestHelper.generateKeypair();
 
       final outer = await _outer(
@@ -772,6 +834,12 @@ void main() {
           'addGroupMember:${s.group.id!}:${invitee.id!}:${GroupMemberRole.admin.name}:$inviteeMemberSig:$inviteeMemberEnc';
       final memberSig =
           SigningTestHelper.signWith(innerPayload, s.creatorMemberSigPriv);
+      final backup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: invitee.id!,
+        memberSigningPublicKeyHex: inviteeMemberSig,
+        memberSigningPrivateKeyHex: inviteeMemberPriv,
+      );
 
       expect(
         () => endpoints.group.addGroupMember(
@@ -790,6 +858,8 @@ void main() {
           encryptedDataKey: 'wrapped',
           callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
           memberAuthSignature: memberSig,
+          encryptedMemberKey: backup.blob,
+          encryptedMemberKeyAttestation: backup.attestation,
         ),
         throwsA(isA<Exception>()),
       );
@@ -805,7 +875,7 @@ void main() {
         ultimateSigningPublicKeyHex: vUltPub,
         ultimateEncryptionPublicKeyHex: vUltPub,
       );
-      final (_, vMemberSig) = SigningTestHelper.generateKeypair();
+      final (vMemberPriv, vMemberSig) = SigningTestHelper.generateKeypair();
       final (_, vMemberEnc) = SigningTestHelper.generateKeypair();
 
       final outerAdd = await _outer(
@@ -819,6 +889,12 @@ void main() {
           'addGroupMember:${s.group.id!}:${victim.id!}:${GroupMemberRole.member.name}:$vMemberSig:$vMemberEnc';
       final addSig =
           SigningTestHelper.signWith(addPayload, s.creatorMemberSigPriv);
+      final backup = _memberKeyBackup(
+        groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+        anonAccountId: victim.id!,
+        memberSigningPublicKeyHex: vMemberSig,
+        memberSigningPrivateKeyHex: vMemberPriv,
+      );
       final victimRow = await endpoints.group.addGroupMember(
         sessionBuilder,
         challenge: outerAdd.challenge,
@@ -835,6 +911,8 @@ void main() {
         encryptedDataKey: 'wrapped',
         callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
         memberAuthSignature: addSig,
+        encryptedMemberKey: backup.blob,
+        encryptedMemberKeyAttestation: backup.attestation,
       );
 
       // Admin removes the member.
@@ -975,7 +1053,7 @@ void main() {
     ultimateSigningPublicKeyHex: m2UltPub,
     ultimateEncryptionPublicKeyHex: m2UltPub,
   );
-  final (_, m2MemberSig) = SigningTestHelper.generateKeypair();
+  final (m2MemberPriv, m2MemberSig) = SigningTestHelper.generateKeypair();
   final (_, m2MemberEnc) = SigningTestHelper.generateKeypair();
 
   final outerAdd = await _outer(
@@ -989,6 +1067,12 @@ void main() {
     ),
   );
   final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
+  final backup = _memberKeyBackup(
+    groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+    anonAccountId: m2.id!,
+    memberSigningPublicKeyHex: m2MemberSig,
+    memberSigningPrivateKeyHex: m2MemberPriv,
+  );
   await endpoints.group.addGroupMember(
     sessionBuilder,
     challenge: outerAdd.challenge,
@@ -1005,6 +1089,8 @@ void main() {
     encryptedDataKey: 'wrapped',
     callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
     memberAuthSignature: addSig,
+    encryptedMemberKey: backup.blob,
+    encryptedMemberKeyAttestation: backup.attestation,
   );
 
   final outer = await _outer(
@@ -1098,6 +1184,12 @@ test('listGroupMembers: rejected when caller is not a member', () async {
     ),
   );
   final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
+  final backup = _memberKeyBackup(
+    groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+    anonAccountId: m2.id!,
+    memberSigningPublicKeyHex: m2MemberPub,
+    memberSigningPrivateKeyHex: m2MemberPriv,
+  );
   final m2Row = await endpoints.group.addGroupMember(
     sessionBuilder,
     challenge: outerAdd.challenge,
@@ -1114,6 +1206,8 @@ test('listGroupMembers: rejected when caller is not a member', () async {
     encryptedDataKey: 'wrapped',
     callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
     memberAuthSignature: addSig,
+    encryptedMemberKey: backup.blob,
+    encryptedMemberKeyAttestation: backup.attestation,
   );
 
   // m2 leaves.
@@ -1176,7 +1270,7 @@ test('leaveGroup: last admin with other members present cannot leave (guard bloc
     anonAccountId: m2.id!,
     deviceSigningPublicKeyHex: m2DevicePub,
   );
-  final (_, m2MemberPub) = SigningTestHelper.generateKeypair();
+  final (m2MemberPriv, m2MemberPub) = SigningTestHelper.generateKeypair();
   final (_, m2MemberEnc) = SigningTestHelper.generateKeypair();
 
   final outerAdd = await _outer(
@@ -1190,6 +1284,12 @@ test('leaveGroup: last admin with other members present cannot leave (guard bloc
     ),
   );
   final addSig = SigningTestHelper.signWith(addInner, s.creatorMemberSigPriv);
+  final backup = _memberKeyBackup(
+    groupUltimateSigningPublicKeyHex: s.groupUltSigPub,
+    anonAccountId: m2.id!,
+    memberSigningPublicKeyHex: m2MemberPub,
+    memberSigningPrivateKeyHex: m2MemberPriv,
+  );
   await endpoints.group.addGroupMember(
     sessionBuilder,
     challenge: outerAdd.challenge,
@@ -1206,6 +1306,8 @@ test('leaveGroup: last admin with other members present cannot leave (guard bloc
     encryptedDataKey: 'wrapped',
     callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
     memberAuthSignature: addSig,
+    encryptedMemberKey: backup.blob,
+    encryptedMemberKeyAttestation: backup.attestation,
   );
 
   // Find the creator's (sole admin's) member row.
