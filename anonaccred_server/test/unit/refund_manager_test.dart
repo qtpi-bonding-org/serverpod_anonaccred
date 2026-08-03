@@ -268,6 +268,154 @@ void main() {
       });
     });
 
+    group('idempotency claim', () {
+      test('processing the same event twice only revokes once', () async {
+        final session = sessionBuilder.build();
+        final seed = await _seedBridgeChain(
+          session,
+          paymentRef: 'claim_test_1',
+          storeProductId: 'sku_claim_1',
+          grantQuantity: 50.0,
+        );
+
+        await RefundManager.processRefund(session, seed.event);
+        await RefundManager.processRefund(session, seed.event);
+
+        final balance = await AccountEntitlement.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.accountUuid.equals(seed.accountUuid) &
+              t.entitlementId.equals(seed.entitlementId),
+        );
+        expect(balance?.balance, 0.0);
+      });
+
+      test('the developer hook only runs once for a duplicate event', () async {
+        final session = sessionBuilder.build();
+        final seed = await _seedBridgeChain(
+          session,
+          paymentRef: 'claim_test_2',
+          storeProductId: 'sku_claim_2',
+        );
+
+        var hookCallCount = 0;
+        RefundManager.onRefund((s, event, context) async {
+          hookCallCount++;
+          return RefundAction.ignore;
+        });
+
+        await RefundManager.processRefund(session, seed.event);
+        await RefundManager.processRefund(session, seed.event);
+
+        expect(hookCallCount, 1);
+      });
+
+      test(
+        'concurrent processRefund calls for the same event only revoke once',
+        () async {
+          final session = sessionBuilder.build();
+          final seed = await _seedBridgeChain(
+            session,
+            paymentRef: 'claim_test_3',
+            storeProductId: 'sku_claim_3',
+            grantQuantity: 50.0,
+          );
+
+          var hookCallCount = 0;
+          RefundManager.onRefund((s, event, context) async {
+            hookCallCount++;
+            return RefundAction.ignore;
+          });
+
+          await Future.wait([
+            RefundManager.processRefund(session, seed.event),
+            RefundManager.processRefund(session, seed.event),
+          ]);
+
+          expect(hookCallCount, 1);
+        },
+      );
+
+      test(
+        'a genuinely new event is not blocked by an unrelated claim',
+        () async {
+          final session = sessionBuilder.build();
+          final seedA = await _seedBridgeChain(
+            session,
+            paymentRef: 'claim_test_unrelated_a',
+            storeProductId: 'sku_claim_unrelated_a',
+            entitlementTag: 'coins_claim_unrelated_a',
+          );
+          final seedB = await _seedBridgeChain(
+            session,
+            paymentRef: 'claim_test_unrelated_b',
+            storeProductId: 'sku_claim_unrelated_b',
+            entitlementTag: 'coins_claim_unrelated_b',
+          );
+
+          var hookCallCount = 0;
+          RefundManager.onRefund((s, event, context) async {
+            hookCallCount++;
+            return RefundAction.ignore;
+          });
+
+          await RefundManager.processRefund(session, seedA.event);
+          await RefundManager.processRefund(session, seedB.event);
+
+          expect(hookCallCount, 2);
+        },
+      );
+    });
+
+    group('payment resolution', () {
+      test('uses the event rail when payment refs overlap across rails', () async {
+        final session = sessionBuilder.build();
+        const paymentRef = 'shared_cross_rail_ref';
+
+        final unrelatedRailProduct = await RailProduct.db.insertRow(
+          session,
+          RailProduct(
+            rail: PaymentRail.polar,
+            storeProductId: 'sku_cross_rail_polar',
+            isActive: true,
+          ),
+        );
+        await TransactionPayment.db.insertRow(
+          session,
+          TransactionPayment(
+            railProductId: unrelatedRailProduct.id!,
+            internalTransactionId: 'itx_cross_rail_polar',
+            priceCurrency: Currency.USD,
+            price: 9.99,
+            paymentRail: PaymentRail.polar,
+            paymentCurrency: Currency.USD,
+            paymentAmount: 9.99,
+            paymentRef: paymentRef,
+            transactionTimestamp: DateTime.now().subtract(
+              const Duration(seconds: 1),
+            ),
+            status: OrderStatus.paid,
+          ),
+        );
+
+        final seed = await _seedBridgeChain(
+          session,
+          paymentRef: paymentRef,
+          storeProductId: 'sku_cross_rail_apple',
+        );
+
+        PaymentRail? resolvedRail;
+        RefundManager.onRefund((s, event, context) async {
+          resolvedRail = context.payment?.paymentRail;
+          return RefundAction.ignore;
+        });
+
+        await RefundManager.processRefund(session, seed.event);
+
+        expect(resolvedRail, PaymentRail.apple_iap);
+      });
+    });
+
     // -----------------------------------------------------------------------
     // Unknown hash: graceful return
     // -----------------------------------------------------------------------
@@ -395,8 +543,7 @@ void main() {
     // revokeEntitlement clamping: balance never goes negative
     // -----------------------------------------------------------------------
     group('revokeEntitlement clamping', () {
-      test('grant 100, consume 80, revoke 100 → balance=0 (not -80)',
-          () async {
+      test('grant 100, consume 80, revoke 100 → balance=0 (not -80)', () async {
         final session = sessionBuilder.build();
         final seed = await _seedBridgeChain(
           session,

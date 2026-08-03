@@ -49,11 +49,12 @@ class RefundContext {
 }
 
 /// Callback type for custom refund handling.
-typedef RefundHandler = Future<RefundAction> Function(
-  Session session,
-  RefundEvent event,
-  RefundContext context,
-);
+typedef RefundHandler =
+    Future<RefundAction> Function(
+      Session session,
+      RefundEvent event,
+      RefundContext context,
+    );
 
 /// Rail-independent refund processor.
 ///
@@ -75,6 +76,25 @@ class RefundManager {
 
   /// Main entry point: process a refund event.
   static Future<void> processRefund(Session session, RefundEvent event) async {
+    // Atomically claim the refund before resolving context or invoking the
+    // developer hook. The unique index makes duplicate and concurrent
+    // deliveries no-ops.
+    try {
+      await RefundClaim.db.insertRow(
+        session,
+        RefundClaim(paymentRail: event.rail, paymentRef: event.paymentRef),
+      );
+    } on DatabaseQueryException catch (e) {
+      if (e.code != PgErrorCode.uniqueViolation) {
+        rethrow;
+      }
+      session.log(
+        'Refund already claimed: ${event.rail.name}:${event.paymentRef}',
+        level: LogLevel.info,
+      );
+      return;
+    }
+
     // 1. Resolve context via bridge chain
     final context = await _resolveContext(session, event);
 
@@ -105,10 +125,12 @@ class RefundManager {
       return RefundContext(bridgeExpired: true);
     }
 
-    // 2. Find TransactionPayment by paymentRef
+    // 2. Find TransactionPayment by its rail-scoped payment reference.
     final payment = await TransactionPayment.db.findFirstRow(
       session,
-      where: (t) => t.paymentRef.equals(event.paymentRef),
+      where: (t) =>
+          t.paymentRail.equals(event.rail) &
+          t.paymentRef.equals(event.paymentRef),
     );
 
     if (payment == null) {
