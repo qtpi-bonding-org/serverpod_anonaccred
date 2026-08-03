@@ -1,0 +1,10 @@
+class: RefundClaim
+table: refund_claim
+fields:
+  paymentRail: PaymentRail
+  paymentRef: String
+  claimedAt: DateTime, default=now
+indexes:
+  refund_claim_idx:
+    fields: paymentRail, paymentRef
+    unique: true

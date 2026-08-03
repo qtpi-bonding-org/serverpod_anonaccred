@@ -33,15 +33,16 @@ import 'payment_result.dart' as _i20;
 import 'rail_product.dart' as _i21;
 import 'rail_product_grant.dart' as _i22;
 import 'receipt_hash.dart' as _i23;
-import 'transaction_payment.dart' as _i24;
+import 'refund_claim.dart' as _i24;
+import 'transaction_payment.dart' as _i25;
 import 'package:anonaccred_client/src/protocol/account_entitlement.dart'
-    as _i25;
-import 'package:anonaccred_client/src/protocol/group_entitlement.dart' as _i26;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i27;
+    as _i26;
+import 'package:anonaccred_client/src/protocol/group_entitlement.dart' as _i27;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i28;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i28;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i29;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i30;
 export 'account_entitlement.dart';
 export 'api_response.dart';
 export 'consume_result.dart';
@@ -64,6 +65,7 @@ export 'payment_result.dart';
 export 'rail_product.dart';
 export 'rail_product_grant.dart';
 export 'receipt_hash.dart';
+export 'refund_claim.dart';
 export 'transaction_payment.dart';
 export 'client.dart';
 
@@ -169,8 +171,11 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i23.ReceiptHash) {
       return _i23.ReceiptHash.fromJson(data) as T;
     }
-    if (t == _i24.TransactionPayment) {
-      return _i24.TransactionPayment.fromJson(data) as T;
+    if (t == _i24.RefundClaim) {
+      return _i24.RefundClaim.fromJson(data) as T;
+    }
+    if (t == _i25.TransactionPayment) {
+      return _i25.TransactionPayment.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AccountEntitlement?>()) {
       return (data != null ? _i2.AccountEntitlement.fromJson(data) : null) as T;
@@ -245,30 +250,33 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i23.ReceiptHash?>()) {
       return (data != null ? _i23.ReceiptHash.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i24.TransactionPayment?>()) {
-      return (data != null ? _i24.TransactionPayment.fromJson(data) : null)
+    if (t == _i1.getType<_i24.RefundClaim?>()) {
+      return (data != null ? _i24.RefundClaim.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i25.TransactionPayment?>()) {
+      return (data != null ? _i25.TransactionPayment.fromJson(data) : null)
           as T;
     }
-    if (t == List<_i25.AccountEntitlement>) {
+    if (t == List<_i26.AccountEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i25.AccountEntitlement>(e))
+              .map((e) => deserialize<_i26.AccountEntitlement>(e))
               .toList()
           as T;
     }
-    if (t == List<_i26.GroupEntitlement>) {
+    if (t == List<_i27.GroupEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i26.GroupEntitlement>(e))
+              .map((e) => deserialize<_i27.GroupEntitlement>(e))
               .toList()
           as T;
     }
-    try {
-      return _i27.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i28.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i29.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i30.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -297,7 +305,8 @@ class Protocol extends _i1.SerializationManager {
       _i21.RailProduct => 'RailProduct',
       _i22.RailProductGrant => 'RailProductGrant',
       _i23.ReceiptHash => 'ReceiptHash',
-      _i24.TransactionPayment => 'TransactionPayment',
+      _i24.RefundClaim => 'RefundClaim',
+      _i25.TransactionPayment => 'TransactionPayment',
       _ => null,
     };
   }
@@ -356,18 +365,20 @@ class Protocol extends _i1.SerializationManager {
         return 'RailProductGrant';
       case _i23.ReceiptHash():
         return 'ReceiptHash';
-      case _i24.TransactionPayment():
+      case _i24.RefundClaim():
+        return 'RefundClaim';
+      case _i25.TransactionPayment():
         return 'TransactionPayment';
-    }
-    className = _i27.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'anonaccount.$className';
     }
     className = _i28.Protocol().getClassNameForObject(data);
     if (className != null) {
-      return 'serverpod_auth_idp.$className';
+      return 'anonaccount.$className';
     }
     className = _i29.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return 'serverpod_auth_idp.$className';
+    }
+    className = _i30.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -446,20 +457,23 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'ReceiptHash') {
       return deserialize<_i23.ReceiptHash>(data['data']);
     }
+    if (dataClassName == 'RefundClaim') {
+      return deserialize<_i24.RefundClaim>(data['data']);
+    }
     if (dataClassName == 'TransactionPayment') {
-      return deserialize<_i24.TransactionPayment>(data['data']);
+      return deserialize<_i25.TransactionPayment>(data['data']);
     }
     if (dataClassName.startsWith('anonaccount.')) {
       data['className'] = dataClassName.substring(12);
-      return _i27.Protocol().deserializeByClassName(data);
+      return _i28.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i28.Protocol().deserializeByClassName(data);
+      return _i29.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i29.Protocol().deserializeByClassName(data);
+      return _i30.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -474,13 +488,13 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i27.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
       return _i28.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
       return _i29.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i30.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

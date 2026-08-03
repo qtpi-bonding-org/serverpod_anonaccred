@@ -1,4 +1,5 @@
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
@@ -161,5 +162,52 @@ void main() {
       // Clean up
       await TransactionPayment.db.deleteRow(session, savedTransaction);
     });
+
+    test(
+      'inserting a second TransactionPayment with the same '
+      '(paymentRail, paymentRef) throws a unique-constraint violation',
+      () async {
+        final session = sessionBuilder.build();
+        final shared = TransactionPayment(
+          railProductId: testRailProduct.id!,
+          internalTransactionId:
+              'first_${DateTime.now().millisecondsSinceEpoch}',
+          priceCurrency: Currency.USD,
+          price: 9.99,
+          paymentRail: PaymentRail.monero,
+          paymentCurrency: Currency.XMR,
+          paymentAmount: 0.05,
+          paymentRef: 'dup_ref_test',
+          transactionTimestamp: DateTime.now(),
+          status: OrderStatus.paid,
+        );
+        await TransactionPayment.db.insertRow(session, shared);
+
+        final duplicate = TransactionPayment(
+          railProductId: testRailProduct.id!,
+          internalTransactionId:
+              'second_${DateTime.now().millisecondsSinceEpoch}',
+          priceCurrency: Currency.USD,
+          price: 9.99,
+          paymentRail: PaymentRail.monero,
+          paymentCurrency: Currency.XMR,
+          paymentAmount: 0.05,
+          paymentRef: 'dup_ref_test',
+          transactionTimestamp: DateTime.now(),
+          status: OrderStatus.paid,
+        );
+
+        await expectLater(
+          TransactionPayment.db.insertRow(session, duplicate),
+          throwsA(
+            isA<DatabaseQueryException>().having(
+              (e) => e.code,
+              'code',
+              PgErrorCode.uniqueViolation,
+            ),
+          ),
+        );
+      },
+    );
   });
 }

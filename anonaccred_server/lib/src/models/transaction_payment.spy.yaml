@@ -20,3 +20,6 @@ indexes:
   timestamp_idx:
     fields: transactionTimestamp
     unique: false
+  payment_ref_idx:
+    fields: paymentRail, paymentRef
+    unique: true

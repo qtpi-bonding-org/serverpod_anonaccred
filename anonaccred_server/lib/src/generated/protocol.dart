@@ -41,10 +41,11 @@ import 'payment_result.dart' as _i25;
 import 'rail_product.dart' as _i26;
 import 'rail_product_grant.dart' as _i27;
 import 'receipt_hash.dart' as _i28;
-import 'transaction_payment.dart' as _i29;
+import 'refund_claim.dart' as _i29;
+import 'transaction_payment.dart' as _i30;
 import 'package:anonaccred_server/src/generated/account_entitlement.dart'
-    as _i30;
-import 'package:anonaccred_server/src/generated/group_entitlement.dart' as _i31;
+    as _i31;
+import 'package:anonaccred_server/src/generated/group_entitlement.dart' as _i32;
 export 'account_entitlement.dart';
 export 'api_response.dart';
 export 'consume_result.dart';
@@ -67,6 +68,7 @@ export 'payment_result.dart';
 export 'rail_product.dart';
 export 'rail_product_grant.dart';
 export 'receipt_hash.dart';
+export 'refund_claim.dart';
 export 'transaction_payment.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
@@ -833,6 +835,74 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
+      name: 'refund_claim',
+      dartName: 'RefundClaim',
+      schema: 'public',
+      module: 'anonaccred',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'refund_claim_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'paymentRail',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:PaymentRail',
+        ),
+        _i2.ColumnDefinition(
+          name: 'paymentRef',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'claimedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'refund_claim_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'refund_claim_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'paymentRail',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'paymentRef',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
       name: 'transaction_payment',
       dartName: 'TransactionPayment',
       schema: 'public',
@@ -970,6 +1040,23 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: false,
           isPrimary: false,
         ),
+        _i2.IndexDefinition(
+          indexName: 'payment_ref_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'paymentRail',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'paymentRef',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
       ],
       managed: true,
     ),
@@ -1076,8 +1163,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i28.ReceiptHash) {
       return _i28.ReceiptHash.fromJson(data) as T;
     }
-    if (t == _i29.TransactionPayment) {
-      return _i29.TransactionPayment.fromJson(data) as T;
+    if (t == _i29.RefundClaim) {
+      return _i29.RefundClaim.fromJson(data) as T;
+    }
+    if (t == _i30.TransactionPayment) {
+      return _i30.TransactionPayment.fromJson(data) as T;
     }
     if (t == _i1.getType<_i6.AccountEntitlement?>()) {
       return (data != null ? _i6.AccountEntitlement.fromJson(data) : null) as T;
@@ -1158,19 +1248,22 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i28.ReceiptHash?>()) {
       return (data != null ? _i28.ReceiptHash.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i29.TransactionPayment?>()) {
-      return (data != null ? _i29.TransactionPayment.fromJson(data) : null)
+    if (t == _i1.getType<_i29.RefundClaim?>()) {
+      return (data != null ? _i29.RefundClaim.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i30.TransactionPayment?>()) {
+      return (data != null ? _i30.TransactionPayment.fromJson(data) : null)
           as T;
     }
-    if (t == List<_i30.AccountEntitlement>) {
+    if (t == List<_i31.AccountEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i30.AccountEntitlement>(e))
+              .map((e) => deserialize<_i31.AccountEntitlement>(e))
               .toList()
           as T;
     }
-    if (t == List<_i31.GroupEntitlement>) {
+    if (t == List<_i32.GroupEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i31.GroupEntitlement>(e))
+              .map((e) => deserialize<_i32.GroupEntitlement>(e))
               .toList()
           as T;
     }
@@ -1215,7 +1308,8 @@ class Protocol extends _i1.SerializationManagerServer {
       _i26.RailProduct => 'RailProduct',
       _i27.RailProductGrant => 'RailProductGrant',
       _i28.ReceiptHash => 'ReceiptHash',
-      _i29.TransactionPayment => 'TransactionPayment',
+      _i29.RefundClaim => 'RefundClaim',
+      _i30.TransactionPayment => 'TransactionPayment',
       _ => null,
     };
   }
@@ -1276,7 +1370,9 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'RailProductGrant';
       case _i28.ReceiptHash():
         return 'ReceiptHash';
-      case _i29.TransactionPayment():
+      case _i29.RefundClaim():
+        return 'RefundClaim';
+      case _i30.TransactionPayment():
         return 'TransactionPayment';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -1373,8 +1469,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'ReceiptHash') {
       return deserialize<_i28.ReceiptHash>(data['data']);
     }
+    if (dataClassName == 'RefundClaim') {
+      return deserialize<_i29.RefundClaim>(data['data']);
+    }
     if (dataClassName == 'TransactionPayment') {
-      return deserialize<_i29.TransactionPayment>(data['data']);
+      return deserialize<_i30.TransactionPayment>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -1442,8 +1541,10 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i27.RailProductGrant.t;
       case _i28.ReceiptHash:
         return _i28.ReceiptHash.t;
-      case _i29.TransactionPayment:
-        return _i29.TransactionPayment.t;
+      case _i29.RefundClaim:
+        return _i29.RefundClaim.t;
+      case _i30.TransactionPayment:
+        return _i30.TransactionPayment.t;
     }
     return null;
   }
