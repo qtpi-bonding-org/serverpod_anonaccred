@@ -627,6 +627,8 @@ class EndpointGroup extends EndpointSignedPow {
     required _i4.PublicKeyDuo creatorMemberKeys,
     required String creatorMemberEncryptedDataKey,
     required String groupUltimateAttestation,
+    required String creatorEncryptedMemberKey,
+    required String creatorEncryptedMemberKeyAttestation,
   }) => caller.callServerEndpoint<_i10.ShareGroup>(
     'anonaccount.group',
     'createGroup',
@@ -640,6 +642,9 @@ class EndpointGroup extends EndpointSignedPow {
       'creatorMemberKeys': creatorMemberKeys,
       'creatorMemberEncryptedDataKey': creatorMemberEncryptedDataKey,
       'groupUltimateAttestation': groupUltimateAttestation,
+      'creatorEncryptedMemberKey': creatorEncryptedMemberKey,
+      'creatorEncryptedMemberKeyAttestation':
+          creatorEncryptedMemberKeyAttestation,
     },
   );
 

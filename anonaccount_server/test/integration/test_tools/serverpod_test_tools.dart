@@ -1138,6 +1138,8 @@ class _GroupEndpoint {
     required _i5.PublicKeyDuo creatorMemberKeys,
     required String creatorMemberEncryptedDataKey,
     required String groupUltimateAttestation,
+    required String creatorEncryptedMemberKey,
+    required String creatorEncryptedMemberKeyAttestation,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1160,6 +1162,9 @@ class _GroupEndpoint {
             'creatorMemberKeys': creatorMemberKeys,
             'creatorMemberEncryptedDataKey': creatorMemberEncryptedDataKey,
             'groupUltimateAttestation': groupUltimateAttestation,
+            'creatorEncryptedMemberKey': creatorEncryptedMemberKey,
+            'creatorEncryptedMemberKeyAttestation':
+                creatorEncryptedMemberKeyAttestation,
           }),
           serializationManager: _serializationManager,
         );
