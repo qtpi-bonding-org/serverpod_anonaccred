@@ -46,6 +46,12 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
   /// Requirements 9.2: addMockPurchase() for test setup
   final Map<String, ProductPurchase> mockPurchases = {};
 
+  /// When set, acknowledgePurchase() throws this instead of succeeding.
+  Object? acknowledgePurchaseError;
+
+  /// When set, consumePurchase() throws this instead of succeeding.
+  Object? consumePurchaseError;
+
   /// Add a mock purchase response for testing
   ///
   /// Configures the mock client to return the specified ProductPurchase
@@ -115,6 +121,10 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
       'productId': productId,
       'purchaseToken': purchaseToken,
     }));
+
+    if (acknowledgePurchaseError != null) {
+      throw acknowledgePurchaseError!;
+    }
   }
 
   /// Consume purchase (mock implementation)
@@ -138,5 +148,9 @@ class MockAndroidPublisherClient implements AndroidPublisherClient {
       'productId': productId,
       'purchaseToken': purchaseToken,
     }));
+
+    if (consumePurchaseError != null) {
+      throw consumePurchaseError!;
+    }
   }
 }

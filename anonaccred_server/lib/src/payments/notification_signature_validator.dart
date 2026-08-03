@@ -60,6 +60,13 @@ class _JWKSCache {
 }
 
 class NotificationSignatureValidator {
+  /// Test-only override for the JWKS endpoint. Production code must never
+  /// set this; tests point it at a local server to observe fetch behavior
+  /// without depending on Apple's real endpoint.
+  static Uri jwksUri = Uri.parse(_appleJwksUrl);
+
+  static Future<List<_ApplePublicKey>?>? _inFlightFetch;
+
   static String? extractSignedPayload(String requestBody) {
     try {
       final decoded = jsonDecode(requestBody) as Map<String, dynamic>;
@@ -135,9 +142,15 @@ class NotificationSignatureValidator {
       return _JWKSCache.get();
     }
 
+    // Concurrent callers that all observe an expired cache share one
+    // in-flight fetch instead of each firing their own request to Apple.
+    return _inFlightFetch ??= _fetchAndCacheJWKS();
+  }
+
+  static Future<List<_ApplePublicKey>?> _fetchAndCacheJWKS() async {
+    final client = HttpClient();
     try {
-      final client = HttpClient();
-      final request = await client.getUrl(Uri.parse(_appleJwksUrl));
+      final request = await client.getUrl(jwksUri);
       request.headers.set('Accept', 'application/json');
       final response = await request.close();
 
@@ -156,6 +169,9 @@ class NotificationSignatureValidator {
       return keys;
     } catch (e) {
       return null;
+    } finally {
+      client.close();
+      _inFlightFetch = null;
     }
   }
 

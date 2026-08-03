@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod/serverpod.dart';
@@ -8,9 +9,11 @@ import '../../exception_factory.dart';
 import '../../generated/protocol.dart';
 import '../../group_entitlement_manager.dart';
 import '../../refund_event.dart';
+import '../../refund_manager.dart';
 import '../payment_rail_interface.dart';
 import '../polar_client.dart';
 import '../redemption_target.dart';
+import '../polar_signature_validator.dart';
 
 /// Polar.sh license-key payment rail.
 ///
@@ -28,15 +31,25 @@ import '../redemption_target.dart';
 /// Mismatched target/product scope throws
 /// [AnonAccredErrorCodes.polarScopeMismatch].
 class PolarRail implements PaymentRailInterface {
-  PolarRail({required this.client});
+  PolarRail({required this.client, this.signatureValidator});
 
   /// Build from env vars: `POLAR_ACCESS_TOKEN`, `POLAR_ORGANIZATION_ID`,
-  /// `POLAR_ENVIRONMENT`.
+  /// `POLAR_ENVIRONMENT`, and `POLAR_WEBHOOK_SECRET`.
   factory PolarRail.fromEnvironment() {
-    return PolarRail(client: PolarClient.fromEnvironment());
+    final secret = Platform.environment['POLAR_WEBHOOK_SECRET'];
+    return PolarRail(
+      client: PolarClient.fromEnvironment(),
+      signatureValidator: secret == null || secret.isEmpty
+          ? null
+          : PolarSignatureValidator(secret: secret),
+    );
   }
 
   final PolarClient client;
+
+  /// Null when the webhook secret is not configured; callbacks are rejected
+  /// in that case rather than processed without authentication.
+  final PolarSignatureValidator? signatureValidator;
 
   @override
   PaymentRail get railType => PaymentRail.polar;
@@ -61,7 +74,7 @@ class PolarRail implements PaymentRailInterface {
         'flow': 'license_key',
         'instructions':
             'Complete checkout in browser; paste the license key into '
-                'redeemLicenseKey to fulfil.',
+            'redeemLicenseKey to fulfil.',
       }),
     );
   }
@@ -146,8 +159,8 @@ class PolarRail implements PaymentRailInterface {
       session,
       grantList.first.entitlementId,
     );
-    final productIsGroup =
-        firstGrantEntitlement?.tag.startsWith('group_') ?? false;
+    // RailProductGrant.entitlementId is an FK with ON DELETE NO ACTION.
+    final productIsGroup = firstGrantEntitlement!.tag.startsWith('group_');
     final targetIsGroup = target is GroupTarget;
     if (productIsGroup != targetIsGroup) {
       throw AnonAccredExceptionFactory.createPaymentException(
@@ -244,7 +257,7 @@ class PolarRail implements PaymentRailInterface {
       }
 
       // Capture first grant info for the response
-      deliveredTag = firstGrantEntitlement?.tag;
+      deliveredTag = firstGrantEntitlement.tag;
       deliveredQuantity = grantList.first.quantity;
     });
 
@@ -260,11 +273,74 @@ class PolarRail implements PaymentRailInterface {
 
   @override
   Future<PaymentResult> processCallback(
-      Map<String, dynamic> callbackData) async {
-    // TODO(polar-webhook-refund-resolution): wire Polar order_id →
-    // license_key_id via `client.getOrder(orderId)`, then forward the
-    // resulting RefundEvent to RefundManager.processRefund. For now we
-    // acknowledge deliveries without action so Polar stops retrying.
+    Map<String, dynamic> callbackData,
+  ) async {
+    final session = callbackData['session'] as Session?;
+    final requestBody = callbackData['request_body'] as String?;
+    final headers =
+        (callbackData['headers'] as Map<String, dynamic>?) ?? const {};
+
+    if (session == null || requestBody == null) {
+      return PaymentResult(
+        success: false,
+        errorMessage: 'Malformed payload: missing session or request_body',
+      );
+    }
+
+    final validator = signatureValidator;
+    if (validator == null) {
+      session.log(
+        'Polar webhook rejected: POLAR_WEBHOOK_SECRET not configured',
+        level: LogLevel.error,
+      );
+      return PaymentResult(
+        success: false,
+        errorMessage: 'Webhook signature validation not configured',
+      );
+    }
+
+    final valid = validator.verify(
+      id: headers['webhook-id'] as String? ?? '',
+      timestamp: headers['webhook-timestamp'] as String? ?? '',
+      signatureHeader: headers['webhook-signature'] as String? ?? '',
+      rawBody: requestBody,
+    );
+    if (!valid) {
+      session.log('Polar webhook signature invalid', level: LogLevel.warning);
+      return PaymentResult(
+        success: false,
+        errorMessage: 'Invalid webhook signature',
+      );
+    }
+
+    final Map<String, dynamic> notificationData;
+    try {
+      notificationData = jsonDecode(requestBody) as Map<String, dynamic>;
+    } on FormatException {
+      return PaymentResult(
+        success: false,
+        errorMessage: 'Malformed payload: invalid JSON',
+      );
+    }
+
+    final preliminary = extractRefundEvent(notificationData);
+    if (preliminary != null) {
+      final data = notificationData['data'] as Map<String, dynamic>?;
+      final orderId = data?['order_id'] as String?;
+      final resolved = orderId == null
+          ? null
+          : await resolveRefundEvent(orderId, preliminary);
+      if (resolved != null) {
+        await RefundManager.processRefund(session, resolved);
+      } else {
+        session.log(
+          'Polar refund could not be resolved to a license key for '
+          'order_id=$orderId; acknowledging without action',
+          level: LogLevel.warning,
+        );
+      }
+    }
+
     return PaymentResult(success: true);
   }
 
@@ -280,8 +356,9 @@ class PolarRail implements PaymentRailInterface {
       if (orderId == null) return null;
 
       final createdAtStr = data['created_at'] as String?;
-      final timestamp =
-          createdAtStr != null ? DateTime.tryParse(createdAtStr) : null;
+      final timestamp = createdAtStr != null
+          ? DateTime.tryParse(createdAtStr)
+          : null;
 
       return RefundEvent(
         rail: PaymentRail.polar,
@@ -294,6 +371,32 @@ class PolarRail implements PaymentRailInterface {
     } catch (_) {
       return null;
     }
+  }
+
+  /// Resolves the webhook order identifier to the license-key identifier used
+  /// when the purchase was recorded.
+  Future<RefundEvent?> resolveRefundEvent(
+    String orderId,
+    RefundEvent preliminary,
+  ) async {
+    final Map<String, dynamic> orderJson;
+    try {
+      orderJson = await client.getOrder(orderId);
+    } catch (_) {
+      return null;
+    }
+
+    final licenseKeyId = orderJson['license_key_id'] as String?;
+    if (licenseKeyId == null) return null;
+
+    return RefundEvent(
+      rail: preliminary.rail,
+      receiptHash: CryptoUtils.sha256Hash(licenseKeyId),
+      paymentRef: licenseKeyId,
+      productId: preliminary.productId,
+      purchaseTimestamp: preliminary.purchaseTimestamp,
+      rawData: preliminary.rawData,
+    );
   }
 }
 

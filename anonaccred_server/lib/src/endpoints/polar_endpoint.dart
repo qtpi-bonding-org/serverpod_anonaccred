@@ -5,6 +5,7 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import '../payments/rails/polar_rail.dart';
+import '../payments/payment_manager.dart';
 import '../payments/redemption_target.dart';
 
 /// JWT-protected Polar license-key redemption endpoint.
@@ -73,7 +74,9 @@ class PolarEndpoint extends JwtEndpoint {
           );
         }
 
-        final rail = PolarRail.fromEnvironment();
+        final rail =
+            PaymentManager.getRail(PaymentRail.polar) as PolarRail? ??
+            PolarRail.fromEnvironment();
         final result = await rail.validateLicenseKey(
           session: session,
           licenseKey: licenseKey,
