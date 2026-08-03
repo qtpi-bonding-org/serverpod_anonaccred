@@ -347,7 +347,6 @@ widening group authorization:
 
 | Deviation | Where | Status |
 |---|---|---|
-| `resolveAccountUuid` doesn't check `isRevoked`, so most endpoints accept calls from revoked devices (rule 9) | `helpers.dart:15-34` | Open |
 | No last-device guard: `revokeDevice` can strip an account to zero devices, unlocked and untransactional, where the group world has a row-locked last-admin guard | `device_management_endpoint.dart:20-88` | Open |
 | Revoked principals keep every key they held; nothing rotates a data key on revocation (rule 13) | design-level | Open — inherent to flag-based revocation |
 | `anonaccred`'s JWT is issued per **account**, so any device of a member account can spend group entitlements regardless of per-device grants | `group_commerce_endpoint.dart:109-132` | Open |
@@ -384,5 +383,15 @@ unique `device_signing_key_idx`; `registerDeviceForAccount` checks the caller wi
 both key halves; every public key is SEC1 130-hex with purpose in the field name;
 unique indexes sit on the signing key of all four principals; `createAccount` is
 transactional; `dart_jwk_duo` 2.0.0 gives both key-pair types the same hex surface.
+
+**Fixed by the endpoint-auth-interface plan** (phases 1+2,
+`docs/superpowers/plans/2026-08-03-endpoint-auth-interface.md` and
+`...-phase2.md`): `resolveAccountUuid` — the revocation-blind caller resolution that
+let `addGroupMember`, `removeGroupMember`, `getGroup`, `listGroupMembers`,
+`leaveGroup`, and `listDevices` accept a revoked device — is deleted. Every one of
+those six now resolves the caller through `AnonAccountHelpers.requireCaller` (or,
+for the five group-member-tier sites, `requireMemberStanding` on top of it), both of
+which reject a revoked device. `listDevices`'s ultimate-key fallback path is
+untouched — the ultimate key was never revocable, so there was nothing to fix there.
 
 If you fix one, delete its row. If you add one, add a row and say why.
