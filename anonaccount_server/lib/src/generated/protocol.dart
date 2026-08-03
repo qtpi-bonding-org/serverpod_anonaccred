@@ -411,6 +411,24 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'int',
           columnDefault: '0',
         ),
+        _i2.ColumnDefinition(
+          name: 'roleChangedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'roleChangedByAttestorPublicKeyHex',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'roleChangedByAttestation',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
       ],
       foreignKeys: [
         _i2.ForeignKeyDefinition(

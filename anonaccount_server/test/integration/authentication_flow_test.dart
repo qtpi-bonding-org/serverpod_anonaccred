@@ -1,5 +1,6 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:serverpod/serverpod.dart';
+import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
 import '../test_helpers/auth_services_test_helper.dart';
@@ -12,96 +13,138 @@ void main() {
   setUpAll(initializeTestAuthServices);
 
   group('Authentication Flow Integration Tests', () {
-    withServerpod('Given authentication flow integration', (sessionBuilder, endpoints) {
-      test('successful authentication with valid device key and database lookup', () async {
-        // Step 1: Create account and device in database
-        // Generate ECDSA P-256 key pair for testing (ultimate key)
-        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+    withServerpod('Given authentication flow integration', (
+      sessionBuilder,
+      endpoints,
+    ) {
+      test(
+        'successful authentication with valid device key and database lookup',
+        () async {
+          // Step 1: Create account and device in database
+          // Generate ECDSA P-256 key pair for testing (ultimate key)
+          final (ultimatePrivKey, ultimatePubKey) =
+              SigningTestHelper.generateKeypair();
 
-        const encryptedDataKey = 'encrypted_account_data_key_12345';
-        const ultimatePublicKey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-                                  'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+          const encryptedDataKey = 'encrypted_account_data_key_12345';
+          const ultimatePublicKey =
+              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
-        final account = await createTestAccount(
-          sessionBuilder,
-          ultimateSigningPublicKeyHex: ultimatePubKey,
-          encryptedDataKey: encryptedDataKey,
-          ultimateEncryptionPublicKeyHex: ultimatePublicKey,
-        );
+          final account = await createTestAccount(
+            sessionBuilder,
+            ultimateSigningPublicKeyHex: ultimatePubKey,
+            encryptedDataKey: encryptedDataKey,
+            ultimateEncryptionPublicKeyHex: ultimatePublicKey,
+          );
 
-        // Create device with real keypair (Task 6: distinct signing/encryption halves)
-        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
-        final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
-        const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
-        const deviceLabel = 'Test Device';
+          // Create device with real keypair (Task 6: distinct signing/encryption halves)
+          final (devicePrivKey, devicePubKey) =
+              SigningTestHelper.generateKeypair();
+          final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
+          const deviceEncryptedDataKey = 'encrypted_device_data_key_67890';
+          const deviceLabel = 'Test Device';
 
-        // PoW for registerDevice (signed with device key)
-        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
-        final regPow = await PowTestHelper.mint(
-          regChallenge.challenge,
-          difficulty: regChallenge.difficulty,
-        );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
-        final deviceKeyAttestation = SigningTestHelper.signWith(
-          AccountInnerPayloads.registerDevice(
-            PublicKeyDuo(
+          // PoW for registerDevice (signed with device key)
+          final regChallenge = await endpoints.entrypoint.getChallenge(
+            sessionBuilder,
+          );
+          final regPow = await PowTestHelper.mint(
+            regChallenge.challenge,
+            difficulty: regChallenge.difficulty,
+          );
+          final regPayload =
+              '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+          final regSignature = SigningTestHelper.signWith(
+            regPayload,
+            devicePrivKey,
+          );
+          final deviceKeyAttestation = SigningTestHelper.signWith(
+            AccountInnerPayloads.registerDevice(
+              PublicKeyDuo(
+                signingPublicKeyHex: devicePubKey,
+                encryptionPublicKeyHex: deviceEncPubKey,
+              ),
+            ),
+            ultimatePrivKey,
+          );
+
+          final device = await endpoints.device.registerDevice(
+            sessionBuilder,
+            challenge: regChallenge.challenge,
+            proofOfWork: regPow,
+            signature: regSignature,
+            deviceKeyAttestation: deviceKeyAttestation,
+            ultimateSigningPublicKeyHex: ultimatePubKey,
+            deviceKeys: PublicKeyDuo(
               signingPublicKeyHex: devicePubKey,
               encryptionPublicKeyHex: deviceEncPubKey,
             ),
-          ),
-          ultimatePrivKey,
-        );
+            encryptedDataKey: deviceEncryptedDataKey,
+            label: deviceLabel,
+          );
 
-        final device = await endpoints.device.registerDevice(
-          sessionBuilder,
-          challenge: regChallenge.challenge,
-          proofOfWork: regPow,
-          signature: regSignature,
-          deviceKeyAttestation: deviceKeyAttestation,
-          ultimateSigningPublicKeyHex: ultimatePubKey,
-          deviceKeys: PublicKeyDuo(
-            signingPublicKeyHex: devicePubKey,
-            encryptionPublicKeyHex: deviceEncPubKey,
-          ),
-          encryptedDataKey: deviceEncryptedDataKey,
-          label: deviceLabel,
-        );
+          // Keep one other active device so this test can exercise revocation
+          // without violating the account's last-device invariant.
+          final (_, secondDevicePubKey) = SigningTestHelper.generateKeypair();
+          final (_, secondDeviceEncPubKey) =
+              SigningTestHelper.generateKeypair();
+          final dbSession = (sessionBuilder as InternalTestSessionBuilder)
+              .internalBuild(endpoint: 'test', method: 'insertSecondDevice');
+          await AccountDevice.db.insertRow(
+            dbSession,
+            AccountDevice(
+              anonAccountId: account.id!,
+              deviceSigningPublicKeyHex: secondDevicePubKey,
+              deviceEncryptionPublicKeyHex: secondDeviceEncPubKey,
+              encryptedDataKey: 'second-device-data-key',
+              label: 'Second test device',
+              addedByAttestorPublicKeyHex: ultimatePubKey,
+              addedByAttestation: 'test-attestation',
+              lastActive: DateTime.now(),
+            ),
+          );
+          await dbSession.close();
 
-        // Step 2: Test authentication
-        final challenge = CryptoUtils.generateChallenge();
+          // Step 2: Test authentication
+          final challenge = CryptoUtils.generateChallenge();
 
-        // Use pointycastle signing via SigningTestHelper for consistency
-        final signatureHex = SigningTestHelper.signWith(challenge, devicePrivKey);
+          // Use pointycastle signing via SigningTestHelper for consistency
+          final signatureHex = SigningTestHelper.signWith(
+            challenge,
+            devicePrivKey,
+          );
 
-        // Step 3: Verify authentication (cryptographic verification only)
-        final result = await CryptoAuth.verifyChallengeResponse(
-          devicePubKey,
-          challenge,
-          signatureHex,
-        );
+          // Step 3: Verify authentication (cryptographic verification only)
+          final result = await CryptoAuth.verifyChallengeResponse(
+            devicePubKey,
+            challenge,
+            signatureHex,
+          );
 
-        expect(result.success, isTrue);
+          expect(result.success, isTrue);
 
-        // Step 4: Verify database lookup works (separate from crypto verification)
-        // In a real authentication flow, this would be done by the auth handler
-        final foundDevice = await AccountDevice.db.findFirstRow(
-          sessionBuilder.build(),
-          where: (t) => t.deviceSigningPublicKeyHex.equals(devicePubKey),
-        );
+          // Step 4: Verify database lookup works (separate from crypto verification)
+          // In a real authentication flow, this would be done by the auth handler
+          final foundDevice = await AccountDevice.db.findFirstRow(
+            sessionBuilder.build(),
+            where: (t) => t.deviceSigningPublicKeyHex.equals(devicePubKey),
+          );
 
-        expect(foundDevice, isNotNull);
-        expect(foundDevice!.anonAccountId, equals(account.id));
-        expect(foundDevice.id, equals(device.id));
-      });
+          expect(foundDevice, isNotNull);
+          expect(foundDevice!.anonAccountId, equals(account.id));
+          expect(foundDevice.id, equals(device.id));
+        },
+      );
 
       test('authentication failure with invalid signature', () async {
         // Create account and device
-        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
 
         const encryptedDataKey = 'encrypted_account_data_key_invalid';
-        const ultimatePublicKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
-                                  'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+        const ultimatePublicKey =
+            'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+            'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
         await createTestAccount(
           sessionBuilder,
@@ -110,19 +153,26 @@ void main() {
           ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
-        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) =
+            SigningTestHelper.generateKeypair();
         final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_invalid';
         const deviceLabel = 'Test Device Invalid';
 
         // PoW for registerDevice (signed with device key)
-        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(
+          sessionBuilder,
+        );
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
+        final regPayload =
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(
+          regPayload,
+          devicePrivKey,
+        );
         final deviceKeyAttestation = SigningTestHelper.signWith(
           AccountInnerPayloads.registerDevice(
             PublicKeyDuo(
@@ -150,7 +200,8 @@ void main() {
 
         // Test with invalid signature
         final challenge = CryptoUtils.generateChallenge();
-        final invalidSignature = 'invalid_signature_${'f' * 100}'; // 128 chars total
+        final invalidSignature =
+            'invalid_signature_${'f' * 100}'; // 128 chars total
 
         final result = await CryptoAuth.verifyChallengeResponse(
           devicePubKey,
@@ -159,16 +210,21 @@ void main() {
         );
 
         expect(result.success, isFalse);
-        expect(result.errorCode, equals(AnonAccountErrorCodes.cryptoInvalidSignature));
+        expect(
+          result.errorCode,
+          equals(AnonAccountErrorCodes.cryptoInvalidSignature),
+        );
       });
 
       test('authentication failure with revoked device', () async {
         // Step 1: Create account and device
-        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
 
         const encryptedDataKey = 'encrypted_account_data_key_revoked';
-        const ultimatePublicKey = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
-                                  'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
+        const ultimatePublicKey =
+            'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+            'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
 
         final account = await createTestAccount(
           sessionBuilder,
@@ -177,19 +233,26 @@ void main() {
           ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
-        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) =
+            SigningTestHelper.generateKeypair();
         final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_revoked';
         const deviceLabel = 'Test Device Revoked';
 
         // PoW for registerDevice (signed with device key)
-        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(
+          sessionBuilder,
+        );
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
+        final regPayload =
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(
+          regPayload,
+          devicePrivKey,
+        );
         final deviceKeyAttestation = SigningTestHelper.signWith(
           AccountInnerPayloads.registerDevice(
             PublicKeyDuo(
@@ -215,14 +278,39 @@ void main() {
           label: deviceLabel,
         );
 
+        final (_, secondDevicePubKey) = SigningTestHelper.generateKeypair();
+        final (_, secondDeviceEncPubKey) = SigningTestHelper.generateKeypair();
+        final dbSession = (sessionBuilder as InternalTestSessionBuilder)
+            .internalBuild(endpoint: 'test', method: 'insertSecondDevice');
+        await AccountDevice.db.insertRow(
+          dbSession,
+          AccountDevice(
+            anonAccountId: account.id!,
+            deviceSigningPublicKeyHex: secondDevicePubKey,
+            deviceEncryptionPublicKeyHex: secondDeviceEncPubKey,
+            encryptedDataKey: 'second-device-data-key',
+            label: 'Second test device',
+            addedByAttestorPublicKeyHex: ultimatePubKey,
+            addedByAttestation: 'test-attestation',
+            lastActive: DateTime.now(),
+          ),
+        );
+        await dbSession.close();
+
         // Step 2: Revoke the device via SignedPoW
-        final revokeChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final revokeChallenge = await endpoints.entrypoint.getChallenge(
+          sessionBuilder,
+        );
         final revokePow = await PowTestHelper.mint(
           revokeChallenge.challenge,
           difficulty: revokeChallenge.difficulty,
         );
-        final revokePayload = '${revokeChallenge.challenge}:revokeDevice:$ultimatePubKey';
-        final revokeSignature = SigningTestHelper.signWith(revokePayload, ultimatePrivKey);
+        final revokePayload =
+            '${revokeChallenge.challenge}:revokeDevice:$ultimatePubKey';
+        final revokeSignature = SigningTestHelper.signWith(
+          revokePayload,
+          ultimatePrivKey,
+        );
 
         await endpoints.deviceManagement.revokeDevice(
           sessionBuilder,
@@ -236,7 +324,10 @@ void main() {
         // Step 3: Try to authenticate with revoked device
         final challenge = CryptoUtils.generateChallenge();
 
-        final signatureHex = SigningTestHelper.signWith(challenge, devicePrivKey);
+        final signatureHex = SigningTestHelper.signWith(
+          challenge,
+          devicePrivKey,
+        );
 
         // Cryptographic verification should still succeed (signature is valid)
         final result = await CryptoAuth.verifyChallengeResponse(
@@ -259,11 +350,13 @@ void main() {
 
       test('AuthenticationInfo structure matches Serverpod requirements', () async {
         // Create account and device
-        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
 
         const encryptedDataKey = 'encrypted_account_data_key_info';
-        const ultimatePublicKey = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd'
-                                  'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd';
+        const ultimatePublicKey =
+            'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd'
+            'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd';
 
         final account = await createTestAccount(
           sessionBuilder,
@@ -272,19 +365,26 @@ void main() {
           ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
-        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) =
+            SigningTestHelper.generateKeypair();
         final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_info';
         const deviceLabel = 'Test Device Info';
 
         // PoW for registerDevice (signed with device key)
-        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(
+          sessionBuilder,
+        );
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
+        final regPayload =
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(
+          regPayload,
+          devicePrivKey,
+        );
         final deviceKeyAttestation = SigningTestHelper.signWith(
           AccountInnerPayloads.registerDevice(
             PublicKeyDuo(
@@ -321,16 +421,21 @@ void main() {
         // Verify the authenticated session works by calling an authenticated endpoint
         final session = authenticatedSessionBuilder.build();
         expect(session.authenticated, isNotNull);
-        expect(session.authenticated!.userIdentifier, equals(account.id.toString()));
+        expect(
+          session.authenticated!.userIdentifier,
+          equals(account.id.toString()),
+        );
       });
 
       test('multiple devices can authenticate independently', () async {
         // Create account
-        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
 
         const encryptedDataKey = 'encrypted_account_data_key_multi';
-        const ultimatePublicKey = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
-                                  'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+        const ultimatePublicKey =
+            'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+            'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
         final account = await createTestAccount(
           sessionBuilder,
@@ -341,7 +446,8 @@ void main() {
 
         // Create multiple devices
         final devices = <AccountDevice>[];
-        final deviceKeyPairs = <({String privateKeyHex, String publicKeyHex})>[];
+        final deviceKeyPairs =
+            <({String privateKeyHex, String publicKeyHex})>[];
 
         for (var i = 0; i < 3; i++) {
           final (devPrivKey, devPubKey) = SigningTestHelper.generateKeypair();
@@ -351,13 +457,19 @@ void main() {
           final deviceLabel = 'Test Device Multi $i';
 
           // PoW for registerDevice (signed with ultimate key — account owner authorizes)
-          final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+          final regChallenge = await endpoints.entrypoint.getChallenge(
+            sessionBuilder,
+          );
           final regPow = await PowTestHelper.mint(
             regChallenge.challenge,
             difficulty: regChallenge.difficulty,
           );
-          final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devPubKey';
-          final regSignature = SigningTestHelper.signWith(regPayload, devPrivKey);
+          final regPayload =
+              '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devPubKey';
+          final regSignature = SigningTestHelper.signWith(
+            regPayload,
+            devPrivKey,
+          );
           final deviceKeyAttestation = SigningTestHelper.signWith(
             AccountInnerPayloads.registerDevice(
               PublicKeyDuo(
@@ -384,7 +496,10 @@ void main() {
           );
 
           devices.add(device);
-          deviceKeyPairs.add((privateKeyHex: devPrivKey, publicKeyHex: devPubKey));
+          deviceKeyPairs.add((
+            privateKeyHex: devPrivKey,
+            publicKeyHex: devPubKey,
+          ));
         }
 
         // Test that each device can authenticate independently
@@ -396,7 +511,10 @@ void main() {
 
           final challenge = CryptoUtils.generateChallenge();
 
-          final signatureHex = SigningTestHelper.signWith(challenge, keyPairInfo.privateKeyHex);
+          final signatureHex = SigningTestHelper.signWith(
+            challenge,
+            keyPairInfo.privateKeyHex,
+          );
 
           final result = await CryptoAuth.verifyChallengeResponse(
             devicePublicKeyHex,
@@ -409,7 +527,8 @@ void main() {
           // Verify database lookup works for each device
           final foundDevice = await AccountDevice.db.findFirstRow(
             sessionBuilder.build(),
-            where: (t) => t.deviceSigningPublicKeyHex.equals(devicePublicKeyHex),
+            where: (t) =>
+                t.deviceSigningPublicKeyHex.equals(devicePublicKeyHex),
           );
 
           expect(foundDevice, isNotNull);
@@ -420,11 +539,13 @@ void main() {
 
       test('extracts device key from authenticated session', () async {
         // Create test data
-        final (ultimatePrivKey, ultimatePubKey) = SigningTestHelper.generateKeypair();
+        final (ultimatePrivKey, ultimatePubKey) =
+            SigningTestHelper.generateKeypair();
 
         const encryptedDataKey = 'encrypted_account_data_key_extract';
-        const ultimatePublicKey = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-                                  'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+        const ultimatePublicKey =
+            'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
         final account = await createTestAccount(
           sessionBuilder,
@@ -433,19 +554,26 @@ void main() {
           ultimateEncryptionPublicKeyHex: ultimatePublicKey,
         );
 
-        final (devicePrivKey, devicePubKey) = SigningTestHelper.generateKeypair();
+        final (devicePrivKey, devicePubKey) =
+            SigningTestHelper.generateKeypair();
         final (_, deviceEncPubKey) = SigningTestHelper.generateKeypair();
         const deviceEncryptedDataKey = 'encrypted_device_data_key_extract';
         const deviceLabel = 'Test Device Extract';
 
         // PoW for registerDevice (signed with device key)
-        final regChallenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+        final regChallenge = await endpoints.entrypoint.getChallenge(
+          sessionBuilder,
+        );
         final regPow = await PowTestHelper.mint(
           regChallenge.challenge,
           difficulty: regChallenge.difficulty,
         );
-        final regPayload = '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
-        final regSignature = SigningTestHelper.signWith(regPayload, devicePrivKey);
+        final regPayload =
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePubKey';
+        final regSignature = SigningTestHelper.signWith(
+          regPayload,
+          devicePrivKey,
+        );
         final deviceKeyAttestation = SigningTestHelper.signWith(
           AccountInnerPayloads.registerDevice(
             PublicKeyDuo(
@@ -483,7 +611,10 @@ void main() {
 
         // Test extraction - verify the auth info is properly set
         expect(session.authenticated, isNotNull);
-        expect(session.authenticated!.userIdentifier, equals(account.id.toString()));
+        expect(
+          session.authenticated!.userIdentifier,
+          equals(account.id.toString()),
+        );
 
         // In a real implementation, device key extraction would be done by the auth handler
         // Here we just verify that the session is properly authenticated

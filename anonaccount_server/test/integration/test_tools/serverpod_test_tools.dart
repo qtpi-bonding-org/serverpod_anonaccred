@@ -1502,6 +1502,55 @@ class _GroupEndpoint {
     });
   }
 
+  _i3.Future<_i14.GroupMember> changeGroupMemberRole(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i2.UuidValue memberId,
+    required _i15.GroupMemberRole newRole,
+    String? callerMemberSigningPublicKeyHex,
+    String? memberAuthSignature,
+    String? groupUltimateSignature,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'changeGroupMemberRole',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'group',
+          methodName: 'changeGroupMemberRole',
+          parameters: _i1.testObjectToJson({
+            'challenge': challenge,
+            'proofOfWork': proofOfWork,
+            'signature': signature,
+            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+            'memberId': memberId,
+            'newRole': newRole,
+            'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+            'memberAuthSignature': memberAuthSignature,
+            'groupUltimateSignature': groupUltimateSignature,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i14.GroupMember>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Stream<_i16.GroupMemberView> monitorGroupMembership(
     _i1.TestSessionBuilder sessionBuilder, {
     required String challenge,

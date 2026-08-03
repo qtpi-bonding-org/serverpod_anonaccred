@@ -172,6 +172,17 @@ abstract final class ActiveRows {
     lockMode: LockMode.forUpdate,
   );
 
+  static Future<List<AccountDevice>> activeDevicesForAccountForUpdate(
+    Session session,
+    UuidValue accountId, {
+    required Transaction transaction,
+  }) => AccountDevice.db.find(
+    session,
+    where: (t) => t.anonAccountId.equals(accountId) & t.isRevoked.equals(false),
+    transaction: transaction,
+    lockMode: LockMode.forUpdate,
+  );
+
   static Future<GroupOwner?> owner(
     Session session,
     UuidValue groupId,

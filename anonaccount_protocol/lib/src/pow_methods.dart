@@ -34,6 +34,7 @@ abstract final class GroupMethods {
   static const listGroupMembers = 'listGroupMembers';
   static const leaveGroup = 'leaveGroup';
   static const grantMemberDevice = 'grantMemberDevice';
+  static const changeGroupMemberRole = 'changeGroupMemberRole';
 }
 
 abstract final class AccountInnerPayloads {
@@ -83,6 +84,9 @@ abstract final class GroupInnerPayloads {
 
   static String removeGroupMember(UuidValue memberId) =>
       'removeGroupMember:$memberId';
+
+  static String changeGroupMemberRole(UuidValue memberId, String newRole) =>
+      'changeGroupMemberRole:$memberId:$newRole';
 
   static String leaveGroup(UuidValue memberId) => 'leaveGroup:$memberId';
 

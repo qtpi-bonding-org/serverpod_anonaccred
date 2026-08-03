@@ -62,13 +62,34 @@ class DeviceManagementEndpoint extends SignedPowEndpoint {
           'revokeDevice',
         );
 
-        await AccountDevice.db.updateRow(
-          session,
-          foundDevice.copyWith(
-            isRevoked: true,
-            revokedAt: AnonAccountHelpers.roundToMinute(DateTime.now()),
-          ),
-        );
+        await session.db.transaction((tx) async {
+          if (!foundDevice.isRevoked) {
+            final activeDevices =
+                await ActiveRows.activeDevicesForAccountForUpdate(
+                  session,
+                  accountUuid,
+                  transaction: tx,
+                );
+            if (activeDevices.length == 1 &&
+                activeDevices.first.id == foundDevice.id) {
+              throw AnonAccountExceptionFactory.createAuthenticationException(
+                code: AnonAccountErrorCodes.deviceOperationNotAllowed,
+                message: "Cannot revoke the account's last active device.",
+                operation: 'revokeDevice',
+                details: {'deviceId': foundDevice.id.toString()},
+              );
+            }
+          }
+
+          await AccountDevice.db.updateRow(
+            session,
+            foundDevice.copyWith(
+              isRevoked: true,
+              revokedAt: AnonAccountHelpers.roundToMinute(DateTime.now()),
+            ),
+            transaction: tx,
+          );
+        });
 
         // Best-effort: revoke any JWTs for this account
         try {

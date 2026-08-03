@@ -347,15 +347,13 @@ widening group authorization:
 
 | Deviation | Where | Status |
 |---|---|---|
-| No last-device guard: `revokeDevice` can strip an account to zero devices, unlocked and untransactional, where the group world has a row-locked last-admin guard | `device_management_endpoint.dart:20-88` | Open |
-| Revoked principals keep every key they held; nothing rotates a data key on revocation (rule 13) | design-level | Open — inherent to flag-based revocation |
+| Revoked principals keep every key they held; nothing rotates a data key on revocation (rule 13) | design-level | Deliberately deferred, not fixed here — rotation only ever protects *future* access (nothing can revoke a key already fetched/decrypted; that's cryptographically impossible, not a design choice). `keyEpoch` on `AccountDevice`/`ShareGroup`/`GroupMember` is reserved exactly for this and still unread/unwritten — real rotation (re-wrap fan-out to every remaining active principal, epoch-bump mechanics) is its own dedicated design when it's time, not a fix folded into this plan. |
 | `anonaccred`'s JWT is issued per **account**; entitlement consumption is correctly account-scoped (matches standard IAP restore-purchase semantics — any of an account's devices can use what the account bought), so this row is **not** the deviation it looked like. The real gap was that a revoked device's still-valid JWT could keep spending, since `revokeAllTokens` is best-effort. **Fixed** by `docs/superpowers/plans/2026-08-03-commerce-device-revocation-check.md`: every commerce/IAP/Polar method now calls `AnonAccountHelpers.requireCaller` on the JWT's embedded device claim before proceeding, closing that window without gating entitlements by per-device group-key grants (a different, unrelated concern). | `commerce_endpoint.dart`, `group_commerce_endpoint.dart`, `iap_endpoint.dart`, `polar_endpoint.dart` | Fixed |
 
 **Roots that can't be exercised or recovered** — was three instances of one pattern, now two:
 
 | Deviation | Where | Status |
 |---|---|---|
-| There is no way to change a `GroupMember.role`. `GroupMember.db.updateRow` appears twice, both setting `isRevoked` — yet two error messages advise "promote another member to admin first" | `group_endpoint.dart:592`, `:946` | Open — the advised operation does not exist |
 
 **Group-world gaps the account world doesn't have:**
 
@@ -410,6 +408,17 @@ ultimate key is wrapped to the creator's account ultimate encryption key,
 persisted in `GroupOwner`, and recovered by `recoverAccount`. The SDK now
 provides `addGroupMemberAsOwner` and `removeGroupMemberAsOwner`; co-ownership
 remains out of scope.
+
+**Fixed by the last-backlog-items plan**
+(`docs/superpowers/plans/2026-08-03-last-backlog-items.md`): `changeGroupMemberRole`
+now exists — promotion accepts either an active admin's member key or the group's
+ultimate signature; demotion requires the ultimate signature only, mirroring the
+authority `removeGroupMember` already requires to remove an admin outright. Demoting
+a group's last active admin is blocked unconditionally. `GroupMember` gained
+`roleChangedAt`/`roleChangedByAttestorPublicKeyHex`/`roleChangedByAttestation` so a
+role change is attested and persisted. The SDK's `removeGroupMember`/`leaveGroup`
+error messages that advise "promote another member to admin first" now describe a
+real operation.
 
 **Also fixed, mis-stated as still open**: `webcrypto` dev-dependency versions
 across `anonaccount_server`/`anonaccred_server` were aligned to `^0.6.0` — a

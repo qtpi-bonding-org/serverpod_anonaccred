@@ -23,8 +23,9 @@ Future<
 >
 _bootstrapAccountWithDevice(
   TestSessionBuilder sessionBuilder,
-  TestEndpoints endpoints,
-) async {
+  TestEndpoints endpoints, {
+  bool withSecondDevice = false,
+}) async {
   final (ultimatePriv, ultimatePub) = SigningTestHelper.generateKeypair();
   await createTestAccount(
     sessionBuilder,
@@ -68,6 +69,46 @@ _bootstrapAccountWithDevice(
     label: 'bootstrap-device',
   );
 
+  if (withSecondDevice) {
+    final (_, secondDevicePub) = SigningTestHelper.generateKeypair();
+    final (_, secondDeviceEncPub) = SigningTestHelper.generateKeypair();
+    final pairChallenge = await endpoints.entrypoint.getChallenge(
+      sessionBuilder,
+    );
+    final pairPow = await PowTestHelper.mint(
+      pairChallenge.challenge,
+      difficulty: pairChallenge.difficulty,
+    );
+    final pairPayload =
+        '${pairChallenge.challenge}:registerDeviceForAccount:$devicePub';
+    final pairSignature = SigningTestHelper.signWith(pairPayload, devicePriv);
+    final pairingAttestation = SigningTestHelper.signWith(
+      AccountInnerPayloads.pairDevice(
+        PublicKeyDuo(
+          signingPublicKeyHex: secondDevicePub,
+          encryptionPublicKeyHex: secondDeviceEncPub,
+        ),
+      ),
+      devicePriv,
+    );
+    await endpoints.deviceManagement.registerDeviceForAccount(
+      sessionBuilder,
+      challenge: pairChallenge.challenge,
+      proofOfWork: pairPow,
+      signature: pairSignature,
+      publicKeyHex: devicePub,
+      newDeviceKeys: PublicKeyDuo(
+        signingPublicKeyHex: secondDevicePub,
+        encryptionPublicKeyHex: secondDeviceEncPub,
+      ),
+      pairingAttestation: pairingAttestation,
+      newDeviceEncryptedDataKey: 'bootstrap-second-device-data-key',
+      label: 'bootstrap-second-device',
+      ultimateEncryptionPublicKeyHex: ultimatePub,
+      ultimateSigningPublicKeyHex: ultimatePub,
+    );
+  }
+
   return (
     ultimatePriv: ultimatePriv,
     ultimatePub: ultimatePub,
@@ -85,7 +126,11 @@ void main() {
     endpoints,
   ) {
     test('revokeDevice stamps revokedAt', () async {
-      final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
+      final s = await _bootstrapAccountWithDevice(
+        sessionBuilder,
+        endpoints,
+        withSecondDevice: true,
+      );
 
       final revChallenge = await endpoints.entrypoint.getChallenge(
         sessionBuilder,
@@ -122,8 +167,51 @@ void main() {
       }
     });
 
+    test(
+      'revokeDevice refuses to revoke the account\'s last active device',
+      () async {
+        final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
+
+        final revChallenge = await endpoints.entrypoint.getChallenge(
+          sessionBuilder,
+        );
+        final revPow = await PowTestHelper.mint(
+          revChallenge.challenge,
+          difficulty: revChallenge.difficulty,
+        );
+        final revPayload =
+            '${revChallenge.challenge}:revokeDevice:${s.ultimatePub}';
+        final revSignature = SigningTestHelper.signWith(
+          revPayload,
+          s.ultimatePriv,
+        );
+
+        await expectLater(
+          endpoints.deviceManagement.revokeDevice(
+            sessionBuilder,
+            challenge: revChallenge.challenge,
+            proofOfWork: revPow,
+            publicKeyHex: s.ultimatePub,
+            signature: revSignature,
+            deviceId: s.device.id!,
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+
+        final row = (await AccountDevice.db.findById(
+          sessionBuilder.build(),
+          s.device.id!,
+        ))!;
+        expect(row.isRevoked, isFalse);
+      },
+    );
+
     test('a revoked device cannot pair a new device', () async {
-      final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
+      final s = await _bootstrapAccountWithDevice(
+        sessionBuilder,
+        endpoints,
+        withSecondDevice: true,
+      );
 
       final revChallenge = await endpoints.entrypoint.getChallenge(
         sessionBuilder,
@@ -286,7 +374,11 @@ void main() {
       expect(device.anonAccountId, s.device.anonAccountId);
     });
     test('listDevices rejects a revoked device key', () async {
-      final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
+      final s = await _bootstrapAccountWithDevice(
+        sessionBuilder,
+        endpoints,
+        withSecondDevice: true,
+      );
 
       final revokeChallenge = await endpoints.entrypoint.getChallenge(
         sessionBuilder,

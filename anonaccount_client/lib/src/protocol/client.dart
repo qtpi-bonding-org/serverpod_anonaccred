@@ -842,12 +842,40 @@ class EndpointGroup extends EndpointSignedPow {
     },
   );
 
+  _i2.Future<_i13.GroupMember> changeGroupMemberRole({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required _i1.UuidValue memberId,
+    required _i14.GroupMemberRole newRole,
+    String? callerMemberSigningPublicKeyHex,
+    String? memberAuthSignature,
+    String? groupUltimateSignature,
+  }) => caller.callServerEndpoint<_i13.GroupMember>(
+    'anonaccount.group',
+    'changeGroupMemberRole',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+      'memberId': memberId,
+      'newRole': newRole,
+      'callerMemberSigningPublicKeyHex': callerMemberSigningPublicKeyHex,
+      'memberAuthSignature': memberAuthSignature,
+      'groupUltimateSignature': groupUltimateSignature,
+    },
+  );
+
   _i2.Stream<_i15.GroupMemberView> monitorGroupMembership({
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
+    required _i1.UuidValue groupId,
     required String memberSigningKeyHex,
+    required String memberAuthSignature,
   }) =>
       caller.callStreamingServerEndpoint<
         _i2.Stream<_i15.GroupMemberView>,
@@ -860,7 +888,9 @@ class EndpointGroup extends EndpointSignedPow {
           'proofOfWork': proofOfWork,
           'signature': signature,
           'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
+          'groupId': groupId,
           'memberSigningKeyHex': memberSigningKeyHex,
+          'memberAuthSignature': memberAuthSignature,
         },
         {},
       );

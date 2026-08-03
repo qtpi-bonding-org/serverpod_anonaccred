@@ -50,6 +50,14 @@ void main() {
     );
   });
 
+  test('changeGroupMemberRole formats the domain-separated payload', () {
+    final payload = GroupInnerPayloads.changeGroupMemberRole(acct, 'admin');
+    expect(
+      payload,
+      'changeGroupMemberRole:11111111-1111-4111-8111-111111111111:admin',
+    );
+  });
+
   test('monitorGroupMembership formats the domain-separated payload', () {
     final payload = GroupInnerPayloads.monitorGroupMembership(acct);
     expect(

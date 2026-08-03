@@ -35,3 +35,9 @@ fields:
   revokedAt: DateTime?
   # Reserved for key rotation. No endpoint reads it yet.
   keyEpoch: int, default=0
+  # Set only when this row's role has been changed post-creation, via
+  # changeGroupMemberRole. Null for a row whose role has never changed —
+  # distinct from "changed at creation," which addedBy* already covers.
+  roleChangedAt: DateTime?
+  roleChangedByAttestorPublicKeyHex: String?
+  roleChangedByAttestation: String?

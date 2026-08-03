@@ -38,6 +38,9 @@ abstract class GroupMember
     this.revokedByAttestation,
     this.revokedAt,
     int? keyEpoch,
+    this.roleChangedAt,
+    this.roleChangedByAttestorPublicKeyHex,
+    this.roleChangedByAttestation,
   }) : joinedAt = joinedAt ?? DateTime.now(),
        isRevoked = isRevoked ?? false,
        keyEpoch = keyEpoch ?? 0;
@@ -61,6 +64,9 @@ abstract class GroupMember
     String? revokedByAttestation,
     DateTime? revokedAt,
     int? keyEpoch,
+    DateTime? roleChangedAt,
+    String? roleChangedByAttestorPublicKeyHex,
+    String? roleChangedByAttestation,
   }) = _GroupMemberImpl;
 
   factory GroupMember.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -108,6 +114,15 @@ abstract class GroupMember
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
+      roleChangedAt: jsonSerialization['roleChangedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['roleChangedAt'],
+            ),
+      roleChangedByAttestorPublicKeyHex:
+          jsonSerialization['roleChangedByAttestorPublicKeyHex'] as String?,
+      roleChangedByAttestation:
+          jsonSerialization['roleChangedByAttestation'] as String?,
     );
   }
 
@@ -152,6 +167,12 @@ abstract class GroupMember
 
   int keyEpoch;
 
+  DateTime? roleChangedAt;
+
+  String? roleChangedByAttestorPublicKeyHex;
+
+  String? roleChangedByAttestation;
+
   @override
   _i1.Table<_i1.UuidValue?> get table => t;
 
@@ -177,6 +198,9 @@ abstract class GroupMember
     String? revokedByAttestation,
     DateTime? revokedAt,
     int? keyEpoch,
+    DateTime? roleChangedAt,
+    String? roleChangedByAttestorPublicKeyHex,
+    String? roleChangedByAttestation,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -202,6 +226,11 @@ abstract class GroupMember
         'revokedByAttestation': revokedByAttestation,
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'keyEpoch': keyEpoch,
+      if (roleChangedAt != null) 'roleChangedAt': roleChangedAt?.toJson(),
+      if (roleChangedByAttestorPublicKeyHex != null)
+        'roleChangedByAttestorPublicKeyHex': roleChangedByAttestorPublicKeyHex,
+      if (roleChangedByAttestation != null)
+        'roleChangedByAttestation': roleChangedByAttestation,
     };
   }
 
@@ -229,6 +258,11 @@ abstract class GroupMember
         'revokedByAttestation': revokedByAttestation,
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'keyEpoch': keyEpoch,
+      if (roleChangedAt != null) 'roleChangedAt': roleChangedAt?.toJson(),
+      if (roleChangedByAttestorPublicKeyHex != null)
+        'roleChangedByAttestorPublicKeyHex': roleChangedByAttestorPublicKeyHex,
+      if (roleChangedByAttestation != null)
+        'roleChangedByAttestation': roleChangedByAttestation,
     };
   }
 
@@ -290,6 +324,9 @@ class _GroupMemberImpl extends GroupMember {
     String? revokedByAttestation,
     DateTime? revokedAt,
     int? keyEpoch,
+    DateTime? roleChangedAt,
+    String? roleChangedByAttestorPublicKeyHex,
+    String? roleChangedByAttestation,
   }) : super._(
          id: id,
          shareGroupId: shareGroupId,
@@ -309,6 +346,9 @@ class _GroupMemberImpl extends GroupMember {
          revokedByAttestation: revokedByAttestation,
          revokedAt: revokedAt,
          keyEpoch: keyEpoch,
+         roleChangedAt: roleChangedAt,
+         roleChangedByAttestorPublicKeyHex: roleChangedByAttestorPublicKeyHex,
+         roleChangedByAttestation: roleChangedByAttestation,
        );
 
   /// Returns a shallow copy of this [GroupMember]
@@ -334,6 +374,9 @@ class _GroupMemberImpl extends GroupMember {
     Object? revokedByAttestation = _Undefined,
     Object? revokedAt = _Undefined,
     int? keyEpoch,
+    Object? roleChangedAt = _Undefined,
+    Object? roleChangedByAttestorPublicKeyHex = _Undefined,
+    Object? roleChangedByAttestation = _Undefined,
   }) {
     return GroupMember(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -365,6 +408,16 @@ class _GroupMemberImpl extends GroupMember {
           : this.revokedByAttestation,
       revokedAt: revokedAt is DateTime? ? revokedAt : this.revokedAt,
       keyEpoch: keyEpoch ?? this.keyEpoch,
+      roleChangedAt: roleChangedAt is DateTime?
+          ? roleChangedAt
+          : this.roleChangedAt,
+      roleChangedByAttestorPublicKeyHex:
+          roleChangedByAttestorPublicKeyHex is String?
+          ? roleChangedByAttestorPublicKeyHex
+          : this.roleChangedByAttestorPublicKeyHex,
+      roleChangedByAttestation: roleChangedByAttestation is String?
+          ? roleChangedByAttestation
+          : this.roleChangedByAttestation,
     );
   }
 }
@@ -463,6 +516,25 @@ class GroupMemberUpdateTable extends _i1.UpdateTable<GroupMemberTable> {
     table.keyEpoch,
     value,
   );
+
+  _i1.ColumnValue<DateTime, DateTime> roleChangedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.roleChangedAt,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> roleChangedByAttestorPublicKeyHex(
+    String? value,
+  ) => _i1.ColumnValue(
+    table.roleChangedByAttestorPublicKeyHex,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> roleChangedByAttestation(String? value) =>
+      _i1.ColumnValue(
+        table.roleChangedByAttestation,
+        value,
+      );
 }
 
 class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
@@ -532,6 +604,18 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    roleChangedAt = _i1.ColumnDateTime(
+      'roleChangedAt',
+      this,
+    );
+    roleChangedByAttestorPublicKeyHex = _i1.ColumnString(
+      'roleChangedByAttestorPublicKeyHex',
+      this,
+    );
+    roleChangedByAttestation = _i1.ColumnString(
+      'roleChangedByAttestation',
+      this,
+    );
   }
 
   late final GroupMemberUpdateTable updateTable;
@@ -569,6 +653,12 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
   late final _i1.ColumnDateTime revokedAt;
 
   late final _i1.ColumnInt keyEpoch;
+
+  late final _i1.ColumnDateTime roleChangedAt;
+
+  late final _i1.ColumnString roleChangedByAttestorPublicKeyHex;
+
+  late final _i1.ColumnString roleChangedByAttestation;
 
   _i2.ShareGroupTable get shareGroup {
     if (_shareGroup != null) return _shareGroup!;
@@ -614,6 +704,9 @@ class GroupMemberTable extends _i1.Table<_i1.UuidValue?> {
     revokedByAttestation,
     revokedAt,
     keyEpoch,
+    roleChangedAt,
+    roleChangedByAttestorPublicKeyHex,
+    roleChangedByAttestation,
   ];
 
   @override

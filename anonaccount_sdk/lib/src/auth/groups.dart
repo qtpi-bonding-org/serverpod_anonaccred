@@ -464,6 +464,105 @@ class AnonaccountGroups {
     );
   }
 
+  Future<GroupMember> promoteToAdmin({
+    required UuidValue groupId,
+    required UuidValue memberId,
+    required KeyDuo callerDeviceKey,
+  }) async {
+    final memberKey = await _requireMemberKey(groupId, 'promoteToAdmin');
+    final callerMemberSigningPublicKeyHex =
+        (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final callerDeviceSigningPublicKeyHex =
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final memberAuthSignature = await SigningCrypto.signChallenge(
+      GroupInnerPayloads.changeGroupMemberRole(
+        memberId,
+        GroupMemberRole.admin.name,
+      ),
+      memberKey,
+    );
+    final challengeResp = await _caller.entrypoint.getChallenge();
+    final envelope = await PowSigner.build(
+      challenge: challengeResp.challenge,
+      methodName: 'changeGroupMemberRole',
+      signingKey: callerDeviceKey,
+      publicKeyHex: callerDeviceSigningPublicKeyHex,
+      difficulty: challengeResp.difficulty,
+    );
+    return _caller.group.changeGroupMemberRole(
+      challenge: envelope.challenge,
+      proofOfWork: envelope.proofOfWork,
+      signature: envelope.signature,
+      callerDeviceSigningPublicKeyHex: envelope.publicKeyHex,
+      memberId: memberId,
+      newRole: GroupMemberRole.admin,
+      callerMemberSigningPublicKeyHex: callerMemberSigningPublicKeyHex,
+      memberAuthSignature: memberAuthSignature,
+      groupUltimateSignature: null,
+    );
+  }
+
+  Future<GroupMember> promoteToAdminAsOwner({
+    required UuidValue groupId,
+    required UuidValue memberId,
+    required KeyDuo callerDeviceKey,
+  }) async {
+    final ownerKey = await _requireOwnerKey(groupId, 'promoteToAdminAsOwner');
+    return _changeGroupMemberRoleAsOwner(
+      memberId: memberId,
+      newRole: GroupMemberRole.admin,
+      callerDeviceKey: callerDeviceKey,
+      ownerKey: ownerKey,
+    );
+  }
+
+  Future<GroupMember> demoteToMember({
+    required UuidValue groupId,
+    required UuidValue memberId,
+    required KeyDuo callerDeviceKey,
+  }) async {
+    final ownerKey = await _requireOwnerKey(groupId, 'demoteToMember');
+    return _changeGroupMemberRoleAsOwner(
+      memberId: memberId,
+      newRole: GroupMemberRole.member,
+      callerDeviceKey: callerDeviceKey,
+      ownerKey: ownerKey,
+    );
+  }
+
+  Future<GroupMember> _changeGroupMemberRoleAsOwner({
+    required UuidValue memberId,
+    required GroupMemberRole newRole,
+    required KeyDuo callerDeviceKey,
+    required KeyDuo ownerKey,
+  }) async {
+    final callerDeviceSigningPublicKeyHex =
+        (await callerDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+    final groupUltimateSignature = await SigningCrypto.signChallenge(
+      GroupInnerPayloads.changeGroupMemberRole(memberId, newRole.name),
+      ownerKey,
+    );
+    final challengeResp = await _caller.entrypoint.getChallenge();
+    final envelope = await PowSigner.build(
+      challenge: challengeResp.challenge,
+      methodName: 'changeGroupMemberRole',
+      signingKey: callerDeviceKey,
+      publicKeyHex: callerDeviceSigningPublicKeyHex,
+      difficulty: challengeResp.difficulty,
+    );
+    return _caller.group.changeGroupMemberRole(
+      challenge: envelope.challenge,
+      proofOfWork: envelope.proofOfWork,
+      signature: envelope.signature,
+      callerDeviceSigningPublicKeyHex: envelope.publicKeyHex,
+      memberId: memberId,
+      newRole: newRole,
+      callerMemberSigningPublicKeyHex: null,
+      memberAuthSignature: null,
+      groupUltimateSignature: groupUltimateSignature,
+    );
+  }
+
   /// Leaves a group — the caller removes themselves using their member key.
   Future<bool> leaveGroup({
     required UuidValue groupId,

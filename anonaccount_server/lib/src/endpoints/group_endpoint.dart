@@ -704,6 +704,198 @@ class GroupEndpoint extends SignedPowEndpoint {
     );
   }
 
+  Future<GroupMember> changeGroupMemberRole(
+    Session session, {
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String callerDeviceSigningPublicKeyHex,
+    required UuidValue memberId,
+    required GroupMemberRole newRole,
+    String? callerMemberSigningPublicKeyHex,
+    String? memberAuthSignature,
+    String? groupUltimateSignature,
+  }) async {
+    return tryOperation(
+      session,
+      'changeGroupMemberRole',
+      () async {
+        final outerPayload =
+            '$challenge:${GroupMethods.changeGroupMemberRole}:$callerDeviceSigningPublicKeyHex';
+        await verifySignedPow(
+          session,
+          challenge,
+          proofOfWork,
+          callerDeviceSigningPublicKeyHex,
+          signature,
+          outerPayload,
+        );
+
+        final target = await AllRows.groupMemberByIdIncludingRevoked(
+          session,
+          memberId,
+        );
+        if (target == null) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authDeviceNotFound,
+            message: 'Group member not found',
+            operation: 'changeGroupMemberRole',
+            details: {'memberId': memberId.toString()},
+          );
+        }
+        if (target.isRevoked) {
+          throw AnonAccountExceptionFactory.createAuthenticationException(
+            code: AnonAccountErrorCodes.authAccountRevoked,
+            message: 'Cannot change the role of a revoked membership',
+            operation: 'changeGroupMemberRole',
+            details: {'memberId': memberId.toString()},
+          );
+        }
+
+        final innerPayload = GroupInnerPayloads.changeGroupMemberRole(
+          memberId,
+          newRole.name,
+        );
+        late final String attestingPubkey;
+        late final String attestationSig;
+
+        if (newRole == GroupMemberRole.admin &&
+            groupUltimateSignature == null) {
+          if (callerMemberSigningPublicKeyHex == null ||
+              callerMemberSigningPublicKeyHex.isEmpty ||
+              memberAuthSignature == null ||
+              memberAuthSignature.isEmpty) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authMissingKey,
+              message:
+                  'Promoting to admin requires either groupUltimateSignature or '
+                  'callerMemberSigningPublicKeyHex + memberAuthSignature',
+              operation: 'changeGroupMemberRole',
+            );
+          }
+          final ok = await CryptoUtils.verifySignature(
+            message: innerPayload,
+            signature: memberAuthSignature,
+            publicKey: callerMemberSigningPublicKeyHex,
+          );
+          if (!ok) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.cryptoInvalidSignature,
+              message: 'Invalid member attestation',
+              operation: 'changeGroupMemberRole',
+            );
+          }
+          final activeCaller = await AnonAccountHelpers.requireCaller(
+            session,
+            callerDeviceSigningPublicKeyHex,
+            'changeGroupMemberRole',
+          );
+          final callerMembership =
+              await AnonAccountHelpers.requireMemberStanding(
+                session,
+                activeCaller,
+                callerMemberSigningPublicKeyHex,
+                target.shareGroupId,
+                'changeGroupMemberRole',
+              );
+          if (callerMembership.role != GroupMemberRole.admin) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authInvalidSignature,
+              message: 'Caller is not an admin of this group',
+              operation: 'changeGroupMemberRole',
+            );
+          }
+          attestingPubkey = callerMemberSigningPublicKeyHex;
+          attestationSig = memberAuthSignature;
+        } else {
+          if (groupUltimateSignature == null ||
+              groupUltimateSignature.isEmpty) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authMissingKey,
+              message:
+                  '${newRole == GroupMemberRole.admin ? 'Promoting' : 'Demoting'} '
+                  'requires groupUltimateSignature',
+              operation: 'changeGroupMemberRole',
+            );
+          }
+          final group = await ShareGroup.db.findById(
+            session,
+            target.shareGroupId,
+          );
+          if (group == null) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.authAccountNotFound,
+              message: 'Group not found',
+              operation: 'changeGroupMemberRole',
+            );
+          }
+          final ok = await CryptoUtils.verifySignature(
+            message: innerPayload,
+            signature: groupUltimateSignature,
+            publicKey: group.ultimateSigningPublicKeyHex,
+          );
+          if (!ok) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.cryptoInvalidSignature,
+              message: 'Invalid group ultimate attestation',
+              operation: 'changeGroupMemberRole',
+            );
+          }
+          attestingPubkey = group.ultimateSigningPublicKeyHex;
+          attestationSig = groupUltimateSignature;
+        }
+
+        return await session.db.transaction((tx) async {
+          if (target.role == newRole) {
+            throw AnonAccountExceptionFactory.createAuthenticationException(
+              code: AnonAccountErrorCodes.groupOperationNotAllowed,
+              message: 'Member already has the requested role',
+              operation: 'changeGroupMemberRole',
+              details: {'memberId': memberId.toString()},
+            );
+          }
+
+          if (newRole == GroupMemberRole.member &&
+              target.role == GroupMemberRole.admin) {
+            final activeMembers =
+                await ActiveRows.activeMembersOfGroupForUpdate(
+                  session,
+                  target.shareGroupId,
+                  transaction: tx,
+                );
+            final activeAdmins = activeMembers
+                .where((m) => m.role == GroupMemberRole.admin)
+                .toList();
+            if (activeAdmins.length == 1 &&
+                activeAdmins.first.id == target.id) {
+              throw AnonAccountExceptionFactory.createAuthenticationException(
+                code: AnonAccountErrorCodes.groupOperationNotAllowed,
+                message:
+                    'Cannot demote the last active admin. Promote another '
+                    'member to admin first.',
+                operation: 'changeGroupMemberRole',
+                details: {'groupId': target.shareGroupId.toString()},
+              );
+            }
+          }
+
+          return GroupMember.db.updateRow(
+            session,
+            target.copyWith(
+              role: newRole,
+              roleChangedAt: DateTime.now(),
+              roleChangedByAttestorPublicKeyHex: attestingPubkey,
+              roleChangedByAttestation: attestationSig,
+            ),
+            transaction: tx,
+          );
+        });
+      },
+      onFailure: authFailure,
+      code: AnonAccountErrorCodes.databaseError,
+    );
+  }
+
   Stream<GroupMemberView> monitorGroupMembership(
     Session session, {
     required String challenge,

@@ -1373,6 +1373,75 @@ class Endpoints extends _i1.EndpointDispatch {
                     groupUltimateSignature: params['groupUltimateSignature'],
                   ),
         ),
+        'changeGroupMemberRole': _i1.MethodConnector(
+          name: 'changeGroupMemberRole',
+          params: {
+            'challenge': _i1.ParameterDescription(
+              name: 'challenge',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'proofOfWork': _i1.ParameterDescription(
+              name: 'proofOfWork',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'signature': _i1.ParameterDescription(
+              name: 'signature',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'callerDeviceSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerDeviceSigningPublicKeyHex',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'memberId': _i1.ParameterDescription(
+              name: 'memberId',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'newRole': _i1.ParameterDescription(
+              name: 'newRole',
+              type: _i1.getType<_i9.GroupMemberRole>(),
+              nullable: false,
+            ),
+            'callerMemberSigningPublicKeyHex': _i1.ParameterDescription(
+              name: 'callerMemberSigningPublicKeyHex',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'memberAuthSignature': _i1.ParameterDescription(
+              name: 'memberAuthSignature',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'groupUltimateSignature': _i1.ParameterDescription(
+              name: 'groupUltimateSignature',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['group'] as _i7.GroupEndpoint)
+                  .changeGroupMemberRole(
+                    session,
+                    challenge: params['challenge'],
+                    proofOfWork: params['proofOfWork'],
+                    signature: params['signature'],
+                    callerDeviceSigningPublicKeyHex:
+                        params['callerDeviceSigningPublicKeyHex'],
+                    memberId: params['memberId'],
+                    newRole: params['newRole'],
+                    callerMemberSigningPublicKeyHex:
+                        params['callerMemberSigningPublicKeyHex'],
+                    memberAuthSignature: params['memberAuthSignature'],
+                    groupUltimateSignature: params['groupUltimateSignature'],
+                  ),
+        ),
         'getGroup': _i1.MethodConnector(
           name: 'getGroup',
           params: {

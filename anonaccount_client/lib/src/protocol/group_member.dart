@@ -36,6 +36,9 @@ abstract class GroupMember implements _i1.SerializableModel {
     this.revokedByAttestation,
     this.revokedAt,
     int? keyEpoch,
+    this.roleChangedAt,
+    this.roleChangedByAttestorPublicKeyHex,
+    this.roleChangedByAttestation,
   }) : joinedAt = joinedAt ?? DateTime.now(),
        isRevoked = isRevoked ?? false,
        keyEpoch = keyEpoch ?? 0;
@@ -59,6 +62,9 @@ abstract class GroupMember implements _i1.SerializableModel {
     String? revokedByAttestation,
     DateTime? revokedAt,
     int? keyEpoch,
+    DateTime? roleChangedAt,
+    String? roleChangedByAttestorPublicKeyHex,
+    String? roleChangedByAttestation,
   }) = _GroupMemberImpl;
 
   factory GroupMember.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -106,6 +112,15 @@ abstract class GroupMember implements _i1.SerializableModel {
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
+      roleChangedAt: jsonSerialization['roleChangedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['roleChangedAt'],
+            ),
+      roleChangedByAttestorPublicKeyHex:
+          jsonSerialization['roleChangedByAttestorPublicKeyHex'] as String?,
+      roleChangedByAttestation:
+          jsonSerialization['roleChangedByAttestation'] as String?,
     );
   }
 
@@ -148,6 +163,12 @@ abstract class GroupMember implements _i1.SerializableModel {
 
   int keyEpoch;
 
+  DateTime? roleChangedAt;
+
+  String? roleChangedByAttestorPublicKeyHex;
+
+  String? roleChangedByAttestation;
+
   /// Returns a shallow copy of this [GroupMember]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -170,6 +191,9 @@ abstract class GroupMember implements _i1.SerializableModel {
     String? revokedByAttestation,
     DateTime? revokedAt,
     int? keyEpoch,
+    DateTime? roleChangedAt,
+    String? roleChangedByAttestorPublicKeyHex,
+    String? roleChangedByAttestation,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -195,6 +219,11 @@ abstract class GroupMember implements _i1.SerializableModel {
         'revokedByAttestation': revokedByAttestation,
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'keyEpoch': keyEpoch,
+      if (roleChangedAt != null) 'roleChangedAt': roleChangedAt?.toJson(),
+      if (roleChangedByAttestorPublicKeyHex != null)
+        'roleChangedByAttestorPublicKeyHex': roleChangedByAttestorPublicKeyHex,
+      if (roleChangedByAttestation != null)
+        'roleChangedByAttestation': roleChangedByAttestation,
     };
   }
 
@@ -226,6 +255,9 @@ class _GroupMemberImpl extends GroupMember {
     String? revokedByAttestation,
     DateTime? revokedAt,
     int? keyEpoch,
+    DateTime? roleChangedAt,
+    String? roleChangedByAttestorPublicKeyHex,
+    String? roleChangedByAttestation,
   }) : super._(
          id: id,
          shareGroupId: shareGroupId,
@@ -245,6 +277,9 @@ class _GroupMemberImpl extends GroupMember {
          revokedByAttestation: revokedByAttestation,
          revokedAt: revokedAt,
          keyEpoch: keyEpoch,
+         roleChangedAt: roleChangedAt,
+         roleChangedByAttestorPublicKeyHex: roleChangedByAttestorPublicKeyHex,
+         roleChangedByAttestation: roleChangedByAttestation,
        );
 
   /// Returns a shallow copy of this [GroupMember]
@@ -270,6 +305,9 @@ class _GroupMemberImpl extends GroupMember {
     Object? revokedByAttestation = _Undefined,
     Object? revokedAt = _Undefined,
     int? keyEpoch,
+    Object? roleChangedAt = _Undefined,
+    Object? roleChangedByAttestorPublicKeyHex = _Undefined,
+    Object? roleChangedByAttestation = _Undefined,
   }) {
     return GroupMember(
       id: id is _i1.UuidValue? ? id : this.id,
@@ -301,6 +339,16 @@ class _GroupMemberImpl extends GroupMember {
           : this.revokedByAttestation,
       revokedAt: revokedAt is DateTime? ? revokedAt : this.revokedAt,
       keyEpoch: keyEpoch ?? this.keyEpoch,
+      roleChangedAt: roleChangedAt is DateTime?
+          ? roleChangedAt
+          : this.roleChangedAt,
+      roleChangedByAttestorPublicKeyHex:
+          roleChangedByAttestorPublicKeyHex is String?
+          ? roleChangedByAttestorPublicKeyHex
+          : this.roleChangedByAttestorPublicKeyHex,
+      roleChangedByAttestation: roleChangedByAttestation is String?
+          ? roleChangedByAttestation
+          : this.roleChangedByAttestation,
     );
   }
 }

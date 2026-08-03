@@ -35,6 +35,7 @@ group:
   - listMyGroups:
   - addGroupMember:
   - removeGroupMember:
+  - changeGroupMemberRole:
   - monitorGroupMembership:
   - getGroup:
   - listGroupMembers:

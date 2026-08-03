@@ -52,6 +52,8 @@ class AnonAccountErrorCodes {
 
   // Group operation error codes
   static const String groupOperationNotAllowed = 'GROUP_OPERATION_NOT_ALLOWED';
+  static const String deviceOperationNotAllowed =
+      'DEVICE_OPERATION_NOT_ALLOWED';
 
   // General error codes
   static const String networkTimeout = 'NETWORK_TIMEOUT';

@@ -179,6 +179,113 @@ void main() {
 
   withServerpod('GroupEndpoint Integration Tests', (sessionBuilder, endpoints) {
     test(
+      'changeGroupMemberRole promotes a member with an admin attestation',
+      () async {
+        final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+        final (_, accountPub) = SigningTestHelper.generateKeypair();
+        final account = await createTestAccount(
+          sessionBuilder,
+          ultimateSigningPublicKeyHex: accountPub,
+          ultimateEncryptionPublicKeyHex: accountPub,
+        );
+        final (_, memberPub) = SigningTestHelper.generateKeypair();
+        final (_, memberEnc) = SigningTestHelper.generateKeypair();
+        final dbSession = (sessionBuilder as InternalTestSessionBuilder)
+            .internalBuild(endpoint: 'test', method: 'insertRoleMember');
+        final target = await GroupMember.db.insertRow(
+          dbSession,
+          GroupMember(
+            shareGroupId: s.group.id!,
+            anonAccountId: account.id!,
+            role: GroupMemberRole.member,
+            memberSigningPublicKeyHex: memberPub,
+            memberEncryptionPublicKeyHex: memberEnc,
+            encryptedDataKey: 'wrapped',
+            encryptedMemberKey: 'wrapped-member',
+            joinedAt: DateTime.now(),
+            addedByAttestorPublicKeyHex: s.groupUltSigPub,
+            addedByAttestation: 'attestation',
+          ),
+        );
+        await dbSession.close();
+
+        final outer = await _outer(
+          sessionBuilder,
+          endpoints,
+          'changeGroupMemberRole',
+          s.devicePub,
+          s.devicePriv,
+        );
+        final inner = SigningTestHelper.signWith(
+          GroupInnerPayloads.changeGroupMemberRole(
+            target.id!,
+            GroupMemberRole.admin.name,
+          ),
+          s.creatorMemberSigPriv,
+        );
+        final result = await endpoints.group.changeGroupMemberRole(
+          sessionBuilder,
+          challenge: outer.challenge,
+          proofOfWork: outer.pow,
+          signature: outer.signature,
+          callerDeviceSigningPublicKeyHex: s.devicePub,
+          memberId: target.id!,
+          newRole: GroupMemberRole.admin,
+          callerMemberSigningPublicKeyHex: s.creatorMemberSigPub,
+          memberAuthSignature: inner,
+        );
+
+        expect(result.role, GroupMemberRole.admin);
+        expect(result.roleChangedAt, isNotNull);
+        expect(result.roleChangedByAttestorPublicKeyHex, s.creatorMemberSigPub);
+      },
+    );
+
+    test(
+      'changeGroupMemberRole blocks demoting the last active admin',
+      () async {
+        final s = await _bootstrapOwnerWithGroup(sessionBuilder, endpoints);
+        final memberSession = (sessionBuilder as InternalTestSessionBuilder)
+            .internalBuild(endpoint: 'test', method: 'findCreatorMembership');
+        final creator = (await GroupMember.db.findFirstRow(
+          memberSession,
+          where: (t) =>
+              t.memberSigningPublicKeyHex.equals(s.creatorMemberSigPub),
+        ))!;
+        await memberSession.close();
+
+        final outer = await _outer(
+          sessionBuilder,
+          endpoints,
+          'changeGroupMemberRole',
+          s.devicePub,
+          s.devicePriv,
+        );
+        final ownerSig = SigningTestHelper.signWith(
+          GroupInnerPayloads.changeGroupMemberRole(
+            creator.id!,
+            GroupMemberRole.member.name,
+          ),
+          s.groupUltSigPriv,
+        );
+
+        await expectLater(
+          endpoints.group.changeGroupMemberRole(
+            sessionBuilder,
+            challenge: outer.challenge,
+            proofOfWork: outer.pow,
+            signature: outer.signature,
+            callerDeviceSigningPublicKeyHex: s.devicePub,
+            memberId: creator.id!,
+            newRole: GroupMemberRole.member,
+            groupUltimateSignature: ownerSig,
+          ),
+          throwsA(isA<AuthenticationException>()),
+        );
+      },
+    );
+
+    test(
       'listMyGroups: returns THIS device\'s grant, not a sibling\'s',
       () async {
         // Two devices of the same account, each granted on the same
