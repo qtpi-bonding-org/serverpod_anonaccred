@@ -349,7 +349,7 @@ widening group authorization:
 |---|---|---|
 | No last-device guard: `revokeDevice` can strip an account to zero devices, unlocked and untransactional, where the group world has a row-locked last-admin guard | `device_management_endpoint.dart:20-88` | Open |
 | Revoked principals keep every key they held; nothing rotates a data key on revocation (rule 13) | design-level | Open — inherent to flag-based revocation |
-| `anonaccred`'s JWT is issued per **account**, so any device of a member account can spend group entitlements regardless of per-device grants | `group_commerce_endpoint.dart:109-132` | Open |
+| `anonaccred`'s JWT is issued per **account**; entitlement consumption is correctly account-scoped (matches standard IAP restore-purchase semantics — any of an account's devices can use what the account bought), so this row is **not** the deviation it looked like. The real gap was that a revoked device's still-valid JWT could keep spending, since `revokeAllTokens` is best-effort. **Fixed** by `docs/superpowers/plans/2026-08-03-commerce-device-revocation-check.md`: every commerce/IAP/Polar method now calls `AnonAccountHelpers.requireCaller` on the JWT's embedded device claim before proceeding, closing that window without gating entitlements by per-device group-key grants (a different, unrelated concern). | `commerce_endpoint.dart`, `group_commerce_endpoint.dart`, `iap_endpoint.dart`, `polar_endpoint.dart` | Fixed |
 
 **Roots that can't be exercised or recovered** — was three instances of one pattern, now two:
 
@@ -369,7 +369,6 @@ widening group authorization:
 | Deviation | Where | Status |
 |---|---|---|
 | `keyEpoch` exists on `AccountDevice` and `ShareGroup` — leaf on one side, root on the other — and is never read or written | both models | Not a deviation — reserved ahead of a future key-rotation feature, so rotation won't need its own migration when it ships |
-| `webcrypto` dev-dependency versions differ between the two server packages (`^0.6.0` vs `^0.5.3`) | both `pubspec.yaml` | Open — harmless, separately resolved |
 
 **Fixed by round 1** — listed only so nobody re-adds them from an old draft:
 `AccountDevice` now has `deviceEncryptionPublicKeyHex`, persisted
@@ -411,5 +410,9 @@ ultimate key is wrapped to the creator's account ultimate encryption key,
 persisted in `GroupOwner`, and recovered by `recoverAccount`. The SDK now
 provides `addGroupMemberAsOwner` and `removeGroupMemberAsOwner`; co-ownership
 remains out of scope.
+
+**Also fixed, mis-stated as still open**: `webcrypto` dev-dependency versions
+across `anonaccount_server`/`anonaccred_server` were aligned to `^0.6.0` — a
+one-line pubspec change, not a real deviation once made consistent.
 
 If you fix one, delete its row. If you add one, add a row and say why.
