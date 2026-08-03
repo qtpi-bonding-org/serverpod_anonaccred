@@ -13,13 +13,15 @@ import 'test_tools/serverpod_test_tools.dart';
 /// deviceSigningPublicKeyHex round-trips exactly as production traffic
 /// would produce it.
 Future<
-    ({
-      String ultimatePriv,
-      String ultimatePub,
-      String devicePriv,
-      String devicePub,
-      AccountDevice device,
-    })> _bootstrapAccountWithDevice(
+  ({
+    String ultimatePriv,
+    String ultimatePub,
+    String devicePriv,
+    String devicePub,
+    AccountDevice device,
+  })
+>
+_bootstrapAccountWithDevice(
   TestSessionBuilder sessionBuilder,
   TestEndpoints endpoints,
 ) async {
@@ -85,16 +87,19 @@ void main() {
     test('revokeDevice stamps revokedAt', () async {
       final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
 
-      final revChallenge =
-          await endpoints.entrypoint.getChallenge(sessionBuilder);
+      final revChallenge = await endpoints.entrypoint.getChallenge(
+        sessionBuilder,
+      );
       final revPow = await PowTestHelper.mint(
         revChallenge.challenge,
         difficulty: revChallenge.difficulty,
       );
       final revPayload =
           '${revChallenge.challenge}:revokeDevice:${s.ultimatePub}';
-      final revSignature =
-          SigningTestHelper.signWith(revPayload, s.ultimatePriv);
+      final revSignature = SigningTestHelper.signWith(
+        revPayload,
+        s.ultimatePriv,
+      );
 
       final ok = await endpoints.deviceManagement.revokeDevice(
         sessionBuilder,
@@ -120,16 +125,19 @@ void main() {
     test('a revoked device cannot pair a new device', () async {
       final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
 
-      final revChallenge =
-          await endpoints.entrypoint.getChallenge(sessionBuilder);
+      final revChallenge = await endpoints.entrypoint.getChallenge(
+        sessionBuilder,
+      );
       final revPow = await PowTestHelper.mint(
         revChallenge.challenge,
         difficulty: revChallenge.difficulty,
       );
       final revPayload =
           '${revChallenge.challenge}:revokeDevice:${s.ultimatePub}';
-      final revSignature =
-          SigningTestHelper.signWith(revPayload, s.ultimatePriv);
+      final revSignature = SigningTestHelper.signWith(
+        revPayload,
+        s.ultimatePriv,
+      );
       await endpoints.deviceManagement.revokeDevice(
         sessionBuilder,
         challenge: revChallenge.challenge,
@@ -146,16 +154,19 @@ void main() {
         encryptionPublicKeyHex: newDeviceEncPub,
       );
 
-      final pairChallenge =
-          await endpoints.entrypoint.getChallenge(sessionBuilder);
+      final pairChallenge = await endpoints.entrypoint.getChallenge(
+        sessionBuilder,
+      );
       final pairPow = await PowTestHelper.mint(
         pairChallenge.challenge,
         difficulty: pairChallenge.difficulty,
       );
       final pairPayload =
           '${pairChallenge.challenge}:registerDeviceForAccount:${s.devicePub}';
-      final pairSignature =
-          SigningTestHelper.signWith(pairPayload, s.devicePriv);
+      final pairSignature = SigningTestHelper.signWith(
+        pairPayload,
+        s.devicePriv,
+      );
       final pairingAttestation = SigningTestHelper.signWith(
         AccountInnerPayloads.pairDevice(newDeviceKeys),
         s.devicePriv,
@@ -179,8 +190,7 @@ void main() {
       );
     });
 
-    test('rejects a pairing attestation signed by a non-caller key',
-        () async {
+    test('rejects a pairing attestation signed by a non-caller key', () async {
       final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
 
       final (_, newDevicePub) = SigningTestHelper.generateKeypair();
@@ -190,16 +200,19 @@ void main() {
         encryptionPublicKeyHex: newDeviceEncPub,
       );
 
-      final pairChallenge =
-          await endpoints.entrypoint.getChallenge(sessionBuilder);
+      final pairChallenge = await endpoints.entrypoint.getChallenge(
+        sessionBuilder,
+      );
       final pairPow = await PowTestHelper.mint(
         pairChallenge.challenge,
         difficulty: pairChallenge.difficulty,
       );
       final pairPayload =
           '${pairChallenge.challenge}:registerDeviceForAccount:${s.devicePub}';
-      final pairSignature =
-          SigningTestHelper.signWith(pairPayload, s.devicePriv);
+      final pairSignature = SigningTestHelper.signWith(
+        pairPayload,
+        s.devicePriv,
+      );
 
       // Attestation signed by an UNRELATED key, not the caller device.
       final (foreignPriv, _) = SigningTestHelper.generateKeypair();
@@ -236,16 +249,19 @@ void main() {
         encryptionPublicKeyHex: newDeviceEncPub,
       );
 
-      final pairChallenge =
-          await endpoints.entrypoint.getChallenge(sessionBuilder);
+      final pairChallenge = await endpoints.entrypoint.getChallenge(
+        sessionBuilder,
+      );
       final pairPow = await PowTestHelper.mint(
         pairChallenge.challenge,
         difficulty: pairChallenge.difficulty,
       );
       final pairPayload =
           '${pairChallenge.challenge}:registerDeviceForAccount:${s.devicePub}';
-      final pairSignature =
-          SigningTestHelper.signWith(pairPayload, s.devicePriv);
+      final pairSignature = SigningTestHelper.signWith(
+        pairPayload,
+        s.devicePriv,
+      );
       final pairingAttestation = SigningTestHelper.signWith(
         AccountInnerPayloads.pairDevice(newDeviceKeys),
         s.devicePriv,
@@ -268,6 +284,69 @@ void main() {
       expect(device.addedByAttestorPublicKeyHex, s.devicePub);
       expect(device.addedByAttestation, pairingAttestation);
       expect(device.anonAccountId, s.device.anonAccountId);
+    });
+    test('listDevices rejects a revoked device key', () async {
+      final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
+
+      final revokeChallenge = await endpoints.entrypoint.getChallenge(
+        sessionBuilder,
+      );
+      final revokePow = await PowTestHelper.mint(
+        revokeChallenge.challenge,
+        difficulty: revokeChallenge.difficulty,
+      );
+      await endpoints.deviceManagement.revokeDevice(
+        sessionBuilder,
+        challenge: revokeChallenge.challenge,
+        proofOfWork: revokePow,
+        publicKeyHex: s.ultimatePub,
+        signature: SigningTestHelper.signWith(
+          '${revokeChallenge.challenge}:revokeDevice:${s.ultimatePub}',
+          s.ultimatePriv,
+        ),
+        deviceId: s.device.id!,
+      );
+
+      final challenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+      final pow = await PowTestHelper.mint(
+        challenge.challenge,
+        difficulty: challenge.difficulty,
+      );
+      await expectLater(
+        endpoints.deviceManagement.listDevices(
+          sessionBuilder,
+          challenge: challenge.challenge,
+          proofOfWork: pow,
+          publicKeyHex: s.devicePub,
+          signature: SigningTestHelper.signWith(
+            '${challenge.challenge}:listDevices:${s.devicePub}',
+            s.devicePriv,
+          ),
+        ),
+        throwsA(isA<AuthenticationException>()),
+      );
+    });
+
+    test('listDevices keeps the ultimate-key fallback', () async {
+      final s = await _bootstrapAccountWithDevice(sessionBuilder, endpoints);
+
+      final challenge = await endpoints.entrypoint.getChallenge(sessionBuilder);
+      final pow = await PowTestHelper.mint(
+        challenge.challenge,
+        difficulty: challenge.difficulty,
+      );
+      final result = await endpoints.deviceManagement.listDevices(
+        sessionBuilder,
+        challenge: challenge.challenge,
+        proofOfWork: pow,
+        publicKeyHex: s.ultimatePub,
+        signature: SigningTestHelper.signWith(
+          '${challenge.challenge}:listDevices:${s.ultimatePub}',
+          s.ultimatePriv,
+        ),
+      );
+
+      expect(result, hasLength(1));
     });
   });
 }
