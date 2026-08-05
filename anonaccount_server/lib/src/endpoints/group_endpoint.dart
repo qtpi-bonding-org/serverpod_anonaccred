@@ -5,8 +5,8 @@ import '../try_operation.dart';
 import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
-import '../helpers.dart';
 import '../queries/active_rows.dart';
+import '../helpers.dart';
 import 'signed_pow_endpoint.dart';
 
 /// Three-tier auth model for group operations:
@@ -948,11 +948,10 @@ class GroupEndpoint extends SignedPowEndpoint {
       'monitorGroupMembership',
     );
 
-    final existingMember = await GroupMember.db.findFirstRow(
+    final existingMember = await ActiveRows.callerMembershipByMemberKey(
       session,
-      where: (t) =>
-          t.shareGroupId.equals(groupId) &
-          t.memberSigningPublicKeyHex.equals(memberSigningKeyHex),
+      groupId,
+      memberSigningKeyHex,
     );
     if (existingMember != null) {
       yield GroupMemberView(

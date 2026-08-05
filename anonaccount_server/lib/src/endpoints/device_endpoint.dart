@@ -7,6 +7,7 @@ import '../crypto_auth.dart';
 import '../crypto_utils.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
+import '../queries/active_rows.dart';
 import '../helpers.dart';
 import 'signed_pow_endpoint.dart';
 
@@ -235,9 +236,9 @@ class DeviceEndpoint extends SignedPowEndpoint {
       level: LogLevel.info,
     );
 
-    final existingDevice = await AccountDevice.db.findFirstRow(
+    final existingDevice = await ActiveRows.deviceBySigningKey(
       session,
-      where: (t) => t.deviceSigningPublicKeyHex.equals(signingKeyHex),
+      signingKeyHex,
     );
     if (existingDevice != null) {
       final account = await AnonAccount.db.findById(
