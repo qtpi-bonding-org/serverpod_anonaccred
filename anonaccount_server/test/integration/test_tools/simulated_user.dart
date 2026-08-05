@@ -79,18 +79,26 @@ class SimulatedUser {
         .id!;
   }
 
+  // registerPairedDevice runs to completion before monitorRegistration is
+  // called at all — both are server calls sharing the single test-harness
+  // transaction (see TestDatabaseProxy), which only tolerates one call's DB
+  // work in flight at a time. Racing them (starting the monitor call and
+  // awaiting registration concurrently, as real clients do over separate
+  // connections) intermittently throws ConcurrentTransactionsException here.
+  // Calling registration first means monitorRegistration's own DB lookup
+  // always finds the now-existing device and returns immediately via its
+  // no-wait replay path, so nothing here ever touches the live stream.
   Future<UuidValue> addDeviceViaPairing({required String label}) async {
     final sideBStore = InMemoryAccountKeyStore();
     final sideBPairing = AnonaccountPairing(caller, sideBStore);
     final qr = await sideBPairing.beginPairing(deviceLabel: label);
-    final delivery = sideBPairing
-        .monitorRegistration(qr.signingPubkeyHex)
-        .first;
     final registered = await pairing.registerPairedDevice(
       scanned: pairing.parseQr(qr.qrPayloadJson),
       label: label,
     );
-    final event = await delivery;
+    final event = await sideBPairing
+        .monitorRegistration(qr.signingPubkeyHex)
+        .first;
     await sideBPairing.completePairing(wrappedKey: event.encryptedDataKey);
     return registered.id!;
   }

@@ -22,12 +22,15 @@ Future<(UuidValue, KeyDuo)> _pairDeviceReturningKey(
   final store = InMemoryAccountKeyStore();
   final pairing = AnonaccountPairing(user.caller, store);
   final qr = await pairing.beginPairing(deviceLabel: label);
-  final delivery = pairing.monitorRegistration(qr.signingPubkeyHex).first;
+  // Registration completes before monitorRegistration is called at all —
+  // see the matching comment on SimulatedUser.addDeviceViaPairing for why
+  // racing these two server calls intermittently throws under the test
+  // harness's single shared transaction.
   final registered = await user.pairing.registerPairedDevice(
     scanned: user.pairing.parseQr(qr.qrPayloadJson),
     label: label,
   );
-  final event = await delivery;
+  final event = await pairing.monitorRegistration(qr.signingPubkeyHex).first;
   await pairing.completePairing(wrappedKey: event.encryptedDataKey);
   return (registered.id!, (await store.getDeviceKey())!);
 }

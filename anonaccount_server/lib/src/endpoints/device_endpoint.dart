@@ -254,10 +254,10 @@ class DeviceEndpoint extends SignedPowEndpoint {
       return;
     }
 
-    // Only one insert ever posts to this channel, so the first event is the
-    // only one that will ever arrive — without an explicit stop, this
-    // generator keeps its subscription (and DB session) alive forever
-    // waiting for a second event that will never come.
-    yield await stream.first;
+    // Bounded so a caller whose partner registration never lands (or whose
+    // client abandons this call after an unrelated failure) still exits and
+    // releases its subscription instead of idling for the rest of the
+    // process's life.
+    yield await stream.first.timeout(const Duration(minutes: 2));
   }
 }
