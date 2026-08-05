@@ -84,6 +84,19 @@ class SdkTestCaller extends client.Caller {
           client.AccountCreationResponse.fromJson,
         ) as T;
 
+      case 'retrieveEncryptedDataKey':
+        return convertModel(
+          await endpoints.dataKey.retrieveEncryptedDataKey(
+            sessionBuilder,
+            challenge: args['challenge'] as String,
+            proofOfWork: args['proofOfWork'] as String,
+            signature: args['signature'] as String,
+            deviceSigningPublicKeyHex:
+                args['deviceSigningPublicKeyHex'] as String,
+          ),
+          client.EncryptedDataKeyResponse.fromJson,
+        ) as T;
+
       case 'recoverEncryptedDataKey':
         return convertModel(
           await endpoints.dataKey.recoverEncryptedDataKey(
