@@ -1,5 +1,3 @@
-import 'package:anonaccount_protocol/anonaccount_protocol.dart'
-    show AccountInnerPayloads;
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 import 'package:serverpod_test/serverpod_test.dart';

@@ -4,7 +4,6 @@ library;
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccount_sdk/anonaccount_sdk.dart' hide AccountDevice;
 import 'package:serverpod/serverpod.dart';
-import 'package:serverpod_test/serverpod_test.dart';
 import 'package:test/test.dart';
 
 import '../test_helpers/auth_services_test_helper.dart';

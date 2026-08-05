@@ -11,22 +11,22 @@ import 'package:anonaccount_client/src/protocol/group_member_view.dart'
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
     show EncryptionKeyPair, EncryptionPublicKeyHex, KeyDuoSerializer;
-import 'package:serverpod_test/serverpod_test.dart';
 
 import 'sdk_test_caller.dart';
 import 'serverpod_test_tools.dart';
 
 /// A complete fake identity backed by the real SDK key stores and crypto.
 class SimulatedUser {
-  SimulatedUser(this._sessionBuilder, this._endpoints, {required this.label})
-    : caller = SdkTestCaller(_sessionBuilder, _endpoints) {
+  SimulatedUser(
+    TestSessionBuilder sessionBuilder,
+    TestEndpoints endpoints, {
+    required this.label,
+  }) : caller = SdkTestCaller(sessionBuilder, endpoints) {
     auth = AnonaccountAuth(caller, _store, memberKeys, ownerKeys);
     groups = AnonaccountGroups(caller, memberKeys, ownerKeys);
     pairing = AnonaccountPairing(caller, _store);
   }
 
-  final TestSessionBuilder _sessionBuilder;
-  final TestEndpoints _endpoints;
   final String label;
   final SdkTestCaller caller;
   final InMemoryAccountKeyStore _store = InMemoryAccountKeyStore();

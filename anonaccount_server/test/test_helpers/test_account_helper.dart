@@ -1,5 +1,4 @@
 import 'package:anonaccount_server/src/generated/protocol.dart';
-import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 import 'package:serverpod_test/serverpod_test.dart';
 

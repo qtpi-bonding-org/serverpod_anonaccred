@@ -38,10 +38,7 @@ void main() {
         await session.close();
       }
       return AnonAccountHelpers.requireCaller(
-        (sessionBuilder as InternalTestSessionBuilder).internalBuild(
-          endpoint: 'test',
-          method: 'call',
-        ),
+        sessionBuilder.internalBuild(endpoint: 'test', method: 'call'),
         devicePub,
         'testOp',
       );
@@ -218,10 +215,7 @@ void main() {
 
       expect(
         () => AnonAccountHelpers.requireMemberStanding(
-          (sessionBuilder as InternalTestSessionBuilder).internalBuild(
-            endpoint: 'test',
-            method: 'call',
-          ),
+          sessionBuilder.internalBuild(endpoint: 'test', method: 'call'),
           caller,
           membership.memberPub,
           membership.groupId,

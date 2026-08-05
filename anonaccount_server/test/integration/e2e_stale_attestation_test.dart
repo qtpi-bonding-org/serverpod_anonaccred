@@ -2,7 +2,6 @@
 library;
 
 import 'package:test/test.dart';
-import 'package:serverpod_test/serverpod_test.dart';
 
 import '../test_helpers/auth_services_test_helper.dart';
 import 'test_tools/serverpod_test_tools.dart';

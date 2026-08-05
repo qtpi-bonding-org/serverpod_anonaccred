@@ -1,4 +1,3 @@
-import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 /// Initializes AuthServices with test HMAC keys for integration tests.

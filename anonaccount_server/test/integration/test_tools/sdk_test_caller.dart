@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:anonaccount_client/anonaccount_client.dart' as client;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart' as sdk;
 import 'package:serverpod_client/serverpod_client.dart';
-import 'package:serverpod_test/serverpod_test.dart';
 
 import 'package:anonaccount_server/src/generated/group_member_role.dart'
     as server_role;
