@@ -968,9 +968,11 @@ class GroupEndpoint extends SignedPowEndpoint {
       return;
     }
 
-    await for (final event in stream) {
-      yield event;
-    }
+    // Only one insert ever posts to this channel, so the first event is the
+    // only one that will ever arrive — without an explicit stop, this
+    // generator keeps its subscription (and DB session) alive forever
+    // waiting for a second event that will never come.
+    yield await stream.first;
   }
 
   Future<ShareGroup> getGroup(

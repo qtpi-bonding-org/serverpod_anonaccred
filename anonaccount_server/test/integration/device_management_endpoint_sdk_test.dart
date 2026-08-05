@@ -1,3 +1,6 @@
+@Tags(['two_actor'])
+library;
+
 import 'package:anonaccount_protocol/anonaccount_protocol.dart'
     show AccountInnerPayloads, PublicKeyDuo;
 import 'package:anonaccount_server/anonaccount_server.dart'
