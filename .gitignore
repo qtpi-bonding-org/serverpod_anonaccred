@@ -63,3 +63,6 @@ test-results.json
 
 # Git worktrees
 .worktrees/
+
+# Dart test compiler cache (churns every test run)
+.dart_tool/test/
