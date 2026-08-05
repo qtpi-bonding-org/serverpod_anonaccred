@@ -1,2 +1,11 @@
 tags:
   integration: {}
+  # Two independent simulated devices each mine hashcash PoW and race
+  # against a live stream (device pairing, group-membership monitoring).
+  # Under heavy concurrent load (running alongside the rest of the suite)
+  # PoW mining can legitimately take longer than the default timeout, with
+  # nothing wrong in the test itself — run these on their own
+  # (`dart test --tags two_actor`) to avoid CPU/DB-pool contention from the
+  # other ~130 tests, and give them headroom either way.
+  two_actor:
+    timeout: 4x

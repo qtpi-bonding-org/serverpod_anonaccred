@@ -203,7 +203,21 @@ class DeviceEndpoint extends SignedPowEndpoint {
     required String signature,
     required String signingKeyHex,
   }) async* {
-    // Verify PoW + signature + rate limit before opening stream
+    // Subscribe before doing anything else, including PoW verification.
+    // session.messages is fire-and-forget: a postMessage with no current
+    // subscriber on the channel is dropped, not queued. createStream() is a
+    // cheap, synchronous, in-memory registration — it exposes no data and
+    // costs nothing extra to open early, so there's no tradeoff in doing it
+    // before verification instead of after. Any later ordering (verify then
+    // subscribe) leaves a real gap: a registration landing during PoW
+    // verification would be lost forever, with the caller waiting on a
+    // stream event that already happened.
+    final channelName = 'pairing-updates-$signingKeyHex';
+    final stream = session.messages.createStream<DevicePairingEvent>(
+      channelName,
+    );
+
+    // Verify PoW + signature + rate limit before returning any data.
     final payload =
         '$challenge:${DeviceMethods.monitorRegistration}:$signingKeyHex';
 
@@ -221,10 +235,23 @@ class DeviceEndpoint extends SignedPowEndpoint {
       level: LogLevel.info,
     );
 
-    final channelName = 'pairing-updates-$signingKeyHex';
-    final stream = session.messages.createStream<DevicePairingEvent>(
-      channelName,
+    final existingDevice = await AccountDevice.db.findFirstRow(
+      session,
+      where: (t) => t.deviceSigningPublicKeyHex.equals(signingKeyHex),
     );
+    if (existingDevice != null) {
+      final account = await AnonAccount.db.findById(
+        session,
+        existingDevice.anonAccountId,
+      );
+      yield DevicePairingEvent(
+        encryptedDataKey: existingDevice.encryptedDataKey,
+        signingKeyHex: existingDevice.deviceSigningPublicKeyHex,
+        ultimateEncryptionPublicKeyHex: account!.ultimateEncryptionPublicKeyHex,
+        ultimateSigningPublicKeyHex: account.ultimateSigningPublicKeyHex,
+      );
+      return;
+    }
 
     await for (final event in stream) {
       yield event;

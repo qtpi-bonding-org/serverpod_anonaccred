@@ -483,11 +483,9 @@ class GroupEndpoint extends SignedPowEndpoint {
           addedByAttestation: attestationSig,
         );
         final insertedMember = await GroupMember.db.insertRow(session, member);
-        // Post the view, not the row: monitorGroupMembership has no
-        // ownership check on the member key it subscribes with, so any
-        // device with a valid outer signature can subscribe to another
-        // member's channel. GroupMemberView omits encryptedMemberKey and
-        // encryptedDataKey for exactly that reason.
+        // Post the view, not the row: the channel payload only needs enough
+        // to identify the membership change, not the wrapped secrets
+        // (encryptedMemberKey, encryptedDataKey) that live on the row.
         session.messages.postMessage(
           'group-membership-${insertedMember.memberSigningPublicKeyHex}',
           GroupMemberView(
@@ -906,6 +904,19 @@ class GroupEndpoint extends SignedPowEndpoint {
     required String memberSigningKeyHex,
     required String memberAuthSignature,
   }) async* {
+    // Subscribe before doing anything else, including PoW/attestation
+    // verification. session.messages is fire-and-forget: a postMessage with
+    // no current subscriber on the channel is dropped, not queued.
+    // createStream() is a cheap, synchronous, in-memory registration — it
+    // exposes no data and costs nothing extra to open early, so there's no
+    // tradeoff in doing it before verification instead of after. Any later
+    // ordering (verify then subscribe) leaves a real gap: an addGroupMember
+    // landing during verification would be lost forever, with the caller
+    // waiting on a stream event that already happened.
+    final channelName = 'group-membership-$memberSigningKeyHex';
+    final stream = session.messages.createStream<GroupMemberView>(channelName);
+
+    // Verify PoW/signature/attestation/standing before returning any data.
     final outerPayload =
         '$challenge:${GroupMethods.monitorGroupMembership}:$callerDeviceSigningPublicKeyHex';
     await verifySignedPow(
@@ -937,8 +948,25 @@ class GroupEndpoint extends SignedPowEndpoint {
       'monitorGroupMembership',
     );
 
-    final channelName = 'group-membership-$memberSigningKeyHex';
-    final stream = session.messages.createStream<GroupMemberView>(channelName);
+    final existingMember = await GroupMember.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.shareGroupId.equals(groupId) &
+          t.memberSigningPublicKeyHex.equals(memberSigningKeyHex),
+    );
+    if (existingMember != null) {
+      yield GroupMemberView(
+        memberId: existingMember.id!,
+        shareGroupId: existingMember.shareGroupId,
+        anonAccountId: existingMember.anonAccountId,
+        role: existingMember.role,
+        memberSigningPublicKeyHex: existingMember.memberSigningPublicKeyHex,
+        memberEncryptionPublicKeyHex:
+            existingMember.memberEncryptionPublicKeyHex,
+        joinedAt: existingMember.joinedAt,
+      );
+      return;
+    }
 
     await for (final event in stream) {
       yield event;

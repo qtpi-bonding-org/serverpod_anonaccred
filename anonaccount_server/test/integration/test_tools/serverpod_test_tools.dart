@@ -166,38 +166,20 @@ class _InternalTestEndpoints extends TestEndpoints
     _i2.SerializationManager serializationManager,
     _i2.EndpointDispatch endpoints,
   ) {
-    account = _AccountEndpoint(
-      endpoints,
-      serializationManager,
-    );
-    dataKey = _DataKeyEndpoint(
-      endpoints,
-      serializationManager,
-    );
-    device = _DeviceEndpoint(
-      endpoints,
-      serializationManager,
-    );
+    account = _AccountEndpoint(endpoints, serializationManager);
+    dataKey = _DataKeyEndpoint(endpoints, serializationManager);
+    device = _DeviceEndpoint(endpoints, serializationManager);
     deviceManagement = _DeviceManagementEndpoint(
       endpoints,
       serializationManager,
     );
-    entrypoint = _EntrypointEndpoint(
-      endpoints,
-      serializationManager,
-    );
-    group = _GroupEndpoint(
-      endpoints,
-      serializationManager,
-    );
+    entrypoint = _EntrypointEndpoint(endpoints, serializationManager);
+    group = _GroupEndpoint(endpoints, serializationManager);
   }
 }
 
 class _AccountEndpoint {
-  _AccountEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _AccountEndpoint(this._endpointDispatch, this._serializationManager);
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -403,10 +385,7 @@ class _AccountEndpoint {
 }
 
 class _DataKeyEndpoint {
-  _DataKeyEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _DataKeyEndpoint(this._endpointDispatch, this._serializationManager);
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -639,10 +618,7 @@ class _DataKeyEndpoint {
 }
 
 class _DeviceEndpoint {
-  _DeviceEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _DeviceEndpoint(this._endpointDispatch, this._serializationManager);
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -743,35 +719,32 @@ class _DeviceEndpoint {
   }) {
     var _localTestStreamManager =
         _i1.TestStreamManager<_i11.DevicePairingEvent>();
-    _i1.callStreamFunctionAndHandleExceptions(
-      () async {
-        var _localUniqueSession =
-            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-              endpoint: 'device',
-              method: 'monitorRegistration',
-            );
-        var _localCallContext = await _endpointDispatch
-            .getMethodStreamCallContext(
-              createSessionCallback: (_) => _localUniqueSession,
-              endpointPath: 'device',
-              methodName: 'monitorRegistration',
-              arguments: {
-                'challenge': challenge,
-                'proofOfWork': proofOfWork,
-                'signature': signature,
-                'signingKeyHex': signingKeyHex,
-              },
-              requestedInputStreams: [],
-              serializationManager: _serializationManager,
-            );
-        await _localTestStreamManager.callStreamMethod(
-          _localCallContext,
-          _localUniqueSession,
-          {},
-        );
-      },
-      _localTestStreamManager.outputStreamController,
-    );
+    _i1.callStreamFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'device',
+            method: 'monitorRegistration',
+          );
+      var _localCallContext = await _endpointDispatch
+          .getMethodStreamCallContext(
+            createSessionCallback: (_) => _localUniqueSession,
+            endpointPath: 'device',
+            methodName: 'monitorRegistration',
+            arguments: {
+              'challenge': challenge,
+              'proofOfWork': proofOfWork,
+              'signature': signature,
+              'signingKeyHex': signingKeyHex,
+            },
+            requestedInputStreams: [],
+            serializationManager: _serializationManager,
+          );
+      await _localTestStreamManager.callStreamMethod(
+        _localCallContext,
+        _localUniqueSession,
+        {},
+      );
+    }, _localTestStreamManager.outputStreamController);
     return _localTestStreamManager.outputStreamController.stream;
   }
 
@@ -924,10 +897,7 @@ class _DeviceEndpoint {
 }
 
 class _DeviceManagementEndpoint {
-  _DeviceManagementEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _DeviceManagementEndpoint(this._endpointDispatch, this._serializationManager);
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -1213,10 +1183,7 @@ class _DeviceManagementEndpoint {
 }
 
 class _EntrypointEndpoint {
-  _EntrypointEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _EntrypointEndpoint(this._endpointDispatch, this._serializationManager);
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -1289,10 +1256,7 @@ class _EntrypointEndpoint {
 }
 
 class _GroupEndpoint {
-  _GroupEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _GroupEndpoint(this._endpointDispatch, this._serializationManager);
 
   final _i2.EndpointDispatch _endpointDispatch;
 
@@ -1562,39 +1526,36 @@ class _GroupEndpoint {
     required String memberAuthSignature,
   }) {
     var _localTestStreamManager = _i1.TestStreamManager<_i16.GroupMemberView>();
-    _i1.callStreamFunctionAndHandleExceptions(
-      () async {
-        var _localUniqueSession =
-            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-              endpoint: 'group',
-              method: 'monitorGroupMembership',
-            );
-        var _localCallContext = await _endpointDispatch
-            .getMethodStreamCallContext(
-              createSessionCallback: (_) => _localUniqueSession,
-              endpointPath: 'group',
-              methodName: 'monitorGroupMembership',
-              arguments: {
-                'challenge': challenge,
-                'proofOfWork': proofOfWork,
-                'signature': signature,
-                'callerDeviceSigningPublicKeyHex':
-                    callerDeviceSigningPublicKeyHex,
-                'groupId': groupId,
-                'memberSigningKeyHex': memberSigningKeyHex,
-                'memberAuthSignature': memberAuthSignature,
-              },
-              requestedInputStreams: [],
-              serializationManager: _serializationManager,
-            );
-        await _localTestStreamManager.callStreamMethod(
-          _localCallContext,
-          _localUniqueSession,
-          {},
-        );
-      },
-      _localTestStreamManager.outputStreamController,
-    );
+    _i1.callStreamFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'group',
+            method: 'monitorGroupMembership',
+          );
+      var _localCallContext = await _endpointDispatch
+          .getMethodStreamCallContext(
+            createSessionCallback: (_) => _localUniqueSession,
+            endpointPath: 'group',
+            methodName: 'monitorGroupMembership',
+            arguments: {
+              'challenge': challenge,
+              'proofOfWork': proofOfWork,
+              'signature': signature,
+              'callerDeviceSigningPublicKeyHex':
+                  callerDeviceSigningPublicKeyHex,
+              'groupId': groupId,
+              'memberSigningKeyHex': memberSigningKeyHex,
+              'memberAuthSignature': memberAuthSignature,
+            },
+            requestedInputStreams: [],
+            serializationManager: _serializationManager,
+          );
+      await _localTestStreamManager.callStreamMethod(
+        _localCallContext,
+        _localUniqueSession,
+        {},
+      );
+    }, _localTestStreamManager.outputStreamController);
     return _localTestStreamManager.outputStreamController.stream;
   }
 
