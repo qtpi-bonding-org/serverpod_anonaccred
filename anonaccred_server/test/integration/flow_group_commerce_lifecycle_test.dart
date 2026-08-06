@@ -1,9 +1,6 @@
 import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
-import 'package:anonaccred_server/src/payments/mock_polar_client.dart';
 import 'package:anonaccred_server/src/payments/polar_client.dart';
-import 'package:anonaccred_server/src/payments/payment_manager.dart';
-import 'package:anonaccred_server/src/payments/rails/polar_rail.dart';
 import 'package:test/test.dart';
 import 'test_tools/commerce_test_harness.dart';
 import 'test_tools/serverpod_test_tools.dart';
@@ -53,22 +50,19 @@ void main() {
           tag: 'group_storage',
           quantity: 50,
         );
-        final polarRail = PaymentManager.getRail(PaymentRail.polar) as PolarRail?;
-        if (polarRail != null && polarRail.client is MockPolarClient) {
-          (polarRail.client as MockPolarClient).addMockLicense(
-            'GROUP-LICENSE-1',
-            PolarLicenseValidation(
-              id: 'lk-group-license-1',
-              key: 'GROUP-LICENSE-1',
-              status: 'granted',
-              organizationId: 'mock-org',
-              benefitId: 'benefit-group-license-1',
-              customerId: 'cust-buyer',
-              expiresAt: null,
-              raw: const {},
-            ),
-          );
-        }
+        buyer.polarMock.addMockLicense(
+          'GROUP-LICENSE-1',
+          PolarLicenseValidation(
+            id: 'lk-group-license-1',
+            key: 'GROUP-LICENSE-1',
+            status: 'granted',
+            organizationId: 'mock-org',
+            benefitId: 'benefit-group-license-1',
+            customerId: 'cust-buyer',
+            expiresAt: null,
+            raw: const {},
+          ),
+        );
         final purchase = await buyer.redeemPolarForGroup(licenseKey: 'GROUP-LICENSE-1', shareGroupUuid: group.id!);
         expect(purchase.success, isTrue);
 

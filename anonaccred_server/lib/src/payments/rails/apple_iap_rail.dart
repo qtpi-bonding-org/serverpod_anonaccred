@@ -35,6 +35,11 @@ class AppleIAPRail implements PaymentRailInterface {
 
   final AppStoreServerClient? _client;
 
+  /// Exposes the injected client (test mocks included) for callers that
+  /// need to reach it through `PaymentManager.getRail` rather than holding
+  /// their own reference — mirrors `PolarRail.client`.
+  AppStoreServerClient? get client => _client;
+
   /// Factory to create and initialize AppleIAPRail asynchronously.
   ///
   /// Reads `APPLE_ENVIRONMENT` env var to select sandbox or production API.

@@ -27,9 +27,6 @@ class CommerceTestHarness {
     required this.accountUuid,
     required String deviceKeyHex,
     required TestSessionBuilder sessionBuilder,
-    required this.appleMock,
-    required this.googleMock,
-    required this.polarMock,
     required this.endpoints,
   }) : _deviceKeyHex = deviceKeyHex,
        _sessionBuilder = sessionBuilder;
@@ -38,10 +35,23 @@ class CommerceTestHarness {
   final UuidValue accountUuid;
   final String _deviceKeyHex;
   final TestSessionBuilder _sessionBuilder;
-  final MockAppStoreServerClient appleMock;
-  final MockAndroidPublisherClient googleMock;
-  final MockPolarClient polarMock;
   final TestEndpoints endpoints;
+
+  /// Resolved through [PaymentManager.getRail] at access time rather than
+  /// stored at harness-creation time — [PaymentManager.registerRail]
+  /// overwrites by key globally, so a field captured at construction would
+  /// go stale the moment a later harness registers its own mocks.
+  MockAppStoreServerClient get appleMock =>
+      (PaymentManager.getRail(PaymentRail.apple_iap) as AppleIAPRail).client
+          as MockAppStoreServerClient;
+
+  MockAndroidPublisherClient get googleMock =>
+      (PaymentManager.getRail(PaymentRail.google_iap) as GoogleIAPRail).client
+          as MockAndroidPublisherClient;
+
+  MockPolarClient get polarMock =>
+      (PaymentManager.getRail(PaymentRail.polar) as PolarRail).client
+          as MockPolarClient;
 
   static Future<CommerceTestHarness> create(
     TestSessionBuilder sessionBuilder,
@@ -94,9 +104,6 @@ class CommerceTestHarness {
       accountUuid: account.id!,
       deviceKeyHex: deviceHex,
       sessionBuilder: sessionBuilder,
-      appleMock: appleMock,
-      googleMock: googleMock,
-      polarMock: polarMock,
       endpoints: endpoints,
     );
   }

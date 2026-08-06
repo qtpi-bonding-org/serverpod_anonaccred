@@ -74,9 +74,9 @@ void main() {
     });
 
     test('rejects a token signed by a key not present in the JWKS', () async {
-      // A syntactically valid RS256 JWT whose signature does not verify
-      // against any key the loopback JWKS server publishes — proves
-      // verifyAndDecode checks the signature bytes, not just claim shape.
+      // Header claims (iss/aud/exp) are all made to pass so this reaches the
+      // signature check rather than being rejected earlier for a different
+      // reason.
       final header = base64Url
           .encode(utf8.encode(jsonEncode({
             'alg': 'RS256',
@@ -84,10 +84,12 @@ void main() {
             'kid': 'test-key-1',
           })))
           .replaceAll('=', '');
+      final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final payload = base64Url
           .encode(utf8.encode(jsonEncode({
             'iss': 'https://accounts.google.com',
             'aud': 'https://example.com/hooks/google',
+            'exp': nowSeconds + 3600,
           })))
           .replaceAll('=', '');
       final forgedSignature =
@@ -123,6 +125,29 @@ void main() {
       final token = GoogleTestOidc.signToken(
         audience: 'https://example.com/hooks/google',
         expiresIn: const Duration(minutes: -10),
+      );
+
+      await expectLater(
+        GooglePubSubVerifier.verifyAndDecode(
+          authorizationHeader: 'Bearer $token',
+          requestBody: requestBody,
+          expectedAudience: 'https://example.com/hooks/google',
+        ),
+        throwsA(isA<AnonAccountException>()),
+      );
+    });
+
+    test('rejects a token with email_verified false', () async {
+      final requestBody = jsonEncode({
+        'message': {
+          'data': base64.encode(
+            utf8.encode('{"packageName":"x","eventTimeMillis":"1"}'),
+          ),
+        },
+      });
+      final token = GoogleTestOidc.signToken(
+        audience: 'https://example.com/hooks/google',
+        emailVerified: false,
       );
 
       await expectLater(

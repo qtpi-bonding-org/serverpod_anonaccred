@@ -113,6 +113,10 @@ class GooglePubSubVerifier {
       throw _invalid('OIDC token has expired');
     }
 
+    if (payload['email_verified'] != true) {
+      throw _invalid('Token email_verified claim is not true');
+    }
+
     final kid = header['kid'] as String?;
     final keys = await _fetchCerts();
     final key = keys[kid];
@@ -128,13 +132,23 @@ class GooglePubSubVerifier {
     if (!ok) throw _invalid('OIDC token signature verification failed');
   }
 
+  static const Duration _certsFetchTimeout = Duration(seconds: 10);
+
   static Future<Map<String, RsaPublicKey>> _fetchCerts() async {
     final client = HttpClient();
     try {
       final uri = certsUriOverride ?? Uri.parse(_googleCertsUrl);
-      final request = await client.getUrl(uri);
-      final response = await request.close();
-      final body = await response.transform(utf8.decoder).join();
+      final request = await client.getUrl(uri).timeout(_certsFetchTimeout);
+      final response = await request.close().timeout(_certsFetchTimeout);
+      if (response.statusCode != 200) {
+        throw _invalid(
+          'Failed to fetch Google certs: HTTP ${response.statusCode}',
+        );
+      }
+      final body = await response
+          .transform(utf8.decoder)
+          .join()
+          .timeout(_certsFetchTimeout);
       final decoded = jsonDecode(body) as Map<String, dynamic>;
       final keysList = decoded['keys'] as List<dynamic>;
       final result = <String, RsaPublicKey>{};

@@ -46,6 +46,11 @@ class GoogleIAPRail implements PaymentRailInterface {
   GoogleIAPRail({AndroidPublisherClient? client}) : _client = client;
   final AndroidPublisherClient? _client;
 
+  /// Exposes the injected client (test mocks included) for callers that
+  /// need to reach it through `PaymentManager.getRail` rather than holding
+  /// their own reference — mirrors `PolarRail.client`.
+  AndroidPublisherClient? get client => _client;
+
   /// Internal helper to get the client, throws if not initialized
   AndroidPublisherClient get _publisherClient {
     if (_client == null) {
@@ -63,6 +68,21 @@ class GoogleIAPRail implements PaymentRailInterface {
   /// Loads credentials and initializes the AndroidPublisherClient.
   /// Throws [AnonAccountException] if initialization fails.
   static Future<GoogleIAPRail> create() async {
+    final audience = Platform.environment['GOOGLE_PUBSUB_PUSH_AUDIENCE'];
+    if (audience == null || audience.isEmpty) {
+      throw AnonAccountExceptionFactory.createException(
+        code: AnonAccredErrorCodes.configurationMissing,
+        message: 'GOOGLE_PUBSUB_PUSH_AUDIENCE is not configured',
+        details: {
+          'requiredConfig': 'GOOGLE_PUBSUB_PUSH_AUDIENCE',
+          'hint':
+              'Set GOOGLE_PUBSUB_PUSH_AUDIENCE to the audience configured on '
+              'the Cloud Pub/Sub push subscription, or every real Google '
+              'RTDN webhook will be rejected with an invalid-audience error.',
+        },
+      );
+    }
+
     final authClient = await GoogleAuthClient.fromEnvironment();
     final authenticatedClient = await authClient.createAuthenticatedClient();
     final publisherClient = AndroidPublisherClient(authenticatedClient);
@@ -70,7 +90,10 @@ class GoogleIAPRail implements PaymentRailInterface {
   }
 
   /// The `aud` claim Google's Pub/Sub push OIDC token is expected to carry —
-  /// the configured push endpoint URL for this deployment.
+  /// must match the audience configured on this deployment's Cloud Pub/Sub
+  /// push subscription. [create] fails fast if this is unset; this getter
+  /// itself still defaults to `''` because it is also read directly by
+  /// tests that don't go through [create].
   static String get expectedPushAudience =>
       Platform.environment['GOOGLE_PUBSUB_PUSH_AUDIENCE'] ?? '';
 

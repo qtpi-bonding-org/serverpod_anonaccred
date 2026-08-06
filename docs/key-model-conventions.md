@@ -362,6 +362,12 @@ widening group authorization:
 | `anonaccred`'s group endpoints authorize on the membership row alone, no inner signature (rule 5), while `GroupEndpoint` demands a member-key signature — two authorization models in one system | `group_commerce_endpoint.dart:109-132` | Justified, not a gap — see B1 in `docs/superpowers/patterns/2026-08-02/RULES-CANDIDATES.md`: hashcash PoW is too slow for commerce/IAP flows, so `anonaccred` uses a JWT there instead of a per-call signature. Deliberate boundary, now stated explicitly rather than left to infer |
 | The group data key reaches only the member key, not the account's devices (rule 2's fan-out) | design-level | Being fixed — group parity unit A |
 
+**Commerce webhook verification gaps:**
+
+| Deviation | Where | Status |
+|---|---|---|
+| Apple x5c chain-of-trust verification checks signature linkage between certificates and pins the terminal cert to a trusted root, but does not check `basicConstraints CA:TRUE` on intermediates, does not check certificate validity periods (`notBefore`/`notAfter`), and does not check Apple's leaf certificate OID (`1.2.840.113635.100.6.11.1`). Practical consequence: any certificate that chains to Apple's real Root CA G3 — not just App Store Server certificates, e.g. an Apple Pay merchant identity cert obtainable by any Apple developer — is currently accepted as a valid signer of App Store notifications, and an expired or revoked certificate verifies forever | `notification_signature_validator.dart` | Not fixed here — must be closed before this verifier is used against real production Apple webhook traffic |
+
 **Inert or cosmetic:**
 
 | Deviation | Where | Status |

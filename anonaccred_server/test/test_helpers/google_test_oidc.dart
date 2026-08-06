@@ -54,6 +54,7 @@ class GoogleTestOidc {
   static String signToken({
     required String audience,
     Duration expiresIn = const Duration(hours: 1),
+    bool emailVerified = true,
   }) {
     final header = {'alg': 'RS256', 'typ': 'JWT', 'kid': 'test-key-1'};
     final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -62,7 +63,7 @@ class GoogleTestOidc {
       'iss': 'https://accounts.google.com',
       'aud': audience,
       'email': 'test-pubsub@test.iam.gserviceaccount.com',
-      'email_verified': true,
+      'email_verified': emailVerified,
       'iat': nowSeconds,
       'exp': expSeconds,
     };
