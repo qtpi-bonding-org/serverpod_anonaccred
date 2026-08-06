@@ -25,7 +25,7 @@
 
 **Interfaces:**
 - Consumes: nothing (this is the root of the dependency chain for later tasks).
-- Produces: getters `rootDer`, `intermediateDer`, `leafDer`, `leafPrivateKeyDer` (existing names, new byte values), plus five new getters: `expiredLeafDer`, `expiredLeafPrivateKeyDer`, `nonCaIntermediateDer`, `nonCaIntermediatePrivateKeyDer`, `leafSignedByNonCaIntermediateDer`, `leafSignedByNonCaIntermediatePrivateKeyDer`. `unrelatedSelfSignedDer`/`unrelatedPrivateKeyDer` are unchanged.
+- Produces: getters `rootDer`, `intermediateDer`, `leafDer`, `leafPrivateKeyDer` (existing names, new byte values), plus six new getters: `expiredLeafDer`, `expiredLeafPrivateKeyDer`, `nonCaIntermediateDer`, `nonCaIntermediatePrivateKeyDer`, `leafSignedByNonCaIntermediateDer`, `leafSignedByNonCaIntermediatePrivateKeyDer`. `unrelatedSelfSignedDer`/`unrelatedPrivateKeyDer` are unchanged.
 
 The existing `intermediateDerBase64` fixture has **no `basicConstraints` extension at all** (verified by parsing it with the installed `x509` package) — not `CA:FALSE`, absent entirely. Task 2's new check rejects any non-leaf cert lacking the extension, which would break the existing "accepts a genuinely valid chain and signature" test (`notification_signature_validator_test.dart:97-111`). The root/intermediate/leaf chain must be regenerated with the intermediate correctly carrying `basicConstraints=critical,CA:TRUE`. Because the original root and intermediate private keys were never persisted (only used ephemerally during the original `openssl` generation), the entire root→intermediate→leaf chain is regenerated fresh below — this also produces new key material for the two new fixture chains needed in Tasks 2 and 3.
 
