@@ -61,11 +61,17 @@ fetching a runtime JWKS. Two concrete symptoms:
   Apple's unrelated JWKS at `appleid.apple.com/auth/keys`).
 
 **Fix:** replace JWKS+kid lookup with x5c chain-of-trust verification:
-parse the JWS header's certificate chain (`package:x509`, already
-resolvable in the dependency tree), verify leaf → intermediate → a bundled
-Apple Root CA G3 certificate (a fixed constant, not fetched), then verify
-the ES256 signature with the leaf certificate's public key. Must also
-succeed for sandbox notifications (no `kid`).
+parse the JWS header's certificate chain (`package:x509`), verify leaf →
+intermediate → a bundled Apple Root CA G3 certificate (a fixed constant,
+not fetched), then verify the ES256 signature with the leaf certificate's
+public key. Must also succeed for sandbox notifications (no `kid`).
+
+`x509` and `asn1lib` currently resolve only as *transitive* dependencies
+(pulled in by something else, likely `googleapis_auth` or
+`app_store_server_sdk`) — not declared in `pubspec.yaml`. This plan adds
+both as explicit direct dependencies rather than relying on transitive
+resolution, which could silently break if the package that currently pulls
+them in changes its own dependencies.
 
 ### Google: wrong envelope, wrong fields, wrong auth model
 
@@ -154,9 +160,21 @@ extending existing unit-test signing helpers rather than duplicating them:
 - **Polar**: lifts the existing `_sign()` helper from
   `polar_signature_validator_test.dart` verbatim — already correct.
 
-Each provider's route is driven directly —
-`route.handleCall(session, fakeRequest)` — using a hand-built Serverpod
-`Request` carrying the signed body/headers. No live HTTP server needed.
+Each provider's route is driven directly — `route.handleCall(session, request)`
+— using a `relic_core` `Request` built via
+`RequestInternal.create(...)` (`package:relic_core/src/context/request.dart`).
+`Request`'s only public constructor path is `Request._`, reachable in
+production solely through a real IO adapter
+(`relic_io/lib/src/adapter/io_adapter.dart`); `RequestInternal` is an
+extension exposing that private constructor, deliberately excluded from
+the public `relic`/`relic_core` barrel exports ("hidden in barrel file"
+per its own doc comment) but still reachable via a deep `src/` import —
+confirmed by `relic_core`'s own test suite using exactly this to construct
+requests without a server. This is a deliberate, documented use of an
+internal-but-reachable extension, not a stable public API contract: a
+future `relic_core` version could remove or relocate it without a
+deprecation cycle, and the plan should say so at the import site. No live
+HTTP server is needed either way.
 
 ### Test-only verification override hooks
 
@@ -184,12 +202,21 @@ plus one adversarial variant each:
    revoked mid-flow → their next `consumeGroupEntitlement` call is
    rejected → group balance is unaffected by the member's revocation → a
    different active member can still consume.
-3. **Cross-module auth chaining**: device revoked in anonaccount → every
-   commerce/IAP/group-commerce/Polar entrypoint using that device's JWT
-   scope is rejected, not just one. Membership revoked concurrently with
-   `consumeGroupEntitlement` — verify `_requireGroupMember`'s check-then-act
-   actually closes the window it appears to (per this repo's documented
-   history of comments overclaiming atomicity that wasn't there).
+3. **Cross-module auth chaining**: device revocation is a direct
+   `AccountDevice.isRevoked` DB update (the only mechanism available given
+   this harness can't drive anonaccount's real `signIn`/revocation
+   endpoints — see "Why not the SDK-driven pattern" above). This is a
+   faithful test of production behavior, not a shortcut: every anonaccred
+   `JwtEndpoint` calls `AnonAccountHelpers.requireCaller`, which does a
+   live DB lookup by device signing key on every call
+   (`anonaccount_server/lib/src/helpers.dart:323-337`) rather than trusting
+   the JWT's claims — so revoking the row and re-calling each
+   commerce/IAP/group-commerce/Polar entrypoint genuinely exercises the
+   real re-check, not a mocked one. Separately: membership revoked
+   concurrently with `consumeGroupEntitlement` — verify
+   `_requireGroupMember`'s check-then-act actually closes the window it
+   appears to (per this repo's documented history of comments overclaiming
+   atomicity that wasn't there).
 4. **Webhook-driven fulfillment**: valid signed notification →
    `AppleWebhookRoute` / `GoogleWebhookRoute` / `PolarWebhookRoute`
    `.handleCall()` → transaction status updates / entitlement granted;
