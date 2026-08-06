@@ -51,17 +51,22 @@ pass over the certs.
 
 ### 1. `basicConstraints CA:TRUE` on non-leaf certs
 
-Every cert in the chain except the leaf (index 0) must carry a
-`BasicConstraintsExtension` with `isCA == true`. `package:x509`'s
-`X509Certificate.tbsCertificate.extensions` exposes parsed extensions;
-the implementer confirms the exact extension-lookup API against the
-installed package source (same approach Task 3 used for TBS-byte
-handling) before writing the check, since `package:x509`'s extension
-accessors aren't guaranteed stable across the plan-writing and
-implementation steps.
+Every cert in the chain except the leaf (index 0) must carry an
+extension whose value is a `BasicConstraints` with `cA == true`
+(confirmed against the installed `x509` 0.2.4+3 source:
+`lib/src/extension.dart` — the class is `BasicConstraints`, the field is
+`cA`, not `isCA`; there's no direct getter, so the implementer iterates
+`tbsCertificate.extensions` and checks `e.extnValue is BasicConstraints`).
 
 Reject the chain (return `false`) if any non-leaf cert lacks the
-extension or has `isCA != true`.
+extension or has `cA != true`.
+
+A `keyUsage`/`keyCertSign` check normally accompanies `basicConstraints`
+in standard PKIX chain validation (a CA cert authorized to sign other
+certs should also assert `keyCertSign` in its `keyUsage` extension) —
+deliberately deferred alongside the leaf OID check (see Background),
+same reasoning: better to track it as a known remaining gap than guess
+at enforcement against unverified real Apple cert behavior.
 
 ### 2. Certificate validity period on every cert
 
@@ -82,35 +87,70 @@ A cert failing either new check short-circuits to `false` exactly like a
 failed signature link does today — no new error/exception path, matching
 the function's existing all-or-nothing boolean contract.
 
-## Test fixtures
+### Prerequisite fix: the existing intermediate fixture has no `basicConstraints` extension
 
-`AppleTestCertificates` gains two additional throwaway certs, generated
-the same way as the existing chain (openssl, P-256, hardcoded DER
-base64 — see the file's existing comments for the exact commands):
+Verified by parsing the actual fixture bytes with the real `x509` package:
+`AppleTestCertificates.intermediateDerBase64` carries **no**
+`basicConstraints` extension at all (not `CA:FALSE` — absent). Under the
+new check's rule ("reject if any non-leaf cert lacks the extension"),
+this fails the intermediate used by the *existing, currently-passing*
+"accepts a genuinely valid chain and signature" test
+(`notification_signature_validator_test.dart:97-111`, chain
+`[leafDer, intermediateDer]`) — implementing the check as specified
+would break that test.
 
-- **`expiredLeafDerBase64`** — a leaf cert signed correctly by the
-  existing test intermediate, but with a validity window entirely in the
-  past (e.g. `notBefore`/`notAfter` both in 2020). Proves the validity
-  check rejects it — nothing else about this cert is wrong, so a test
-  passing here can't be explained by a different, unrelated failure.
-- **`nonCaIntermediateDerBase64`** — an intermediate cert signed
-  correctly by the existing test root, valid today, but generated
-  *without* `basicConstraints CA:TRUE` (openssl's default when the `CA:
-  TRUE` extension isn't explicitly requested). A leaf signed by this
-  intermediate proves the `basicConstraints` check rejects it.
+**This must be fixed before either new check lands:** regenerate
+`intermediateDerBase64` with `basicConstraints=critical,CA:TRUE`
+(openssl `-addext`), re-signed by the existing test root. The
+intermediate's key pair stays the same, so `leafDerBase64`'s existing
+signature (made against the intermediate's private key) remains valid —
+only the intermediate's cert DER and the root's signature over it
+change. Update `rootDerBase64`'s issued signature over the new
+intermediate bytes accordingly; the root cert itself (already
+`cA=true`, confirmed) doesn't need to change.
 
-Both need paired private-key DER constants (`...PrivateKeyDerBase64`)
-the same way `unrelatedPrivateKeyDerBase64` already does, since a leaf
-must be signed by the fixture's own key to produce a chain that fails
-*only* on the new check, not on signature verification too.
+### New fixtures
+
+`AppleTestCertificates` gains three additional throwaway certs/keys,
+generated the same way as the existing chain (openssl, P-256, hardcoded
+DER base64 — see the file's existing comments for the exact commands):
+
+- **`expiredLeafDerBase64`** (+ paired private key) — a leaf cert signed
+  correctly by the (now-fixed) test intermediate, but with a validity
+  window entirely in the past (e.g. `notBefore`/`notAfter` both in
+  2020). Proves the validity check rejects it — nothing else about this
+  cert is wrong, so a test passing here can't be explained by a
+  different, unrelated failure (in particular, it must chain through
+  the fixed `intermediateDerBase64`, not fail earlier on
+  `basicConstraints`).
+- **`nonCaIntermediateDerBase64`** (+ paired private key) — an
+  intermediate cert signed correctly by the existing test root, valid
+  today, but generated *without* `basicConstraints CA:TRUE` (openssl's
+  default when the `CA:TRUE` extension isn't explicitly requested). This
+  is deliberately the same shape as the bug just fixed above, kept here
+  on purpose as the fixture for a test that wants exactly that shape.
+- **`leafSignedByNonCaIntermediateDerBase64`** (+ paired private key) —
+  a **freshly generated** leaf, signed by `nonCaIntermediateDerBase64`'s
+  own private key. Do not reuse `leafDerBase64` for this test: it's
+  signed by the *original* intermediate's key, so chaining it under
+  `nonCaIntermediateDerBase64` would fail signature-linkage
+  (`_isSignedBy`) before the `basicConstraints` check is ever reached,
+  making the test pass for the wrong reason.
+
+All three new leaf/intermediate fixtures need paired private-key DER
+constants (`...PrivateKeyDerBase64`), the same way
+`unrelatedPrivateKeyDerBase64` already does, since each leaf must be
+signed by the fixture's own key to produce a chain that fails *only* on
+the new check under test, not on signature verification too.
 
 `test/unit/notification_signature_validator_test.dart` gains two new
 tests:
 
-- A JWS whose leaf chains through `nonCaIntermediateDerBase64` is
-  rejected.
-- A JWS signed with `expiredLeafDerBase64` (correctly, by its own valid
-  key) is rejected.
+- A JWS whose chain is
+  `[leafSignedByNonCaIntermediateDerBase64, nonCaIntermediateDerBase64]`
+  is rejected (proves the `basicConstraints` check).
+- A JWS whose chain is `[expiredLeafDerBase64, intermediateDerBase64]`
+  (the fixed intermediate) is rejected (proves the validity check).
 
 Both tests build their JWS via the existing test-fixture pattern in that
 file (or via `WebhookSigner`, whichever the implementer finds already
@@ -136,8 +176,20 @@ will point at the exact one).
 ## Testing
 
 Existing tests in `notification_signature_validator_test.dart` must keep
-passing unchanged — the two new checks must not reject the existing
-valid-chain-and-signature happy path or the existing
-untrusted-chain-rejection test. Run via `dart test
+passing after the intermediate-fixture fix above — the two new checks
+must not reject the existing valid-chain-and-signature happy path or the
+existing untrusted-chain-rejection test. Run via `dart test
 test/unit/notification_signature_validator_test.dart` (pure-Dart package
 — not `flutter test`, per this repo's Serverpod Rules).
+
+## Comment-rule note for the implementer
+
+This exact file has a documented history (see repo root `CLAUDE.md`,
+THE COMMENT RULE section) of comments asserting security properties the
+code didn't actually provide, surviving multiple review passes. The two
+new checks are prime targets for the same mistake — sentences like
+"prevents an expired cert from being accepted" or "ensures only CAs can
+sign" are falsifiable claims and belong in a test name, not a comment
+next to the check. Comments here should explain WHY (e.g. why this
+check lives inside the existing loop instead of a separate pass), never
+what property it guarantees.
