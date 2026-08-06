@@ -90,6 +90,7 @@ void main() {
             'iss': 'https://accounts.google.com',
             'aud': 'https://example.com/hooks/google',
             'exp': nowSeconds + 3600,
+            'email_verified': true,
           })))
           .replaceAll('=', '');
       final forgedSignature =
