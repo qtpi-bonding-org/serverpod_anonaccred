@@ -43,7 +43,38 @@ class AppleTestCertificates {
       'v/2M/xMk8Suubmmc/yRp4bQuvOs1Be0az9FohRqBsxqbhHlzzlV5+uoDUDt/Ii3tFLqeuetY7a0w'
       'EveUOhd3aQ==';
 
+  // A self-signed cert from an entirely separate CA (its own throwaway
+  // key, not chained through `rootDerBase64` at all). Used to test that a
+  // chain genuinely unrelated to the trusted root is rejected — as
+  // opposed to a chain that is merely incomplete but still verifiably
+  // rooted in trust, which a different bug class could wrongly accept.
+  // Generated the same way as the chain above:
+  //   openssl ecparam -name prime256v1 -genkey -noout -out unrelated_leaf.key
+  //   openssl req -x509 -new -key unrelated_leaf.key \
+  //     -subj "/CN=Unrelated Self-Signed/O=Test" -days 3650 -out unrelated_leaf.pem
+  static const String unrelatedSelfSignedDerBase64 =
+      'MIIBsjCCAVmgAwIBAgIUKNCak4mpg/+x0VtdbWy3v7/xCGQwCgYIKoZIzj0EAwIwLzEeMBwGA1UE'
+      'AwwVVW5yZWxhdGVkIFNlbGYtU2lnbmVkMQ0wCwYDVQQKDARUZXN0MB4XDTI2MDgwNjA3MDgwMFoX'
+      'DTM2MDgwMzA3MDgwMFowLzEeMBwGA1UEAwwVVW5yZWxhdGVkIFNlbGYtU2lnbmVkMQ0wCwYDVQQK'
+      'DARUZXN0MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+l+QA4Z04PXut2kquq3KqnDe71oJ/67C'
+      'vUpiReJ8wQrSFpoV9GYNHtXEufblT/C3vBU2+X46WnFgRYsuSD49MaNTMFEwHQYDVR0OBBYEFPR7'
+      'ljx14hlRBXV8TDbyEuS00kMzMB8GA1UdIwQYMBaAFPR7ljx14hlRBXV8TDbyEuS00kMzMA8GA1Ud'
+      'EwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDRwAwRAIgSpC5C6JwC1gqsys04wA3ljAVab3IIcY42Tb9'
+      'zYGDYlICIFciXNlO+HrEjEDciRIK60i2NWxz83dgPXnza+D/AyBx';
+
+  // Raw EC private key bytes for the unrelated self-signed cert above
+  // (`openssl ec -in unrelated_leaf.key -outform DER | base64`) — used to
+  // produce a genuinely valid signature over an untrusted chain, so a
+  // chain-of-trust test can't pass by accident on garbage signature bytes.
+  static const String unrelatedPrivateKeyDerBase64 =
+      'MHcCAQEEIJApY/iVviNLuTbqsMU8weDGBrV9uW1rbAtijDMufl5PoAoGCCqGSM49AwEHoUQDQgAE'
+      '+l+QA4Z04PXut2kquq3KqnDe71oJ/67CvUpiReJ8wQrSFpoV9GYNHtXEufblT/C3vBU2+X46WnFg'
+      'RYsuSD49MQ==';
+
   static List<int> get rootDer => base64.decode(rootDerBase64);
   static List<int> get intermediateDer => base64.decode(intermediateDerBase64);
   static List<int> get leafDer => base64.decode(leafDerBase64);
+  static List<int> get leafPrivateKeyDer => base64.decode(leafPrivateKeyDerBase64);
+  static List<int> get unrelatedSelfSignedDer => base64.decode(unrelatedSelfSignedDerBase64);
+  static List<int> get unrelatedPrivateKeyDer => base64.decode(unrelatedPrivateKeyDerBase64);
 }
