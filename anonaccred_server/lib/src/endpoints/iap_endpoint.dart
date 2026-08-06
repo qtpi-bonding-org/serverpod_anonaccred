@@ -5,6 +5,7 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 import '../protocol_failures.dart';
 import '../exception_factory.dart';
 import '../generated/protocol.dart';
+import '../payments/payment_manager.dart';
 import '../payments/rails/apple_iap_rail.dart';
 import '../payments/rails/google_iap_rail.dart';
 
@@ -54,8 +55,12 @@ class IAPEndpoint extends JwtEndpoint {
           );
         }
 
-        // Create Apple IAP rail and validate transaction
-        final appleRail = await AppleIAPRail.create();
+        // Prefer a rail registered with PaymentManager (tests inject a mock
+        // client this way, mirroring PolarEndpoint's pattern), otherwise
+        // build the live rail from environment credentials.
+        final appleRail =
+            PaymentManager.getRail(PaymentRail.apple_iap) as AppleIAPRail? ??
+            await AppleIAPRail.create();
         final result = await appleRail.validateTransaction(
           session: session,
           transactionId: transactionId,
@@ -129,8 +134,12 @@ class IAPEndpoint extends JwtEndpoint {
           );
         }
 
-        // Create Google IAP rail and validate purchase
-        final googleRail = await GoogleIAPRail.create();
+        // Prefer a rail registered with PaymentManager (tests inject a mock
+        // client this way, mirroring PolarEndpoint's pattern), otherwise
+        // build the live rail from environment credentials.
+        final googleRail =
+            PaymentManager.getRail(PaymentRail.google_iap) as GoogleIAPRail? ??
+            await GoogleIAPRail.create();
         final result = await googleRail.validatePurchase(
           session: session,
           packageName: packageName,

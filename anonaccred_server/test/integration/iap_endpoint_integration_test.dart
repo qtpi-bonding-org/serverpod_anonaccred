@@ -203,8 +203,12 @@ void main() {
       );
 
       test(
-        'validateGooglePurchase handles Google configuration gracefully',
+        'validateGooglePurchase fails gracefully for an unrecognized purchase token',
         () async {
+          // setUp registers a MockAndroidPublisherClient with PaymentManager,
+          // which the endpoint now prefers over building a live rail from
+          // environment credentials (see iap_endpoint.dart). No purchase was
+          // pre-seeded for this token, so the mock rejects it.
           try {
             await endpoints.iAP.validateGooglePurchase(
               authenticatedSessionBuilder,
@@ -213,17 +217,9 @@ void main() {
               'mock_purchase_token',
               internalTransactionId: 'test_order_456',
             );
-            // If no error, the test passes (Google not configured)
+            fail('Should have thrown for an unregistered mock purchase token');
           } on Exception catch (e) {
-            // Any exception is acceptable when Google is not configured
-            expect(
-              e.toString(),
-              anyOf(
-                contains('configuration'),
-                contains('credentials'),
-                contains('Google'),
-              ),
-            );
+            expect(e, isA<PaymentException>());
           }
         },
       );
