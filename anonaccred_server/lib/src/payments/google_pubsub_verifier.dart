@@ -11,9 +11,12 @@ const String _googleCertsUrl = 'https://www.googleapis.com/oauth2/v3/certs';
 /// A single Google Play Real-time Developer Notification, decoded from the
 /// base64 `message.data` payload of a Cloud Pub/Sub push envelope.
 ///
-/// Exactly one of [subscriptionNotification], [oneTimeProductNotification],
-/// or [voidedPurchaseNotification] is populated per Google's schema — the
-/// others are null.
+/// [subscriptionNotification], [oneTimeProductNotification], and
+/// [voidedPurchaseNotification] are all nullable, rather than a sealed
+/// variant type, because that mirrors how Google represents them on the
+/// wire: a flat JSON object with one notification-type key per message,
+/// not a tagged union. Modeling each as its own nullable field avoids an
+/// untyped intermediate JSON decode at every call site.
 class GoogleDeveloperNotification {
   GoogleDeveloperNotification({
     required this.packageName,
@@ -99,6 +102,15 @@ class GooglePubSubVerifier {
     }
     if (payload['aud'] != expectedAudience) {
       throw _invalid('Unexpected token audience: ${payload['aud']}');
+    }
+
+    final exp = payload['exp'];
+    if (exp is! int) {
+      throw _invalid('Missing or malformed exp claim');
+    }
+    final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    if (exp < nowSeconds) {
+      throw _invalid('OIDC token has expired');
     }
 
     final kid = header['kid'] as String?;

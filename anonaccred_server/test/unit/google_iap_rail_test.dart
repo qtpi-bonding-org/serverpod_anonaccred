@@ -632,6 +632,23 @@ void main() {
       expect(event.productId, isNull);
     });
 
+    test(
+        'extracts RefundEvent from a subscriptionNotification map, falling '
+        'back to subscriptionId since it carries no orderId', () {
+      const token = 'token_sub_extract';
+      const subscriptionId = 'sub-plan-1';
+
+      final event = googleRail.extractRefundEvent({
+        'purchaseToken': token,
+        'subscriptionId': subscriptionId,
+        'notificationType': 12,
+      });
+
+      expect(event, isNotNull);
+      expect(event!.paymentRef, equals(subscriptionId));
+      expect(event.receiptHash, equals(CryptoUtils.sha256Hash(token)));
+    });
+
     test('returns null when purchaseToken is missing', () {
       final event = googleRail.extractRefundEvent({
         'orderId': 'GPA.test',
@@ -639,14 +656,14 @@ void main() {
       expect(event, isNull);
     });
 
-    test('returns null when orderId is missing', () {
+    test('returns null when both orderId and subscriptionId are missing', () {
       final event = googleRail.extractRefundEvent({
         'purchaseToken': 'token_test',
       });
       expect(event, isNull);
     });
 
-    test('returns null when both fields missing', () {
+    test('returns null when all fields missing', () {
       final event = googleRail.extractRefundEvent(<String, dynamic>{});
       expect(event, isNull);
     });
@@ -766,8 +783,8 @@ void main() {
     });
 
     test(
-        'processCallback acknowledges a subscriptionNotification without '
-        'touching RefundManager', () async {
+        'processCallback acknowledges a SUBSCRIPTION_PURCHASED notification '
+        'without touching RefundManager', () async {
       final session = sessionBuilder.build();
       var refundCalled = false;
       RefundManager.onRefund((s, event, context) async {
@@ -783,7 +800,7 @@ void main() {
           'eventTimeMillis': '1700000000000',
           'subscriptionNotification': {
             'version': '1.0',
-            'notificationType': 4,
+            'notificationType': 4, // SUBSCRIPTION_PURCHASED
             'purchaseToken': 'sub-token',
             'subscriptionId': 'sub-1',
           },
@@ -794,6 +811,81 @@ void main() {
 
       expect(result.success, isTrue);
       expect(refundCalled, isFalse);
+    });
+
+    test(
+        'processCallback acknowledges a SUBSCRIPTION_CANCELED notification '
+        'without touching RefundManager (a cancellation still runs to the '
+        'end of the paid period — it is not a revocation)', () async {
+      final session = sessionBuilder.build();
+      var refundCalled = false;
+      RefundManager.onRefund((s, event, context) async {
+        refundCalled = true;
+        return RefundAction.ignore;
+      });
+
+      final oidcToken = GoogleTestOidc.signToken(audience: audience);
+      final result = await googleRail.processCallback({
+        'authorization_header': 'Bearer $oidcToken',
+        'request_body': envelopeFor({
+          'packageName': 'com.quanitya.app',
+          'eventTimeMillis': '1700000000000',
+          'subscriptionNotification': {
+            'version': '1.0',
+            'notificationType': 3, // SUBSCRIPTION_CANCELED
+            'purchaseToken': 'sub-token-cancel',
+            'subscriptionId': 'sub-2',
+          },
+        }),
+        'expected_audience': audience,
+        'session': session,
+      });
+
+      expect(result.success, isTrue);
+      expect(refundCalled, isFalse);
+    });
+
+    test(
+        'processCallback routes a SUBSCRIPTION_REVOKED notification to '
+        'RefundManager', () async {
+      final session = sessionBuilder.build();
+      const token = 'token_sub_revoked';
+      const subscriptionId = 'sub-revoked-1';
+
+      final hash = CryptoUtils.sha256Hash(token);
+      await ReceiptHash.db.insertRow(
+        session,
+        ReceiptHash(hash: hash, paymentRail: PaymentRail.google_iap),
+      );
+
+      RefundEvent? capturedEvent;
+      RefundManager.onRefund((s, event, context) async {
+        capturedEvent = event;
+        return RefundAction.ignore;
+      });
+
+      final oidcToken = GoogleTestOidc.signToken(audience: audience);
+      final result = await googleRail.processCallback({
+        'authorization_header': 'Bearer $oidcToken',
+        'request_body': envelopeFor({
+          'packageName': 'com.quanitya.app',
+          'eventTimeMillis': '1700000000000',
+          'subscriptionNotification': {
+            'version': '1.0',
+            'notificationType': 12, // SUBSCRIPTION_REVOKED
+            'purchaseToken': token,
+            'subscriptionId': subscriptionId,
+          },
+        }),
+        'expected_audience': audience,
+        'session': session,
+      });
+
+      expect(result.success, isTrue);
+      expect(result.internalTransactionId, equals(subscriptionId));
+      expect(capturedEvent, isNotNull);
+      expect(capturedEvent!.paymentRef, equals(subscriptionId));
+      expect(capturedEvent!.receiptHash, equals(hash));
     });
   });
 }

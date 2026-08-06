@@ -112,6 +112,29 @@ void main() {
       );
     });
 
+    test('rejects a token with an exp in the past', () async {
+      final requestBody = jsonEncode({
+        'message': {
+          'data': base64.encode(
+            utf8.encode('{"packageName":"x","eventTimeMillis":"1"}'),
+          ),
+        },
+      });
+      final token = GoogleTestOidc.signToken(
+        audience: 'https://example.com/hooks/google',
+        expiresIn: const Duration(minutes: -10),
+      );
+
+      await expectLater(
+        GooglePubSubVerifier.verifyAndDecode(
+          authorizationHeader: 'Bearer $token',
+          requestBody: requestBody,
+          expectedAudience: 'https://example.com/hooks/google',
+        ),
+        throwsA(isA<AnonAccountException>()),
+      );
+    });
+
     test('rejects a request with no Authorization header', () async {
       final token = GoogleTestOidc.signToken(
         audience: 'https://example.com/hooks/google',

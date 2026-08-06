@@ -18,6 +18,13 @@ import '../google_pubsub_verifier.dart';
 import '../payment_rail_interface.dart';
 import '../rail_fulfillment_helpers.dart';
 
+/// Google's `SubscriptionNotificationType.SUBSCRIPTION_REVOKED` value, per
+/// the Play Developer API real-time developer notifications reference —
+/// the one subscriptionNotification type that means the entitlement was
+/// pulled mid-cycle (as opposed to e.g. a plain cancellation, which still
+/// runs to the end of the paid period).
+const int _subscriptionRevokedNotificationType = 12;
+
 /// Google Play In-App Purchase payment rail implementation
 ///
 /// Provides server-side validation of Google Play purchases using the Google Play
@@ -151,8 +158,23 @@ class GoogleIAPRail implements PaymentRailInterface {
         );
       }
 
-      // subscriptionNotification / oneTimeProductNotification / other types
-      // carry no refund signal in Google's schema — acknowledge only.
+      final subscription = notification.subscriptionNotification;
+      if (subscription != null) {
+        if (subscription['notificationType'] ==
+            _subscriptionRevokedNotificationType) {
+          final event = extractRefundEvent(subscription);
+          if (event != null) {
+            await RefundManager.processRefund(session, event);
+          }
+        }
+        return PaymentResult(
+          success: true,
+          internalTransactionId: subscription['subscriptionId'] as String?,
+        );
+      }
+
+      // oneTimeProductNotification / other types carry no refund signal in
+      // Google's schema — acknowledge only.
       return PaymentResult(success: true);
     } on AnonAccountException {
       rethrow;
@@ -168,14 +190,19 @@ class GoogleIAPRail implements PaymentRailInterface {
   RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) {
     try {
       final purchaseToken = notificationData['purchaseToken'] as String?;
-      final orderId = notificationData['orderId'] as String?;
+      // voidedPurchaseNotification carries orderId; subscriptionNotification
+      // does not (Google's schema has no orderId there) — subscriptionId is
+      // the closest identifier it does carry.
+      final paymentRef =
+          notificationData['orderId'] as String? ??
+          notificationData['subscriptionId'] as String?;
 
-      if (purchaseToken == null || orderId == null) return null;
+      if (purchaseToken == null || paymentRef == null) return null;
 
       return RefundEvent(
         rail: PaymentRail.google_iap,
         receiptHash: CryptoUtils.sha256Hash(purchaseToken),
-        paymentRef: orderId,
+        paymentRef: paymentRef,
         rawData: notificationData,
       );
     } catch (_) {

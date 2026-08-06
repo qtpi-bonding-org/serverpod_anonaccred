@@ -46,16 +46,25 @@ class GoogleTestOidc {
     };
   }
 
-  static String signToken({required String audience}) {
+  /// Signs a token whose `iat`/`exp` are relative to the real wall clock
+  /// (`GooglePubSubVerifier` rejects tokens whose `exp` has passed, so a
+  /// fixed historical timestamp would make every token here permanently
+  /// expired). Pass [expiresIn] negative to mint an already-expired token
+  /// for testing that rejection path.
+  static String signToken({
+    required String audience,
+    Duration expiresIn = const Duration(hours: 1),
+  }) {
     final header = {'alg': 'RS256', 'typ': 'JWT', 'kid': 'test-key-1'};
-    final now = 1700000000;
+    final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final expSeconds = nowSeconds + expiresIn.inSeconds;
     final payload = {
       'iss': 'https://accounts.google.com',
       'aud': audience,
       'email': 'test-pubsub@test.iam.gserviceaccount.com',
       'email_verified': true,
-      'iat': now,
-      'exp': now + 3600,
+      'iat': nowSeconds,
+      'exp': expSeconds,
     };
     final headerB64 = base64Url
         .encode(utf8.encode(jsonEncode(header)))
