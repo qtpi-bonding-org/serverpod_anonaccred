@@ -14,9 +14,9 @@ import '../../refund_event.dart';
 import '../../refund_manager.dart';
 import '../android_publisher_client.dart';
 import '../google_auth_client.dart';
+import '../google_pubsub_verifier.dart';
 import '../payment_rail_interface.dart';
 import '../rail_fulfillment_helpers.dart';
-import '../webhook_signature_validator.dart';
 
 /// Google Play In-App Purchase payment rail implementation
 ///
@@ -62,6 +62,11 @@ class GoogleIAPRail implements PaymentRailInterface {
     return GoogleIAPRail(client: publisherClient);
   }
 
+  /// The `aud` claim Google's Pub/Sub push OIDC token is expected to carry —
+  /// the configured push endpoint URL for this deployment.
+  static String get expectedPushAudience =>
+      Platform.environment['GOOGLE_PUBSUB_PUSH_AUDIENCE'] ?? '';
+
   @override
   PaymentRail get railType => PaymentRail.google_iap;
 
@@ -94,31 +99,35 @@ class GoogleIAPRail implements PaymentRailInterface {
   Future<PaymentResult> processCallback(
     Map<String, dynamic> callbackData,
   ) async {
-    // Google IAP uses purchase token validation rather than callbacks
-    // This method handles Real-time Developer Notifications if configured
+    // Google delivers Real-time Developer Notifications as a Cloud Pub/Sub
+    // push request: an OIDC bearer token over the envelope, not a callback
+    // carrying purchase fields directly. Full purchase validation with
+    // delivery tracking happens via validatePurchase() when the client
+    // submits its purchase token — this handler only verifies authenticity
+    // and routes refund/void notifications to RefundManager.
     try {
-      final packageName = callbackData['package_name'] as String?;
-      final productId = callbackData['product_id'] as String?;
-      final purchaseToken = callbackData['purchase_token'] as String?;
-      final orderId = callbackData['order_id'] as String?;
-      final notificationType = callbackData['notification_type'] as String?;
-      final signature = callbackData['signature'] as String?;
-      final payload = callbackData['payload'] as String?;
+      final authorizationHeader = callbackData['authorization_header'] as String?;
+      final requestBody = callbackData['request_body'] as String?;
+      final expectedAudience = callbackData['expected_audience'] as String?;
       final session = callbackData['session'] as Session?;
 
-      // Validate webhook signature — reject unsigned or unverifiable requests
-      if (signature == null || payload == null || session == null) {
+      if (authorizationHeader == null ||
+          requestBody == null ||
+          expectedAudience == null ||
+          session == null) {
         return PaymentResult(
           success: false,
-          errorMessage: 'Missing webhook signature, payload, or session',
+          errorMessage:
+              'Missing authorization_header, request_body, expected_audience, or session',
         );
       }
 
+      GoogleDeveloperNotification notification;
       try {
-        WebhookSignatureValidator.validateSignatureOrThrow(
-          session: session,
-          payload: payload,
-          signature: signature,
+        notification = await GooglePubSubVerifier.verifyAndDecode(
+          authorizationHeader: authorizationHeader,
+          requestBody: requestBody,
+          expectedAudience: expectedAudience,
         );
       } on AnonAccountException catch (e) {
         if (e.code == AnonAccountErrorCodes.authInvalidSignature) {
@@ -130,58 +139,21 @@ class GoogleIAPRail implements PaymentRailInterface {
         rethrow;
       }
 
-      // Handle refund notifications
-      if (notificationType == 'refund' && session != null) {
-        final event = extractRefundEvent(callbackData);
+      final voided = notification.voidedPurchaseNotification;
+      if (voided != null) {
+        final event = extractRefundEvent(voided);
         if (event != null) {
           await RefundManager.processRefund(session, event);
         }
-        return PaymentResult(success: true, internalTransactionId: orderId);
-      }
-
-      // Handle malformed payloads
-      if (packageName == null ||
-          productId == null ||
-          purchaseToken == null ||
-          orderId == null) {
         return PaymentResult(
-          success: false,
-          errorMessage: 'Missing required fields in Google IAP callback',
+          success: true,
+          internalTransactionId: voided['orderId'] as String?,
         );
       }
 
-      // Note: Full purchase validation with delivery tracking requires session and accountUuid
-      // This is handled by the validatePurchase() method which is GoogleIAPRail-specific
-      // For processCallback, we just validate the purchase exists and is in valid state
-      final purchase = await _publisherClient.getPurchase(
-        packageName: packageName,
-        productId: productId,
-        purchaseToken: purchaseToken,
-      );
-
-      final isValid = purchase.purchaseState == 0;
-
-      if (isValid) {
-        // Acknowledge the purchase (required by Google)
-        await acknowledgePurchase(
-          packageName: packageName,
-          productId: productId,
-          purchaseToken: purchaseToken,
-        );
-      }
-
-      final purchaseTimeMillis = GooglePurchaseValidationResult._parseIntField(
-        purchase.purchaseTimeMillis,
-      );
-
-      return PaymentResult(
-        success: isValid,
-        internalTransactionId: purchase.orderId ?? '',
-        transactionTimestamp: purchaseTimeMillis != null
-            ? DateTime.fromMillisecondsSinceEpoch(purchaseTimeMillis)
-            : null,
-        errorMessage: isValid ? null : 'Purchase validation failed',
-      );
+      // subscriptionNotification / oneTimeProductNotification / other types
+      // carry no refund signal in Google's schema — acknowledge only.
+      return PaymentResult(success: true);
     } on AnonAccountException {
       rethrow;
     } catch (e) {
@@ -195,12 +167,8 @@ class GoogleIAPRail implements PaymentRailInterface {
   @override
   RefundEvent? extractRefundEvent(Map<String, dynamic> notificationData) {
     try {
-      final purchaseToken =
-          notificationData['purchase_token'] as String? ??
-          notificationData['purchaseToken'] as String?;
-      final orderId =
-          notificationData['order_id'] as String? ??
-          notificationData['orderId'] as String?;
+      final purchaseToken = notificationData['purchaseToken'] as String?;
+      final orderId = notificationData['orderId'] as String?;
 
       if (purchaseToken == null || orderId == null) return null;
 
@@ -208,9 +176,6 @@ class GoogleIAPRail implements PaymentRailInterface {
         rail: PaymentRail.google_iap,
         receiptHash: CryptoUtils.sha256Hash(purchaseToken),
         paymentRef: orderId,
-        productId:
-            notificationData['product_id'] as String? ??
-            notificationData['productId'] as String?,
         rawData: notificationData,
       );
     } catch (_) {

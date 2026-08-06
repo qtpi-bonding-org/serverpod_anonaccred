@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../payments/payment_manager.dart';
+import '../payments/rails/google_iap_rail.dart';
 import 'payment_webhook_route.dart';
 
 class GoogleWebhookRoute extends PaymentWebhookRoute {
@@ -22,16 +21,10 @@ class GoogleWebhookRoute extends PaymentWebhookRoute {
     Session session,
     Request request,
     String requestBody,
-  ) async {
-    final webhookData = jsonDecode(requestBody) as Map<String, dynamic>;
-    final signature =
-        request.headers['x-goog-iam-authority-selector']?.first ??
-        request.headers['x-signature']?.first;
-    return {
-      'session': session,
-      'payload': requestBody,
-      'signature': signature,
-      ...webhookData,
-    };
-  }
+  ) async => {
+    'session': session,
+    'authorization_header': request.headers['authorization']?.first ?? '',
+    'request_body': requestBody,
+    'expected_audience': GoogleIAPRail.expectedPushAudience,
+  };
 }

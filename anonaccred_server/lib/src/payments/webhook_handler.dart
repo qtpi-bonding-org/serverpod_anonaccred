@@ -5,7 +5,6 @@ import '../exception_factory.dart';
 import '../generated/protocol.dart';
 import 'payment_manager.dart';
 import 'payment_processor.dart';
-import 'webhook_signature_validator.dart';
 import '../protocol_failures.dart';
 
 /// Simple webhook handler for processing external payment callbacks.
@@ -134,17 +133,4 @@ class WebhookHandler {
       webhookData['internalTransactionId'] as String? ??
       webhookData['orderId'] as String? ??
       webhookData['externalId'] as String?;
-
-  /// Validate webhook signature (for Rails like Google/Stripe).
-  static void validateWebhookSignature({
-    required Session session,
-    required String payload,
-    required String signature,
-  }) {
-    WebhookSignatureValidator.validateSignatureOrThrow(
-      session: session,
-      payload: payload,
-      signature: signature,
-    );
-  }
 }

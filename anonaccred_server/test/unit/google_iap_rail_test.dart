@@ -7,16 +7,18 @@ import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:anonaccount_server/src/crypto_utils.dart';
 import 'package:anonaccred_server/src/exception_factory.dart';
 import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/google_pubsub_verifier.dart';
 import 'package:anonaccred_server/src/payments/mock_android_publisher_client.dart';
 import 'package:anonaccred_server/src/payments/rails/google_iap_rail.dart';
+import 'package:anonaccred_server/src/refund_event.dart';
 import 'package:anonaccred_server/src/refund_manager.dart';
-import 'package:crypto/crypto.dart';
 import 'package:googleapis/androidpublisher/v3.dart' show ProductPurchase;
 import 'package:serverpod/serverpod.dart' show UuidValue;
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
 import '../integration/test_tools/serverpod_test_tools.dart';
+import '../test_helpers/google_test_oidc.dart';
 
 /// Unit tests for Google IAP rail implementation
 ///
@@ -193,8 +195,11 @@ void main() {
       expect(transactionData.keys, everyElement(isNot(contains('address'))));
     });
 
-    test('processCallback handles Google webhook data', () async {
-      // Test callback processing for Google webhooks
+    test('processCallback handles a callback missing the Pub/Sub envelope',
+        () async {
+      // Old flat snake_case fields are not part of Google's real RTDN
+      // schema (a Cloud Pub/Sub push envelope) — a callback shaped like
+      // this carries none of the required keys.
       final mockCallbackData = {
         'package_name': 'com.example.app',
         'product_id': 'com.example.premium',
@@ -204,20 +209,20 @@ void main() {
 
       final result = await googleRail.processCallback(mockCallbackData);
 
-      // Should return failure since no signature/payload/session provided
       expect(result.success, isFalse);
       expect(
         result.errorMessage,
-        contains('Missing webhook signature, payload, or session'),
+        contains(
+          'Missing authorization_header, request_body, expected_audience, or session',
+        ),
       );
     });
 
     test('processCallback handles missing callback data', () async {
-      // Test callback processing with missing required fields
       final mockCallbackData = {
         'package_name': 'com.example.app',
         'product_id': 'com.example.premium',
-        // Missing signature, payload, and session
+        // Missing authorization_header, request_body, expected_audience, session
       };
 
       final result = await googleRail.processCallback(mockCallbackData);
@@ -225,7 +230,9 @@ void main() {
       expect(result.success, isFalse);
       expect(
         result.errorMessage,
-        equals('Missing webhook signature, payload, or session'),
+        equals(
+          'Missing authorization_header, request_body, expected_audience, or session',
+        ),
       );
     });
 
@@ -605,47 +612,36 @@ void main() {
       RefundManager.resetHandler();
     });
 
-    test('extracts RefundEvent from valid notification data', () {
+    test('extracts RefundEvent from a voidedPurchaseNotification map', () {
       const token = 'token_refund_extract';
       const orderId = 'GPA.order_refund_extract';
 
       final event = googleRail.extractRefundEvent({
-        'purchase_token': token,
-        'order_id': orderId,
-        'product_id': 'com.quanitya.coins_100',
+        'purchaseToken': token,
+        'orderId': orderId,
+        'productType': 1,
+        'refundType': 1,
       });
 
       expect(event, isNotNull);
       expect(event!.rail, equals(PaymentRail.google_iap));
       expect(event.paymentRef, equals(orderId));
       expect(event.receiptHash, equals(CryptoUtils.sha256Hash(token)));
-      expect(event.productId, equals('com.quanitya.coins_100'));
-    });
-
-    test('extracts RefundEvent with alternative key names', () {
-      const token = 'token_refund_alt';
-      const orderId = 'GPA.order_refund_alt';
-
-      final event = googleRail.extractRefundEvent({
-        'purchaseToken': token,
-        'orderId': orderId,
-      });
-
-      expect(event, isNotNull);
-      expect(event!.paymentRef, equals(orderId));
-      expect(event.receiptHash, equals(CryptoUtils.sha256Hash(token)));
+      // Google's VoidedPurchaseNotification carries no product identifier —
+      // unlike the old fictional flat schema, there is no productId to read.
+      expect(event.productId, isNull);
     });
 
     test('returns null when purchaseToken is missing', () {
       final event = googleRail.extractRefundEvent({
-        'order_id': 'GPA.test',
+        'orderId': 'GPA.test',
       });
       expect(event, isNull);
     });
 
     test('returns null when orderId is missing', () {
       final event = googleRail.extractRefundEvent({
-        'purchase_token': 'token_test',
+        'purchaseToken': 'token_test',
       });
       expect(event, isNull);
     });
@@ -656,97 +652,149 @@ void main() {
     });
   });
 
-  withServerpod('Google IAP Rail - processCallback refund flow', (
+  withServerpod('Google IAP Rail - processCallback Pub/Sub verification', (
     sessionBuilder,
     endpoints,
   ) {
     late MockAndroidPublisherClient mockClient;
     late GoogleIAPRail googleRail;
+    const audience = 'https://example.com/hooks/google';
 
-    setUp(() {
+    setUp(() async {
       mockClient = MockAndroidPublisherClient();
       googleRail = GoogleIAPRail(client: mockClient);
       RefundManager.resetHandler();
+      GooglePubSubVerifier.certsUriOverride = await GoogleTestOidc.certsUri;
     });
 
     tearDown(() {
       RefundManager.resetHandler();
+      GooglePubSubVerifier.certsUriOverride = null;
     });
 
+    String envelopeFor(Map<String, dynamic> notification) => jsonEncode({
+          'message': {
+            'data': base64.encode(utf8.encode(jsonEncode(notification))),
+            'messageId': 'm-1',
+          },
+          'subscription': 'projects/p/subscriptions/s',
+        });
+
     test(
-        'processCallback rejects refund notification without webhook signature',
+        'processCallback rejects a request missing the authorization header',
         () async {
       final session = sessionBuilder.build();
-      const token = 'token_refund_callback';
-      const orderId = 'GPA.order_refund_callback';
 
-      // Pre-insert the hash
-      final hash = CryptoUtils.sha256Hash(token);
-      await ReceiptHash.db.insertRow(
-        session,
-        ReceiptHash(hash: hash, paymentRail: PaymentRail.google_iap),
-      );
-
-      // Without signature/payload, the callback should be rejected
       final result = await googleRail.processCallback({
-        'notification_type': 'refund',
-        'purchase_token': token,
-        'order_id': orderId,
+        'request_body': envelopeFor({
+          'packageName': 'com.quanitya.app',
+          'eventTimeMillis': '1700000000000',
+        }),
+        'expected_audience': audience,
         'session': session,
       });
 
       expect(result.success, isFalse);
       expect(
         result.errorMessage,
-        equals('Missing webhook signature, payload, or session'),
+        equals(
+          'Missing authorization_header, request_body, expected_audience, or session',
+        ),
       );
     });
 
+    test('processCallback rejects an OIDC token with the wrong audience',
+        () async {
+      final session = sessionBuilder.build();
+      final token = GoogleTestOidc.signToken(audience: 'https://wrong.example.com');
+
+      final result = await googleRail.processCallback({
+        'authorization_header': 'Bearer $token',
+        'request_body': envelopeFor({
+          'packageName': 'com.quanitya.app',
+          'eventTimeMillis': '1700000000000',
+        }),
+        'expected_audience': audience,
+        'session': session,
+      });
+
+      expect(result.success, isFalse);
+      expect(result.errorMessage, equals('Invalid webhook signature'));
+    });
+
     test(
-      'processCallback does not throw when a validated purchase carries a '
-      'purchaseTimeMillis',
-      () async {
-        final session = sessionBuilder.build();
-        const token = 'token_callback_timestamp';
-        const payload = '{"notificationType":"SUBSCRIPTION_PURCHASED"}';
-        final signingKey = Platform.environment['GOOGLE_WEBHOOK_SIGNING_KEY']!;
-        final signature = Hmac(sha256, utf8.encode(signingKey))
-            .convert(utf8.encode(payload))
-            .toString();
+        'processCallback routes a voidedPurchaseNotification to RefundManager',
+        () async {
+      final session = sessionBuilder.build();
+      const token = 'token_refund_callback';
+      const orderId = 'GPA.order_refund_callback';
 
-        mockClient.addMockPurchase(
-          token,
-          ProductPurchase(
-            purchaseState: 0,
-            consumptionState: 0,
-            orderId: 'order_callback_timestamp',
-            purchaseTimeMillis: '1700000000000',
-          ),
-        );
+      final hash = CryptoUtils.sha256Hash(token);
+      await ReceiptHash.db.insertRow(
+        session,
+        ReceiptHash(hash: hash, paymentRail: PaymentRail.google_iap),
+      );
 
-        final result = await googleRail.processCallback({
-          'package_name': 'com.quanitya.app',
-          'product_id': 'com.quanitya.coins_100',
-          'purchase_token': token,
-          'order_id': 'order_callback_timestamp',
-          'signature': signature,
-          'payload': payload,
-          'session': session,
-        });
+      RefundEvent? capturedEvent;
+      RefundManager.onRefund((s, event, context) async {
+        capturedEvent = event;
+        return RefundAction.ignore;
+      });
 
-        expect(result.success, isTrue);
-        expect(
-          result.transactionTimestamp,
-          equals(DateTime.fromMillisecondsSinceEpoch(1700000000000)),
-        );
-      },
-      skip: Platform.environment['GOOGLE_WEBHOOK_SIGNING_KEY'] == null
-          ? 'requires GOOGLE_WEBHOOK_SIGNING_KEY in the process environment '
-              '(WebhookSignatureValidator reads it directly; run with '
-              'GOOGLE_WEBHOOK_SIGNING_KEY=<any value> dart test to exercise '
-              'this test)'
-          : null,
-    );
+      final oidcToken = GoogleTestOidc.signToken(audience: audience);
+      final result = await googleRail.processCallback({
+        'authorization_header': 'Bearer $oidcToken',
+        'request_body': envelopeFor({
+          'packageName': 'com.quanitya.app',
+          'eventTimeMillis': '1700000000000',
+          'voidedPurchaseNotification': {
+            'purchaseToken': token,
+            'orderId': orderId,
+            'productType': 2,
+            'refundType': 1,
+          },
+        }),
+        'expected_audience': audience,
+        'session': session,
+      });
+
+      expect(result.success, isTrue);
+      expect(result.internalTransactionId, equals(orderId));
+      expect(capturedEvent, isNotNull);
+      expect(capturedEvent!.paymentRef, equals(orderId));
+      expect(capturedEvent!.receiptHash, equals(hash));
+    });
+
+    test(
+        'processCallback acknowledges a subscriptionNotification without '
+        'touching RefundManager', () async {
+      final session = sessionBuilder.build();
+      var refundCalled = false;
+      RefundManager.onRefund((s, event, context) async {
+        refundCalled = true;
+        return RefundAction.ignore;
+      });
+
+      final oidcToken = GoogleTestOidc.signToken(audience: audience);
+      final result = await googleRail.processCallback({
+        'authorization_header': 'Bearer $oidcToken',
+        'request_body': envelopeFor({
+          'packageName': 'com.quanitya.app',
+          'eventTimeMillis': '1700000000000',
+          'subscriptionNotification': {
+            'version': '1.0',
+            'notificationType': 4,
+            'purchaseToken': 'sub-token',
+            'subscriptionId': 'sub-1',
+          },
+        }),
+        'expected_audience': audience,
+        'session': session,
+      });
+
+      expect(result.success, isTrue);
+      expect(refundCalled, isFalse);
+    });
   });
 }
 
