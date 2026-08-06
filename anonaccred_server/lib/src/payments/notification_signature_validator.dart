@@ -76,7 +76,9 @@ class NotificationSignatureValidator {
       final x5c = header['x5c'] as List<dynamic>?;
       if (x5c == null || x5c.isEmpty) return false;
 
-      final chain = x5c.map((c) => _parseCertDer(base64.decode(c as String))).toList();
+      final chain = x5c
+          .map((c) => _parseCertDer(base64.decode(c as String)))
+          .toList();
       if (!_chainsToTrustedRoot(chain)) return false;
 
       final leafPublicKey = chain.first.certificate.publicKey;
@@ -86,7 +88,9 @@ class NotificationSignatureValidator {
       // JWS ES256 signature bytes are already the raw, fixed-length R || S
       // concatenation (RFC 7518 A.3) — the same format crypto_keys' EC
       // verifier expects. No DER re-encoding here.
-      final verifier = leafPublicKey.createVerifier(algorithms.signing.ecdsa.sha256);
+      final verifier = leafPublicKey.createVerifier(
+        algorithms.signing.ecdsa.sha256,
+      );
       return verifier.verify(
         Uint8List.fromList(utf8.encode(signingInput)),
         Signature(Uint8List.fromList(signatureBytes)),
@@ -107,12 +111,35 @@ class NotificationSignatureValidator {
   /// or because it was itself signed by the trusted root's key.
   static bool _chainsToTrustedRoot(List<_ParsedCertificate> chain) {
     if (chain.isEmpty) return false;
+    for (final cert in chain) {
+      if (!_isWithinValidityPeriod(cert)) return false;
+    }
+    for (var i = 1; i < chain.length; i++) {
+      if (!_hasCaBasicConstraints(chain[i])) return false;
+    }
     for (var i = 0; i < chain.length - 1; i++) {
       if (!_isSignedBy(chain[i], chain[i + 1])) return false;
     }
     final terminal = chain.last;
     if (_bytesEqual(terminal.rawDer, _trustedRootDer)) return true;
     return _isSignedBy(terminal, _parseCertDer(_trustedRootDer));
+  }
+
+  static bool _hasCaBasicConstraints(_ParsedCertificate cert) {
+    final extensions = cert.certificate.tbsCertificate.extensions;
+    if (extensions == null) return false;
+    for (final extension in extensions) {
+      final value = extension.extnValue;
+      if (value is BasicConstraints) return value.cA;
+    }
+    return false;
+  }
+
+  static bool _isWithinValidityPeriod(_ParsedCertificate cert) {
+    final validity = cert.certificate.tbsCertificate.validity;
+    if (validity == null) return false;
+    final now = DateTime.now();
+    return !now.isBefore(validity.notBefore) && !now.isAfter(validity.notAfter);
   }
 
   static bool _isSignedBy(_ParsedCertificate cert, _ParsedCertificate issuer) {
@@ -126,8 +153,9 @@ class NotificationSignatureValidator {
       final rawSignature = _derDecodeEcdsaSignatureToRaw(sig);
       if (rawSignature == null) return false;
 
-      final verifier =
-          issuer.certificate.publicKey.createVerifier(algorithms.signing.ecdsa.sha256);
+      final verifier = issuer.certificate.publicKey.createVerifier(
+        algorithms.signing.ecdsa.sha256,
+      );
       // cert.tbsBytes are the TBSCertificate bytes exactly as parsed from
       // the wire, not a re-serialization: x509's TbsCertificate.toAsn1()
       // does not round-trip byte-for-byte (e.g. serial number re-encoding
@@ -164,7 +192,9 @@ class NotificationSignatureValidator {
   static Uint8List? _derDecodeEcdsaSignatureToRaw(List<int> derSignature) {
     const fieldElementLength = 32;
     try {
-      final seq = ASN1Parser(Uint8List.fromList(derSignature)).nextObject() as ASN1Sequence;
+      final seq =
+          ASN1Parser(Uint8List.fromList(derSignature)).nextObject()
+              as ASN1Sequence;
       final r = (seq.elements[0] as ASN1Integer).valueAsBigInteger;
       final s = (seq.elements[1] as ASN1Integer).valueAsBigInteger;
       final rBytes = _bigIntToFixedBytes(r, fieldElementLength);
@@ -194,7 +224,10 @@ class NotificationSignatureValidator {
 
   static List<int> _base64UrlDecode(String input) {
     final normalized = input.replaceAll('-', '+').replaceAll('_', '/');
-    final padded = normalized.padRight(normalized.length + (4 - normalized.length % 4) % 4, '=');
+    final padded = normalized.padRight(
+      normalized.length + (4 - normalized.length % 4) % 4,
+      '=',
+    );
     return base64Decode(padded);
   }
 
