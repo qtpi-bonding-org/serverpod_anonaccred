@@ -230,7 +230,7 @@ git commit -m "feat: add MockPolarClient for Polar mock parity with Apple/Google
 
 **Interfaces:**
 - Consumes: `X509Certificate.fromAsn1(ASN1Sequence)` (`package:x509`), `ASN1Parser` (`package:asn1lib`), `PublicKey.createVerifier(Identifier algorithm)` / `algorithms.signing.ecdsa.sha256` / `Verifier.verify(Uint8List, Signature)` (`package:crypto_keys`).
-- Produces: `NotificationSignatureValidator.trustedRootDer` — a test-only static `List<int>?` override (mirrors the existing `jwksUri` static override pattern); when null, uses the real bundled Apple Root CA G3 DER bytes. `NotificationSignatureValidator.validateSignature({required String signedPayload})` keeps its existing signature (`Future<bool>`) so `validateSignatureOrThrow` and all call sites in `apple_iap_rail.dart` / `apple_webhook_route.dart` are unaffected.
+- Produces: `NotificationSignatureValidator.trustedRootDerOverride` — a test-only static `List<int>?` override (mirrors the existing `jwksUri` static override pattern); when null, uses the real bundled Apple Root CA G3 DER bytes. `NotificationSignatureValidator.validateSignature({required String signedPayload})` keeps its existing signature (`Future<bool>`) so `validateSignatureOrThrow` and all call sites in `apple_iap_rail.dart` / `apple_webhook_route.dart` are unaffected.
 
 - [ ] **Step 1: Generate a test certificate chain and write the test helper**
 
@@ -1390,8 +1390,45 @@ class CommerceTestHarness {
 
   static String _hexKey(String seed) {
     final base = seed.hashCode.toRadixString(16).padLeft(8, '0');
-    return (base * 16).substring(0, 128);
+    return List.filled(16, base).join().substring(0, 128);
   }
+}
+
+/// Seeds an [Entitlement] (if not already present, keyed by [tag]) plus a
+/// [RailProduct] + [RailProductGrant] mapping [storeProductId] on [rail] to
+/// [quantity] units of that tag. Shared by every flow test that needs a
+/// rail to recognize a product id and know what it grants — mirrors the
+/// inline seeding already used in `commerce_endpoint_test.dart:150-172`.
+Future<void> seedRailProduct(
+  Session session, {
+  required PaymentRail rail,
+  required String storeProductId,
+  required String tag,
+  required double quantity,
+  EntitlementType type = EntitlementType.consumable,
+}) async {
+  var entitlement = await Entitlement.db.findFirstRow(
+    session,
+    where: (t) => t.tag.equals(tag),
+  );
+  entitlement ??= await Entitlement.db.insertRow(
+    session,
+    Entitlement(name: tag, tag: tag, type: type, serverValidated: true),
+  );
+
+  final railProduct = await RailProduct.db.insertRow(
+    session,
+    RailProduct(rail: rail, storeProductId: storeProductId, isActive: true),
+  );
+
+  await RailProductGrant.db.insertRow(
+    session,
+    RailProductGrant(
+      railProductId: railProduct.id!,
+      entitlementId: entitlement.id!,
+      quantity: quantity,
+    ),
+  );
 }
 ```
 
@@ -1422,6 +1459,8 @@ git commit -m "test: add CommerceTestHarness for flow-level commerce integration
 
 ```dart
 // anonaccred_server/test/integration/flow_purchase_consume_lifecycle_test.dart
+import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/polar_client.dart';
 import 'package:test/test.dart';
 import 'test_tools/commerce_test_harness.dart';
 import 'test_tools/serverpod_test_tools.dart';
@@ -1429,8 +1468,27 @@ import 'test_tools/serverpod_test_tools.dart';
 void main() {
   withServerpod('Purchase-to-consume lifecycle', (sessionBuilder, endpoints) {
     test('Polar: redeem, query, consume, over-consume fails, replay is idempotent', () async {
+      await seedRailProduct(
+        sessionBuilder.build(),
+        rail: PaymentRail.polar,
+        storeProductId: 'benefit-license-1',
+        tag: 'coins',
+        quantity: 100,
+      );
       final harness = await CommerceTestHarness.create(sessionBuilder, endpoints, label: 'polar1');
-      harness.polarMock.addMockLicense('LICENSE-1', /* PolarLicenseValidation granting e.g. 100 'coins' */ throw UnimplementedError());
+      harness.polarMock.addMockLicense(
+        'LICENSE-1',
+        PolarLicenseValidation(
+          id: 'lk-license-1',
+          key: 'LICENSE-1',
+          status: 'granted',
+          organizationId: 'mock-org',
+          benefitId: 'benefit-license-1',
+          customerId: 'cust-1',
+          expiresAt: null,
+          raw: const {},
+        ),
+      );
 
       final first = await harness.redeemPolar(licenseKey: 'LICENSE-1');
       expect(first.success, isTrue);
@@ -1454,7 +1512,7 @@ void main() {
 }
 ```
 
-Fill in the `PolarLicenseValidation` construction using a real `RailProduct`/`RailProductGrant` seeded for `benefitId: 'LICENSE-1-benefit'` mapping to a known tag (check existing `commerce_endpoint_test.dart` / `iap_payment_flow_test.dart` for how those tests seed `RailProduct` rows — reuse the same seeding helper if one exists there, or write one modeled on it).
+`seedRailProduct` is the shared helper defined alongside `CommerceTestHarness` in Task 7 — it takes a plain `Session` (from `sessionBuilder.build()`), not the harness itself, since seeding happens before the harness's identity is needed.
 
 - [ ] **Step 2: Run to verify it fails, then implement any missing seeding helper, then verify it passes**
 
@@ -1492,6 +1550,8 @@ git commit -m "test: flow coverage for purchase-to-consume lifecycle across all 
 ```dart
 // anonaccred_server/test/integration/flow_group_commerce_lifecycle_test.dart
 import 'package:anonaccount_server/anonaccount_server.dart';
+import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/polar_client.dart';
 import 'package:test/test.dart';
 import 'test_tools/commerce_test_harness.dart';
 import 'test_tools/serverpod_test_tools.dart';
@@ -1534,7 +1594,26 @@ void main() {
         }
         await session.close();
 
-        buyer.polarMock.addMockLicense('GROUP-LICENSE-1', throw UnimplementedError());
+        await seedRailProduct(
+          sessionBuilder.build(),
+          rail: PaymentRail.polar,
+          storeProductId: 'benefit-group-license-1',
+          tag: 'group_storage',
+          quantity: 50,
+        );
+        buyer.polarMock.addMockLicense(
+          'GROUP-LICENSE-1',
+          PolarLicenseValidation(
+            id: 'lk-group-license-1',
+            key: 'GROUP-LICENSE-1',
+            status: 'granted',
+            organizationId: 'mock-org',
+            benefitId: 'benefit-group-license-1',
+            customerId: 'cust-buyer',
+            expiresAt: null,
+            raw: const {},
+          ),
+        );
         final purchase = await buyer.redeemPolarForGroup(licenseKey: 'GROUP-LICENSE-1', shareGroupUuid: group.id!);
         expect(purchase.success, isTrue);
 
@@ -1561,8 +1640,6 @@ void main() {
   });
 }
 ```
-
-Fill in the `PolarLicenseValidation` for `GROUP-LICENSE-1` granting a `group_`-prefixed tag (per `polar_rail.dart:27-33`'s scope-dispatch convention), seeded against a `RailProduct` the same way Task 8 does.
 
 - [ ] **Step 2: Run to verify it fails, iterate on seeding until it passes**
 
@@ -1716,6 +1793,8 @@ git commit -m "test: flow coverage for webhook-driven fulfillment across all thr
 
 ```dart
 // anonaccred_server/test/integration/flow_refund_lifecycle_test.dart
+import 'package:anonaccred_server/src/generated/protocol.dart';
+import 'package:anonaccred_server/src/payments/polar_client.dart';
 import 'package:anonaccred_server/src/refund_manager.dart';
 import 'package:anonaccred_server/src/payments/payment_manager.dart';
 import 'package:anonaccred_server/src/payments/polar_signature_validator.dart';
@@ -1732,15 +1811,35 @@ void main() {
     tearDown(RefundManager.resetHandler);
 
     test('a refund webhook revokes the entitlement, and a duplicate delivery is a no-op', () async {
+      await seedRailProduct(
+        sessionBuilder.build(),
+        rail: PaymentRail.polar,
+        storeProductId: 'benefit-refund-license-1',
+        tag: 'coins',
+        quantity: 100,
+      );
       final harness = await CommerceTestHarness.create(sessionBuilder, endpoints, label: 'refund1');
-      harness.polarMock.addMockLicense('REFUND-LICENSE-1', throw UnimplementedError());
+      const licenseKeyId = 'lk-refund-license-1';
+      harness.polarMock.addMockLicense(
+        'REFUND-LICENSE-1',
+        PolarLicenseValidation(
+          id: licenseKeyId,
+          key: 'REFUND-LICENSE-1',
+          status: 'granted',
+          organizationId: 'mock-org',
+          benefitId: 'benefit-refund-license-1',
+          customerId: 'cust-refund',
+          expiresAt: null,
+          raw: const {},
+        ),
+      );
       final purchase = await harness.redeemPolar(licenseKey: 'REFUND-LICENSE-1');
       final balanceAfterBuy = await harness.getBalance(purchase.tag!);
       expect(balanceAfterBuy, greaterThan(0));
 
       harness.polarMock.addMockOrder('order-refund-1', {
         'id': 'order-refund-1',
-        'license_key_id': /* the licenseKeyId from purchase, resolved during implementation */ '',
+        'license_key_id': licenseKeyId,
       });
 
       const secret = 'whsec_dGVzdC1zZWNyZXQ=';
@@ -1780,9 +1879,9 @@ void main() {
 }
 ```
 
-Resolve the `licenseKeyId`-from-`purchase` placeholder by checking what `PolarValidationResult` (`polar_rail.dart`, returned from `validateLicenseKey`) exposes — `IapValidationResponse.productId` maps to `benefitId` per `polar_endpoint.dart:99-104`, but the refund bridge keys on `licenseKeyId`/`ReceiptHash`, which requires reading `polar_rail.dart`'s full `validateLicenseKey` body (lines 92-300, only partially read during planning) to find the exact field the test needs to thread through to `addMockOrder`.
+Note: `licenseKeyId` is defined directly in the test (`lk-refund-license-1`) rather than read back off `purchase` — the mock controls both sides (what `validateLicenseKey` returns and what `getOrder` returns), so the test only needs the two to agree with each other, not to round-trip through `PolarValidationResult`'s actual field name.
 
-- [ ] **Step 2: Run to verify it fails, resolve the license-key-id threading, iterate until it passes**
+- [ ] **Step 2: Run to verify it fails, iterate until it passes**
 
 Run: `cd anonaccred_server && dart test test/integration/flow_refund_lifecycle_test.dart`
 Expected eventual: PASS (1 test).
