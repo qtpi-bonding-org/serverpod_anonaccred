@@ -37,6 +37,9 @@ dependencies:
   app_store_server_sdk: ^1.2.10
   dart_jsonwebtoken: ^3.3.1
   crypto: ^3.0.3
+  x509: ^0.2.4+3
+  crypto_keys: ^0.3.0+2
+  asn1lib: ^1.6.5
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'
