@@ -240,15 +240,27 @@ Serverpod's *actual* built-in session/JWT auth, not our own crypto:
   tokens — [serverpod/serverpod#5113](https://github.com/serverpod/serverpod/issues/5113),
   open when this note was written on 2026-08-21. **Closed as of 2026-09-15**
   (status "Done" on the GitHub issue, no fix-version confirmed from the issue
-  page alone). We mint a `device:<pubkey>` scope per token; confirm at
-  migration time which 4.0.0 behavior we actually got — the fix changes the
-  answer to "does a revoked device's outstanding refresh token stop working
-  promptly," which is worth a regression test either way. Separately, note
-  that `device_management_endpoint.dart`'s `revokeDevice` already calls
-  `revokeAllTokens(authUserId: ...)` — account-wide, not per-device — so
-  today one revoked device already invalidates every other device's tokens
-  too. That's existing 3.4.1 behavior, not a 4.0 change; don't conflate the
-  two when writing the regression test.
+  page alone). We mint a `device:<pubkey>` scope per token.
+- **Correction, 2026-09-15 (Task 5 regression test):** the line originally
+  here claimed "one revoked device already invalidates every other device's
+  tokens too" via `device_management_endpoint.dart`'s `revokeDevice` calling
+  `revokeAllTokens(authUserId: ...)`. That claim was never verified against
+  real behavior and turned out to be incomplete — exactly the pattern
+  CLAUDE.md's comment rule exists to catch. Verified from
+  `serverpod_auth_core_server-4.0.0`'s actual `JwtTokenManager` source and a
+  passing regression test (`anonaccred_server/test/integration/
+  jwt_token_revocation_test.dart`): `revokeAllTokens` only deletes rows from
+  the refresh-token table. `validateToken` cryptographically verifies the
+  access JWT's signature and expiry and never consults that table — an
+  already-issued, not-yet-expired access token for *any* device on the
+  account keeps validating after `revokeDevice` runs. Only a subsequent
+  refresh attempt (minting a new access token) is blocked. This bounds our
+  actual revocation latency to the access token's lifetime, not "instant,"
+  for every device on the account, not just the one being revoked. Whether
+  this predates 4.0 (plausible — nothing in the 4.0 changelog suggests
+  `revokeAllTokens`'s refresh-token-only scope is new) wasn't independently
+  re-verified against 3.4.1's source before this note was corrected; treat
+  it as true under 4.0.0, not as a claim about what changed.
 - Account-merging mechanics (beta.2) — we don't use this feature, but confirm
   it doesn't change `authUsers.create` semantics in a way that affects our
   `AnonAccount.id = authUser.id` assumption.
