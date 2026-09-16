@@ -358,6 +358,20 @@ Checked by grep across the whole repo — none of these hit:
   (`--concurrency=1` requirement) only applies if we adopt the new embedded
   Postgres dev mode, which is optional.
 
+**Update 2026-09-15, verified at Task 6:** confirmed via grep that neither
+`anonaccount_server/config/*.yaml` nor `anonaccred_server/config/*.yaml`
+sets `dataPath` — the 4.0 guide's formal `--concurrency=1` gate genuinely
+doesn't apply here. We needed `--concurrency=1` anyway, for an unrelated
+reason: running many `serverpod_test`-based test files concurrently against
+the shared `docker-compose` Redis test container produced intermittent
+`POW_CHALLENGE_EXPIRED` failures (Redis-backed PoW-challenge nonce storage
+racing under load), not a real regression. This is worth remembering as a
+standing constraint for CI, independent of the embedded-Postgres question:
+`dart test --concurrency=1` for `anonaccount_server`, at least until the
+PoW-challenge store is made more concurrency-tolerant. Not something this
+migration should fix — flagging it so it isn't rediscovered as a mystery
+flake later.
+
 ## Non-goals this migration does not solve
 
 - **Multi-database support.** Confirmed via Serverpod docs/GitHub as of
