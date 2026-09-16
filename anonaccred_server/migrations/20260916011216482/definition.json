@@ -1478,7 +1478,8 @@
           ],
           "type": "btree",
           "isUnique": true,
-          "isPrimary": false
+          "isPrimary": false,
+          "predicate": "\"isRevoked\" = false"
         },
         {
           "__className__": "serverpod.IndexDefinition",
@@ -1637,7 +1638,8 @@
           ],
           "type": "btree",
           "isUnique": true,
-          "isPrimary": false
+          "isPrimary": false,
+          "predicate": "\"isRevoked\" = false"
         },
         {
           "__className__": "serverpod.IndexDefinition",
@@ -1812,7 +1814,8 @@
           ],
           "type": "btree",
           "isUnique": true,
-          "isPrimary": false
+          "isPrimary": false,
+          "predicate": "\"isRevoked\" = false"
         },
         {
           "__className__": "serverpod.IndexDefinition",

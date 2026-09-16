@@ -139,6 +139,60 @@ edits to `device_endpoint.dart`/`device_management_endpoint.dart` are now
 unconditionally **not needed** — downgrade those from "conditional per
 finding" to "no change" in the plan.
 
+## Real regression found during Task 6 verification: partial indexes silently dropped by `serverpod create-migration --force`
+
+`anonaccount_server/lib/src/models/group_member.spy.yaml`,
+`group_owner.spy.yaml`, and `group_member_device.spy.yaml` each declare a
+`unique: true` index (`group_member_unique_idx`, `group_owner_active_idx`,
+`group_member_device_active_idx`) that is actually a **partial** unique
+index in the real, pre-migration database — `... WHERE "isRevoked" = false`
+— so a removed member/owner/device can rejoin instead of being permanently
+blocked by a stale revoked row occupying the same unique key. Confirmed by
+checking `serverpod_cli-4.0.0`'s model parser
+(`lib/src/analyzer/models/model_parser/model_parser.dart`): the model YAML
+has no `predicate`/`condition` key for indexes even in 4.0 (`nullsDistinct`,
+`ginOperatorClass`, `vectorDistanceFunction`, `parameters` are all it
+supports) — this repo hand-patches the `WHERE` clause into the generated
+`migration.sql`/`definition.sql` (and the matching JSON's `predicate` field
+on each `IndexDefinition`) after every regeneration. Two of the three model
+files already documented this ("made partial by hand — see Task 4 Step 3" /
+"see Step 4," referencing an earlier, unrelated task); `group_member.spy.yaml`
+never got the same annotation, and `group_owner.spy.yaml`'s prose comment
+had gone stale, incorrectly stating `group_member_unique_idx` was
+unconditional and that "leaving a group is permanent today" — it never was.
+
+Task 4's `rm -rf migrations/* && serverpod create-migration --force`
+regenerated migrations purely from the (predicate-blind) model YAML,
+silently dropping all three predicates in both `anonaccount_server`'s own
+migration and `anonaccred_server`'s bundled copy of the same tables. This
+wasn't caught by `dart analyze` or `dart pub get` (SQL data, not Dart code)
+and wasn't caught by Task 6's first full-suite pass either — under
+*concurrent* `dart test`, `test/integration/e2e_group_lifecycle_test.dart`
+(the one test exercising rejoin-after-removal) never got far enough to hit
+it, masked by unrelated `POW_CHALLENGE_EXPIRED` timing flakiness from
+running many test files against the same Redis test container at once.
+It only surfaced once `--concurrency=1` isolated the real failure:
+`DatabaseUniqueViolationException` on the rejoin insert, wrapped by
+`try_operation.dart`'s generic catch into
+`AuthenticationException(code: DATABASE_ERROR, ...)`.
+
+Confirmed against a real pre-migration baseline (a scratch git worktree at
+`eec3700`, `dart pub get` for 3.4.1, test DB created manually): the original
+`definition.sql` does have `DROP INDEX IF EXISTS "..."; CREATE UNIQUE INDEX
+"..." ... WHERE "isRevoked" = false;` for all three indexes, and the
+lifecycle test passes against it. Fixed by restoring the three predicates
+in both packages' fresh 4.0.0 migrations (`migration.json`/`migration.sql`/
+`definition.json`/`definition.sql`), fixing the stale comment, and adding
+the missing annotation to `group_member.spy.yaml`. Full suite (`dart test
+--concurrency=1`) now passes, 210/210, including the rejoin scenario.
+
+**Takeaway for any future flat-migration regeneration in this repo:** grep
+model files for `made partial by hand` (or just `unique: true` with a
+trailing comment) *before* deleting `migrations/*`, and re-apply every hit
+after `serverpod create-migration --force` — this is not specific to 4.0,
+it's a standing tax the model DSL doesn't (yet) let us express declaratively,
+same category as the cross-module UUID hand-patch.
+
 ## Cross-module foreign keys: not new in 4.0, and we don't use the feature
 
 Checked whether 4.0 added first-class FK support across custom modules

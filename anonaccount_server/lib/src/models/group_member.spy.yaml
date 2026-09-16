@@ -6,7 +6,14 @@ indexes:
     unique: true
   group_member_unique_idx:
     fields: shareGroupId, anonAccountId
-    unique: true
+    unique: true          # made partial by hand — see the Serverpod 4.0
+                           # migration plan's Task 4 addendum. The model DSL
+                           # has no `predicate`/`condition` key even in 4.0
+                           # (checked against serverpod_cli-4.0.0's model
+                           # parser); this WHERE clause is hand-patched into
+                           # the generated migration.sql/definition.sql (and
+                           # the matching JSON) after every regeneration, or
+                           # a removed member can never rejoin a group.
   group_member_account_idx:
     fields: anonAccountId
     unique: false

@@ -266,6 +266,10 @@ CREATE TABLE "group_member" (
 -- Indexes
 CREATE UNIQUE INDEX "group_member_signing_key_idx" ON "group_member" USING btree ("memberSigningPublicKeyHex");
 CREATE UNIQUE INDEX "group_member_unique_idx" ON "group_member" USING btree ("shareGroupId", "anonAccountId");
+DROP INDEX IF EXISTS "group_member_unique_idx";
+CREATE UNIQUE INDEX "group_member_unique_idx"
+  ON "group_member" USING btree ("shareGroupId", "anonAccountId")
+  WHERE "isRevoked" = false;
 CREATE INDEX "group_member_account_idx" ON "group_member" USING btree ("anonAccountId");
 
 --
@@ -286,6 +290,10 @@ CREATE TABLE "group_member_device" (
 
 -- Indexes
 CREATE UNIQUE INDEX "group_member_device_active_idx" ON "group_member_device" USING btree ("groupMemberId", "accountDeviceId");
+DROP INDEX IF EXISTS "group_member_device_active_idx";
+CREATE UNIQUE INDEX "group_member_device_active_idx"
+  ON "group_member_device" USING btree ("groupMemberId", "accountDeviceId")
+  WHERE "isRevoked" = false;
 CREATE INDEX "group_member_device_device_idx" ON "group_member_device" USING btree ("accountDeviceId");
 
 --
@@ -308,6 +316,10 @@ CREATE TABLE "group_owner" (
 
 -- Indexes
 CREATE UNIQUE INDEX "group_owner_active_idx" ON "group_owner" USING btree ("shareGroupId", "anonAccountId");
+DROP INDEX IF EXISTS "group_owner_active_idx";
+CREATE UNIQUE INDEX "group_owner_active_idx"
+  ON "group_owner" USING btree ("shareGroupId", "anonAccountId")
+  WHERE "isRevoked" = false;
 CREATE INDEX "group_owner_account_idx" ON "group_owner" USING btree ("anonAccountId");
 
 --

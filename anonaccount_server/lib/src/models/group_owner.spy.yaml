@@ -3,15 +3,16 @@
 #
 # A table rather than a column on share_group because ownership transfers
 # and can be co-held: adding an owner is a row, not a re-key. The unique
-# index is partial so ownership can be re-granted after revocation —
-# group_member_unique_idx being unconditional is why leaving a group is
-# permanent today.
+# index is partial (see group_owner_active_idx below) so ownership can be
+# re-granted after revocation — the same pattern group_member.spy.yaml's
+# group_member_unique_idx uses so a removed member can rejoin.
 class: GroupOwner
 table: group_owner
 indexes:
   group_owner_active_idx:
     fields: shareGroupId, anonAccountId
-    unique: true          # made partial by hand — see Task 4 Step 3
+    unique: true          # made partial by hand after every regeneration — see
+                           # group_member.spy.yaml's group_member_unique_idx comment
   group_owner_account_idx:
     fields: anonAccountId
     unique: false

@@ -8,7 +8,8 @@ table: group_member_device
 indexes:
   group_member_device_active_idx:
     fields: groupMemberId, accountDeviceId
-    unique: true          # made partial by hand — see Step 4
+    unique: true          # made partial by hand after every regeneration — see
+                           # group_member.spy.yaml's group_member_unique_idx comment
   group_member_device_device_idx:
     fields: accountDeviceId
     unique: false
