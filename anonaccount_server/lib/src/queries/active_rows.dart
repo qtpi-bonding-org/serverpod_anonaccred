@@ -247,8 +247,7 @@ abstract final class AllRows {
   }) => AccountDevice.db.find(
     session,
     where: (t) => t.anonAccountId.equals(accountId),
-    orderBy: (t) => t.lastActive,
-    orderDescending: true,
+    orderBy: (t) => t.lastActive.desc(),
     transaction: transaction,
   );
 

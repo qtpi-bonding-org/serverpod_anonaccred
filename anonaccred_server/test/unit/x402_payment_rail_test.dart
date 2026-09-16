@@ -117,6 +117,7 @@ class MockSession implements Session {
     LogLevel? level,
     Object? exception,
     StackTrace? stackTrace,
+    Map<String, Object?>? metadata,
   }) {
     // Mock logging - do nothing in tests
   }

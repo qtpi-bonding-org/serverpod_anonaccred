@@ -11,34 +11,36 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_test/serverpod_test.dart' as _i1;
-import 'package:serverpod/serverpod.dart' as _i2;
-import 'dart:async' as _i3;
+import 'dart:async' as _ida;
+import 'dart:io' as _idi;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' as _ijl9ntd6;
 import 'package:anonaccount_server/src/generated/account_creation_response.dart'
-    as _i4;
-import 'package:anonaccount_protocol/src/generated/public_key_duo.dart' as _i5;
-import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
-    as _i6;
-import 'package:anonaccount_server/src/authenticated_caller.dart' as _i7;
-import 'package:anonaccount_server/src/generated/encrypted_data_key_response.dart'
-    as _i8;
-import 'package:anonaccount_server/src/generated/account_device.dart' as _i9;
+    as _idtq5ix2;
+import 'package:anonaccount_server/src/generated/account_device.dart'
+    as _i048gg9e;
 import 'package:anonaccount_server/src/generated/authentication_result.dart'
-    as _i10;
+    as _iukljpl3;
 import 'package:anonaccount_server/src/generated/device_pairing_event.dart'
-    as _i11;
-import 'package:anonaccount_server/src/generated/share_group.dart' as _i12;
-import 'package:anonaccount_server/src/generated/group_membership_view.dart'
-    as _i13;
-import 'package:anonaccount_server/src/generated/group_member.dart' as _i14;
-import 'package:anonaccount_server/src/generated/group_member_role.dart'
-    as _i15;
-import 'package:anonaccount_server/src/generated/group_member_view.dart'
-    as _i16;
+    as _icarjbbg;
+import 'package:anonaccount_server/src/generated/encrypted_data_key_response.dart'
+    as _ipivzus8;
 import 'package:anonaccount_server/src/generated/grant_member_device_result.dart'
-    as _i17;
+    as _ihq1l2p9;
+import 'package:anonaccount_server/src/generated/group_member.dart'
+    as _idon4w26;
+import 'package:anonaccount_server/src/generated/group_member_role.dart'
+    as _ieyt77v6;
+import 'package:anonaccount_server/src/generated/group_member_view.dart'
+    as _i7ifz6hk;
+import 'package:anonaccount_server/src/generated/group_membership_view.dart'
+    as _ivankdcm;
 import 'package:anonaccount_server/src/generated/member_device_grant.dart'
-    as _i18;
+    as _ij4d8jf2;
+import 'package:anonaccount_server/src/generated/public_challenge_response.dart'
+    as _itksq16k;
+import 'package:anonaccount_server/src/generated/share_group.dart' as _is96bcon;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'package:serverpod_test/serverpod_test.dart' as _ist;
 import 'package:anonaccount_server/src/generated/protocol.dart';
 import 'package:anonaccount_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -83,7 +85,7 @@ export 'package:serverpod_test/serverpod_test_public_exports.dart';
 ///
 /// [serverpodLoggingMode] The logging mode used when creating Serverpod. Defaults to `ServerpodLoggingMode.normal`
 ///
-/// [serverpodStartTimeout] The timeout to use when starting Serverpod, which connects to the database among other things. Defaults to `Duration(seconds: 30)`.
+/// [serverpodStartTimeout] The timeout to use when starting Serverpod, which connects to the database among other things. Defaults to `Duration(seconds: 120)`.
 ///
 /// [testServerOutputMode] Options for controlling test server output during test execution. Defaults to `TestServerOutputMode.normal`.
 /// ```dart
@@ -103,29 +105,47 @@ export 'package:serverpod_test/serverpod_test_public_exports.dart';
 /// }
 /// ```
 ///
+/// [configOverride] A function to override the server configuration. This function is called with
+/// the default server configuration after it is loaded from the config/ directory
+/// and before it is used to start the server. Use this to override particular
+/// settings in the server configuration.
+///
+/// [databaseInterceptor] Optional interceptor that replaces the default database for each session.
+/// See [Serverpod.databaseInterceptor] for more information.
+///
 /// [testGroupTagsOverride] By default Serverpod test tools tags the `withServerpod` test group with `"integration"`.
 /// This is to provide a simple way to only run unit or integration tests.
 /// This property allows this tag to be overridden to something else. Defaults to `['integration']`.
 ///
 /// [experimentalFeatures] Optionally specify experimental features. See [Serverpod] for more information.
-@_i1.isTestGroup
+///
+/// [serverDirectory] The server package directory `config/<runMode>.yaml`, `config/passwords.yaml`,
+/// and `migrations/<module>/...` are resolved against. Defaults to
+/// [Directory.current] at the time the test boots. Pass this when the test
+/// isolate's cwd is not the server package root (e.g. running tests from a
+/// workspace parent directory) so config and migrations are still loaded
+/// from the right place.
+@_ist.isTestGroup
 void withServerpod(
   String testGroupName,
-  _i1.TestClosure<TestEndpoints> testClosure, {
+  _ist.TestClosure<TestEndpoints> testClosure, {
   bool? applyMigrations,
+  _is.ServerpodConfig Function(_is.ServerpodConfig)? configOverride,
+  _is.DatabaseInterceptor? databaseInterceptor,
   bool? enableSessionLogging,
-  _i2.ExperimentalFeatures? experimentalFeatures,
-  _i1.RollbackDatabase? rollbackDatabase,
+  _is.ExperimentalFeatures? experimentalFeatures,
+  _ist.RollbackDatabase? rollbackDatabase,
   String? runMode,
-  _i2.RuntimeParametersListBuilder? runtimeParametersBuilder,
-  _i2.ServerpodLoggingMode? serverpodLoggingMode,
+  _is.RuntimeParametersListBuilder? runtimeParametersBuilder,
+  _idi.Directory? serverDirectory,
+  _is.ServerpodLoggingMode? serverpodLoggingMode,
   Duration? serverpodStartTimeout,
   List<String>? testGroupTagsOverride,
-  _i1.TestServerOutputMode? testServerOutputMode,
+  _ist.TestServerOutputMode? testServerOutputMode,
 }) {
-  _i1.buildWithServerpod<_InternalTestEndpoints>(
+  _ist.buildWithServerpod<_InternalTestEndpoints>(
     testGroupName,
-    _i1.TestServerpod(
+    _ist.TestServerpod(
       testEndpoints: _InternalTestEndpoints(),
       endpoints: Endpoints(),
       serializationManager: Protocol(),
@@ -134,8 +154,11 @@ void withServerpod(
       isDatabaseEnabled: true,
       serverpodLoggingMode: serverpodLoggingMode,
       testServerOutputMode: testServerOutputMode,
+      serverDirectory: serverDirectory,
       experimentalFeatures: experimentalFeatures,
+      configOverride: configOverride,
       runtimeParametersBuilder: runtimeParametersBuilder,
+      databaseInterceptor: databaseInterceptor,
     ),
     maybeRollbackDatabase: rollbackDatabase,
     maybeEnableSessionLogging: enableSessionLogging,
@@ -160,11 +183,11 @@ class TestEndpoints {
 }
 
 class _InternalTestEndpoints extends TestEndpoints
-    implements _i1.InternalTestEndpoints {
+    implements _ist.InternalTestEndpoints {
   @override
   void initialize(
-    _i2.SerializationManager serializationManager,
-    _i2.EndpointDispatch endpoints,
+    _is.SerializationManager serializationManager,
+    _is.EndpointDispatch endpoints,
   ) {
     account = _AccountEndpoint(endpoints, serializationManager);
     dataKey = _DataKeyEndpoint(endpoints, serializationManager);
@@ -181,26 +204,26 @@ class _InternalTestEndpoints extends TestEndpoints
 class _AccountEndpoint {
   _AccountEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<_i4.AccountCreationResponse> createAccount(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_idtq5ix2.AccountCreationResponse> createAccount(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String publicKeyHex,
-    required _i5.PublicKeyDuo ultimateKeys,
+    required _ijl9ntd6.PublicKeyDuo ultimateKeys,
     required String encryptedDataKey,
-    required _i5.PublicKeyDuo deviceKeys,
+    required _ijl9ntd6.PublicKeyDuo deviceKeys,
     required String deviceKeyAttestation,
     required String deviceEncryptedDataKey,
     required String deviceLabel,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'account',
             method: 'createAccount',
           );
@@ -209,7 +232,7 @@ class _AccountEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'account',
           methodName: 'createAccount',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -228,7 +251,7 @@ class _AccountEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i4.AccountCreationResponse>);
+                as _ida.Future<_idtq5ix2.AccountCreationResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -236,12 +259,12 @@ class _AccountEndpoint {
     });
   }
 
-  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_itksq16k.PublicChallengeResponse> getChallenge(
+    _ist.TestSessionBuilder sessionBuilder,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'account',
             method: 'getChallenge',
           );
@@ -250,7 +273,7 @@ class _AccountEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'account',
           methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -258,7 +281,7 @@ class _AccountEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.PublicChallengeResponse>);
+                as _ida.Future<_itksq16k.PublicChallengeResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -266,17 +289,17 @@ class _AccountEndpoint {
     });
   }
 
-  _i3.Future<void> verifySignedPow(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifySignedPow(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String payload,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'account',
             method: 'verifySignedPow',
           );
@@ -285,7 +308,7 @@ class _AccountEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'account',
           methodName: 'verifySignedPow',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'publicKeyHex': publicKeyHex,
@@ -299,7 +322,7 @@ class _AccountEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -307,55 +330,14 @@ class _AccountEndpoint {
     });
   }
 
-  _i3.Future<_i7.AuthenticatedCaller> guard(
-    _i1.TestSessionBuilder sessionBuilder, {
-    required String challenge,
-    required String proofOfWork,
-    required String signature,
-    required String callerDeviceSigningPublicKeyHex,
-    required String methodName,
-  }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'account',
-            method: 'guard',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'account',
-          methodName: 'guard',
-          parameters: _i1.testObjectToJson({
-            'challenge': challenge,
-            'proofOfWork': proofOfWork,
-            'signature': signature,
-            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
-            'methodName': methodName,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i7.AuthenticatedCaller>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<void> verifyHashcash(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifyHashcash(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'account',
             method: 'verifyHashcash',
           );
@@ -364,7 +346,7 @@ class _AccountEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'account',
           methodName: 'verifyHashcash',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
           }),
@@ -375,7 +357,7 @@ class _AccountEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -387,20 +369,20 @@ class _AccountEndpoint {
 class _DataKeyEndpoint {
   _DataKeyEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<_i8.EncryptedDataKeyResponse> retrieveEncryptedDataKey(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_ipivzus8.EncryptedDataKeyResponse> retrieveEncryptedDataKey(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String deviceSigningPublicKeyHex,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'dataKey',
             method: 'retrieveEncryptedDataKey',
           );
@@ -409,7 +391,7 @@ class _DataKeyEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'dataKey',
           methodName: 'retrieveEncryptedDataKey',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -422,7 +404,7 @@ class _DataKeyEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.EncryptedDataKeyResponse>);
+                as _ida.Future<_ipivzus8.EncryptedDataKeyResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -430,16 +412,16 @@ class _DataKeyEndpoint {
     });
   }
 
-  _i3.Future<_i8.EncryptedDataKeyResponse> recoverEncryptedDataKey(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_ipivzus8.EncryptedDataKeyResponse> recoverEncryptedDataKey(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String ultimateSigningPublicKeyHex,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'dataKey',
             method: 'recoverEncryptedDataKey',
           );
@@ -448,7 +430,7 @@ class _DataKeyEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'dataKey',
           methodName: 'recoverEncryptedDataKey',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -461,7 +443,7 @@ class _DataKeyEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.EncryptedDataKeyResponse>);
+                as _ida.Future<_ipivzus8.EncryptedDataKeyResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -469,12 +451,12 @@ class _DataKeyEndpoint {
     });
   }
 
-  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_itksq16k.PublicChallengeResponse> getChallenge(
+    _ist.TestSessionBuilder sessionBuilder,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'dataKey',
             method: 'getChallenge',
           );
@@ -483,7 +465,7 @@ class _DataKeyEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'dataKey',
           methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -491,7 +473,7 @@ class _DataKeyEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.PublicChallengeResponse>);
+                as _ida.Future<_itksq16k.PublicChallengeResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -499,17 +481,17 @@ class _DataKeyEndpoint {
     });
   }
 
-  _i3.Future<void> verifySignedPow(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifySignedPow(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String payload,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'dataKey',
             method: 'verifySignedPow',
           );
@@ -518,7 +500,7 @@ class _DataKeyEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'dataKey',
           methodName: 'verifySignedPow',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'publicKeyHex': publicKeyHex,
@@ -532,7 +514,7 @@ class _DataKeyEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -540,55 +522,14 @@ class _DataKeyEndpoint {
     });
   }
 
-  _i3.Future<_i7.AuthenticatedCaller> guard(
-    _i1.TestSessionBuilder sessionBuilder, {
-    required String challenge,
-    required String proofOfWork,
-    required String signature,
-    required String callerDeviceSigningPublicKeyHex,
-    required String methodName,
-  }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'dataKey',
-            method: 'guard',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'dataKey',
-          methodName: 'guard',
-          parameters: _i1.testObjectToJson({
-            'challenge': challenge,
-            'proofOfWork': proofOfWork,
-            'signature': signature,
-            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
-            'methodName': methodName,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i7.AuthenticatedCaller>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<void> verifyHashcash(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifyHashcash(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'dataKey',
             method: 'verifyHashcash',
           );
@@ -597,7 +538,7 @@ class _DataKeyEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'dataKey',
           methodName: 'verifyHashcash',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
           }),
@@ -608,7 +549,7 @@ class _DataKeyEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -620,24 +561,24 @@ class _DataKeyEndpoint {
 class _DeviceEndpoint {
   _DeviceEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<_i9.AccountDevice> registerDevice(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_i048gg9e.AccountDevice> registerDevice(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String deviceKeyAttestation,
     required String ultimateSigningPublicKeyHex,
-    required _i5.PublicKeyDuo deviceKeys,
+    required _ijl9ntd6.PublicKeyDuo deviceKeys,
     required String encryptedDataKey,
     required String label,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
             method: 'registerDevice',
           );
@@ -646,7 +587,7 @@ class _DeviceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
           methodName: 'registerDevice',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -663,7 +604,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.AccountDevice>);
+                as _ida.Future<_i048gg9e.AccountDevice>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -671,16 +612,16 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<_i10.AuthenticationResult> signIn(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_iukljpl3.AuthenticationResult> signIn(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String devicePublicKeyHex,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
             method: 'signIn',
           );
@@ -689,7 +630,7 @@ class _DeviceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
           methodName: 'signIn',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -702,7 +643,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.AuthenticationResult>);
+                as _ida.Future<_iukljpl3.AuthenticationResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -710,18 +651,18 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Stream<_i11.DevicePairingEvent> monitorRegistration(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Stream<_icarjbbg.DevicePairingEvent> monitorRegistration(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String signingKeyHex,
   }) {
     var _localTestStreamManager =
-        _i1.TestStreamManager<_i11.DevicePairingEvent>();
-    _i1.callStreamFunctionAndHandleExceptions(() async {
+        _ist.TestStreamManager<_icarjbbg.DevicePairingEvent>();
+    _ist.callStreamFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
             method: 'monitorRegistration',
           );
@@ -748,12 +689,12 @@ class _DeviceEndpoint {
     return _localTestStreamManager.outputStreamController.stream;
   }
 
-  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_itksq16k.PublicChallengeResponse> getChallenge(
+    _ist.TestSessionBuilder sessionBuilder,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
             method: 'getChallenge',
           );
@@ -762,7 +703,7 @@ class _DeviceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
           methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -770,7 +711,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.PublicChallengeResponse>);
+                as _ida.Future<_itksq16k.PublicChallengeResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -778,17 +719,17 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<void> verifySignedPow(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifySignedPow(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String payload,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
             method: 'verifySignedPow',
           );
@@ -797,7 +738,7 @@ class _DeviceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
           methodName: 'verifySignedPow',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'publicKeyHex': publicKeyHex,
@@ -811,7 +752,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -819,55 +760,14 @@ class _DeviceEndpoint {
     });
   }
 
-  _i3.Future<_i7.AuthenticatedCaller> guard(
-    _i1.TestSessionBuilder sessionBuilder, {
-    required String challenge,
-    required String proofOfWork,
-    required String signature,
-    required String callerDeviceSigningPublicKeyHex,
-    required String methodName,
-  }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'device',
-            method: 'guard',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'device',
-          methodName: 'guard',
-          parameters: _i1.testObjectToJson({
-            'challenge': challenge,
-            'proofOfWork': proofOfWork,
-            'signature': signature,
-            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
-            'methodName': methodName,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i7.AuthenticatedCaller>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<void> verifyHashcash(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifyHashcash(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'device',
             method: 'verifyHashcash',
           );
@@ -876,7 +776,7 @@ class _DeviceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'device',
           methodName: 'verifyHashcash',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
           }),
@@ -887,7 +787,7 @@ class _DeviceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -899,21 +799,21 @@ class _DeviceEndpoint {
 class _DeviceManagementEndpoint {
   _DeviceManagementEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<bool> revokeDevice(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<bool> revokeDevice(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
-    required _i2.UuidValue deviceId,
+    required _is.UuidValue deviceId,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'deviceManagement',
             method: 'revokeDevice',
           );
@@ -922,7 +822,7 @@ class _DeviceManagementEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'deviceManagement',
           methodName: 'revokeDevice',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'publicKeyHex': publicKeyHex,
@@ -936,7 +836,7 @@ class _DeviceManagementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<bool>);
+                as _ida.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -944,16 +844,16 @@ class _DeviceManagementEndpoint {
     });
   }
 
-  _i3.Future<List<_i9.AccountDevice>> listDevices(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<List<_i048gg9e.AccountDevice>> listDevices(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'deviceManagement',
             method: 'listDevices',
           );
@@ -962,7 +862,7 @@ class _DeviceManagementEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'deviceManagement',
           methodName: 'listDevices',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'publicKeyHex': publicKeyHex,
@@ -975,7 +875,7 @@ class _DeviceManagementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.AccountDevice>>);
+                as _ida.Future<List<_i048gg9e.AccountDevice>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -983,22 +883,22 @@ class _DeviceManagementEndpoint {
     });
   }
 
-  _i3.Future<_i9.AccountDevice> registerDeviceForAccount(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_i048gg9e.AccountDevice> registerDeviceForAccount(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
-    required _i5.PublicKeyDuo newDeviceKeys,
+    required _ijl9ntd6.PublicKeyDuo newDeviceKeys,
     required String pairingAttestation,
     required String newDeviceEncryptedDataKey,
     required String label,
     required String ultimateEncryptionPublicKeyHex,
     required String ultimateSigningPublicKeyHex,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'deviceManagement',
             method: 'registerDeviceForAccount',
           );
@@ -1007,7 +907,7 @@ class _DeviceManagementEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'deviceManagement',
           methodName: 'registerDeviceForAccount',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'publicKeyHex': publicKeyHex,
@@ -1026,7 +926,7 @@ class _DeviceManagementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.AccountDevice>);
+                as _ida.Future<_i048gg9e.AccountDevice>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1034,12 +934,12 @@ class _DeviceManagementEndpoint {
     });
   }
 
-  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_itksq16k.PublicChallengeResponse> getChallenge(
+    _ist.TestSessionBuilder sessionBuilder,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'deviceManagement',
             method: 'getChallenge',
           );
@@ -1048,7 +948,7 @@ class _DeviceManagementEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'deviceManagement',
           methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -1056,7 +956,7 @@ class _DeviceManagementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.PublicChallengeResponse>);
+                as _ida.Future<_itksq16k.PublicChallengeResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1064,17 +964,17 @@ class _DeviceManagementEndpoint {
     });
   }
 
-  _i3.Future<void> verifySignedPow(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifySignedPow(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String payload,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'deviceManagement',
             method: 'verifySignedPow',
           );
@@ -1083,7 +983,7 @@ class _DeviceManagementEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'deviceManagement',
           methodName: 'verifySignedPow',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'publicKeyHex': publicKeyHex,
@@ -1097,7 +997,7 @@ class _DeviceManagementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1105,55 +1005,14 @@ class _DeviceManagementEndpoint {
     });
   }
 
-  _i3.Future<_i7.AuthenticatedCaller> guard(
-    _i1.TestSessionBuilder sessionBuilder, {
-    required String challenge,
-    required String proofOfWork,
-    required String signature,
-    required String callerDeviceSigningPublicKeyHex,
-    required String methodName,
-  }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'deviceManagement',
-            method: 'guard',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'deviceManagement',
-          methodName: 'guard',
-          parameters: _i1.testObjectToJson({
-            'challenge': challenge,
-            'proofOfWork': proofOfWork,
-            'signature': signature,
-            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
-            'methodName': methodName,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i7.AuthenticatedCaller>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<void> verifyHashcash(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifyHashcash(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'deviceManagement',
             method: 'verifyHashcash',
           );
@@ -1162,7 +1021,7 @@ class _DeviceManagementEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'deviceManagement',
           methodName: 'verifyHashcash',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
           }),
@@ -1173,7 +1032,7 @@ class _DeviceManagementEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1185,16 +1044,16 @@ class _DeviceManagementEndpoint {
 class _EntrypointEndpoint {
   _EntrypointEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_itksq16k.PublicChallengeResponse> getChallenge(
+    _ist.TestSessionBuilder sessionBuilder,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'entrypoint',
             method: 'getChallenge',
           );
@@ -1203,7 +1062,7 @@ class _EntrypointEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'entrypoint',
           methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -1211,7 +1070,7 @@ class _EntrypointEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.PublicChallengeResponse>);
+                as _ida.Future<_itksq16k.PublicChallengeResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1219,14 +1078,14 @@ class _EntrypointEndpoint {
     });
   }
 
-  _i3.Future<void> verifyHashcash(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifyHashcash(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'entrypoint',
             method: 'verifyHashcash',
           );
@@ -1235,7 +1094,7 @@ class _EntrypointEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'entrypoint',
           methodName: 'verifyHashcash',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
           }),
@@ -1246,7 +1105,7 @@ class _EntrypointEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1258,19 +1117,19 @@ class _EntrypointEndpoint {
 class _GroupEndpoint {
   _GroupEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<_i12.ShareGroup> createGroup(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_is96bcon.ShareGroup> createGroup(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required _i5.PublicKeyDuo groupUltimateKeys,
+    required _ijl9ntd6.PublicKeyDuo groupUltimateKeys,
     required String groupEncryptedDataKey,
-    required _i5.PublicKeyDuo creatorMemberKeys,
+    required _ijl9ntd6.PublicKeyDuo creatorMemberKeys,
     required String creatorMemberEncryptedDataKey,
     required String groupUltimateAttestation,
     required String creatorEncryptedMemberKey,
@@ -1278,9 +1137,9 @@ class _GroupEndpoint {
     required String creatorEncryptedUltimateKey,
     required String creatorEncryptedUltimateKeyAttestation,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'createGroup',
           );
@@ -1289,7 +1148,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'createGroup',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1313,7 +1172,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.ShareGroup>);
+                as _ida.Future<_is96bcon.ShareGroup>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1321,16 +1180,16 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<List<_i13.GroupMembershipView>> listMyGroups(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<List<_ivankdcm.GroupMembershipView>> listMyGroups(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'listMyGroups',
           );
@@ -1339,7 +1198,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'listMyGroups',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1352,7 +1211,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i13.GroupMembershipView>>);
+                as _ida.Future<List<_ivankdcm.GroupMembershipView>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1360,16 +1219,16 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<_i14.GroupMember> addGroupMember(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_idon4w26.GroupMember> addGroupMember(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required _i2.UuidValue groupId,
-    required _i2.UuidValue newMemberAccountId,
-    required _i15.GroupMemberRole role,
-    required _i5.PublicKeyDuo memberKeys,
+    required _is.UuidValue groupId,
+    required _is.UuidValue newMemberAccountId,
+    required _ieyt77v6.GroupMemberRole role,
+    required _ijl9ntd6.PublicKeyDuo memberKeys,
     required String encryptedDataKey,
     required String encryptedMemberKey,
     required String encryptedMemberKeyAttestation,
@@ -1377,9 +1236,9 @@ class _GroupEndpoint {
     String? memberAuthSignature,
     String? groupUltimateSignature,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'addGroupMember',
           );
@@ -1388,7 +1247,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'addGroupMember',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1411,7 +1270,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.GroupMember>);
+                as _ida.Future<_idon4w26.GroupMember>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1419,20 +1278,20 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<bool> removeGroupMember(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<bool> removeGroupMember(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required _i2.UuidValue memberId,
+    required _is.UuidValue memberId,
     String? callerMemberSigningPublicKeyHex,
     String? memberAuthSignature,
     String? groupUltimateSignature,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'removeGroupMember',
           );
@@ -1441,7 +1300,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'removeGroupMember',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1458,7 +1317,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<bool>);
+                as _ida.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1466,21 +1325,21 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<_i14.GroupMember> changeGroupMemberRole(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_idon4w26.GroupMember> changeGroupMemberRole(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required _i2.UuidValue memberId,
-    required _i15.GroupMemberRole newRole,
+    required _is.UuidValue memberId,
+    required _ieyt77v6.GroupMemberRole newRole,
     String? callerMemberSigningPublicKeyHex,
     String? memberAuthSignature,
     String? groupUltimateSignature,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'changeGroupMemberRole',
           );
@@ -1489,7 +1348,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'changeGroupMemberRole',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1507,7 +1366,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.GroupMember>);
+                as _ida.Future<_idon4w26.GroupMember>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1515,20 +1374,21 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Stream<_i16.GroupMemberView> monitorGroupMembership(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Stream<_i7ifz6hk.GroupMemberView> monitorGroupMembership(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required _i2.UuidValue groupId,
+    required _is.UuidValue groupId,
     required String memberSigningKeyHex,
     required String memberAuthSignature,
   }) {
-    var _localTestStreamManager = _i1.TestStreamManager<_i16.GroupMemberView>();
-    _i1.callStreamFunctionAndHandleExceptions(() async {
+    var _localTestStreamManager =
+        _ist.TestStreamManager<_i7ifz6hk.GroupMemberView>();
+    _ist.callStreamFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'monitorGroupMembership',
           );
@@ -1559,19 +1419,19 @@ class _GroupEndpoint {
     return _localTestStreamManager.outputStreamController.stream;
   }
 
-  _i3.Future<_i12.ShareGroup> getGroup(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_is96bcon.ShareGroup> getGroup(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required _i2.UuidValue groupId,
+    required _is.UuidValue groupId,
     required String callerMemberSigningPublicKeyHex,
     required String memberAuthSignature,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'getGroup',
           );
@@ -1580,7 +1440,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'getGroup',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1596,7 +1456,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.ShareGroup>);
+                as _ida.Future<_is96bcon.ShareGroup>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1604,19 +1464,19 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<List<_i16.GroupMemberView>> listGroupMembers(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<List<_i7ifz6hk.GroupMemberView>> listGroupMembers(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required _i2.UuidValue groupId,
+    required _is.UuidValue groupId,
     required String callerMemberSigningPublicKeyHex,
     required String memberAuthSignature,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'listGroupMembers',
           );
@@ -1625,7 +1485,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'listGroupMembers',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1641,7 +1501,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.GroupMemberView>>);
+                as _ida.Future<List<_i7ifz6hk.GroupMemberView>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1649,19 +1509,19 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<bool> leaveGroup(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<bool> leaveGroup(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required _i2.UuidValue memberId,
+    required _is.UuidValue memberId,
     required String memberSigningPublicKeyHex,
     required String memberAuthSignature,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'leaveGroup',
           );
@@ -1670,7 +1530,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'leaveGroup',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1686,7 +1546,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<bool>);
+                as _ida.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1694,17 +1554,17 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<_i17.GrantMemberDeviceResult> grantMemberDevice(
-    _i1.TestSessionBuilder sessionBuilder, {
+  _ida.Future<_ihq1l2p9.GrantMemberDeviceResult> grantMemberDevice(
+    _ist.TestSessionBuilder sessionBuilder, {
     required String challenge,
     required String proofOfWork,
     required String signature,
     required String callerDeviceSigningPublicKeyHex,
-    required List<_i18.MemberDeviceGrant> grants,
+    required List<_ij4d8jf2.MemberDeviceGrant> grants,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'grantMemberDevice',
           );
@@ -1713,7 +1573,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'grantMemberDevice',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'signature': signature,
@@ -1727,7 +1587,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i17.GrantMemberDeviceResult>);
+                as _ida.Future<_ihq1l2p9.GrantMemberDeviceResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1735,12 +1595,12 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<_i6.PublicChallengeResponse> getChallenge(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_itksq16k.PublicChallengeResponse> getChallenge(
+    _ist.TestSessionBuilder sessionBuilder,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'getChallenge',
           );
@@ -1749,7 +1609,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'getChallenge',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -1757,7 +1617,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.PublicChallengeResponse>);
+                as _ida.Future<_itksq16k.PublicChallengeResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1765,17 +1625,17 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<void> verifySignedPow(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifySignedPow(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String payload,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'verifySignedPow',
           );
@@ -1784,7 +1644,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'verifySignedPow',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
             'publicKeyHex': publicKeyHex,
@@ -1798,7 +1658,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1806,55 +1666,14 @@ class _GroupEndpoint {
     });
   }
 
-  _i3.Future<_i7.AuthenticatedCaller> guard(
-    _i1.TestSessionBuilder sessionBuilder, {
-    required String challenge,
-    required String proofOfWork,
-    required String signature,
-    required String callerDeviceSigningPublicKeyHex,
-    required String methodName,
-  }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'group',
-            method: 'guard',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'group',
-          methodName: 'guard',
-          parameters: _i1.testObjectToJson({
-            'challenge': challenge,
-            'proofOfWork': proofOfWork,
-            'signature': signature,
-            'callerDeviceSigningPublicKeyHex': callerDeviceSigningPublicKeyHex,
-            'methodName': methodName,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i7.AuthenticatedCaller>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<void> verifyHashcash(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<void> verifyHashcash(
+    _ist.TestSessionBuilder sessionBuilder,
     String challenge,
     String proofOfWork,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'group',
             method: 'verifyHashcash',
           );
@@ -1863,7 +1682,7 @@ class _GroupEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'group',
           methodName: 'verifyHashcash',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'challenge': challenge,
             'proofOfWork': proofOfWork,
           }),
@@ -1874,7 +1693,7 @@ class _GroupEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<void>);
+                as _ida.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

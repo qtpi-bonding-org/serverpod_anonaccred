@@ -28,7 +28,7 @@ void main() {
         ),
         deviceSigningPublicKeyHex: 'b' * 128,
         deviceEncryptionPublicKeyHex: 'c' * 128,
-        addedBySignerPublicKeyHex: 'd' * 128,
+        addedByAttestorPublicKeyHex: 'd' * 128,
         addedByAttestation: 'test-attestation',
         encryptedDataKey: 'device_encrypted_key',
         label: 'Test Device',

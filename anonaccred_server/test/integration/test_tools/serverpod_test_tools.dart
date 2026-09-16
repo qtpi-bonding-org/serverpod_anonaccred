@@ -11,18 +11,21 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_test/serverpod_test.dart' as _i1;
-import 'package:serverpod/serverpod.dart' as _i2;
-import 'dart:async' as _i3;
+import 'dart:async' as _ida;
+import 'dart:io' as _idi;
 import 'package:anonaccred_server/src/generated/account_entitlement.dart'
-    as _i4;
-import 'package:anonaccred_server/src/generated/consume_result.dart' as _i5;
-import 'package:anonaccred_server/src/generated/group_entitlement.dart' as _i6;
-import 'package:anonaccred_server/src/generated/iap_validation_response.dart'
-    as _i7;
+    as _i2efidd8;
+import 'package:anonaccred_server/src/generated/consume_result.dart'
+    as _igd9vbiz;
+import 'package:anonaccred_server/src/generated/future_calls.dart' as _ikqnf7jm;
 import 'package:anonaccred_server/src/generated/future_calls_generated_models/privacy_scrub_future_call_scrub_model.dart'
-    as _i8;
-import 'package:anonaccred_server/src/generated/future_calls.dart' as _i9;
+    as _ihs1px3z;
+import 'package:anonaccred_server/src/generated/group_entitlement.dart'
+    as _i9k1womh;
+import 'package:anonaccred_server/src/generated/iap_validation_response.dart'
+    as _iwz4c2rd;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'package:serverpod_test/serverpod_test.dart' as _ist;
 import 'package:anonaccred_server/src/generated/protocol.dart';
 import 'package:anonaccred_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -67,7 +70,7 @@ export 'package:serverpod_test/serverpod_test_public_exports.dart';
 ///
 /// [serverpodLoggingMode] The logging mode used when creating Serverpod. Defaults to `ServerpodLoggingMode.normal`
 ///
-/// [serverpodStartTimeout] The timeout to use when starting Serverpod, which connects to the database among other things. Defaults to `Duration(seconds: 30)`.
+/// [serverpodStartTimeout] The timeout to use when starting Serverpod, which connects to the database among other things. Defaults to `Duration(seconds: 120)`.
 ///
 /// [testServerOutputMode] Options for controlling test server output during test execution. Defaults to `TestServerOutputMode.normal`.
 /// ```dart
@@ -87,29 +90,47 @@ export 'package:serverpod_test/serverpod_test_public_exports.dart';
 /// }
 /// ```
 ///
+/// [configOverride] A function to override the server configuration. This function is called with
+/// the default server configuration after it is loaded from the config/ directory
+/// and before it is used to start the server. Use this to override particular
+/// settings in the server configuration.
+///
+/// [databaseInterceptor] Optional interceptor that replaces the default database for each session.
+/// See [Serverpod.databaseInterceptor] for more information.
+///
 /// [testGroupTagsOverride] By default Serverpod test tools tags the `withServerpod` test group with `"integration"`.
 /// This is to provide a simple way to only run unit or integration tests.
 /// This property allows this tag to be overridden to something else. Defaults to `['integration']`.
 ///
 /// [experimentalFeatures] Optionally specify experimental features. See [Serverpod] for more information.
-@_i1.isTestGroup
+///
+/// [serverDirectory] The server package directory `config/<runMode>.yaml`, `config/passwords.yaml`,
+/// and `migrations/<module>/...` are resolved against. Defaults to
+/// [Directory.current] at the time the test boots. Pass this when the test
+/// isolate's cwd is not the server package root (e.g. running tests from a
+/// workspace parent directory) so config and migrations are still loaded
+/// from the right place.
+@_ist.isTestGroup
 void withServerpod(
   String testGroupName,
-  _i1.TestClosure<TestEndpoints> testClosure, {
+  _ist.TestClosure<TestEndpoints> testClosure, {
   bool? applyMigrations,
+  _is.ServerpodConfig Function(_is.ServerpodConfig)? configOverride,
+  _is.DatabaseInterceptor? databaseInterceptor,
   bool? enableSessionLogging,
-  _i2.ExperimentalFeatures? experimentalFeatures,
-  _i1.RollbackDatabase? rollbackDatabase,
+  _is.ExperimentalFeatures? experimentalFeatures,
+  _ist.RollbackDatabase? rollbackDatabase,
   String? runMode,
-  _i2.RuntimeParametersListBuilder? runtimeParametersBuilder,
-  _i2.ServerpodLoggingMode? serverpodLoggingMode,
+  _is.RuntimeParametersListBuilder? runtimeParametersBuilder,
+  _idi.Directory? serverDirectory,
+  _is.ServerpodLoggingMode? serverpodLoggingMode,
   Duration? serverpodStartTimeout,
   List<String>? testGroupTagsOverride,
-  _i1.TestServerOutputMode? testServerOutputMode,
+  _ist.TestServerOutputMode? testServerOutputMode,
 }) {
-  _i1.buildWithServerpod<_InternalTestEndpoints>(
+  _ist.buildWithServerpod<_InternalTestEndpoints>(
     testGroupName,
-    _i1.TestServerpod(
+    _ist.TestServerpod(
       testEndpoints: _InternalTestEndpoints(),
       endpoints: Endpoints(),
       serializationManager: Protocol(),
@@ -118,8 +139,11 @@ void withServerpod(
       isDatabaseEnabled: true,
       serverpodLoggingMode: serverpodLoggingMode,
       testServerOutputMode: testServerOutputMode,
+      serverDirectory: serverDirectory,
       experimentalFeatures: experimentalFeatures,
+      configOverride: configOverride,
       runtimeParametersBuilder: runtimeParametersBuilder,
+      databaseInterceptor: databaseInterceptor,
     ),
     maybeRollbackDatabase: rollbackDatabase,
     maybeEnableSessionLogging: enableSessionLogging,
@@ -142,28 +166,16 @@ class TestEndpoints {
 }
 
 class _InternalTestEndpoints extends TestEndpoints
-    implements _i1.InternalTestEndpoints {
+    implements _ist.InternalTestEndpoints {
   @override
   void initialize(
-    _i2.SerializationManager serializationManager,
-    _i2.EndpointDispatch endpoints,
+    _is.SerializationManager serializationManager,
+    _is.EndpointDispatch endpoints,
   ) {
-    commerce = _CommerceEndpoint(
-      endpoints,
-      serializationManager,
-    );
-    groupCommerce = _GroupCommerceEndpoint(
-      endpoints,
-      serializationManager,
-    );
-    iAP = _IAPEndpoint(
-      endpoints,
-      serializationManager,
-    );
-    polar = _PolarEndpoint(
-      endpoints,
-      serializationManager,
-    );
+    commerce = _CommerceEndpoint(endpoints, serializationManager);
+    groupCommerce = _GroupCommerceEndpoint(endpoints, serializationManager);
+    iAP = _IAPEndpoint(endpoints, serializationManager);
+    polar = _PolarEndpoint(endpoints, serializationManager);
   }
 }
 
@@ -172,21 +184,18 @@ class _FutureCalls {
 }
 
 class _CommerceEndpoint {
-  _CommerceEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _CommerceEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i4.AccountEntitlement>> getEntitlements(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<List<_i2efidd8.AccountEntitlement>> getEntitlements(
+    _ist.TestSessionBuilder sessionBuilder,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'commerce',
             method: 'getEntitlements',
           );
@@ -195,7 +204,7 @@ class _CommerceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'commerce',
           methodName: 'getEntitlements',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -203,7 +212,7 @@ class _CommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i4.AccountEntitlement>>);
+                as _ida.Future<List<_i2efidd8.AccountEntitlement>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -211,13 +220,13 @@ class _CommerceEndpoint {
     });
   }
 
-  _i3.Future<double> getEntitlementBalance(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<double> getEntitlementBalance(
+    _ist.TestSessionBuilder sessionBuilder,
     String tag,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'commerce',
             method: 'getEntitlementBalance',
           );
@@ -226,7 +235,7 @@ class _CommerceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'commerce',
           methodName: 'getEntitlementBalance',
-          parameters: _i1.testObjectToJson({'tag': tag}),
+          parameters: _ist.testObjectToJson({'tag': tag}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -234,7 +243,7 @@ class _CommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<double>);
+                as _ida.Future<double>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -242,14 +251,14 @@ class _CommerceEndpoint {
     });
   }
 
-  _i3.Future<_i5.ConsumeResult> consumeEntitlement(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_igd9vbiz.ConsumeResult> consumeEntitlement(
+    _ist.TestSessionBuilder sessionBuilder,
     String tag,
     double quantity,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'commerce',
             method: 'consumeEntitlement',
           );
@@ -258,10 +267,7 @@ class _CommerceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'commerce',
           methodName: 'consumeEntitlement',
-          parameters: _i1.testObjectToJson({
-            'tag': tag,
-            'quantity': quantity,
-          }),
+          parameters: _ist.testObjectToJson({'tag': tag, 'quantity': quantity}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -269,7 +275,7 @@ class _CommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.ConsumeResult>);
+                as _ida.Future<_igd9vbiz.ConsumeResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -279,22 +285,19 @@ class _CommerceEndpoint {
 }
 
 class _GroupCommerceEndpoint {
-  _GroupCommerceEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _GroupCommerceEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i6.GroupEntitlement>> getGroupEntitlements(
-    _i1.TestSessionBuilder sessionBuilder,
-    _i2.UuidValue shareGroupUuid,
+  _ida.Future<List<_i9k1womh.GroupEntitlement>> getGroupEntitlements(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue shareGroupUuid,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'groupCommerce',
             method: 'getGroupEntitlements',
           );
@@ -303,7 +306,7 @@ class _GroupCommerceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'groupCommerce',
           methodName: 'getGroupEntitlements',
-          parameters: _i1.testObjectToJson({'shareGroupUuid': shareGroupUuid}),
+          parameters: _ist.testObjectToJson({'shareGroupUuid': shareGroupUuid}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -311,7 +314,7 @@ class _GroupCommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i6.GroupEntitlement>>);
+                as _ida.Future<List<_i9k1womh.GroupEntitlement>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -319,14 +322,14 @@ class _GroupCommerceEndpoint {
     });
   }
 
-  _i3.Future<double> getGroupEntitlementBalance(
-    _i1.TestSessionBuilder sessionBuilder,
-    _i2.UuidValue shareGroupUuid,
+  _ida.Future<double> getGroupEntitlementBalance(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue shareGroupUuid,
     String tag,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'groupCommerce',
             method: 'getGroupEntitlementBalance',
           );
@@ -335,7 +338,7 @@ class _GroupCommerceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'groupCommerce',
           methodName: 'getGroupEntitlementBalance',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'shareGroupUuid': shareGroupUuid,
             'tag': tag,
           }),
@@ -346,7 +349,7 @@ class _GroupCommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<double>);
+                as _ida.Future<double>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -354,15 +357,15 @@ class _GroupCommerceEndpoint {
     });
   }
 
-  _i3.Future<_i5.ConsumeResult> consumeGroupEntitlement(
-    _i1.TestSessionBuilder sessionBuilder,
-    _i2.UuidValue shareGroupUuid,
+  _ida.Future<_igd9vbiz.ConsumeResult> consumeGroupEntitlement(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue shareGroupUuid,
     String tag,
     double quantity,
   ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'groupCommerce',
             method: 'consumeGroupEntitlement',
           );
@@ -371,7 +374,7 @@ class _GroupCommerceEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'groupCommerce',
           methodName: 'consumeGroupEntitlement',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'shareGroupUuid': shareGroupUuid,
             'tag': tag,
             'quantity': quantity,
@@ -383,7 +386,7 @@ class _GroupCommerceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.ConsumeResult>);
+                as _ida.Future<_igd9vbiz.ConsumeResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -393,24 +396,21 @@ class _GroupCommerceEndpoint {
 }
 
 class _IAPEndpoint {
-  _IAPEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _IAPEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<_i7.IapValidationResponse> validateAppleTransaction(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_iwz4c2rd.IapValidationResponse> validateAppleTransaction(
+    _ist.TestSessionBuilder sessionBuilder,
     String transactionId,
     String productId, {
     String? internalTransactionId,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'iAP',
             method: 'validateAppleTransaction',
           );
@@ -419,7 +419,7 @@ class _IAPEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'iAP',
           methodName: 'validateAppleTransaction',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'transactionId': transactionId,
             'productId': productId,
             'internalTransactionId': internalTransactionId,
@@ -431,7 +431,7 @@ class _IAPEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.IapValidationResponse>);
+                as _ida.Future<_iwz4c2rd.IapValidationResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -439,16 +439,16 @@ class _IAPEndpoint {
     });
   }
 
-  _i3.Future<_i7.IapValidationResponse> validateGooglePurchase(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_iwz4c2rd.IapValidationResponse> validateGooglePurchase(
+    _ist.TestSessionBuilder sessionBuilder,
     String packageName,
     String productId,
     String purchaseToken, {
     String? internalTransactionId,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'iAP',
             method: 'validateGooglePurchase',
           );
@@ -457,7 +457,7 @@ class _IAPEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'iAP',
           methodName: 'validateGooglePurchase',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'packageName': packageName,
             'productId': productId,
             'purchaseToken': purchaseToken,
@@ -470,7 +470,7 @@ class _IAPEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.IapValidationResponse>);
+                as _ida.Future<_iwz4c2rd.IapValidationResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -480,24 +480,21 @@ class _IAPEndpoint {
 }
 
 class _PolarEndpoint {
-  _PolarEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
+  _PolarEndpoint(this._endpointDispatch, this._serializationManager);
 
-  final _i2.EndpointDispatch _endpointDispatch;
+  final _is.EndpointDispatch _endpointDispatch;
 
-  final _i2.SerializationManager _serializationManager;
+  final _is.SerializationManager _serializationManager;
 
-  _i3.Future<_i7.IapValidationResponse> redeemLicenseKey(
-    _i1.TestSessionBuilder sessionBuilder,
+  _ida.Future<_iwz4c2rd.IapValidationResponse> redeemLicenseKey(
+    _ist.TestSessionBuilder sessionBuilder,
     String licenseKey, {
-    _i2.UuidValue? shareGroupUuid,
+    _is.UuidValue? shareGroupUuid,
     String? internalTransactionId,
   }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
             endpoint: 'polar',
             method: 'redeemLicenseKey',
           );
@@ -506,7 +503,7 @@ class _PolarEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'polar',
           methodName: 'redeemLicenseKey',
-          parameters: _i1.testObjectToJson({
+          parameters: _ist.testObjectToJson({
             'licenseKey': licenseKey,
             'shareGroupUuid': shareGroupUuid,
             'internalTransactionId': internalTransactionId,
@@ -518,7 +515,7 @@ class _PolarEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.IapValidationResponse>);
+                as _ida.Future<_iwz4c2rd.IapValidationResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -529,16 +526,16 @@ class _PolarEndpoint {
 
 class _PrivacyScrubFutureCall {
   Future<void> scrub(
-    _i1.TestSessionBuilder sessionBuilder,
+    _ist.TestSessionBuilder sessionBuilder,
     int retentionDays,
   ) async {
-    var object = _i8.PrivacyScrubFutureCallScrubModel(
+    var object = _ihs1px3z.PrivacyScrubFutureCallScrubModel(
       retentionDays: retentionDays,
     );
-    var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
-        .internalBuild();
+    var _localUniqueSession =
+        (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild();
     try {
-      await _i9.PrivacyScrubScrubFutureCall().invoke(
+      await _ikqnf7jm.PrivacyScrubScrubFutureCall().invoke(
         _localUniqueSession,
         object,
       );

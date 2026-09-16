@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_serialization/serverpod_serialization.dart' as _i1;
+import 'package:serverpod_serialization/serverpod_serialization.dart' as _iss;
 
-abstract class PublicKeyDuo implements _i1.SerializableModel {
+abstract class PublicKeyDuo
+    implements _iss.SerializableModel, _iss.ProtocolSerialization {
   PublicKeyDuo._({
     required this.signingPublicKeyHex,
     required this.encryptionPublicKeyHex,
@@ -37,7 +38,7 @@ abstract class PublicKeyDuo implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [PublicKeyDuo]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_iss.useResult
   PublicKeyDuo copyWith({
     String? signingPublicKeyHex,
     String? encryptionPublicKeyHex,
@@ -52,8 +53,17 @@ abstract class PublicKeyDuo implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.PublicKeyDuo',
+      'signingPublicKeyHex': signingPublicKeyHex,
+      'encryptionPublicKeyHex': encryptionPublicKeyHex,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _iss.SerializationManager.encode(this);
   }
 }
 
@@ -68,7 +78,7 @@ class _PublicKeyDuoImpl extends PublicKeyDuo {
 
   /// Returns a shallow copy of this [PublicKeyDuo]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_iss.useResult
   @override
   PublicKeyDuo copyWith({
     String? signingPublicKeyHex,
