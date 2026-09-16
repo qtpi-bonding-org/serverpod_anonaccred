@@ -10,14 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:anonaccount_server/src/generated/protocol.dart' as _i2;
+import 'package:anonaccount_server/src/generated/protocol.dart' as _i1j1ale0;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class AuthenticationException
     implements
-        _i1.SerializableException,
-        _i1.SerializableModel,
-        _i1.ProtocolSerialization {
+        _is.SerializableException,
+        _is.SerializableModel,
+        _is.ProtocolSerialization {
   AuthenticationException._({
     required this.code,
     required this.message,
@@ -41,7 +41,7 @@ abstract class AuthenticationException
       operation: jsonSerialization['operation'] as String?,
       details: jsonSerialization['details'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _i1j1ale0.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
     );
@@ -57,7 +57,7 @@ abstract class AuthenticationException
 
   /// Returns a shallow copy of this [AuthenticationException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   AuthenticationException copyWith({
     String? code,
     String? message,
@@ -109,7 +109,7 @@ class _AuthenticationExceptionImpl extends AuthenticationException {
 
   /// Returns a shallow copy of this [AuthenticationException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   AuthenticationException copyWith({
     String? code,
@@ -123,15 +123,7 @@ class _AuthenticationExceptionImpl extends AuthenticationException {
       operation: operation is String? ? operation : this.operation,
       details: details is Map<String, String>?
           ? details
-          : this.details?.map(
-              (
-                key0,
-                value0,
-              ) => MapEntry(
-                key0,
-                value0,
-              ),
-            ),
+          : this.details?.map((key0, value0) => MapEntry(key0, value0)),
     );
   }
 }

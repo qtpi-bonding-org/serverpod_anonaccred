@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class IapValidationResponse implements _i1.SerializableModel {
+abstract class IapValidationResponse
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   IapValidationResponse._({
     required this.success,
     this.productId,
@@ -35,11 +36,13 @@ abstract class IapValidationResponse implements _i1.SerializableModel {
     Map<String, dynamic> jsonSerialization,
   ) {
     return IapValidationResponse(
-      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      success: _isc.BoolJsonExtension.fromJson(jsonSerialization['success']),
       productId: jsonSerialization['productId'] as String?,
       tag: jsonSerialization['tag'] as String?,
       amount: (jsonSerialization['amount'] as num?)?.toDouble(),
-      fromCache: _i1.BoolJsonExtension.fromJson(jsonSerialization['fromCache']),
+      fromCache: _isc.BoolJsonExtension.fromJson(
+        jsonSerialization['fromCache'],
+      ),
       error: jsonSerialization['error'] as String?,
     );
   }
@@ -58,7 +61,7 @@ abstract class IapValidationResponse implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [IapValidationResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   IapValidationResponse copyWith({
     bool? success,
     String? productId,
@@ -81,8 +84,21 @@ abstract class IapValidationResponse implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.IapValidationResponse',
+      'success': success,
+      if (productId != null) 'productId': productId,
+      if (tag != null) 'tag': tag,
+      if (amount != null) 'amount': amount,
+      'fromCache': fromCache,
+      if (error != null) 'error': error,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -107,7 +123,7 @@ class _IapValidationResponseImpl extends IapValidationResponse {
 
   /// Returns a shallow copy of this [IapValidationResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   IapValidationResponse copyWith({
     bool? success,

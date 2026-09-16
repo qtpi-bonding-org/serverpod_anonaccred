@@ -10,46 +10,47 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'member_device_grant_outcome.dart' as _i2;
-import 'package:anonaccount_server/src/generated/protocol.dart' as _i3;
+import 'package:anonaccount_server/src/generated/protocol.dart' as _i1j1ale0;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'member_device_grant_outcome.dart' as _igy7ui1b;
 
 abstract class GrantMemberDeviceResult
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   GrantMemberDeviceResult._({
     required this.granted,
     required this.alreadyGranted,
   });
 
   factory GrantMemberDeviceResult({
-    required List<_i2.MemberDeviceGrantOutcome> granted,
-    required List<_i2.MemberDeviceGrantOutcome> alreadyGranted,
+    required List<_igy7ui1b.MemberDeviceGrantOutcome> granted,
+    required List<_igy7ui1b.MemberDeviceGrantOutcome> alreadyGranted,
   }) = _GrantMemberDeviceResultImpl;
 
   factory GrantMemberDeviceResult.fromJson(
     Map<String, dynamic> jsonSerialization,
   ) {
     return GrantMemberDeviceResult(
-      granted: _i3.Protocol().deserialize<List<_i2.MemberDeviceGrantOutcome>>(
-        jsonSerialization['granted'],
-      ),
-      alreadyGranted: _i3.Protocol()
-          .deserialize<List<_i2.MemberDeviceGrantOutcome>>(
+      granted: _i1j1ale0.Protocol()
+          .deserialize<List<_igy7ui1b.MemberDeviceGrantOutcome>>(
+            jsonSerialization['granted'],
+          ),
+      alreadyGranted: _i1j1ale0.Protocol()
+          .deserialize<List<_igy7ui1b.MemberDeviceGrantOutcome>>(
             jsonSerialization['alreadyGranted'],
           ),
     );
   }
 
-  List<_i2.MemberDeviceGrantOutcome> granted;
+  List<_igy7ui1b.MemberDeviceGrantOutcome> granted;
 
-  List<_i2.MemberDeviceGrantOutcome> alreadyGranted;
+  List<_igy7ui1b.MemberDeviceGrantOutcome> alreadyGranted;
 
   /// Returns a shallow copy of this [GrantMemberDeviceResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   GrantMemberDeviceResult copyWith({
-    List<_i2.MemberDeviceGrantOutcome>? granted,
-    List<_i2.MemberDeviceGrantOutcome>? alreadyGranted,
+    List<_igy7ui1b.MemberDeviceGrantOutcome>? granted,
+    List<_igy7ui1b.MemberDeviceGrantOutcome>? alreadyGranted,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -73,26 +74,23 @@ abstract class GrantMemberDeviceResult
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
 class _GrantMemberDeviceResultImpl extends GrantMemberDeviceResult {
   _GrantMemberDeviceResultImpl({
-    required List<_i2.MemberDeviceGrantOutcome> granted,
-    required List<_i2.MemberDeviceGrantOutcome> alreadyGranted,
-  }) : super._(
-         granted: granted,
-         alreadyGranted: alreadyGranted,
-       );
+    required List<_igy7ui1b.MemberDeviceGrantOutcome> granted,
+    required List<_igy7ui1b.MemberDeviceGrantOutcome> alreadyGranted,
+  }) : super._(granted: granted, alreadyGranted: alreadyGranted);
 
   /// Returns a shallow copy of this [GrantMemberDeviceResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   GrantMemberDeviceResult copyWith({
-    List<_i2.MemberDeviceGrantOutcome>? granted,
-    List<_i2.MemberDeviceGrantOutcome>? alreadyGranted,
+    List<_igy7ui1b.MemberDeviceGrantOutcome>? granted,
+    List<_igy7ui1b.MemberDeviceGrantOutcome>? alreadyGranted,
   }) {
     return GrantMemberDeviceResult(
       granted: granted ?? this.granted.map((e0) => e0.copyWith()).toList(),

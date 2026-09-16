@@ -10,10 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'group_member_role.dart' as _i2;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'group_member_role.dart' as _imgpb098;
 
-abstract class GroupMembershipView implements _i1.SerializableModel {
+abstract class GroupMembershipView
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   GroupMembershipView._({
     required this.memberId,
     required this.shareGroupId,
@@ -27,9 +28,9 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
   });
 
   factory GroupMembershipView({
-    required _i1.UuidValue memberId,
-    required _i1.UuidValue shareGroupId,
-    required _i2.GroupMemberRole role,
+    required _isc.UuidValue memberId,
+    required _isc.UuidValue shareGroupId,
+    required _imgpb098.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
     required String memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
@@ -40,20 +41,22 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
 
   factory GroupMembershipView.fromJson(Map<String, dynamic> jsonSerialization) {
     return GroupMembershipView(
-      memberId: _i1.UuidValueJsonExtension.fromJson(
+      memberId: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['memberId'],
       ),
-      shareGroupId: _i1.UuidValueJsonExtension.fromJson(
+      shareGroupId: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['shareGroupId'],
       ),
-      role: _i2.GroupMemberRole.fromJson((jsonSerialization['role'] as String)),
+      role: _imgpb098.GroupMemberRole.fromJson(
+        (jsonSerialization['role'] as String),
+      ),
       memberSigningPublicKeyHex:
           jsonSerialization['memberSigningPublicKeyHex'] as String,
       memberEncryptedDataKey:
           jsonSerialization['memberEncryptedDataKey'] as String,
       deviceEncryptedDataKey:
           jsonSerialization['deviceEncryptedDataKey'] as String?,
-      joinedAt: _i1.DateTimeJsonExtension.fromJson(
+      joinedAt: _isc.DateTimeJsonExtension.fromJson(
         jsonSerialization['joinedAt'],
       ),
       encryptedMemberKey: jsonSerialization['encryptedMemberKey'] as String,
@@ -62,11 +65,11 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
     );
   }
 
-  _i1.UuidValue memberId;
+  _isc.UuidValue memberId;
 
-  _i1.UuidValue shareGroupId;
+  _isc.UuidValue shareGroupId;
 
-  _i2.GroupMemberRole role;
+  _imgpb098.GroupMemberRole role;
 
   String memberSigningPublicKeyHex;
 
@@ -82,11 +85,11 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [GroupMembershipView]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   GroupMembershipView copyWith({
-    _i1.UuidValue? memberId,
-    _i1.UuidValue? shareGroupId,
-    _i2.GroupMemberRole? role,
+    _isc.UuidValue? memberId,
+    _isc.UuidValue? shareGroupId,
+    _imgpb098.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
     String? memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
@@ -113,8 +116,26 @@ abstract class GroupMembershipView implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.GroupMembershipView',
+      'memberId': memberId.toJson(),
+      'shareGroupId': shareGroupId.toJson(),
+      'role': role.toJson(),
+      'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
+      'memberEncryptedDataKey': memberEncryptedDataKey,
+      if (deviceEncryptedDataKey != null)
+        'deviceEncryptedDataKey': deviceEncryptedDataKey,
+      'joinedAt': joinedAt.toJson(),
+      'encryptedMemberKey': encryptedMemberKey,
+      if (encryptedUltimateKey != null)
+        'encryptedUltimateKey': encryptedUltimateKey,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -122,9 +143,9 @@ class _Undefined {}
 
 class _GroupMembershipViewImpl extends GroupMembershipView {
   _GroupMembershipViewImpl({
-    required _i1.UuidValue memberId,
-    required _i1.UuidValue shareGroupId,
-    required _i2.GroupMemberRole role,
+    required _isc.UuidValue memberId,
+    required _isc.UuidValue shareGroupId,
+    required _imgpb098.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
     required String memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
@@ -145,12 +166,12 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
 
   /// Returns a shallow copy of this [GroupMembershipView]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   GroupMembershipView copyWith({
-    _i1.UuidValue? memberId,
-    _i1.UuidValue? shareGroupId,
-    _i2.GroupMemberRole? role,
+    _isc.UuidValue? memberId,
+    _isc.UuidValue? shareGroupId,
+    _imgpb098.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
     String? memberEncryptedDataKey,
     Object? deviceEncryptedDataKey = _Undefined,

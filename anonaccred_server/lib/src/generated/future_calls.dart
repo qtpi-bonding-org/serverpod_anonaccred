@@ -8,24 +8,26 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
+// ignore_for_file: depend_on_referenced_packages
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'dart:async' as _ida;
+import 'package:clock/clock.dart' as _io0w16m8;
+import 'package:serverpod/serverpod.dart' as _is;
+import '../privacy_scrub_future_call.dart' as _ikdqcd80;
 import 'future_calls_generated_models/privacy_scrub_future_call_scrub_model.dart'
-    as _i2;
-import 'dart:async' as _i3;
-import '../privacy_scrub_future_call.dart' as _i4;
+    as _iwkz6n2a;
 
 /// Invokes a future call.
 typedef _InvokeFutureCall =
-    Future<void> Function(String name, _i1.SerializableModel? object);
+    Future<void> Function(String name, _is.SerializableModel? object);
 
-extension ServerpodFutureCallsGetter on _i1.Serverpod {
+extension ServerpodFutureCallsGetter on _is.Serverpod {
   /// Generated future calls.
   FutureCalls get futureCalls => FutureCalls();
 }
 
-class FutureCalls extends _i1.FutureCallDispatch<_FutureCallRef> {
+class FutureCalls extends _is.FutureCallDispatch<_FutureCallRef> {
   FutureCalls._();
 
   factory FutureCalls() {
@@ -34,7 +36,7 @@ class FutureCalls extends _i1.FutureCallDispatch<_FutureCallRef> {
 
   static final FutureCalls _instance = FutureCalls._();
 
-  _i1.FutureCallManager? _futureCallManager;
+  _is.FutureCallManager? _futureCallManager;
 
   String? _serverId;
 
@@ -45,7 +47,7 @@ class FutureCalls extends _i1.FutureCallDispatch<_FutureCallRef> {
     return _serverId!;
   }
 
-  _i1.FutureCallManager get _effectiveFutureCallManager {
+  _is.FutureCallManager get _effectiveFutureCallManager {
     if (_futureCallManager == null) {
       throw StateError('FutureCalls is not initialized.');
     }
@@ -53,11 +55,8 @@ class FutureCalls extends _i1.FutureCallDispatch<_FutureCallRef> {
   }
 
   @override
-  void initialize(
-    _i1.FutureCallManager futureCallManager,
-    String serverId,
-  ) {
-    var registeredFutureCalls = <String, _i1.FutureCall>{
+  void initialize(_is.FutureCallManager futureCallManager, String serverId) {
+    var registeredFutureCalls = <String, _is.InvokableFutureCall>{
       'PrivacyScrubScrubFutureCall': PrivacyScrubScrubFutureCall(),
     };
     _futureCallManager = futureCallManager;
@@ -68,44 +67,92 @@ class FutureCalls extends _i1.FutureCallDispatch<_FutureCallRef> {
   }
 
   @override
-  _FutureCallRef callAtTime(
-    DateTime time, {
-    String? identifier,
-  }) {
-    return _FutureCallRef(
-      (name, object) {
-        return _effectiveFutureCallManager.scheduleFutureCall(
-          name,
-          object,
-          time,
-          _effectiveServerId,
-          identifier,
-        );
-      },
-    );
+  _FutureCallRef callAtTime(DateTime time, {String? identifier}) {
+    return _FutureCallRef((name, object) {
+      return _effectiveFutureCallManager.scheduleFutureCall(
+        name,
+        object,
+        time,
+        _effectiveServerId,
+        identifier,
+      );
+    });
   }
 
   @override
-  _FutureCallRef callWithDelay(
-    Duration delay, {
+  _FutureCallRef callWithDelay(Duration delay, {String? identifier}) {
+    return _FutureCallRef((name, object) {
+      return _effectiveFutureCallManager.scheduleFutureCall(
+        name,
+        object,
+        DateTime.now().toUtc().add(delay),
+        _effectiveServerId,
+        identifier,
+      );
+    });
+  }
+
+  @override
+  _is.RecurringFutureCallDispatch<_FutureCallRef> callRecurring({
     String? identifier,
   }) {
-    return _FutureCallRef(
-      (name, object) {
-        return _effectiveFutureCallManager.scheduleFutureCall(
-          name,
-          object,
-          DateTime.now().toUtc().add(delay),
-          _effectiveServerId,
-          identifier,
-        );
-      },
+    return _RecurringFutureCallDispatchImpl(
+      _effectiveFutureCallManager,
+      _effectiveServerId,
+      identifier,
     );
   }
 
   @override
   Future<void> cancel(String identifier) async {
     await _effectiveFutureCallManager.cancelFutureCall(identifier);
+  }
+}
+
+class _RecurringFutureCallDispatchImpl
+    extends _is.RecurringFutureCallDispatch<_FutureCallRef> {
+  _RecurringFutureCallDispatchImpl(
+    this._futureCallManager,
+    this._serverId,
+    this._identifier,
+  );
+
+  final _is.FutureCallManager _futureCallManager;
+
+  final String _serverId;
+
+  final String? _identifier;
+
+  @override
+  _FutureCallRef cron(String cronExpression) {
+    return _FutureCallRef((name, object) {
+      return _futureCallManager.scheduleFutureCall(
+        name,
+        object,
+        _is.Cron.parse(cronExpression).nextTime(),
+        _serverId,
+        _identifier,
+        scheduling: _is.CronFutureCallScheduling(cron: cronExpression),
+      );
+    });
+  }
+
+  @override
+  _FutureCallRef every(Duration interval, {DateTime? start}) {
+    final now = _io0w16m8.clock.now().toUtc();
+    return _FutureCallRef((name, object) {
+      return _futureCallManager.scheduleFutureCall(
+        name,
+        object,
+        start ?? now.add(interval),
+        _serverId,
+        _identifier,
+        scheduling: _is.IntervalFutureCallScheduling(
+          interval: interval,
+          start: start,
+        ),
+      );
+    });
   }
 }
 
@@ -125,13 +172,10 @@ class _PrivacyScrubFutureCallDispatcher {
   final _InvokeFutureCall _invokeFutureCall;
 
   Future<void> scrub(int retentionDays) {
-    var object = _i2.PrivacyScrubFutureCallScrubModel(
+    var object = _iwkz6n2a.PrivacyScrubFutureCallScrubModel(
       retentionDays: retentionDays,
     );
-    return _invokeFutureCall(
-      'PrivacyScrubScrubFutureCall',
-      object,
-    );
+    return _invokeFutureCall('PrivacyScrubScrubFutureCall', object);
   }
 }
 
@@ -140,14 +184,16 @@ class _PrivacyScrubFutureCallDispatcher {
 /// [retentionDays] rows older than this many days are deleted.
 /// Pass 0 to run without rescheduling (one-shot cleanup).
 class PrivacyScrubScrubFutureCall
-    extends _i1.FutureCall<_i2.PrivacyScrubFutureCallScrubModel> {
+    extends _is.FutureCall<_iwkz6n2a.PrivacyScrubFutureCallScrubModel>
+    implements
+        _is.InvokableFutureCall<_iwkz6n2a.PrivacyScrubFutureCallScrubModel> {
   @override
-  _i3.Future<void> invoke(
-    _i1.Session session,
-    _i2.PrivacyScrubFutureCallScrubModel? object,
+  _ida.Future<void> invoke(
+    _is.Session session,
+    _iwkz6n2a.PrivacyScrubFutureCallScrubModel? object,
   ) async {
     if (object != null) {
-      await _i4.PrivacyScrubFutureCall().scrub(
+      await _ikdqcd80.PrivacyScrubFutureCall().scrub(
         session,
         object.retentionDays,
       );

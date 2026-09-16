@@ -10,11 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'package:anonaccount_client/src/protocol/protocol.dart' as _i2;
+import 'package:anonaccount_client/src/protocol/protocol.dart' as _iki990kh;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
 abstract class AnonAccountException
-    implements _i1.SerializableException, _i1.SerializableModel {
+    implements
+        _isc.SerializableException,
+        _isc.SerializableModel,
+        _isc.ProtocolSerialization {
   AnonAccountException._({
     required this.code,
     required this.message,
@@ -35,7 +38,7 @@ abstract class AnonAccountException
       message: jsonSerialization['message'] as String,
       details: jsonSerialization['details'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _iki990kh.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
     );
@@ -49,7 +52,7 @@ abstract class AnonAccountException
 
   /// Returns a shallow copy of this [AnonAccountException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   AnonAccountException copyWith({
     String? code,
     String? message,
@@ -57,6 +60,16 @@ abstract class AnonAccountException
   });
   @override
   Map<String, dynamic> toJson() {
+    return {
+      '__className__': 'anonaccount.AnonAccountException',
+      'code': code,
+      'message': message,
+      if (details != null) 'details': details?.toJson(),
+    };
+  }
+
+  @override
+  Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'anonaccount.AnonAccountException',
       'code': code,
@@ -78,15 +91,11 @@ class _AnonAccountExceptionImpl extends AnonAccountException {
     required String code,
     required String message,
     Map<String, String>? details,
-  }) : super._(
-         code: code,
-         message: message,
-         details: details,
-       );
+  }) : super._(code: code, message: message, details: details);
 
   /// Returns a shallow copy of this [AnonAccountException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   AnonAccountException copyWith({
     String? code,
@@ -98,15 +107,7 @@ class _AnonAccountExceptionImpl extends AnonAccountException {
       message: message ?? this.message,
       details: details is Map<String, String>?
           ? details
-          : this.details?.map(
-              (
-                key0,
-                value0,
-              ) => MapEntry(
-                key0,
-                value0,
-              ),
-            ),
+          : this.details?.map((key0, value0) => MapEntry(key0, value0)),
     );
   }
 }

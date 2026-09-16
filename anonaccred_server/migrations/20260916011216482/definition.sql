@@ -30,6 +30,177 @@ language plpgsql
 volatile;
 
 --
+-- Class AccountEntitlement as table account_entitlement
+--
+CREATE TABLE "account_entitlement" (
+    "id" bigserial PRIMARY KEY,
+    "accountUuid" uuid NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "balance" double precision NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "account_entitlement_idx" ON "account_entitlement" USING btree ("accountUuid", "entitlementId");
+
+--
+-- Class ConsumptionLog as table consumption_log
+--
+CREATE TABLE "consumption_log" (
+    "id" bigserial PRIMARY KEY,
+    "accountUuid" uuid NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "amount" double precision NOT NULL,
+    "reason" text NOT NULL,
+    "timestamp" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE INDEX "account_idx" ON "consumption_log" USING btree ("accountUuid");
+CREATE INDEX "entitlement_idx" ON "consumption_log" USING btree ("entitlementId");
+
+--
+-- Class Entitlement as table entitlement
+--
+CREATE TABLE "entitlement" (
+    "id" bigserial PRIMARY KEY,
+    "tag" text NOT NULL,
+    "name" text NOT NULL,
+    "type" text NOT NULL,
+    "serverValidated" boolean NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "tag_idx" ON "entitlement" USING btree ("tag");
+
+--
+-- Class EphemeralAccreditation as table ephemeral_accreditation
+--
+CREATE TABLE "ephemeral_accreditation" (
+    "id" bigserial PRIMARY KEY,
+    "accountUuid" uuid NOT NULL,
+    "transactionTimestamp" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "lookup_idx" ON "ephemeral_accreditation" USING btree ("transactionTimestamp");
+
+--
+-- Class EphemeralAccreditationGroup as table ephemeral_accreditation_group
+--
+CREATE TABLE "ephemeral_accreditation_group" (
+    "id" bigserial PRIMARY KEY,
+    "accountUuid" uuid NOT NULL,
+    "shareGroupUuid" uuid NOT NULL,
+    "transactionTimestamp" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "ephemeral_group_lookup_idx" ON "ephemeral_accreditation_group" USING btree ("transactionTimestamp");
+
+--
+-- Class GroupConsumptionLog as table group_consumption_log
+--
+CREATE TABLE "group_consumption_log" (
+    "id" bigserial PRIMARY KEY,
+    "shareGroupUuid" uuid NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "amount" double precision NOT NULL,
+    "reason" text NOT NULL,
+    "timestamp" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "consumingAccountUuid" uuid
+);
+
+-- Indexes
+CREATE INDEX "group_consumption_group_idx" ON "group_consumption_log" USING btree ("shareGroupUuid");
+CREATE INDEX "group_consumption_entitlement_idx" ON "group_consumption_log" USING btree ("entitlementId");
+
+--
+-- Class GroupEntitlement as table group_entitlement
+--
+CREATE TABLE "group_entitlement" (
+    "id" bigserial PRIMARY KEY,
+    "shareGroupUuid" uuid NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "balance" double precision NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "group_entitlement_idx" ON "group_entitlement" USING btree ("shareGroupUuid", "entitlementId");
+
+--
+-- Class RailProduct as table rail_product
+--
+CREATE TABLE "rail_product" (
+    "id" bigserial PRIMARY KEY,
+    "rail" text NOT NULL,
+    "storeProductId" text NOT NULL,
+    "isActive" boolean NOT NULL
+);
+
+-- Indexes
+CREATE INDEX "store_product_idx" ON "rail_product" USING btree ("rail", "storeProductId");
+
+--
+-- Class RailProductGrant as table rail_product_grant
+--
+CREATE TABLE "rail_product_grant" (
+    "id" bigserial PRIMARY KEY,
+    "railProductId" bigint NOT NULL,
+    "entitlementId" bigint NOT NULL,
+    "quantity" double precision NOT NULL
+);
+
+--
+-- Class ReceiptHash as table receipt_hash
+--
+CREATE TABLE "receipt_hash" (
+    "id" bigserial PRIMARY KEY,
+    "hash" text NOT NULL,
+    "paymentRail" text NOT NULL,
+    "processedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "hash_idx" ON "receipt_hash" USING btree ("hash");
+
+--
+-- Class RefundClaim as table refund_claim
+--
+CREATE TABLE "refund_claim" (
+    "id" bigserial PRIMARY KEY,
+    "paymentRail" text NOT NULL,
+    "paymentRef" text NOT NULL,
+    "claimedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "refund_claim_idx" ON "refund_claim" USING btree ("paymentRail", "paymentRef");
+
+--
+-- Class TransactionPayment as table transaction_payment
+--
+CREATE TABLE "transaction_payment" (
+    "id" bigserial PRIMARY KEY,
+    "railProductId" bigint NOT NULL,
+    "internalTransactionId" text NOT NULL,
+    "priceCurrency" text NOT NULL,
+    "price" double precision NOT NULL,
+    "paymentRail" text NOT NULL,
+    "paymentCurrency" text NOT NULL,
+    "paymentAmount" double precision NOT NULL,
+    "paymentRef" text,
+    "transactionTimestamp" timestamp without time zone NOT NULL,
+    "clientReference" text,
+    "status" text NOT NULL,
+    "railDataJson" text
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "internal_tx_id_idx" ON "transaction_payment" USING btree ("internalTransactionId");
+CREATE INDEX "timestamp_idx" ON "transaction_payment" USING btree ("transactionTimestamp");
+CREATE UNIQUE INDEX "payment_ref_idx" ON "transaction_payment" USING btree ("paymentRail", "paymentRef");
+
+--
 -- Class AccountDevice as table account_device
 --
 CREATE TABLE "account_device" (
@@ -86,16 +257,15 @@ CREATE TABLE "group_member" (
     "revokedByAttestorPublicKeyHex" text,
     "revokedByAttestation" text,
     "revokedAt" timestamp without time zone,
-    "keyEpoch" bigint NOT NULL DEFAULT 0
+    "keyEpoch" bigint NOT NULL DEFAULT 0,
+    "roleChangedAt" timestamp without time zone,
+    "roleChangedByAttestorPublicKeyHex" text,
+    "roleChangedByAttestation" text
 );
 
 -- Indexes
 CREATE UNIQUE INDEX "group_member_signing_key_idx" ON "group_member" USING btree ("memberSigningPublicKeyHex");
 CREATE UNIQUE INDEX "group_member_unique_idx" ON "group_member" USING btree ("shareGroupId", "anonAccountId");
-DROP INDEX IF EXISTS "group_member_unique_idx";
-CREATE UNIQUE INDEX "group_member_unique_idx"
-  ON "group_member" USING btree ("shareGroupId", "anonAccountId")
-  WHERE "isRevoked" = false;
 CREATE INDEX "group_member_account_idx" ON "group_member" USING btree ("anonAccountId");
 
 --
@@ -116,10 +286,6 @@ CREATE TABLE "group_member_device" (
 
 -- Indexes
 CREATE UNIQUE INDEX "group_member_device_active_idx" ON "group_member_device" USING btree ("groupMemberId", "accountDeviceId");
-DROP INDEX IF EXISTS "group_member_device_active_idx";
-CREATE UNIQUE INDEX "group_member_device_active_idx"
-  ON "group_member_device" USING btree ("groupMemberId", "accountDeviceId")
-  WHERE "isRevoked" = false;
 CREATE INDEX "group_member_device_device_idx" ON "group_member_device" USING btree ("accountDeviceId");
 
 --
@@ -142,10 +308,6 @@ CREATE TABLE "group_owner" (
 
 -- Indexes
 CREATE UNIQUE INDEX "group_owner_active_idx" ON "group_owner" USING btree ("shareGroupId", "anonAccountId");
-DROP INDEX IF EXISTS "group_owner_active_idx";
-CREATE UNIQUE INDEX "group_owner_active_idx"
-  ON "group_owner" USING btree ("shareGroupId", "anonAccountId")
-  WHERE "isRevoked" = false;
 CREATE INDEX "group_owner_account_idx" ON "group_owner" USING btree ("anonAccountId");
 
 --
@@ -200,12 +362,34 @@ CREATE TABLE "serverpod_cloud_storage" (
     "addedTime" timestamp without time zone NOT NULL,
     "expiration" timestamp without time zone,
     "byteData" bytea NOT NULL,
-    "verified" boolean NOT NULL
+    "verified" boolean NOT NULL,
+    "contentType" text,
+    "cacheControl" text,
+    "contentDisposition" text,
+    "contentEncoding" text,
+    "customMetadata" text
 );
 
 -- Indexes
 CREATE UNIQUE INDEX "serverpod_cloud_storage_path_idx" ON "serverpod_cloud_storage" USING btree ("storageId", "path");
 CREATE INDEX "serverpod_cloud_storage_expiration" ON "serverpod_cloud_storage" USING btree ("expiration");
+
+--
+-- Class CloudStorageDirectDownloadEntry as table serverpod_cloud_storage_direct_download
+--
+CREATE TABLE "serverpod_cloud_storage_direct_download" (
+    "id" bigserial PRIMARY KEY,
+    "storageId" text NOT NULL,
+    "path" text NOT NULL,
+    "expiration" timestamp without time zone NOT NULL,
+    "authKey" text NOT NULL,
+    "downloadFileName" text,
+    "contentType" text
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "serverpod_cloud_storage_direct_download_auth_key" ON "serverpod_cloud_storage_direct_download" USING btree ("authKey");
+CREATE INDEX "serverpod_cloud_storage_direct_download_expiration" ON "serverpod_cloud_storage_direct_download" USING btree ("expiration");
 
 --
 -- Class CloudStorageDirectUploadEntry as table serverpod_cloud_storage_direct_upload
@@ -215,7 +399,15 @@ CREATE TABLE "serverpod_cloud_storage_direct_upload" (
     "storageId" text NOT NULL,
     "path" text NOT NULL,
     "expiration" timestamp without time zone NOT NULL,
-    "authKey" text NOT NULL
+    "authKey" text NOT NULL,
+    "maxFileSize" bigint NOT NULL DEFAULT 10485760,
+    "contentLength" bigint,
+    "preventOverwrite" boolean NOT NULL DEFAULT false,
+    "contentType" text,
+    "cacheControl" text,
+    "contentDisposition" text,
+    "contentEncoding" text,
+    "customMetadata" text
 );
 
 -- Indexes
@@ -230,13 +422,26 @@ CREATE TABLE "serverpod_future_call" (
     "time" timestamp without time zone NOT NULL,
     "serializedObject" text,
     "serverId" text NOT NULL,
-    "identifier" text
+    "identifier" text,
+    "scheduling" json
 );
 
 -- Indexes
 CREATE INDEX "serverpod_future_call_time_idx" ON "serverpod_future_call" USING btree ("time");
 CREATE INDEX "serverpod_future_call_serverId_idx" ON "serverpod_future_call" USING btree ("serverId");
 CREATE INDEX "serverpod_future_call_identifier_idx" ON "serverpod_future_call" USING btree ("identifier");
+
+--
+-- Class FutureCallClaimEntry as table serverpod_future_call_claim
+--
+CREATE TABLE "serverpod_future_call_claim" (
+    "id" bigserial PRIMARY KEY,
+    "futureCallId" bigint,
+    "lastHeartbeatTime" timestamp without time zone NOT NULL
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "future_call_unique_idx" ON "serverpod_future_call_claim" USING btree ("futureCallId");
 
 --
 -- Class ServerHealthConnectionInfo as table serverpod_health_connection_info
@@ -288,7 +493,7 @@ CREATE TABLE "serverpod_log" (
 );
 
 -- Indexes
-CREATE INDEX "serverpod_log_sessionLogId_idx" ON "serverpod_log" USING btree ("sessionLogId");
+CREATE INDEX "serverpod_log_sessionLogId_idx" ON "serverpod_log" USING btree ("sessionLogId", "order");
 
 --
 -- Class MessageLogEntry as table serverpod_message_log
@@ -306,6 +511,9 @@ CREATE TABLE "serverpod_message_log" (
     "slow" boolean NOT NULL,
     "order" bigint NOT NULL
 );
+
+-- Indexes
+CREATE INDEX "serverpod_message_log_sessionLogId_idx" ON "serverpod_message_log" USING btree ("sessionLogId", "order");
 
 --
 -- Class MethodInfo as table serverpod_method
@@ -350,7 +558,7 @@ CREATE TABLE "serverpod_query_log" (
 );
 
 -- Indexes
-CREATE INDEX "serverpod_query_log_sessionLogId_idx" ON "serverpod_query_log" USING btree ("sessionLogId");
+CREATE INDEX "serverpod_query_log_sessionLogId_idx" ON "serverpod_query_log" USING btree ("sessionLogId", "order");
 
 --
 -- Class ReadWriteTestEntry as table serverpod_readwrite_test
@@ -574,14 +782,14 @@ CREATE TABLE "serverpod_auth_idp_rate_limited_request_attempt" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid_v7(),
     "domain" text NOT NULL,
     "source" text NOT NULL,
-    "nonce" text NOT NULL,
+    "key" text NOT NULL,
     "ipAddress" text,
     "attemptedAt" timestamp without time zone NOT NULL,
     "extraData" json
 );
 
 -- Indexes
-CREATE INDEX "serverpod_auth_idp_rate_limited_request_attempt_composite" ON "serverpod_auth_idp_rate_limited_request_attempt" USING btree ("domain", "source", "nonce", "attemptedAt");
+CREATE INDEX "serverpod_auth_idp_rate_limited_request_attempt_composite" ON "serverpod_auth_idp_rate_limited_request_attempt" USING btree ("domain", "source", "key", "attemptedAt");
 
 --
 -- Class SecretChallenge as table serverpod_auth_idp_secret_challenge
@@ -664,6 +872,72 @@ CREATE TABLE "serverpod_auth_core_user" (
 );
 
 --
+-- Foreign relations for "account_entitlement" table
+--
+ALTER TABLE ONLY "account_entitlement"
+    ADD CONSTRAINT "account_entitlement_fk_0"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- Foreign relations for "consumption_log" table
+--
+ALTER TABLE ONLY "consumption_log"
+    ADD CONSTRAINT "consumption_log_fk_0"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- Foreign relations for "group_consumption_log" table
+--
+ALTER TABLE ONLY "group_consumption_log"
+    ADD CONSTRAINT "group_consumption_log_fk_0"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- Foreign relations for "group_entitlement" table
+--
+ALTER TABLE ONLY "group_entitlement"
+    ADD CONSTRAINT "group_entitlement_fk_0"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- Foreign relations for "rail_product_grant" table
+--
+ALTER TABLE ONLY "rail_product_grant"
+    ADD CONSTRAINT "rail_product_grant_fk_0"
+    FOREIGN KEY("railProductId")
+    REFERENCES "rail_product"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+ALTER TABLE ONLY "rail_product_grant"
+    ADD CONSTRAINT "rail_product_grant_fk_1"
+    FOREIGN KEY("entitlementId")
+    REFERENCES "entitlement"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
+-- Foreign relations for "transaction_payment" table
+--
+ALTER TABLE ONLY "transaction_payment"
+    ADD CONSTRAINT "transaction_payment_fk_0"
+    FOREIGN KEY("railProductId")
+    REFERENCES "rail_product"("id")
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+
+--
 -- Foreign relations for "account_device" table
 --
 ALTER TABLE ONLY "account_device"
@@ -718,6 +992,16 @@ ALTER TABLE ONLY "group_owner"
     ADD CONSTRAINT "group_owner_fk_1"
     FOREIGN KEY("anonAccountId")
     REFERENCES "anon_account"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+
+--
+-- Foreign relations for "serverpod_future_call_claim" table
+--
+ALTER TABLE ONLY "serverpod_future_call_claim"
+    ADD CONSTRAINT "serverpod_future_call_claim_fk_0"
+    FOREIGN KEY("futureCallId")
+    REFERENCES "serverpod_future_call"("id")
     ON DELETE CASCADE
     ON UPDATE NO ACTION;
 
@@ -927,36 +1211,44 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 
 
 --
+-- MIGRATION VERSION FOR anonaccred
+--
+INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
+    VALUES ('anonaccred', '20260916011216482', now())
+    ON CONFLICT ("module")
+    DO UPDATE SET "version" = '20260916011216482', "timestamp" = now();
+
+--
 -- MIGRATION VERSION FOR anonaccount
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('anonaccount', '20260802130448042', now())
+    VALUES ('anonaccount', '20260916011142008', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260802130448042', "timestamp" = now();
+    DO UPDATE SET "version" = '20260916011142008', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('serverpod', '20260129180959368', now())
+    VALUES ('serverpod', '20260824182259319', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260129180959368', "timestamp" = now();
+    DO UPDATE SET "version" = '20260824182259319', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod_auth_idp
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('serverpod_auth_idp', '20260213194423028', now())
+    VALUES ('serverpod_auth_idp', '20260910193913364-string-rate-limit-keys', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260213194423028', "timestamp" = now();
+    DO UPDATE SET "version" = '20260910193913364-string-rate-limit-keys', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod_auth_core
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('serverpod_auth_core', '20260129181112269', now())
+    VALUES ('serverpod_auth_core', '20260824182354731', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260129181112269', "timestamp" = now();
+    DO UPDATE SET "version" = '20260824182354731', "timestamp" = now();
 
 
 COMMIT;

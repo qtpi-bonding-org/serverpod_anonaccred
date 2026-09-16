@@ -10,43 +10,43 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class MemberDeviceGrantOutcome
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   MemberDeviceGrantOutcome._({
     required this.groupMemberId,
     required this.accountDeviceId,
   });
 
   factory MemberDeviceGrantOutcome({
-    required _i1.UuidValue groupMemberId,
-    required _i1.UuidValue accountDeviceId,
+    required _is.UuidValue groupMemberId,
+    required _is.UuidValue accountDeviceId,
   }) = _MemberDeviceGrantOutcomeImpl;
 
   factory MemberDeviceGrantOutcome.fromJson(
     Map<String, dynamic> jsonSerialization,
   ) {
     return MemberDeviceGrantOutcome(
-      groupMemberId: _i1.UuidValueJsonExtension.fromJson(
+      groupMemberId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['groupMemberId'],
       ),
-      accountDeviceId: _i1.UuidValueJsonExtension.fromJson(
+      accountDeviceId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['accountDeviceId'],
       ),
     );
   }
 
-  _i1.UuidValue groupMemberId;
+  _is.UuidValue groupMemberId;
 
-  _i1.UuidValue accountDeviceId;
+  _is.UuidValue accountDeviceId;
 
   /// Returns a shallow copy of this [MemberDeviceGrantOutcome]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   MemberDeviceGrantOutcome copyWith({
-    _i1.UuidValue? groupMemberId,
-    _i1.UuidValue? accountDeviceId,
+    _is.UuidValue? groupMemberId,
+    _is.UuidValue? accountDeviceId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -68,26 +68,23 @@ abstract class MemberDeviceGrantOutcome
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
 class _MemberDeviceGrantOutcomeImpl extends MemberDeviceGrantOutcome {
   _MemberDeviceGrantOutcomeImpl({
-    required _i1.UuidValue groupMemberId,
-    required _i1.UuidValue accountDeviceId,
-  }) : super._(
-         groupMemberId: groupMemberId,
-         accountDeviceId: accountDeviceId,
-       );
+    required _is.UuidValue groupMemberId,
+    required _is.UuidValue accountDeviceId,
+  }) : super._(groupMemberId: groupMemberId, accountDeviceId: accountDeviceId);
 
   /// Returns a shallow copy of this [MemberDeviceGrantOutcome]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   MemberDeviceGrantOutcome copyWith({
-    _i1.UuidValue? groupMemberId,
-    _i1.UuidValue? accountDeviceId,
+    _is.UuidValue? groupMemberId,
+    _is.UuidValue? accountDeviceId,
   }) {
     return MemberDeviceGrantOutcome(
       groupMemberId: groupMemberId ?? this.groupMemberId,

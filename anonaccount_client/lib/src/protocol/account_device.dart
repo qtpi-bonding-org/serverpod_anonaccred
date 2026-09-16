@@ -10,11 +10,12 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'account.dart' as _i2;
-import 'package:anonaccount_client/src/protocol/protocol.dart' as _i3;
+import 'package:anonaccount_client/src/protocol/protocol.dart' as _iki990kh;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'account.dart' as _iulmo8pc;
 
-abstract class AccountDevice implements _i1.SerializableModel {
+abstract class AccountDevice
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   AccountDevice._({
     this.id,
     required this.anonAccountId,
@@ -36,9 +37,9 @@ abstract class AccountDevice implements _i1.SerializableModel {
        keyEpoch = keyEpoch ?? 0;
 
   factory AccountDevice({
-    _i1.UuidValue? id,
-    required _i1.UuidValue anonAccountId,
-    _i2.AnonAccount? anonAccount,
+    _isc.UuidValue? id,
+    required _isc.UuidValue anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
     required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
@@ -56,13 +57,13 @@ abstract class AccountDevice implements _i1.SerializableModel {
     return AccountDevice(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      anonAccountId: _i1.UuidValueJsonExtension.fromJson(
+          : _isc.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      anonAccountId: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['anonAccountId'],
       ),
       anonAccount: jsonSerialization['anonAccount'] == null
           ? null
-          : _i3.Protocol().deserialize<_i2.AnonAccount>(
+          : _iki990kh.Protocol().deserialize<_iulmo8pc.AnonAccount>(
               jsonSerialization['anonAccount'],
             ),
       deviceSigningPublicKeyHex:
@@ -76,16 +77,18 @@ abstract class AccountDevice implements _i1.SerializableModel {
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
       lastActive: jsonSerialization['lastActive'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['lastActive']),
+          : _isc.DateTimeJsonExtension.fromJson(
+              jsonSerialization['lastActive'],
+            ),
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
+          : _isc.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
       revokedAt: jsonSerialization['revokedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
@@ -93,11 +96,11 @@ abstract class AccountDevice implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  _i1.UuidValue? id;
+  _isc.UuidValue? id;
 
-  _i1.UuidValue anonAccountId;
+  _isc.UuidValue anonAccountId;
 
-  _i2.AnonAccount? anonAccount;
+  _iulmo8pc.AnonAccount? anonAccount;
 
   String deviceSigningPublicKeyHex;
 
@@ -123,11 +126,11 @@ abstract class AccountDevice implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [AccountDevice]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   AccountDevice copyWith({
-    _i1.UuidValue? id,
-    _i1.UuidValue? anonAccountId,
-    _i2.AnonAccount? anonAccount,
+    _isc.UuidValue? id,
+    _isc.UuidValue? anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     String? deviceSigningPublicKeyHex,
     String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
@@ -162,8 +165,29 @@ abstract class AccountDevice implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.AccountDevice',
+      if (id != null) 'id': id?.toJson(),
+      'anonAccountId': anonAccountId.toJson(),
+      if (anonAccount != null) 'anonAccount': anonAccount?.toJsonForProtocol(),
+      'deviceSigningPublicKeyHex': deviceSigningPublicKeyHex,
+      'deviceEncryptionPublicKeyHex': deviceEncryptionPublicKeyHex,
+      'encryptedDataKey': encryptedDataKey,
+      'label': label,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
+      'addedByAttestation': addedByAttestation,
+      'createdAt': createdAt.toJson(),
+      'lastActive': lastActive.toJson(),
+      'isRevoked': isRevoked,
+      if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
+      'keyEpoch': keyEpoch,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -171,9 +195,9 @@ class _Undefined {}
 
 class _AccountDeviceImpl extends AccountDevice {
   _AccountDeviceImpl({
-    _i1.UuidValue? id,
-    required _i1.UuidValue anonAccountId,
-    _i2.AnonAccount? anonAccount,
+    _isc.UuidValue? id,
+    required _isc.UuidValue anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
     required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
@@ -204,11 +228,11 @@ class _AccountDeviceImpl extends AccountDevice {
 
   /// Returns a shallow copy of this [AccountDevice]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   AccountDevice copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? anonAccountId,
+    _isc.UuidValue? anonAccountId,
     Object? anonAccount = _Undefined,
     String? deviceSigningPublicKeyHex,
     String? deviceEncryptionPublicKeyHex,
@@ -223,9 +247,9 @@ class _AccountDeviceImpl extends AccountDevice {
     int? keyEpoch,
   }) {
     return AccountDevice(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _isc.UuidValue? ? id : this.id,
       anonAccountId: anonAccountId ?? this.anonAccountId,
-      anonAccount: anonAccount is _i2.AnonAccount?
+      anonAccount: anonAccount is _iulmo8pc.AnonAccount?
           ? anonAccount
           : this.anonAccount?.copyWith(),
       deviceSigningPublicKeyHex:

@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class ShardRouting
-    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<_is.UuidValue?>, _is.ProtocolSerialization {
   ShardRouting._({
     this.id,
     required this.tenantId,
@@ -24,8 +24,8 @@ abstract class ShardRouting
        updatedAt = updatedAt ?? DateTime.now();
 
   factory ShardRouting({
-    _i1.UuidValue? id,
-    required _i1.UuidValue tenantId,
+    _is.UuidValue? id,
+    required _is.UuidValue tenantId,
     required String tenantType,
     String? shardName,
     DateTime? updatedAt,
@@ -35,15 +35,15 @@ abstract class ShardRouting
     return ShardRouting(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      tenantId: _i1.UuidValueJsonExtension.fromJson(
+          : _is.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      tenantId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['tenantId'],
       ),
       tenantType: jsonSerialization['tenantType'] as String,
       shardName: jsonSerialization['shardName'] as String?,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
     );
   }
 
@@ -52,9 +52,9 @@ abstract class ShardRouting
   static const db = ShardRoutingRepository._();
 
   @override
-  _i1.UuidValue? id;
+  _is.UuidValue? id;
 
-  _i1.UuidValue tenantId;
+  _is.UuidValue tenantId;
 
   String tenantType;
 
@@ -63,14 +63,14 @@ abstract class ShardRouting
   DateTime updatedAt;
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => t;
+  _is.Table<_is.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [ShardRouting]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   ShardRouting copyWith({
-    _i1.UuidValue? id,
-    _i1.UuidValue? tenantId,
+    _is.UuidValue? id,
+    _is.UuidValue? tenantId,
     String? tenantType,
     String? shardName,
     DateTime? updatedAt,
@@ -104,12 +104,11 @@ abstract class ShardRouting
   }
 
   static ShardRoutingIncludeList includeList({
-    _i1.WhereExpressionBuilder<ShardRoutingTable>? where,
+    _is.WhereExpressionBuilder<ShardRoutingTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ShardRoutingTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ShardRoutingTable>? orderByList,
+    _is.OrderByBuilder<ShardRoutingTable>? orderBy,
+    _is.OrderByListBuilder<ShardRoutingTable>? orderByList,
     ShardRoutingInclude? include,
   }) {
     return ShardRoutingIncludeList._(
@@ -117,7 +116,6 @@ abstract class ShardRouting
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(ShardRouting.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(ShardRouting.t),
       include: include,
     );
@@ -125,7 +123,7 @@ abstract class ShardRouting
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -133,8 +131,8 @@ class _Undefined {}
 
 class _ShardRoutingImpl extends ShardRouting {
   _ShardRoutingImpl({
-    _i1.UuidValue? id,
-    required _i1.UuidValue tenantId,
+    _is.UuidValue? id,
+    required _is.UuidValue tenantId,
     required String tenantType,
     String? shardName,
     DateTime? updatedAt,
@@ -148,17 +146,17 @@ class _ShardRoutingImpl extends ShardRouting {
 
   /// Returns a shallow copy of this [ShardRouting]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   ShardRouting copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? tenantId,
+    _is.UuidValue? tenantId,
     String? tenantType,
     String? shardName,
     DateTime? updatedAt,
   }) {
     return ShardRouting(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _is.UuidValue? ? id : this.id,
       tenantId: tenantId ?? this.tenantId,
       tenantType: tenantType ?? this.tenantType,
       shardName: shardName ?? this.shardName,
@@ -167,67 +165,43 @@ class _ShardRoutingImpl extends ShardRouting {
   }
 }
 
-class ShardRoutingUpdateTable extends _i1.UpdateTable<ShardRoutingTable> {
+class ShardRoutingUpdateTable extends _is.UpdateTable<ShardRoutingTable> {
   ShardRoutingUpdateTable(super.table);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> tenantId(_i1.UuidValue value) =>
-      _i1.ColumnValue(
-        table.tenantId,
-        value,
-      );
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> tenantId(_is.UuidValue value) =>
+      _is.ColumnValue(table.tenantId, value);
 
-  _i1.ColumnValue<String, String> tenantType(String value) => _i1.ColumnValue(
-    table.tenantType,
-    value,
-  );
+  _is.ColumnValue<String, String> tenantType(String value) =>
+      _is.ColumnValue(table.tenantType, value);
 
-  _i1.ColumnValue<String, String> shardName(String value) => _i1.ColumnValue(
-    table.shardName,
-    value,
-  );
+  _is.ColumnValue<String, String> shardName(String value) =>
+      _is.ColumnValue(table.shardName, value);
 
-  _i1.ColumnValue<DateTime, DateTime> updatedAt(DateTime value) =>
-      _i1.ColumnValue(
-        table.updatedAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> updatedAt(DateTime value) =>
+      _is.ColumnValue(table.updatedAt, value);
 }
 
-class ShardRoutingTable extends _i1.Table<_i1.UuidValue?> {
+class ShardRoutingTable extends _is.Table<_is.UuidValue?> {
   ShardRoutingTable({super.tableRelation}) : super(tableName: 'shard_routing') {
     updateTable = ShardRoutingUpdateTable(this);
-    tenantId = _i1.ColumnUuid(
-      'tenantId',
-      this,
-    );
-    tenantType = _i1.ColumnString(
-      'tenantType',
-      this,
-    );
-    shardName = _i1.ColumnString(
-      'shardName',
-      this,
-      hasDefault: true,
-    );
-    updatedAt = _i1.ColumnDateTime(
-      'updatedAt',
-      this,
-      hasDefault: true,
-    );
+    tenantId = _is.ColumnUuid('tenantId', this);
+    tenantType = _is.ColumnString('tenantType', this);
+    shardName = _is.ColumnString('shardName', this, hasDefault: true);
+    updatedAt = _is.ColumnDateTime('updatedAt', this, hasDefault: true);
   }
 
   late final ShardRoutingUpdateTable updateTable;
 
-  late final _i1.ColumnUuid tenantId;
+  late final _is.ColumnUuid tenantId;
 
-  late final _i1.ColumnString tenantType;
+  late final _is.ColumnString tenantType;
 
-  late final _i1.ColumnString shardName;
+  late final _is.ColumnString shardName;
 
-  late final _i1.ColumnDateTime updatedAt;
+  late final _is.ColumnDateTime updatedAt;
 
   @override
-  List<_i1.Column> get columns => [
+  List<_is.Column> get columns => [
     id,
     tenantId,
     tenantType,
@@ -236,23 +210,22 @@ class ShardRoutingTable extends _i1.Table<_i1.UuidValue?> {
   ];
 }
 
-class ShardRoutingInclude extends _i1.IncludeObject {
+class ShardRoutingInclude extends _is.IncludeObject {
   ShardRoutingInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => ShardRouting.t;
+  _is.Table<_is.UuidValue?> get table => ShardRouting.t;
 }
 
-class ShardRoutingIncludeList extends _i1.IncludeList {
+class ShardRoutingIncludeList extends _is.IncludeList {
   ShardRoutingIncludeList._({
-    _i1.WhereExpressionBuilder<ShardRoutingTable>? where,
+    _is.WhereExpressionBuilder<ShardRoutingTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -260,10 +233,10 @@ class ShardRoutingIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => ShardRouting.t;
+  _is.Table<_is.UuidValue?> get table => ShardRouting.t;
 }
 
 class ShardRoutingRepository {
@@ -292,22 +265,20 @@ class ShardRoutingRepository {
   /// );
   /// ```
   Future<List<ShardRouting>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ShardRoutingTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ShardRoutingTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ShardRoutingTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ShardRoutingTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<ShardRoutingTable>? orderBy,
+    _is.OrderByListBuilder<ShardRoutingTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<ShardRouting>(
       where: where?.call(ShardRouting.t),
       orderBy: orderBy?.call(ShardRouting.t),
       orderByList: orderByList?.call(ShardRouting.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -334,21 +305,19 @@ class ShardRoutingRepository {
   /// );
   /// ```
   Future<ShardRouting?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ShardRoutingTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ShardRoutingTable>? where,
     int? offset,
-    _i1.OrderByBuilder<ShardRoutingTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ShardRoutingTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<ShardRoutingTable>? orderBy,
+    _is.OrderByListBuilder<ShardRoutingTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<ShardRouting>(
       where: where?.call(ShardRouting.t),
       orderBy: orderBy?.call(ShardRouting.t),
       orderByList: orderByList?.call(ShardRouting.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -358,11 +327,11 @@ class ShardRoutingRepository {
 
   /// Finds a single [ShardRouting] by its [id] or null if no such row exists.
   Future<ShardRouting?> findById(
-    _i1.Session session,
-    _i1.UuidValue id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.DatabaseSession session,
+    _is.UuidValue id, {
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<ShardRouting>(
       id,
@@ -382,16 +351,22 @@ class ShardRoutingRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ShardRouting>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ShardRouting> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<ShardRouting>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -399,12 +374,78 @@ class ShardRoutingRepository {
   ///
   /// The returned [ShardRouting] will have its `id` field set.
   Future<ShardRouting> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ShardRouting row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<ShardRouting>(
+    return session.db.insertRow<ShardRouting>(row, transaction: transaction);
+  }
+
+  /// Upserts all [ShardRouting]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [ShardRouting]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<ShardRouting>> upsert(
+    _is.DatabaseSession session,
+    List<ShardRouting> rows, {
+    required _is.ColumnSelections<ShardRoutingTable> conflictColumns,
+    _is.ColumnSelections<ShardRoutingTable>? updateColumns,
+    _is.WhereExpressionBuilder<ShardRoutingTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<ShardRouting>(
+      rows,
+      conflictColumns: conflictColumns(ShardRouting.t),
+      updateColumns: updateColumns?.call(ShardRouting.t),
+      updateWhere: updateWhere?.call(ShardRouting.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [ShardRouting] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [ShardRouting] will have its `id` field set.
+  Future<ShardRouting?> upsertRow(
+    _is.DatabaseSession session,
+    ShardRouting row, {
+    required _is.ColumnSelections<ShardRoutingTable> conflictColumns,
+    _is.ColumnSelections<ShardRoutingTable>? updateColumns,
+    _is.WhereExpressionBuilder<ShardRoutingTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<ShardRouting>(
       row,
+      conflictColumns: conflictColumns(ShardRouting.t),
+      updateColumns: updateColumns?.call(ShardRouting.t),
+      updateWhere: updateWhere?.call(ShardRouting.t),
       transaction: transaction,
     );
   }
@@ -414,16 +455,22 @@ class ShardRoutingRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ShardRouting>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ShardRouting> rows, {
-    _i1.ColumnSelections<ShardRoutingTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<ShardRoutingTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<ShardRouting>(
       rows,
       columns: columns?.call(ShardRouting.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -431,10 +478,10 @@ class ShardRoutingRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<ShardRouting> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ShardRouting row, {
-    _i1.ColumnSelections<ShardRoutingTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<ShardRoutingTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<ShardRouting>(
       row,
@@ -446,10 +493,10 @@ class ShardRoutingRepository {
   /// Updates a single [ShardRouting] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<ShardRouting?> updateById(
-    _i1.Session session,
-    _i1.UuidValue id, {
-    required _i1.ColumnValueListBuilder<ShardRoutingUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session,
+    _is.UuidValue id, {
+    required _is.ColumnValueListBuilder<ShardRoutingUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<ShardRouting>(
       id,
@@ -460,16 +507,20 @@ class ShardRoutingRepository {
 
   /// Updates all [ShardRouting]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ShardRouting>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<ShardRoutingUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<ShardRoutingTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<ShardRoutingUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<ShardRoutingTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ShardRoutingTable>? orderBy,
-    _i1.OrderByListBuilder<ShardRoutingTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<ShardRoutingTable>? orderBy,
+    _is.OrderByListBuilder<ShardRoutingTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<ShardRouting>(
       columnValues: columnValues(ShardRouting.t.updateTable),
@@ -478,56 +529,80 @@ class ShardRoutingRepository {
       offset: offset,
       orderBy: orderBy?.call(ShardRouting.t),
       orderByList: orderByList?.call(ShardRouting.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [ShardRouting]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ShardRouting>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ShardRouting> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<ShardRoutingTable>? orderBy,
+    _is.OrderByListBuilder<ShardRoutingTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<ShardRouting>(
       rows,
+      orderBy: orderBy?.call(ShardRouting.t),
+      orderByList: orderByList?.call(ShardRouting.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [ShardRouting].
   Future<ShardRouting> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ShardRouting row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<ShardRouting>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<ShardRouting>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ShardRouting>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<ShardRoutingTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<ShardRoutingTable> where,
+    _is.OrderByBuilder<ShardRoutingTable>? orderBy,
+    _is.OrderByListBuilder<ShardRoutingTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<ShardRouting>(
       where: where(ShardRouting.t),
+      orderBy: orderBy?.call(ShardRouting.t),
+      orderByList: orderByList?.call(ShardRouting.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ShardRoutingTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ShardRoutingTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<ShardRouting>(
       where: where?.call(ShardRouting.t),
@@ -538,11 +613,11 @@ class ShardRoutingRepository {
 
   /// Acquires row-level locks on [ShardRouting] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<ShardRoutingTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<ShardRoutingTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<ShardRouting>(
       where: where(ShardRouting.t),

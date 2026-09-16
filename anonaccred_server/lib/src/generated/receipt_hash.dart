@@ -10,11 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'payment_rail.dart' as _i2;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'payment_rail.dart' as _i4hkjqgd;
 
 abstract class ReceiptHash
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   ReceiptHash._({
     this.id,
     required this.hash,
@@ -25,7 +25,7 @@ abstract class ReceiptHash
   factory ReceiptHash({
     int? id,
     required String hash,
-    required _i2.PaymentRail paymentRail,
+    required _i4hkjqgd.PaymentRail paymentRail,
     DateTime? processedAt,
   }) = _ReceiptHashImpl;
 
@@ -33,12 +33,12 @@ abstract class ReceiptHash
     return ReceiptHash(
       id: jsonSerialization['id'] as int?,
       hash: jsonSerialization['hash'] as String,
-      paymentRail: _i2.PaymentRail.fromJson(
+      paymentRail: _i4hkjqgd.PaymentRail.fromJson(
         (jsonSerialization['paymentRail'] as String),
       ),
       processedAt: jsonSerialization['processedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(
+          : _is.DateTimeJsonExtension.fromJson(
               jsonSerialization['processedAt'],
             ),
     );
@@ -53,20 +53,20 @@ abstract class ReceiptHash
 
   String hash;
 
-  _i2.PaymentRail paymentRail;
+  _i4hkjqgd.PaymentRail paymentRail;
 
   DateTime processedAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [ReceiptHash]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   ReceiptHash copyWith({
     int? id,
     String? hash,
-    _i2.PaymentRail? paymentRail,
+    _i4hkjqgd.PaymentRail? paymentRail,
     DateTime? processedAt,
   });
   @override
@@ -96,12 +96,11 @@ abstract class ReceiptHash
   }
 
   static ReceiptHashIncludeList includeList({
-    _i1.WhereExpressionBuilder<ReceiptHashTable>? where,
+    _is.WhereExpressionBuilder<ReceiptHashTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ReceiptHashTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ReceiptHashTable>? orderByList,
+    _is.OrderByBuilder<ReceiptHashTable>? orderBy,
+    _is.OrderByListBuilder<ReceiptHashTable>? orderByList,
     ReceiptHashInclude? include,
   }) {
     return ReceiptHashIncludeList._(
@@ -109,7 +108,6 @@ abstract class ReceiptHash
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(ReceiptHash.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(ReceiptHash.t),
       include: include,
     );
@@ -117,7 +115,7 @@ abstract class ReceiptHash
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -127,7 +125,7 @@ class _ReceiptHashImpl extends ReceiptHash {
   _ReceiptHashImpl({
     int? id,
     required String hash,
-    required _i2.PaymentRail paymentRail,
+    required _i4hkjqgd.PaymentRail paymentRail,
     DateTime? processedAt,
   }) : super._(
          id: id,
@@ -138,12 +136,12 @@ class _ReceiptHashImpl extends ReceiptHash {
 
   /// Returns a shallow copy of this [ReceiptHash]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   ReceiptHash copyWith({
     Object? id = _Undefined,
     String? hash,
-    _i2.PaymentRail? paymentRail,
+    _i4hkjqgd.PaymentRail? paymentRail,
     DateTime? processedAt,
   }) {
     return ReceiptHash(
@@ -155,81 +153,60 @@ class _ReceiptHashImpl extends ReceiptHash {
   }
 }
 
-class ReceiptHashUpdateTable extends _i1.UpdateTable<ReceiptHashTable> {
+class ReceiptHashUpdateTable extends _is.UpdateTable<ReceiptHashTable> {
   ReceiptHashUpdateTable(super.table);
 
-  _i1.ColumnValue<String, String> hash(String value) => _i1.ColumnValue(
-    table.hash,
-    value,
-  );
+  _is.ColumnValue<String, String> hash(String value) =>
+      _is.ColumnValue(table.hash, value);
 
-  _i1.ColumnValue<_i2.PaymentRail, _i2.PaymentRail> paymentRail(
-    _i2.PaymentRail value,
-  ) => _i1.ColumnValue(
-    table.paymentRail,
-    value,
-  );
+  _is.ColumnValue<_i4hkjqgd.PaymentRail, _i4hkjqgd.PaymentRail> paymentRail(
+    _i4hkjqgd.PaymentRail value,
+  ) => _is.ColumnValue(table.paymentRail, value);
 
-  _i1.ColumnValue<DateTime, DateTime> processedAt(DateTime value) =>
-      _i1.ColumnValue(
-        table.processedAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> processedAt(DateTime value) =>
+      _is.ColumnValue(table.processedAt, value);
 }
 
-class ReceiptHashTable extends _i1.Table<int?> {
+class ReceiptHashTable extends _is.Table<int?> {
   ReceiptHashTable({super.tableRelation}) : super(tableName: 'receipt_hash') {
     updateTable = ReceiptHashUpdateTable(this);
-    hash = _i1.ColumnString(
-      'hash',
-      this,
-    );
-    paymentRail = _i1.ColumnEnum(
+    hash = _is.ColumnString('hash', this);
+    paymentRail = _is.ColumnEnum(
       'paymentRail',
       this,
-      _i1.EnumSerialization.byName,
+      _is.EnumSerialization.byName,
     );
-    processedAt = _i1.ColumnDateTime(
-      'processedAt',
-      this,
-      hasDefault: true,
-    );
+    processedAt = _is.ColumnDateTime('processedAt', this, hasDefault: true);
   }
 
   late final ReceiptHashUpdateTable updateTable;
 
-  late final _i1.ColumnString hash;
+  late final _is.ColumnString hash;
 
-  late final _i1.ColumnEnum<_i2.PaymentRail> paymentRail;
+  late final _is.ColumnEnum<_i4hkjqgd.PaymentRail> paymentRail;
 
-  late final _i1.ColumnDateTime processedAt;
+  late final _is.ColumnDateTime processedAt;
 
   @override
-  List<_i1.Column> get columns => [
-    id,
-    hash,
-    paymentRail,
-    processedAt,
-  ];
+  List<_is.Column> get columns => [id, hash, paymentRail, processedAt];
 }
 
-class ReceiptHashInclude extends _i1.IncludeObject {
+class ReceiptHashInclude extends _is.IncludeObject {
   ReceiptHashInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => ReceiptHash.t;
+  _is.Table<int?> get table => ReceiptHash.t;
 }
 
-class ReceiptHashIncludeList extends _i1.IncludeList {
+class ReceiptHashIncludeList extends _is.IncludeList {
   ReceiptHashIncludeList._({
-    _i1.WhereExpressionBuilder<ReceiptHashTable>? where,
+    _is.WhereExpressionBuilder<ReceiptHashTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -237,10 +214,10 @@ class ReceiptHashIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => ReceiptHash.t;
+  _is.Table<int?> get table => ReceiptHash.t;
 }
 
 class ReceiptHashRepository {
@@ -269,22 +246,20 @@ class ReceiptHashRepository {
   /// );
   /// ```
   Future<List<ReceiptHash>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ReceiptHashTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ReceiptHashTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ReceiptHashTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ReceiptHashTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<ReceiptHashTable>? orderBy,
+    _is.OrderByListBuilder<ReceiptHashTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<ReceiptHash>(
       where: where?.call(ReceiptHash.t),
       orderBy: orderBy?.call(ReceiptHash.t),
       orderByList: orderByList?.call(ReceiptHash.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -311,21 +286,19 @@ class ReceiptHashRepository {
   /// );
   /// ```
   Future<ReceiptHash?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ReceiptHashTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ReceiptHashTable>? where,
     int? offset,
-    _i1.OrderByBuilder<ReceiptHashTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ReceiptHashTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<ReceiptHashTable>? orderBy,
+    _is.OrderByListBuilder<ReceiptHashTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<ReceiptHash>(
       where: where?.call(ReceiptHash.t),
       orderBy: orderBy?.call(ReceiptHash.t),
       orderByList: orderByList?.call(ReceiptHash.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -335,11 +308,11 @@ class ReceiptHashRepository {
 
   /// Finds a single [ReceiptHash] by its [id] or null if no such row exists.
   Future<ReceiptHash?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<ReceiptHash>(
       id,
@@ -359,16 +332,22 @@ class ReceiptHashRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ReceiptHash>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ReceiptHash> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<ReceiptHash>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -376,12 +355,78 @@ class ReceiptHashRepository {
   ///
   /// The returned [ReceiptHash] will have its `id` field set.
   Future<ReceiptHash> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ReceiptHash row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<ReceiptHash>(
+    return session.db.insertRow<ReceiptHash>(row, transaction: transaction);
+  }
+
+  /// Upserts all [ReceiptHash]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [ReceiptHash]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<ReceiptHash>> upsert(
+    _is.DatabaseSession session,
+    List<ReceiptHash> rows, {
+    required _is.ColumnSelections<ReceiptHashTable> conflictColumns,
+    _is.ColumnSelections<ReceiptHashTable>? updateColumns,
+    _is.WhereExpressionBuilder<ReceiptHashTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<ReceiptHash>(
+      rows,
+      conflictColumns: conflictColumns(ReceiptHash.t),
+      updateColumns: updateColumns?.call(ReceiptHash.t),
+      updateWhere: updateWhere?.call(ReceiptHash.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [ReceiptHash] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [ReceiptHash] will have its `id` field set.
+  Future<ReceiptHash?> upsertRow(
+    _is.DatabaseSession session,
+    ReceiptHash row, {
+    required _is.ColumnSelections<ReceiptHashTable> conflictColumns,
+    _is.ColumnSelections<ReceiptHashTable>? updateColumns,
+    _is.WhereExpressionBuilder<ReceiptHashTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<ReceiptHash>(
       row,
+      conflictColumns: conflictColumns(ReceiptHash.t),
+      updateColumns: updateColumns?.call(ReceiptHash.t),
+      updateWhere: updateWhere?.call(ReceiptHash.t),
       transaction: transaction,
     );
   }
@@ -391,16 +436,22 @@ class ReceiptHashRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ReceiptHash>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ReceiptHash> rows, {
-    _i1.ColumnSelections<ReceiptHashTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<ReceiptHashTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<ReceiptHash>(
       rows,
       columns: columns?.call(ReceiptHash.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -408,10 +459,10 @@ class ReceiptHashRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<ReceiptHash> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ReceiptHash row, {
-    _i1.ColumnSelections<ReceiptHashTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<ReceiptHashTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<ReceiptHash>(
       row,
@@ -423,10 +474,10 @@ class ReceiptHashRepository {
   /// Updates a single [ReceiptHash] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<ReceiptHash?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<ReceiptHashUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    required _is.ColumnValueListBuilder<ReceiptHashUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<ReceiptHash>(
       id,
@@ -437,16 +488,20 @@ class ReceiptHashRepository {
 
   /// Updates all [ReceiptHash]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ReceiptHash>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<ReceiptHashUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<ReceiptHashTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<ReceiptHashUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<ReceiptHashTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ReceiptHashTable>? orderBy,
-    _i1.OrderByListBuilder<ReceiptHashTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<ReceiptHashTable>? orderBy,
+    _is.OrderByListBuilder<ReceiptHashTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<ReceiptHash>(
       columnValues: columnValues(ReceiptHash.t.updateTable),
@@ -455,56 +510,80 @@ class ReceiptHashRepository {
       offset: offset,
       orderBy: orderBy?.call(ReceiptHash.t),
       orderByList: orderByList?.call(ReceiptHash.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [ReceiptHash]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ReceiptHash>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ReceiptHash> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<ReceiptHashTable>? orderBy,
+    _is.OrderByListBuilder<ReceiptHashTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<ReceiptHash>(
       rows,
+      orderBy: orderBy?.call(ReceiptHash.t),
+      orderByList: orderByList?.call(ReceiptHash.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [ReceiptHash].
   Future<ReceiptHash> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ReceiptHash row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<ReceiptHash>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<ReceiptHash>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ReceiptHash>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<ReceiptHashTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<ReceiptHashTable> where,
+    _is.OrderByBuilder<ReceiptHashTable>? orderBy,
+    _is.OrderByListBuilder<ReceiptHashTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<ReceiptHash>(
       where: where(ReceiptHash.t),
+      orderBy: orderBy?.call(ReceiptHash.t),
+      orderByList: orderByList?.call(ReceiptHash.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ReceiptHashTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ReceiptHashTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<ReceiptHash>(
       where: where?.call(ReceiptHash.t),
@@ -515,11 +594,11 @@ class ReceiptHashRepository {
 
   /// Acquires row-level locks on [ReceiptHash] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<ReceiptHashTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<ReceiptHashTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<ReceiptHash>(
       where: where(ReceiptHash.t),

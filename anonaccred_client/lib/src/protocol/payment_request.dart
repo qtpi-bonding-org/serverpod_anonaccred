@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class PaymentRequest implements _i1.SerializableModel {
+abstract class PaymentRequest
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   PaymentRequest._({
     required this.paymentRef,
     required this.amountUSD,
@@ -47,7 +48,7 @@ abstract class PaymentRequest implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [PaymentRequest]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   PaymentRequest copyWith({
     String? paymentRef,
     double? amountUSD,
@@ -66,8 +67,19 @@ abstract class PaymentRequest implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.PaymentRequest',
+      'paymentRef': paymentRef,
+      'amountUSD': amountUSD,
+      'internalTransactionId': internalTransactionId,
+      'railDataJson': railDataJson,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -86,7 +98,7 @@ class _PaymentRequestImpl extends PaymentRequest {
 
   /// Returns a shallow copy of this [PaymentRequest]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   PaymentRequest copyWith({
     String? paymentRef,

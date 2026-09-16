@@ -10,11 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'package:anonaccred_client/src/protocol/protocol.dart' as _i2;
+import 'package:anonaccred_client/src/protocol/protocol.dart' as _ivk60r4t;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
 abstract class PaymentException
-    implements _i1.SerializableException, _i1.SerializableModel {
+    implements
+        _isc.SerializableException,
+        _isc.SerializableModel,
+        _isc.ProtocolSerialization {
   PaymentException._({
     required this.code,
     required this.message,
@@ -37,7 +40,7 @@ abstract class PaymentException
       message: jsonSerialization['message'] as String,
       details: jsonSerialization['details'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _ivk60r4t.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
       internalTransactionId:
@@ -58,7 +61,7 @@ abstract class PaymentException
 
   /// Returns a shallow copy of this [PaymentException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   PaymentException copyWith({
     String? code,
     String? message,
@@ -68,6 +71,19 @@ abstract class PaymentException
   });
   @override
   Map<String, dynamic> toJson() {
+    return {
+      '__className__': 'anonaccred.PaymentException',
+      'code': code,
+      'message': message,
+      if (details != null) 'details': details?.toJson(),
+      if (internalTransactionId != null)
+        'internalTransactionId': internalTransactionId,
+      if (paymentRail != null) 'paymentRail': paymentRail,
+    };
+  }
+
+  @override
+  Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'anonaccred.PaymentException',
       'code': code,
@@ -104,7 +120,7 @@ class _PaymentExceptionImpl extends PaymentException {
 
   /// Returns a shallow copy of this [PaymentException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   PaymentException copyWith({
     String? code,
@@ -118,15 +134,7 @@ class _PaymentExceptionImpl extends PaymentException {
       message: message ?? this.message,
       details: details is Map<String, String>?
           ? details
-          : this.details?.map(
-              (
-                key0,
-                value0,
-              ) => MapEntry(
-                key0,
-                value0,
-              ),
-            ),
+          : this.details?.map((key0, value0) => MapEntry(key0, value0)),
       internalTransactionId: internalTransactionId is String?
           ? internalTransactionId
           : this.internalTransactionId,

@@ -10,33 +10,36 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:anonaccount_client/anonaccount_client.dart' as _i1;
-import 'package:serverpod_client/serverpod_client.dart' as _i2;
-import 'dart:async' as _i3;
-import 'package:anonaccred_client/src/protocol/account_entitlement.dart' as _i4;
-import 'package:anonaccred_client/src/protocol/consume_result.dart' as _i5;
-import 'package:anonaccred_client/src/protocol/group_entitlement.dart' as _i6;
+import 'dart:async' as _ida;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i3nzkmxo;
+import 'package:anonaccred_client/src/protocol/account_entitlement.dart'
+    as _iwyotwlc;
+import 'package:anonaccred_client/src/protocol/consume_result.dart'
+    as _iq3bsyur;
+import 'package:anonaccred_client/src/protocol/group_entitlement.dart'
+    as _iskjyox1;
 import 'package:anonaccred_client/src/protocol/iap_validation_response.dart'
-    as _i7;
+    as _iz7u1zuc;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
 /// JWT-protected commerce endpoints for entitlement queries and consumption.
 /// {@category Endpoint}
-class EndpointCommerce extends _i1.EndpointJwt {
-  EndpointCommerce(_i2.EndpointCaller caller) : super(caller);
+class EndpointCommerce extends _i3nzkmxo.EndpointJwt {
+  EndpointCommerce(_isc.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'anonaccred.commerce';
 
   /// Get entitlements for an account
-  _i3.Future<List<_i4.AccountEntitlement>> getEntitlements() =>
-      caller.callServerEndpoint<List<_i4.AccountEntitlement>>(
+  _ida.Future<List<_iwyotwlc.AccountEntitlement>> getEntitlements() =>
+      caller.callServerEndpoint<List<_iwyotwlc.AccountEntitlement>>(
         'anonaccred.commerce',
         'getEntitlements',
         {},
       );
 
   /// Get balance for a specific entitlement tag
-  _i3.Future<double> getEntitlementBalance(String tag) =>
+  _ida.Future<double> getEntitlementBalance(String tag) =>
       caller.callServerEndpoint<double>(
         'anonaccred.commerce',
         'getEntitlementBalance',
@@ -44,16 +47,13 @@ class EndpointCommerce extends _i1.EndpointJwt {
       );
 
   /// Consume entitlement using atomic utilities
-  _i3.Future<_i5.ConsumeResult> consumeEntitlement(
+  _ida.Future<_iq3bsyur.ConsumeResult> consumeEntitlement(
     String tag,
     double quantity,
-  ) => caller.callServerEndpoint<_i5.ConsumeResult>(
+  ) => caller.callServerEndpoint<_iq3bsyur.ConsumeResult>(
     'anonaccred.commerce',
     'consumeEntitlement',
-    {
-      'tag': tag,
-      'quantity': quantity,
-    },
+    {'tag': tag, 'quantity': quantity},
   );
 }
 
@@ -70,16 +70,16 @@ class EndpointCommerce extends _i1.EndpointJwt {
 /// 200MB of this group's quota"). Billing correctness does not depend
 /// on that field.
 /// {@category Endpoint}
-class EndpointGroupCommerce extends _i1.EndpointJwt {
-  EndpointGroupCommerce(_i2.EndpointCaller caller) : super(caller);
+class EndpointGroupCommerce extends _i3nzkmxo.EndpointJwt {
+  EndpointGroupCommerce(_isc.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'anonaccred.groupCommerce';
 
   /// Get all entitlement balances for a group. Caller must be a member.
-  _i3.Future<List<_i6.GroupEntitlement>> getGroupEntitlements(
-    _i2.UuidValue shareGroupUuid,
-  ) => caller.callServerEndpoint<List<_i6.GroupEntitlement>>(
+  _ida.Future<List<_iskjyox1.GroupEntitlement>> getGroupEntitlements(
+    _isc.UuidValue shareGroupUuid,
+  ) => caller.callServerEndpoint<List<_iskjyox1.GroupEntitlement>>(
     'anonaccred.groupCommerce',
     'getGroupEntitlements',
     {'shareGroupUuid': shareGroupUuid},
@@ -87,16 +87,13 @@ class EndpointGroupCommerce extends _i1.EndpointJwt {
 
   /// Get the balance for a single entitlement tag in this group. Caller
   /// must be a member.
-  _i3.Future<double> getGroupEntitlementBalance(
-    _i2.UuidValue shareGroupUuid,
+  _ida.Future<double> getGroupEntitlementBalance(
+    _isc.UuidValue shareGroupUuid,
     String tag,
   ) => caller.callServerEndpoint<double>(
     'anonaccred.groupCommerce',
     'getGroupEntitlementBalance',
-    {
-      'shareGroupUuid': shareGroupUuid,
-      'tag': tag,
-    },
+    {'shareGroupUuid': shareGroupUuid, 'tag': tag},
   );
 
   /// Consume from a group's entitlement balance.
@@ -104,18 +101,14 @@ class EndpointGroupCommerce extends _i1.EndpointJwt {
   /// The acting member (resolved from JWT) is recorded as
   /// `consumingAccountUuid` on the log row for UI attribution. Returns
   /// a [ConsumeResult] (does not throw on insufficient balance).
-  _i3.Future<_i5.ConsumeResult> consumeGroupEntitlement(
-    _i2.UuidValue shareGroupUuid,
+  _ida.Future<_iq3bsyur.ConsumeResult> consumeGroupEntitlement(
+    _isc.UuidValue shareGroupUuid,
     String tag,
     double quantity,
-  ) => caller.callServerEndpoint<_i5.ConsumeResult>(
+  ) => caller.callServerEndpoint<_iq3bsyur.ConsumeResult>(
     'anonaccred.groupCommerce',
     'consumeGroupEntitlement',
-    {
-      'shareGroupUuid': shareGroupUuid,
-      'tag': tag,
-      'quantity': quantity,
-    },
+    {'shareGroupUuid': shareGroupUuid, 'tag': tag, 'quantity': quantity},
   );
 }
 
@@ -126,8 +119,8 @@ class EndpointGroupCommerce extends _i1.EndpointJwt {
 /// 2. Identity-Free Financials: Records the payment in TransactionPayment without an accountUuid.
 /// 3. The Bridge: EphemeralAuditLog links the two for 7 days, then breaks.
 /// {@category Endpoint}
-class EndpointIAP extends _i1.EndpointJwt {
-  EndpointIAP(_i2.EndpointCaller caller) : super(caller);
+class EndpointIAP extends _i3nzkmxo.EndpointJwt {
+  EndpointIAP(_isc.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'anonaccred.iAP';
@@ -141,11 +134,11 @@ class EndpointIAP extends _i1.EndpointJwt {
   /// - [transactionId]: Apple transaction ID from the app
   /// - [productId]: Apple product ID (SKU)
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
-  _i3.Future<_i7.IapValidationResponse> validateAppleTransaction(
+  _ida.Future<_iz7u1zuc.IapValidationResponse> validateAppleTransaction(
     String transactionId,
     String productId, {
     String? internalTransactionId,
-  }) => caller.callServerEndpoint<_i7.IapValidationResponse>(
+  }) => caller.callServerEndpoint<_iz7u1zuc.IapValidationResponse>(
     'anonaccred.iAP',
     'validateAppleTransaction',
     {
@@ -165,12 +158,12 @@ class EndpointIAP extends _i1.EndpointJwt {
   /// - [productId]: Google product ID (SKU)
   /// - [purchaseToken]: Google purchase token
   /// - [internalTransactionId]: Optional client-generated reference (e.g. UUID)
-  _i3.Future<_i7.IapValidationResponse> validateGooglePurchase(
+  _ida.Future<_iz7u1zuc.IapValidationResponse> validateGooglePurchase(
     String packageName,
     String productId,
     String purchaseToken, {
     String? internalTransactionId,
-  }) => caller.callServerEndpoint<_i7.IapValidationResponse>(
+  }) => caller.callServerEndpoint<_iz7u1zuc.IapValidationResponse>(
     'anonaccred.iAP',
     'validateGooglePurchase',
     {
@@ -194,8 +187,8 @@ class EndpointIAP extends _i1.EndpointJwt {
 ///   * Returns [IapValidationResponse] (reused for parity with the IAP
 ///     rails; no new protocol model needed)
 /// {@category Endpoint}
-class EndpointPolar extends _i1.EndpointJwt {
-  EndpointPolar(_i2.EndpointCaller caller) : super(caller);
+class EndpointPolar extends _i3nzkmxo.EndpointJwt {
+  EndpointPolar(_isc.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'anonaccred.polar';
@@ -205,11 +198,11 @@ class EndpointPolar extends _i1.EndpointJwt {
   /// Returns [IapValidationResponse]. `productId` carries the Polar
   /// benefit UUID. `tag` / `amount` come from the first granted
   /// entitlement. `fromCache=true` indicates an idempotent replay.
-  _i3.Future<_i7.IapValidationResponse> redeemLicenseKey(
+  _ida.Future<_iz7u1zuc.IapValidationResponse> redeemLicenseKey(
     String licenseKey, {
-    _i2.UuidValue? shareGroupUuid,
+    _isc.UuidValue? shareGroupUuid,
     String? internalTransactionId,
-  }) => caller.callServerEndpoint<_i7.IapValidationResponse>(
+  }) => caller.callServerEndpoint<_iz7u1zuc.IapValidationResponse>(
     'anonaccred.polar',
     'redeemLicenseKey',
     {
@@ -220,8 +213,8 @@ class EndpointPolar extends _i1.EndpointJwt {
   );
 }
 
-class Caller extends _i2.ModuleEndpointCaller {
-  Caller(_i2.ServerpodClientShared client) : super(client) {
+class Caller extends _isc.ModuleEndpointCaller {
+  Caller(_isc.ServerpodClientShared client) : super(client) {
     commerce = EndpointCommerce(this);
     groupCommerce = EndpointGroupCommerce(this);
     iAP = EndpointIAP(this);
@@ -237,7 +230,7 @@ class Caller extends _i2.ModuleEndpointCaller {
   late final EndpointPolar polar;
 
   @override
-  Map<String, _i2.EndpointRef> get endpointRefLookup => {
+  Map<String, _isc.EndpointRef> get endpointRefLookup => {
     'anonaccred.commerce': commerce,
     'anonaccred.groupCommerce': groupCommerce,
     'anonaccred.iAP': iAP,

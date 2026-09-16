@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class EphemeralAccreditation implements _i1.SerializableModel {
+abstract class EphemeralAccreditation
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   EphemeralAccreditation._({
     this.id,
     required this.accountUuid,
@@ -21,7 +22,7 @@ abstract class EphemeralAccreditation implements _i1.SerializableModel {
 
   factory EphemeralAccreditation({
     int? id,
-    required _i1.UuidValue accountUuid,
+    required _isc.UuidValue accountUuid,
     required DateTime transactionTimestamp,
   }) = _EphemeralAccreditationImpl;
 
@@ -30,10 +31,10 @@ abstract class EphemeralAccreditation implements _i1.SerializableModel {
   ) {
     return EphemeralAccreditation(
       id: jsonSerialization['id'] as int?,
-      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+      accountUuid: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['accountUuid'],
       ),
-      transactionTimestamp: _i1.DateTimeJsonExtension.fromJson(
+      transactionTimestamp: _isc.DateTimeJsonExtension.fromJson(
         jsonSerialization['transactionTimestamp'],
       ),
     );
@@ -44,16 +45,16 @@ abstract class EphemeralAccreditation implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  _i1.UuidValue accountUuid;
+  _isc.UuidValue accountUuid;
 
   DateTime transactionTimestamp;
 
   /// Returns a shallow copy of this [EphemeralAccreditation]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   EphemeralAccreditation copyWith({
     int? id,
-    _i1.UuidValue? accountUuid,
+    _isc.UuidValue? accountUuid,
     DateTime? transactionTimestamp,
   });
   @override
@@ -67,8 +68,18 @@ abstract class EphemeralAccreditation implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.EphemeralAccreditation',
+      if (id != null) 'id': id,
+      'accountUuid': accountUuid.toJson(),
+      'transactionTimestamp': transactionTimestamp.toJson(),
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -77,7 +88,7 @@ class _Undefined {}
 class _EphemeralAccreditationImpl extends EphemeralAccreditation {
   _EphemeralAccreditationImpl({
     int? id,
-    required _i1.UuidValue accountUuid,
+    required _isc.UuidValue accountUuid,
     required DateTime transactionTimestamp,
   }) : super._(
          id: id,
@@ -87,11 +98,11 @@ class _EphemeralAccreditationImpl extends EphemeralAccreditation {
 
   /// Returns a shallow copy of this [EphemeralAccreditation]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   EphemeralAccreditation copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? accountUuid,
+    _isc.UuidValue? accountUuid,
     DateTime? transactionTimestamp,
   }) {
     return EphemeralAccreditation(

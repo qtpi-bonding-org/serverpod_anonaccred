@@ -10,12 +10,13 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'currency.dart' as _i2;
-import 'payment_rail.dart' as _i3;
-import 'order_status.dart' as _i4;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'currency.dart' as _iez2mem4;
+import 'order_status.dart' as _idpqotwg;
+import 'payment_rail.dart' as _i4hkjqgd;
 
-abstract class TransactionPayment implements _i1.SerializableModel {
+abstract class TransactionPayment
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   TransactionPayment._({
     this.id,
     required this.railProductId,
@@ -36,15 +37,15 @@ abstract class TransactionPayment implements _i1.SerializableModel {
     int? id,
     required int railProductId,
     required String internalTransactionId,
-    required _i2.Currency priceCurrency,
+    required _iez2mem4.Currency priceCurrency,
     required double price,
-    required _i3.PaymentRail paymentRail,
-    required _i2.Currency paymentCurrency,
+    required _i4hkjqgd.PaymentRail paymentRail,
+    required _iez2mem4.Currency paymentCurrency,
     required double paymentAmount,
     String? paymentRef,
     required DateTime transactionTimestamp,
     String? clientReference,
-    required _i4.OrderStatus status,
+    required _idpqotwg.OrderStatus status,
     String? railDataJson,
   }) = _TransactionPaymentImpl;
 
@@ -54,23 +55,25 @@ abstract class TransactionPayment implements _i1.SerializableModel {
       railProductId: jsonSerialization['railProductId'] as int,
       internalTransactionId:
           jsonSerialization['internalTransactionId'] as String,
-      priceCurrency: _i2.Currency.fromJson(
+      priceCurrency: _iez2mem4.Currency.fromJson(
         (jsonSerialization['priceCurrency'] as String),
       ),
       price: (jsonSerialization['price'] as num).toDouble(),
-      paymentRail: _i3.PaymentRail.fromJson(
+      paymentRail: _i4hkjqgd.PaymentRail.fromJson(
         (jsonSerialization['paymentRail'] as String),
       ),
-      paymentCurrency: _i2.Currency.fromJson(
+      paymentCurrency: _iez2mem4.Currency.fromJson(
         (jsonSerialization['paymentCurrency'] as String),
       ),
       paymentAmount: (jsonSerialization['paymentAmount'] as num).toDouble(),
       paymentRef: jsonSerialization['paymentRef'] as String?,
-      transactionTimestamp: _i1.DateTimeJsonExtension.fromJson(
+      transactionTimestamp: _isc.DateTimeJsonExtension.fromJson(
         jsonSerialization['transactionTimestamp'],
       ),
       clientReference: jsonSerialization['clientReference'] as String?,
-      status: _i4.OrderStatus.fromJson((jsonSerialization['status'] as String)),
+      status: _idpqotwg.OrderStatus.fromJson(
+        (jsonSerialization['status'] as String),
+      ),
       railDataJson: jsonSerialization['railDataJson'] as String?,
     );
   }
@@ -84,13 +87,13 @@ abstract class TransactionPayment implements _i1.SerializableModel {
 
   String internalTransactionId;
 
-  _i2.Currency priceCurrency;
+  _iez2mem4.Currency priceCurrency;
 
   double price;
 
-  _i3.PaymentRail paymentRail;
+  _i4hkjqgd.PaymentRail paymentRail;
 
-  _i2.Currency paymentCurrency;
+  _iez2mem4.Currency paymentCurrency;
 
   double paymentAmount;
 
@@ -100,26 +103,26 @@ abstract class TransactionPayment implements _i1.SerializableModel {
 
   String? clientReference;
 
-  _i4.OrderStatus status;
+  _idpqotwg.OrderStatus status;
 
   String? railDataJson;
 
   /// Returns a shallow copy of this [TransactionPayment]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   TransactionPayment copyWith({
     int? id,
     int? railProductId,
     String? internalTransactionId,
-    _i2.Currency? priceCurrency,
+    _iez2mem4.Currency? priceCurrency,
     double? price,
-    _i3.PaymentRail? paymentRail,
-    _i2.Currency? paymentCurrency,
+    _i4hkjqgd.PaymentRail? paymentRail,
+    _iez2mem4.Currency? paymentCurrency,
     double? paymentAmount,
     String? paymentRef,
     DateTime? transactionTimestamp,
     String? clientReference,
-    _i4.OrderStatus? status,
+    _idpqotwg.OrderStatus? status,
     String? railDataJson,
   });
   @override
@@ -143,8 +146,28 @@ abstract class TransactionPayment implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.TransactionPayment',
+      if (id != null) 'id': id,
+      'railProductId': railProductId,
+      'internalTransactionId': internalTransactionId,
+      'priceCurrency': priceCurrency.toJson(),
+      'price': price,
+      'paymentRail': paymentRail.toJson(),
+      'paymentCurrency': paymentCurrency.toJson(),
+      'paymentAmount': paymentAmount,
+      if (paymentRef != null) 'paymentRef': paymentRef,
+      'transactionTimestamp': transactionTimestamp.toJson(),
+      if (clientReference != null) 'clientReference': clientReference,
+      'status': status.toJson(),
+      if (railDataJson != null) 'railDataJson': railDataJson,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -155,15 +178,15 @@ class _TransactionPaymentImpl extends TransactionPayment {
     int? id,
     required int railProductId,
     required String internalTransactionId,
-    required _i2.Currency priceCurrency,
+    required _iez2mem4.Currency priceCurrency,
     required double price,
-    required _i3.PaymentRail paymentRail,
-    required _i2.Currency paymentCurrency,
+    required _i4hkjqgd.PaymentRail paymentRail,
+    required _iez2mem4.Currency paymentCurrency,
     required double paymentAmount,
     String? paymentRef,
     required DateTime transactionTimestamp,
     String? clientReference,
-    required _i4.OrderStatus status,
+    required _idpqotwg.OrderStatus status,
     String? railDataJson,
   }) : super._(
          id: id,
@@ -183,21 +206,21 @@ class _TransactionPaymentImpl extends TransactionPayment {
 
   /// Returns a shallow copy of this [TransactionPayment]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   TransactionPayment copyWith({
     Object? id = _Undefined,
     int? railProductId,
     String? internalTransactionId,
-    _i2.Currency? priceCurrency,
+    _iez2mem4.Currency? priceCurrency,
     double? price,
-    _i3.PaymentRail? paymentRail,
-    _i2.Currency? paymentCurrency,
+    _i4hkjqgd.PaymentRail? paymentRail,
+    _iez2mem4.Currency? paymentCurrency,
     double? paymentAmount,
     Object? paymentRef = _Undefined,
     DateTime? transactionTimestamp,
     Object? clientReference = _Undefined,
-    _i4.OrderStatus? status,
+    _idpqotwg.OrderStatus? status,
     Object? railDataJson = _Undefined,
   }) {
     return TransactionPayment(

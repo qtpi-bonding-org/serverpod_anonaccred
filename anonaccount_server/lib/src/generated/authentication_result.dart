@@ -10,11 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:anonaccount_server/src/generated/protocol.dart' as _i2;
+import 'package:anonaccount_server/src/generated/protocol.dart' as _i1j1ale0;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class AuthenticationResult
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   AuthenticationResult._({
     required this.success,
     this.deviceId,
@@ -26,7 +26,7 @@ abstract class AuthenticationResult
 
   factory AuthenticationResult({
     required bool success,
-    _i1.UuidValue? deviceId,
+    _is.UuidValue? deviceId,
     String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
@@ -37,16 +37,16 @@ abstract class AuthenticationResult
     Map<String, dynamic> jsonSerialization,
   ) {
     return AuthenticationResult(
-      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      success: _is.BoolJsonExtension.fromJson(jsonSerialization['success']),
       deviceId: jsonSerialization['deviceId'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deviceId']),
+          : _is.UuidValueJsonExtension.fromJson(jsonSerialization['deviceId']),
       accountPublicKeyHex: jsonSerialization['accountPublicKeyHex'] as String?,
       errorCode: jsonSerialization['errorCode'] as String?,
       errorMessage: jsonSerialization['errorMessage'] as String?,
       details: jsonSerialization['details'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _i1j1ale0.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
     );
@@ -54,7 +54,7 @@ abstract class AuthenticationResult
 
   bool success;
 
-  _i1.UuidValue? deviceId;
+  _is.UuidValue? deviceId;
 
   String? accountPublicKeyHex;
 
@@ -66,10 +66,10 @@ abstract class AuthenticationResult
 
   /// Returns a shallow copy of this [AuthenticationResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   AuthenticationResult copyWith({
     bool? success,
-    _i1.UuidValue? deviceId,
+    _is.UuidValue? deviceId,
     String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
@@ -105,7 +105,7 @@ abstract class AuthenticationResult
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -114,7 +114,7 @@ class _Undefined {}
 class _AuthenticationResultImpl extends AuthenticationResult {
   _AuthenticationResultImpl({
     required bool success,
-    _i1.UuidValue? deviceId,
+    _is.UuidValue? deviceId,
     String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
@@ -130,7 +130,7 @@ class _AuthenticationResultImpl extends AuthenticationResult {
 
   /// Returns a shallow copy of this [AuthenticationResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   AuthenticationResult copyWith({
     bool? success,
@@ -142,7 +142,7 @@ class _AuthenticationResultImpl extends AuthenticationResult {
   }) {
     return AuthenticationResult(
       success: success ?? this.success,
-      deviceId: deviceId is _i1.UuidValue? ? deviceId : this.deviceId,
+      deviceId: deviceId is _is.UuidValue? ? deviceId : this.deviceId,
       accountPublicKeyHex: accountPublicKeyHex is String?
           ? accountPublicKeyHex
           : this.accountPublicKeyHex,
@@ -150,15 +150,7 @@ class _AuthenticationResultImpl extends AuthenticationResult {
       errorMessage: errorMessage is String? ? errorMessage : this.errorMessage,
       details: details is Map<String, String>?
           ? details
-          : this.details?.map(
-              (
-                key0,
-                value0,
-              ) => MapEntry(
-                key0,
-                value0,
-              ),
-            ),
+          : this.details?.map((key0, value0) => MapEntry(key0, value0)),
     );
   }
 }

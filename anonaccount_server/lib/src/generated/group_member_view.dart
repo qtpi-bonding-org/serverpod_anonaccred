@@ -10,15 +10,15 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'group_member_role.dart' as _i2;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'group_member_role.dart' as _imgpb098;
 
 /// What one member may see about another. Deliberately omits
 /// encryptedMemberKey and encryptedDataKey: both are ciphertext only that
 /// member can open, so publishing them to the group buys nothing and
 /// invites harvesting against a future backup leak.
 abstract class GroupMemberView
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   GroupMemberView._({
     required this.memberId,
     required this.shareGroupId,
@@ -30,10 +30,10 @@ abstract class GroupMemberView
   });
 
   factory GroupMemberView({
-    required _i1.UuidValue memberId,
-    required _i1.UuidValue shareGroupId,
-    required _i1.UuidValue anonAccountId,
-    required _i2.GroupMemberRole role,
+    required _is.UuidValue memberId,
+    required _is.UuidValue shareGroupId,
+    required _is.UuidValue anonAccountId,
+    required _imgpb098.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
     required String memberEncryptionPublicKeyHex,
     required DateTime joinedAt,
@@ -41,33 +41,35 @@ abstract class GroupMemberView
 
   factory GroupMemberView.fromJson(Map<String, dynamic> jsonSerialization) {
     return GroupMemberView(
-      memberId: _i1.UuidValueJsonExtension.fromJson(
+      memberId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['memberId'],
       ),
-      shareGroupId: _i1.UuidValueJsonExtension.fromJson(
+      shareGroupId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['shareGroupId'],
       ),
-      anonAccountId: _i1.UuidValueJsonExtension.fromJson(
+      anonAccountId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['anonAccountId'],
       ),
-      role: _i2.GroupMemberRole.fromJson((jsonSerialization['role'] as String)),
+      role: _imgpb098.GroupMemberRole.fromJson(
+        (jsonSerialization['role'] as String),
+      ),
       memberSigningPublicKeyHex:
           jsonSerialization['memberSigningPublicKeyHex'] as String,
       memberEncryptionPublicKeyHex:
           jsonSerialization['memberEncryptionPublicKeyHex'] as String,
-      joinedAt: _i1.DateTimeJsonExtension.fromJson(
+      joinedAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['joinedAt'],
       ),
     );
   }
 
-  _i1.UuidValue memberId;
+  _is.UuidValue memberId;
 
-  _i1.UuidValue shareGroupId;
+  _is.UuidValue shareGroupId;
 
-  _i1.UuidValue anonAccountId;
+  _is.UuidValue anonAccountId;
 
-  _i2.GroupMemberRole role;
+  _imgpb098.GroupMemberRole role;
 
   String memberSigningPublicKeyHex;
 
@@ -77,12 +79,12 @@ abstract class GroupMemberView
 
   /// Returns a shallow copy of this [GroupMemberView]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   GroupMemberView copyWith({
-    _i1.UuidValue? memberId,
-    _i1.UuidValue? shareGroupId,
-    _i1.UuidValue? anonAccountId,
-    _i2.GroupMemberRole? role,
+    _is.UuidValue? memberId,
+    _is.UuidValue? shareGroupId,
+    _is.UuidValue? anonAccountId,
+    _imgpb098.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
     String? memberEncryptionPublicKeyHex,
     DateTime? joinedAt,
@@ -117,16 +119,16 @@ abstract class GroupMemberView
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
 class _GroupMemberViewImpl extends GroupMemberView {
   _GroupMemberViewImpl({
-    required _i1.UuidValue memberId,
-    required _i1.UuidValue shareGroupId,
-    required _i1.UuidValue anonAccountId,
-    required _i2.GroupMemberRole role,
+    required _is.UuidValue memberId,
+    required _is.UuidValue shareGroupId,
+    required _is.UuidValue anonAccountId,
+    required _imgpb098.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
     required String memberEncryptionPublicKeyHex,
     required DateTime joinedAt,
@@ -142,13 +144,13 @@ class _GroupMemberViewImpl extends GroupMemberView {
 
   /// Returns a shallow copy of this [GroupMemberView]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   GroupMemberView copyWith({
-    _i1.UuidValue? memberId,
-    _i1.UuidValue? shareGroupId,
-    _i1.UuidValue? anonAccountId,
-    _i2.GroupMemberRole? role,
+    _is.UuidValue? memberId,
+    _is.UuidValue? shareGroupId,
+    _is.UuidValue? anonAccountId,
+    _imgpb098.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
     String? memberEncryptionPublicKeyHex,
     DateTime? joinedAt,

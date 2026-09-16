@@ -10,14 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:anonaccred_server/src/generated/protocol.dart' as _i2;
+import 'package:anonaccred_server/src/generated/protocol.dart' as _irewcktm;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class PaymentException
     implements
-        _i1.SerializableException,
-        _i1.SerializableModel,
-        _i1.ProtocolSerialization {
+        _is.SerializableException,
+        _is.SerializableModel,
+        _is.ProtocolSerialization {
   PaymentException._({
     required this.code,
     required this.message,
@@ -40,7 +40,7 @@ abstract class PaymentException
       message: jsonSerialization['message'] as String,
       details: jsonSerialization['details'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _irewcktm.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
       internalTransactionId:
@@ -61,7 +61,7 @@ abstract class PaymentException
 
   /// Returns a shallow copy of this [PaymentException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   PaymentException copyWith({
     String? code,
     String? message,
@@ -120,7 +120,7 @@ class _PaymentExceptionImpl extends PaymentException {
 
   /// Returns a shallow copy of this [PaymentException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   PaymentException copyWith({
     String? code,
@@ -134,15 +134,7 @@ class _PaymentExceptionImpl extends PaymentException {
       message: message ?? this.message,
       details: details is Map<String, String>?
           ? details
-          : this.details?.map(
-              (
-                key0,
-                value0,
-              ) => MapEntry(
-                key0,
-                value0,
-              ),
-            ),
+          : this.details?.map((key0, value0) => MapEntry(key0, value0)),
       internalTransactionId: internalTransactionId is String?
           ? internalTransactionId
           : this.internalTransactionId,

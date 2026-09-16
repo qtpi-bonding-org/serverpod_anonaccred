@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class ConsumptionLog implements _i1.SerializableModel {
+abstract class ConsumptionLog
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   ConsumptionLog._({
     this.id,
     required this.accountUuid,
@@ -24,7 +25,7 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
 
   factory ConsumptionLog({
     int? id,
-    required _i1.UuidValue accountUuid,
+    required _isc.UuidValue accountUuid,
     required int entitlementId,
     required double amount,
     required String reason,
@@ -34,7 +35,7 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
   factory ConsumptionLog.fromJson(Map<String, dynamic> jsonSerialization) {
     return ConsumptionLog(
       id: jsonSerialization['id'] as int?,
-      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+      accountUuid: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['accountUuid'],
       ),
       entitlementId: jsonSerialization['entitlementId'] as int,
@@ -42,7 +43,7 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
       reason: jsonSerialization['reason'] as String,
       timestamp: jsonSerialization['timestamp'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['timestamp']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['timestamp']),
     );
   }
 
@@ -51,7 +52,7 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  _i1.UuidValue accountUuid;
+  _isc.UuidValue accountUuid;
 
   int entitlementId;
 
@@ -63,10 +64,10 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [ConsumptionLog]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   ConsumptionLog copyWith({
     int? id,
-    _i1.UuidValue? accountUuid,
+    _isc.UuidValue? accountUuid,
     int? entitlementId,
     double? amount,
     String? reason,
@@ -86,8 +87,21 @@ abstract class ConsumptionLog implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.ConsumptionLog',
+      if (id != null) 'id': id,
+      'accountUuid': accountUuid.toJson(),
+      'entitlementId': entitlementId,
+      'amount': amount,
+      'reason': reason,
+      'timestamp': timestamp.toJson(),
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -96,7 +110,7 @@ class _Undefined {}
 class _ConsumptionLogImpl extends ConsumptionLog {
   _ConsumptionLogImpl({
     int? id,
-    required _i1.UuidValue accountUuid,
+    required _isc.UuidValue accountUuid,
     required int entitlementId,
     required double amount,
     required String reason,
@@ -112,11 +126,11 @@ class _ConsumptionLogImpl extends ConsumptionLog {
 
   /// Returns a shallow copy of this [ConsumptionLog]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   ConsumptionLog copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? accountUuid,
+    _isc.UuidValue? accountUuid,
     int? entitlementId,
     double? amount,
     String? reason,

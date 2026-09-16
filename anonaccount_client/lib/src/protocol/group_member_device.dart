@@ -10,12 +10,13 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'group_member.dart' as _i2;
-import 'account_device.dart' as _i3;
-import 'package:anonaccount_client/src/protocol/protocol.dart' as _i4;
+import 'package:anonaccount_client/src/protocol/protocol.dart' as _iki990kh;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'account_device.dart' as _iepmyrfy;
+import 'group_member.dart' as _igiek2ee;
 
-abstract class GroupMemberDevice implements _i1.SerializableModel {
+abstract class GroupMemberDevice
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   GroupMemberDevice._({
     this.id,
     required this.groupMemberId,
@@ -34,11 +35,11 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
        keyEpoch = keyEpoch ?? 0;
 
   factory GroupMemberDevice({
-    _i1.UuidValue? id,
-    required _i1.UuidValue groupMemberId,
-    _i2.GroupMember? groupMember,
-    required _i1.UuidValue accountDeviceId,
-    _i3.AccountDevice? accountDevice,
+    _isc.UuidValue? id,
+    required _isc.UuidValue groupMemberId,
+    _igiek2ee.GroupMember? groupMember,
+    required _isc.UuidValue accountDeviceId,
+    _iepmyrfy.AccountDevice? accountDevice,
     required String encryptedDataKey,
     required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
@@ -52,21 +53,21 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
     return GroupMemberDevice(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      groupMemberId: _i1.UuidValueJsonExtension.fromJson(
+          : _isc.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      groupMemberId: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['groupMemberId'],
       ),
       groupMember: jsonSerialization['groupMember'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.GroupMember>(
+          : _iki990kh.Protocol().deserialize<_igiek2ee.GroupMember>(
               jsonSerialization['groupMember'],
             ),
-      accountDeviceId: _i1.UuidValueJsonExtension.fromJson(
+      accountDeviceId: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['accountDeviceId'],
       ),
       accountDevice: jsonSerialization['accountDevice'] == null
           ? null
-          : _i4.Protocol().deserialize<_i3.AccountDevice>(
+          : _iki990kh.Protocol().deserialize<_iepmyrfy.AccountDevice>(
               jsonSerialization['accountDevice'],
             ),
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
@@ -75,13 +76,13 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
+          : _isc.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
       revokedAt: jsonSerialization['revokedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
@@ -89,15 +90,15 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  _i1.UuidValue? id;
+  _isc.UuidValue? id;
 
-  _i1.UuidValue groupMemberId;
+  _isc.UuidValue groupMemberId;
 
-  _i2.GroupMember? groupMember;
+  _igiek2ee.GroupMember? groupMember;
 
-  _i1.UuidValue accountDeviceId;
+  _isc.UuidValue accountDeviceId;
 
-  _i3.AccountDevice? accountDevice;
+  _iepmyrfy.AccountDevice? accountDevice;
 
   String encryptedDataKey;
 
@@ -115,13 +116,13 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [GroupMemberDevice]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   GroupMemberDevice copyWith({
-    _i1.UuidValue? id,
-    _i1.UuidValue? groupMemberId,
-    _i2.GroupMember? groupMember,
-    _i1.UuidValue? accountDeviceId,
-    _i3.AccountDevice? accountDevice,
+    _isc.UuidValue? id,
+    _isc.UuidValue? groupMemberId,
+    _igiek2ee.GroupMember? groupMember,
+    _isc.UuidValue? accountDeviceId,
+    _iepmyrfy.AccountDevice? accountDevice,
     String? encryptedDataKey,
     String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
@@ -150,8 +151,28 @@ abstract class GroupMemberDevice implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.GroupMemberDevice',
+      if (id != null) 'id': id?.toJson(),
+      'groupMemberId': groupMemberId.toJson(),
+      if (groupMember != null) 'groupMember': groupMember?.toJsonForProtocol(),
+      'accountDeviceId': accountDeviceId.toJson(),
+      if (accountDevice != null)
+        'accountDevice': accountDevice?.toJsonForProtocol(),
+      'encryptedDataKey': encryptedDataKey,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
+      'addedByAttestation': addedByAttestation,
+      'createdAt': createdAt.toJson(),
+      'isRevoked': isRevoked,
+      if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
+      'keyEpoch': keyEpoch,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -159,11 +180,11 @@ class _Undefined {}
 
 class _GroupMemberDeviceImpl extends GroupMemberDevice {
   _GroupMemberDeviceImpl({
-    _i1.UuidValue? id,
-    required _i1.UuidValue groupMemberId,
-    _i2.GroupMember? groupMember,
-    required _i1.UuidValue accountDeviceId,
-    _i3.AccountDevice? accountDevice,
+    _isc.UuidValue? id,
+    required _isc.UuidValue groupMemberId,
+    _igiek2ee.GroupMember? groupMember,
+    required _isc.UuidValue accountDeviceId,
+    _iepmyrfy.AccountDevice? accountDevice,
     required String encryptedDataKey,
     required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
@@ -188,13 +209,13 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
 
   /// Returns a shallow copy of this [GroupMemberDevice]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   GroupMemberDevice copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? groupMemberId,
+    _isc.UuidValue? groupMemberId,
     Object? groupMember = _Undefined,
-    _i1.UuidValue? accountDeviceId,
+    _isc.UuidValue? accountDeviceId,
     Object? accountDevice = _Undefined,
     String? encryptedDataKey,
     String? addedByAttestorPublicKeyHex,
@@ -205,13 +226,13 @@ class _GroupMemberDeviceImpl extends GroupMemberDevice {
     int? keyEpoch,
   }) {
     return GroupMemberDevice(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _isc.UuidValue? ? id : this.id,
       groupMemberId: groupMemberId ?? this.groupMemberId,
-      groupMember: groupMember is _i2.GroupMember?
+      groupMember: groupMember is _igiek2ee.GroupMember?
           ? groupMember
           : this.groupMember?.copyWith(),
       accountDeviceId: accountDeviceId ?? this.accountDeviceId,
-      accountDevice: accountDevice is _i3.AccountDevice?
+      accountDevice: accountDevice is _iepmyrfy.AccountDevice?
           ? accountDevice
           : this.accountDevice?.copyWith(),
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,

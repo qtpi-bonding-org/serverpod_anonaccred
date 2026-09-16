@@ -10,10 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'package:anonaccount_client/src/protocol/protocol.dart' as _i2;
+import 'package:anonaccount_client/src/protocol/protocol.dart' as _iki990kh;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class AuthenticationResult implements _i1.SerializableModel {
+abstract class AuthenticationResult
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   AuthenticationResult._({
     required this.success,
     this.deviceId,
@@ -25,7 +26,7 @@ abstract class AuthenticationResult implements _i1.SerializableModel {
 
   factory AuthenticationResult({
     required bool success,
-    _i1.UuidValue? deviceId,
+    _isc.UuidValue? deviceId,
     String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
@@ -36,16 +37,16 @@ abstract class AuthenticationResult implements _i1.SerializableModel {
     Map<String, dynamic> jsonSerialization,
   ) {
     return AuthenticationResult(
-      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      success: _isc.BoolJsonExtension.fromJson(jsonSerialization['success']),
       deviceId: jsonSerialization['deviceId'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deviceId']),
+          : _isc.UuidValueJsonExtension.fromJson(jsonSerialization['deviceId']),
       accountPublicKeyHex: jsonSerialization['accountPublicKeyHex'] as String?,
       errorCode: jsonSerialization['errorCode'] as String?,
       errorMessage: jsonSerialization['errorMessage'] as String?,
       details: jsonSerialization['details'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _iki990kh.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
     );
@@ -53,7 +54,7 @@ abstract class AuthenticationResult implements _i1.SerializableModel {
 
   bool success;
 
-  _i1.UuidValue? deviceId;
+  _isc.UuidValue? deviceId;
 
   String? accountPublicKeyHex;
 
@@ -65,10 +66,10 @@ abstract class AuthenticationResult implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [AuthenticationResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   AuthenticationResult copyWith({
     bool? success,
-    _i1.UuidValue? deviceId,
+    _isc.UuidValue? deviceId,
     String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
@@ -89,8 +90,22 @@ abstract class AuthenticationResult implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.AuthenticationResult',
+      'success': success,
+      if (deviceId != null) 'deviceId': deviceId?.toJson(),
+      if (accountPublicKeyHex != null)
+        'accountPublicKeyHex': accountPublicKeyHex,
+      if (errorCode != null) 'errorCode': errorCode,
+      if (errorMessage != null) 'errorMessage': errorMessage,
+      if (details != null) 'details': details?.toJson(),
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -99,7 +114,7 @@ class _Undefined {}
 class _AuthenticationResultImpl extends AuthenticationResult {
   _AuthenticationResultImpl({
     required bool success,
-    _i1.UuidValue? deviceId,
+    _isc.UuidValue? deviceId,
     String? accountPublicKeyHex,
     String? errorCode,
     String? errorMessage,
@@ -115,7 +130,7 @@ class _AuthenticationResultImpl extends AuthenticationResult {
 
   /// Returns a shallow copy of this [AuthenticationResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   AuthenticationResult copyWith({
     bool? success,
@@ -127,7 +142,7 @@ class _AuthenticationResultImpl extends AuthenticationResult {
   }) {
     return AuthenticationResult(
       success: success ?? this.success,
-      deviceId: deviceId is _i1.UuidValue? ? deviceId : this.deviceId,
+      deviceId: deviceId is _isc.UuidValue? ? deviceId : this.deviceId,
       accountPublicKeyHex: accountPublicKeyHex is String?
           ? accountPublicKeyHex
           : this.accountPublicKeyHex,
@@ -135,15 +150,7 @@ class _AuthenticationResultImpl extends AuthenticationResult {
       errorMessage: errorMessage is String? ? errorMessage : this.errorMessage,
       details: details is Map<String, String>?
           ? details
-          : this.details?.map(
-              (
-                key0,
-                value0,
-              ) => MapEntry(
-                key0,
-                value0,
-              ),
-            ),
+          : this.details?.map((key0, value0) => MapEntry(key0, value0)),
     );
   }
 }

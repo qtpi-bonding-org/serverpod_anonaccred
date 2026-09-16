@@ -10,10 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'payment_rail.dart' as _i2;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'payment_rail.dart' as _i4hkjqgd;
 
-abstract class ReceiptHash implements _i1.SerializableModel {
+abstract class ReceiptHash
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   ReceiptHash._({
     this.id,
     required this.hash,
@@ -24,7 +25,7 @@ abstract class ReceiptHash implements _i1.SerializableModel {
   factory ReceiptHash({
     int? id,
     required String hash,
-    required _i2.PaymentRail paymentRail,
+    required _i4hkjqgd.PaymentRail paymentRail,
     DateTime? processedAt,
   }) = _ReceiptHashImpl;
 
@@ -32,12 +33,12 @@ abstract class ReceiptHash implements _i1.SerializableModel {
     return ReceiptHash(
       id: jsonSerialization['id'] as int?,
       hash: jsonSerialization['hash'] as String,
-      paymentRail: _i2.PaymentRail.fromJson(
+      paymentRail: _i4hkjqgd.PaymentRail.fromJson(
         (jsonSerialization['paymentRail'] as String),
       ),
       processedAt: jsonSerialization['processedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(
+          : _isc.DateTimeJsonExtension.fromJson(
               jsonSerialization['processedAt'],
             ),
     );
@@ -50,17 +51,17 @@ abstract class ReceiptHash implements _i1.SerializableModel {
 
   String hash;
 
-  _i2.PaymentRail paymentRail;
+  _i4hkjqgd.PaymentRail paymentRail;
 
   DateTime processedAt;
 
   /// Returns a shallow copy of this [ReceiptHash]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   ReceiptHash copyWith({
     int? id,
     String? hash,
-    _i2.PaymentRail? paymentRail,
+    _i4hkjqgd.PaymentRail? paymentRail,
     DateTime? processedAt,
   });
   @override
@@ -75,8 +76,19 @@ abstract class ReceiptHash implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.ReceiptHash',
+      if (id != null) 'id': id,
+      'hash': hash,
+      'paymentRail': paymentRail.toJson(),
+      'processedAt': processedAt.toJson(),
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -86,7 +98,7 @@ class _ReceiptHashImpl extends ReceiptHash {
   _ReceiptHashImpl({
     int? id,
     required String hash,
-    required _i2.PaymentRail paymentRail,
+    required _i4hkjqgd.PaymentRail paymentRail,
     DateTime? processedAt,
   }) : super._(
          id: id,
@@ -97,12 +109,12 @@ class _ReceiptHashImpl extends ReceiptHash {
 
   /// Returns a shallow copy of this [ReceiptHash]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   ReceiptHash copyWith({
     Object? id = _Undefined,
     String? hash,
-    _i2.PaymentRail? paymentRail,
+    _i4hkjqgd.PaymentRail? paymentRail,
     DateTime? processedAt,
   }) {
     return ReceiptHash(

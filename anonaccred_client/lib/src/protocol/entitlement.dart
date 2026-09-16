@@ -10,10 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'entitlement_type.dart' as _i2;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'entitlement_type.dart' as _i02qbmjp;
 
-abstract class Entitlement implements _i1.SerializableModel {
+abstract class Entitlement
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   Entitlement._({
     this.id,
     required this.tag,
@@ -26,7 +27,7 @@ abstract class Entitlement implements _i1.SerializableModel {
     int? id,
     required String tag,
     required String name,
-    required _i2.EntitlementType type,
+    required _i02qbmjp.EntitlementType type,
     required bool serverValidated,
   }) = _EntitlementImpl;
 
@@ -35,8 +36,10 @@ abstract class Entitlement implements _i1.SerializableModel {
       id: jsonSerialization['id'] as int?,
       tag: jsonSerialization['tag'] as String,
       name: jsonSerialization['name'] as String,
-      type: _i2.EntitlementType.fromJson((jsonSerialization['type'] as String)),
-      serverValidated: _i1.BoolJsonExtension.fromJson(
+      type: _i02qbmjp.EntitlementType.fromJson(
+        (jsonSerialization['type'] as String),
+      ),
+      serverValidated: _isc.BoolJsonExtension.fromJson(
         jsonSerialization['serverValidated'],
       ),
     );
@@ -51,18 +54,18 @@ abstract class Entitlement implements _i1.SerializableModel {
 
   String name;
 
-  _i2.EntitlementType type;
+  _i02qbmjp.EntitlementType type;
 
   bool serverValidated;
 
   /// Returns a shallow copy of this [Entitlement]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   Entitlement copyWith({
     int? id,
     String? tag,
     String? name,
-    _i2.EntitlementType? type,
+    _i02qbmjp.EntitlementType? type,
     bool? serverValidated,
   });
   @override
@@ -78,8 +81,20 @@ abstract class Entitlement implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.Entitlement',
+      if (id != null) 'id': id,
+      'tag': tag,
+      'name': name,
+      'type': type.toJson(),
+      'serverValidated': serverValidated,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -90,7 +105,7 @@ class _EntitlementImpl extends Entitlement {
     int? id,
     required String tag,
     required String name,
-    required _i2.EntitlementType type,
+    required _i02qbmjp.EntitlementType type,
     required bool serverValidated,
   }) : super._(
          id: id,
@@ -102,13 +117,13 @@ class _EntitlementImpl extends Entitlement {
 
   /// Returns a shallow copy of this [Entitlement]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   Entitlement copyWith({
     Object? id = _Undefined,
     String? tag,
     String? name,
-    _i2.EntitlementType? type,
+    _i02qbmjp.EntitlementType? type,
     bool? serverValidated,
   }) {
     return Entitlement(

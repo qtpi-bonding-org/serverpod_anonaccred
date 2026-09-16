@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class AnonAccount implements _i1.SerializableModel {
+abstract class AnonAccount
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   AnonAccount._({
     this.id,
     required this.ultimateSigningPublicKeyHex,
@@ -24,7 +25,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
        keyEpoch = keyEpoch ?? 0;
 
   factory AnonAccount({
-    _i1.UuidValue? id,
+    _isc.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimateEncryptionPublicKeyHex,
@@ -36,7 +37,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
     return AnonAccount(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+          : _isc.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       ultimateSigningPublicKeyHex:
           jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
@@ -44,7 +45,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
           jsonSerialization['ultimateEncryptionPublicKeyHex'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
@@ -52,7 +53,7 @@ abstract class AnonAccount implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  _i1.UuidValue? id;
+  _isc.UuidValue? id;
 
   String ultimateSigningPublicKeyHex;
 
@@ -66,9 +67,9 @@ abstract class AnonAccount implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [AnonAccount]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   AnonAccount copyWith({
-    _i1.UuidValue? id,
+    _isc.UuidValue? id,
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimateEncryptionPublicKeyHex,
@@ -89,8 +90,21 @@ abstract class AnonAccount implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.AnonAccount',
+      if (id != null) 'id': id?.toJson(),
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+      'encryptedDataKey': encryptedDataKey,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+      'createdAt': createdAt.toJson(),
+      'keyEpoch': keyEpoch,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -98,7 +112,7 @@ class _Undefined {}
 
 class _AnonAccountImpl extends AnonAccount {
   _AnonAccountImpl({
-    _i1.UuidValue? id,
+    _isc.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimateEncryptionPublicKeyHex,
@@ -115,7 +129,7 @@ class _AnonAccountImpl extends AnonAccount {
 
   /// Returns a shallow copy of this [AnonAccount]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   AnonAccount copyWith({
     Object? id = _Undefined,
@@ -126,7 +140,7 @@ class _AnonAccountImpl extends AnonAccount {
     int? keyEpoch,
   }) {
     return AnonAccount(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _isc.UuidValue? ? id : this.id,
       ultimateSigningPublicKeyHex:
           ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,

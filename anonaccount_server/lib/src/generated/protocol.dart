@@ -8,47 +8,49 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
+// ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:serverpod/protocol.dart' as _i2;
-import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i3;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
-    as _i4;
-import 'account.dart' as _i5;
-import 'account_creation_response.dart' as _i6;
-import 'account_device.dart' as _i7;
-import 'anonaccount_exception.dart' as _i8;
-import 'authentication_exception.dart' as _i9;
-import 'authentication_result.dart' as _i10;
-import 'challenge_exists.dart' as _i11;
-import 'device_pairing_event.dart' as _i12;
-import 'device_pairing_info.dart' as _i13;
-import 'encrypted_data_key_response.dart' as _i14;
-import 'grant_attestor.dart' as _i15;
-import 'grant_member_device_result.dart' as _i16;
-import 'group_member.dart' as _i17;
-import 'group_member_device.dart' as _i18;
-import 'group_member_role.dart' as _i19;
-import 'group_member_view.dart' as _i20;
-import 'group_membership_view.dart' as _i21;
-import 'group_owner.dart' as _i22;
-import 'member_device_grant.dart' as _i23;
-import 'member_device_grant_outcome.dart' as _i24;
-import 'public_challenge.dart' as _i25;
-import 'public_challenge_response.dart' as _i26;
-import 'rate_limit_counter.dart' as _i27;
-import 'shard_routing.dart' as _i28;
-import 'share_group.dart' as _i29;
-import 'package:anonaccount_server/src/generated/account_device.dart' as _i30;
-import 'package:anonaccount_server/src/generated/group_membership_view.dart'
-    as _i31;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' as _ijl9ntd6;
+import 'package:anonaccount_server/src/generated/account_device.dart'
+    as _i048gg9e;
 import 'package:anonaccount_server/src/generated/group_member_view.dart'
-    as _i32;
+    as _i7ifz6hk;
+import 'package:anonaccount_server/src/generated/group_membership_view.dart'
+    as _ivankdcm;
 import 'package:anonaccount_server/src/generated/member_device_grant.dart'
-    as _i33;
-import 'package:anonaccount_protocol/anonaccount_protocol.dart' as _i34;
+    as _ij4d8jf2;
+import 'package:serverpod/protocol.dart' as _isp;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _iacs;
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+    as _iais;
+import 'account.dart' as _iulmo8pc;
+import 'account_creation_response.dart' as _i6fwxwud;
+import 'account_device.dart' as _iepmyrfy;
+import 'anonaccount_exception.dart' as _isa71u4f;
+import 'authentication_exception.dart' as _ip8v2uua;
+import 'authentication_result.dart' as _if3kndoe;
+import 'challenge_exists.dart' as _i3oy6vzg;
+import 'device_pairing_event.dart' as _ipncc0vk;
+import 'device_pairing_info.dart' as _ib6tjkvl;
+import 'encrypted_data_key_response.dart' as _i3v40fce;
+import 'grant_attestor.dart' as _iayw0ozf;
+import 'grant_member_device_result.dart' as _iimy53uo;
+import 'group_member.dart' as _igiek2ee;
+import 'group_member_device.dart' as _ijdcafmt;
+import 'group_member_role.dart' as _imgpb098;
+import 'group_member_view.dart' as _iizktvdn;
+import 'group_membership_view.dart' as _ilz3mlqj;
+import 'group_owner.dart' as _ibp98ugq;
+import 'member_device_grant.dart' as _i3iqayiq;
+import 'member_device_grant_outcome.dart' as _igy7ui1b;
+import 'public_challenge.dart' as _iju4wcr1;
+import 'public_challenge_response.dart' as _i8x07tkq;
+import 'rate_limit_counter.dart' as _i6yhx6i0;
+import 'shard_routing.dart' as _igkybre3;
+import 'share_group.dart' as _i97quwy2;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -74,137 +76,127 @@ export 'public_challenge_response.dart';
 export 'rate_limit_counter.dart';
 export 'shard_routing.dart';
 export 'share_group.dart';
+export 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 
-class Protocol extends _i1.SerializationManagerServer {
+class Protocol extends _is.DatabaseSerializationManager {
   Protocol._();
 
   factory Protocol() => _instance;
 
   static final Protocol _instance = Protocol._();
 
-  static final List<_i2.TableDefinition> targetTableDefinitions = [
-    _i2.TableDefinition(
+  final Set<_is.SerializationManager> _hostProtocols = {};
+
+  static List<_isp.TableDefinition> get targetTableDefinitions => [
+    _isp.TableDefinition(
       name: 'account_device',
       dartName: 'AccountDevice',
       schema: 'public',
       module: 'anonaccount',
       columns: [
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue?',
-          columnDefault: 'gen_random_uuid()',
+          columnDefault: 'random',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'anonAccountId',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'deviceSigningPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'deviceEncryptionPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'encryptedDataKey',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'label',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'addedByAttestorPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'addedByAttestation',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'createdAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          columnDefault: 'now',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'lastActive',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          columnDefault: 'now',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'isRevoked',
-          columnType: _i2.ColumnType.boolean,
+          columnType: _isp.ColumnType.boolean,
           isNullable: false,
           dartType: 'bool',
           columnDefault: 'false',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'revokedAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
           dartType: 'DateTime?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'keyEpoch',
-          columnType: _i2.ColumnType.bigint,
+          columnType: _isp.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
           columnDefault: '0',
         ),
       ],
       foreignKeys: [
-        _i2.ForeignKeyDefinition(
+        _isp.ForeignKeyDefinition(
           constraintName: 'account_device_fk_0',
           columns: ['anonAccountId'],
           referenceTable: 'anon_account',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
-          onUpdate: _i2.ForeignKeyAction.noAction,
-          onDelete: _i2.ForeignKeyAction.cascade,
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
           matchType: null,
         ),
       ],
       indexes: [
-        _i2.IndexDefinition(
-          indexName: 'account_device_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'device_signing_key_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'deviceSigningPublicKeyHex',
             ),
           ],
@@ -212,12 +204,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: true,
           isPrimary: false,
         ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'account_devices_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'anonAccountId',
             ),
           ],
@@ -228,47 +220,47 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    _i2.TableDefinition(
+    _isp.TableDefinition(
       name: 'anon_account',
       dartName: 'AnonAccount',
       schema: 'public',
       module: 'anonaccount',
       columns: [
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue?',
-          columnDefault: 'gen_random_uuid()',
+          columnDefault: 'random',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'ultimateSigningPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'encryptedDataKey',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'ultimateEncryptionPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'createdAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          columnDefault: 'now',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'keyEpoch',
-          columnType: _i2.ColumnType.bigint,
+          columnType: _isp.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
           columnDefault: '0',
@@ -276,25 +268,12 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       foreignKeys: [],
       indexes: [
-        _i2.IndexDefinition(
-          indexName: 'anon_account_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'ultimate_signing_key_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'ultimateSigningPublicKeyHex',
             ),
           ],
@@ -305,173 +284,160 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    _i2.TableDefinition(
+    _isp.TableDefinition(
       name: 'group_member',
       dartName: 'GroupMember',
       schema: 'public',
       module: 'anonaccount',
       columns: [
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue?',
-          columnDefault: 'gen_random_uuid()',
+          columnDefault: 'random',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'shareGroupId',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'anonAccountId',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'role',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'protocol:GroupMemberRole',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'memberSigningPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'memberEncryptionPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'encryptedDataKey',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'encryptedMemberKey',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'joinedAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          columnDefault: 'now',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'isRevoked',
-          columnType: _i2.ColumnType.boolean,
+          columnType: _isp.ColumnType.boolean,
           isNullable: false,
           dartType: 'bool',
           columnDefault: 'false',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'addedByAttestorPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'addedByAttestation',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'revokedByAttestorPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'revokedByAttestation',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'revokedAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
           dartType: 'DateTime?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'keyEpoch',
-          columnType: _i2.ColumnType.bigint,
+          columnType: _isp.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
           columnDefault: '0',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'roleChangedAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
           dartType: 'DateTime?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'roleChangedByAttestorPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'roleChangedByAttestation',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
         ),
       ],
       foreignKeys: [
-        _i2.ForeignKeyDefinition(
+        _isp.ForeignKeyDefinition(
           constraintName: 'group_member_fk_0',
           columns: ['shareGroupId'],
           referenceTable: 'share_group',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
-          onUpdate: _i2.ForeignKeyAction.noAction,
-          onDelete: _i2.ForeignKeyAction.cascade,
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
           matchType: null,
         ),
-        _i2.ForeignKeyDefinition(
+        _isp.ForeignKeyDefinition(
           constraintName: 'group_member_fk_1',
           columns: ['anonAccountId'],
           referenceTable: 'anon_account',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
-          onUpdate: _i2.ForeignKeyAction.noAction,
-          onDelete: _i2.ForeignKeyAction.cascade,
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
           matchType: null,
         ),
       ],
       indexes: [
-        _i2.IndexDefinition(
-          indexName: 'group_member_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'group_member_signing_key_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'memberSigningPublicKeyHex',
             ),
           ],
@@ -479,16 +445,16 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: true,
           isPrimary: false,
         ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'group_member_unique_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'shareGroupId',
             ),
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'anonAccountId',
             ),
           ],
@@ -496,12 +462,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: true,
           isPrimary: false,
         ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'group_member_account_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'anonAccountId',
             ),
           ],
@@ -512,123 +478,110 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    _i2.TableDefinition(
+    _isp.TableDefinition(
       name: 'group_member_device',
       dartName: 'GroupMemberDevice',
       schema: 'public',
       module: 'anonaccount',
       columns: [
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue?',
-          columnDefault: 'gen_random_uuid()',
+          columnDefault: 'random',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'groupMemberId',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'accountDeviceId',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'encryptedDataKey',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'addedByAttestorPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'addedByAttestation',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'createdAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          columnDefault: 'now',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'isRevoked',
-          columnType: _i2.ColumnType.boolean,
+          columnType: _isp.ColumnType.boolean,
           isNullable: false,
           dartType: 'bool',
           columnDefault: 'false',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'revokedAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
           dartType: 'DateTime?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'keyEpoch',
-          columnType: _i2.ColumnType.bigint,
+          columnType: _isp.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
           columnDefault: '0',
         ),
       ],
       foreignKeys: [
-        _i2.ForeignKeyDefinition(
+        _isp.ForeignKeyDefinition(
           constraintName: 'group_member_device_fk_0',
           columns: ['groupMemberId'],
           referenceTable: 'group_member',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
-          onUpdate: _i2.ForeignKeyAction.noAction,
-          onDelete: _i2.ForeignKeyAction.cascade,
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
           matchType: null,
         ),
-        _i2.ForeignKeyDefinition(
+        _isp.ForeignKeyDefinition(
           constraintName: 'group_member_device_fk_1',
           columns: ['accountDeviceId'],
           referenceTable: 'account_device',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
-          onUpdate: _i2.ForeignKeyAction.noAction,
-          onDelete: _i2.ForeignKeyAction.cascade,
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
           matchType: null,
         ),
       ],
       indexes: [
-        _i2.IndexDefinition(
-          indexName: 'group_member_device_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'group_member_device_active_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'groupMemberId',
             ),
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'accountDeviceId',
             ),
           ],
@@ -636,12 +589,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: true,
           isPrimary: false,
         ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'group_member_device_device_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'accountDeviceId',
             ),
           ],
@@ -652,135 +605,122 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    _i2.TableDefinition(
+    _isp.TableDefinition(
       name: 'group_owner',
       dartName: 'GroupOwner',
       schema: 'public',
       module: 'anonaccount',
       columns: [
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue?',
-          columnDefault: 'gen_random_uuid()',
+          columnDefault: 'random',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'shareGroupId',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'anonAccountId',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'encryptedUltimateKey',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'addedByAttestorPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'addedByAttestation',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'keyEpoch',
-          columnType: _i2.ColumnType.bigint,
+          columnType: _isp.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
           columnDefault: '0',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'createdAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          columnDefault: 'now',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'isRevoked',
-          columnType: _i2.ColumnType.boolean,
+          columnType: _isp.ColumnType.boolean,
           isNullable: false,
           dartType: 'bool',
           columnDefault: 'false',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'revokedAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
           dartType: 'DateTime?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'revokedByAttestorPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'revokedByAttestation',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: true,
           dartType: 'String?',
         ),
       ],
       foreignKeys: [
-        _i2.ForeignKeyDefinition(
+        _isp.ForeignKeyDefinition(
           constraintName: 'group_owner_fk_0',
           columns: ['shareGroupId'],
           referenceTable: 'share_group',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
-          onUpdate: _i2.ForeignKeyAction.noAction,
-          onDelete: _i2.ForeignKeyAction.cascade,
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
           matchType: null,
         ),
-        _i2.ForeignKeyDefinition(
+        _isp.ForeignKeyDefinition(
           constraintName: 'group_owner_fk_1',
           columns: ['anonAccountId'],
           referenceTable: 'anon_account',
           referenceTableSchema: 'public',
           referenceColumns: ['id'],
-          onUpdate: _i2.ForeignKeyAction.noAction,
-          onDelete: _i2.ForeignKeyAction.cascade,
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
           matchType: null,
         ),
       ],
       indexes: [
-        _i2.IndexDefinition(
-          indexName: 'group_owner_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'group_owner_active_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'shareGroupId',
             ),
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'anonAccountId',
             ),
           ],
@@ -788,12 +728,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: true,
           isPrimary: false,
         ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'group_owner_account_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'anonAccountId',
             ),
           ],
@@ -804,53 +744,40 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    _i2.TableDefinition(
+    _isp.TableDefinition(
       name: 'public_challenges',
       dartName: 'PublicChallenge',
       schema: 'public',
       module: 'anonaccount',
       columns: [
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.bigint,
+          columnType: _isp.ColumnType.bigint,
           isNullable: false,
           dartType: 'int?',
-          columnDefault: 'nextval(\'public_challenges_id_seq\'::regclass)',
+          columnDefault: 'serial',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'challenge',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'expiresAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
         ),
       ],
       foreignKeys: [],
       indexes: [
-        _i2.IndexDefinition(
-          indexName: 'public_challenges_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'public_challenges_challenge_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'challenge',
             ),
           ],
@@ -858,12 +785,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: true,
           isPrimary: false,
         ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'public_challenges_expires_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'expiresAt',
             ),
           ],
@@ -874,71 +801,58 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    _i2.TableDefinition(
+    _isp.TableDefinition(
       name: 'shard_routing',
       dartName: 'ShardRouting',
       schema: 'public',
       module: 'anonaccount',
       columns: [
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue?',
-          columnDefault: 'gen_random_uuid()',
+          columnDefault: 'random',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'tenantId',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'tenantType',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'shardName',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
-          columnDefault: '\'shard_01\'::text',
+          columnDefault: '\'shard_01\'',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'updatedAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          columnDefault: 'now',
         ),
       ],
       foreignKeys: [],
       indexes: [
-        _i2.IndexDefinition(
-          indexName: 'shard_routing_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'shard_routing_unique_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'tenantId',
             ),
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'tenantType',
             ),
           ],
@@ -949,47 +863,47 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    _i2.TableDefinition(
+    _isp.TableDefinition(
       name: 'share_group',
       dartName: 'ShareGroup',
       schema: 'public',
       module: 'anonaccount',
       columns: [
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'id',
-          columnType: _i2.ColumnType.uuid,
+          columnType: _isp.ColumnType.uuid,
           isNullable: false,
           dartType: 'UuidValue?',
-          columnDefault: 'gen_random_uuid()',
+          columnDefault: 'random',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'ultimateSigningPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'ultimateEncryptionPublicKeyHex',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'encryptedDataKey',
-          columnType: _i2.ColumnType.text,
+          columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'createdAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
+          columnDefault: 'now',
         ),
-        _i2.ColumnDefinition(
+        _isp.ColumnDefinition(
           name: 'keyEpoch',
-          columnType: _i2.ColumnType.bigint,
+          columnType: _isp.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
           columnDefault: '0',
@@ -997,25 +911,12 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       foreignKeys: [],
       indexes: [
-        _i2.IndexDefinition(
-          indexName: 'share_group_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
+        _isp.IndexDefinition(
           indexName: 'share_group_ultimate_signing_key_idx',
           tableSpace: null,
           elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
               definition: 'ultimateSigningPublicKeyHex',
             ),
           ],
@@ -1026,9 +927,21 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    ..._i3.Protocol.targetTableDefinitions,
-    ..._i4.Protocol.targetTableDefinitions,
+    ..._iais.Protocol.targetTableDefinitions,
+    ..._iacs.Protocol.targetTableDefinitions,
+    ..._ijl9ntd6.Protocol() is _is.DatabaseSerializationManager
+        ? (_ijl9ntd6.Protocol() as _is.DatabaseSerializationManager)
+              .getTargetTableDefinitions()
+        : [],
   ];
+
+  void registerHostProtocol(
+    String projectName,
+    _is.SerializationManager protocol,
+  ) {
+    _hostProtocols.add(protocol);
+    _ijl9ntd6.Protocol().registerHostProtocol(projectName, protocol);
+  }
 
   static String? getClassNameFromObjectJson(dynamic data) {
     if (data is! Map) return null;
@@ -1039,10 +952,7 @@ class Protocol extends _i1.SerializationManagerServer {
   }
 
   @override
-  T deserialize<T>(
-    dynamic data, [
-    Type? t,
-  ]) {
+  T deserialize<T>(dynamic data, [Type? t]) {
     t ??= T;
 
     final dataClassName = getClassNameFromObjectJson(data);
@@ -1052,176 +962,200 @@ class Protocol extends _i1.SerializationManagerServer {
           'className': dataClassName,
           'data': data,
         });
-      } on FormatException catch (_) {
+      } on _is.DeserializationClassNameNotFoundException catch (_) {
         // If the className is not recognized (e.g., older client receiving
         // data with a new subtype), fall back to deserializing without the
         // className, using the expected type T.
       }
     }
 
-    if (t == _i5.AnonAccount) {
-      return _i5.AnonAccount.fromJson(data) as T;
+    if (t == _iulmo8pc.AnonAccount) {
+      return _iulmo8pc.AnonAccount.fromJson(data) as T;
     }
-    if (t == _i6.AccountCreationResponse) {
-      return _i6.AccountCreationResponse.fromJson(data) as T;
+    if (t == _i6fwxwud.AccountCreationResponse) {
+      return _i6fwxwud.AccountCreationResponse.fromJson(data) as T;
     }
-    if (t == _i7.AccountDevice) {
-      return _i7.AccountDevice.fromJson(data) as T;
+    if (t == _iepmyrfy.AccountDevice) {
+      return _iepmyrfy.AccountDevice.fromJson(data) as T;
     }
-    if (t == _i8.AnonAccountException) {
-      return _i8.AnonAccountException.fromJson(data) as T;
+    if (t == _isa71u4f.AnonAccountException) {
+      return _isa71u4f.AnonAccountException.fromJson(data) as T;
     }
-    if (t == _i9.AuthenticationException) {
-      return _i9.AuthenticationException.fromJson(data) as T;
+    if (t == _ip8v2uua.AuthenticationException) {
+      return _ip8v2uua.AuthenticationException.fromJson(data) as T;
     }
-    if (t == _i10.AuthenticationResult) {
-      return _i10.AuthenticationResult.fromJson(data) as T;
+    if (t == _if3kndoe.AuthenticationResult) {
+      return _if3kndoe.AuthenticationResult.fromJson(data) as T;
     }
-    if (t == _i11.ChallengeExists) {
-      return _i11.ChallengeExists.fromJson(data) as T;
+    if (t == _i3oy6vzg.ChallengeExists) {
+      return _i3oy6vzg.ChallengeExists.fromJson(data) as T;
     }
-    if (t == _i12.DevicePairingEvent) {
-      return _i12.DevicePairingEvent.fromJson(data) as T;
+    if (t == _ipncc0vk.DevicePairingEvent) {
+      return _ipncc0vk.DevicePairingEvent.fromJson(data) as T;
     }
-    if (t == _i13.DevicePairingInfo) {
-      return _i13.DevicePairingInfo.fromJson(data) as T;
+    if (t == _ib6tjkvl.DevicePairingInfo) {
+      return _ib6tjkvl.DevicePairingInfo.fromJson(data) as T;
     }
-    if (t == _i14.EncryptedDataKeyResponse) {
-      return _i14.EncryptedDataKeyResponse.fromJson(data) as T;
+    if (t == _i3v40fce.EncryptedDataKeyResponse) {
+      return _i3v40fce.EncryptedDataKeyResponse.fromJson(data) as T;
     }
-    if (t == _i15.GrantAttestor) {
-      return _i15.GrantAttestor.fromJson(data) as T;
+    if (t == _iayw0ozf.GrantAttestor) {
+      return _iayw0ozf.GrantAttestor.fromJson(data) as T;
     }
-    if (t == _i16.GrantMemberDeviceResult) {
-      return _i16.GrantMemberDeviceResult.fromJson(data) as T;
+    if (t == _iimy53uo.GrantMemberDeviceResult) {
+      return _iimy53uo.GrantMemberDeviceResult.fromJson(data) as T;
     }
-    if (t == _i17.GroupMember) {
-      return _i17.GroupMember.fromJson(data) as T;
+    if (t == _igiek2ee.GroupMember) {
+      return _igiek2ee.GroupMember.fromJson(data) as T;
     }
-    if (t == _i18.GroupMemberDevice) {
-      return _i18.GroupMemberDevice.fromJson(data) as T;
+    if (t == _ijdcafmt.GroupMemberDevice) {
+      return _ijdcafmt.GroupMemberDevice.fromJson(data) as T;
     }
-    if (t == _i19.GroupMemberRole) {
-      return _i19.GroupMemberRole.fromJson(data) as T;
+    if (t == _imgpb098.GroupMemberRole) {
+      return _imgpb098.GroupMemberRole.fromJson(data) as T;
     }
-    if (t == _i20.GroupMemberView) {
-      return _i20.GroupMemberView.fromJson(data) as T;
+    if (t == _iizktvdn.GroupMemberView) {
+      return _iizktvdn.GroupMemberView.fromJson(data) as T;
     }
-    if (t == _i21.GroupMembershipView) {
-      return _i21.GroupMembershipView.fromJson(data) as T;
+    if (t == _ilz3mlqj.GroupMembershipView) {
+      return _ilz3mlqj.GroupMembershipView.fromJson(data) as T;
     }
-    if (t == _i22.GroupOwner) {
-      return _i22.GroupOwner.fromJson(data) as T;
+    if (t == _ibp98ugq.GroupOwner) {
+      return _ibp98ugq.GroupOwner.fromJson(data) as T;
     }
-    if (t == _i23.MemberDeviceGrant) {
-      return _i23.MemberDeviceGrant.fromJson(data) as T;
+    if (t == _i3iqayiq.MemberDeviceGrant) {
+      return _i3iqayiq.MemberDeviceGrant.fromJson(data) as T;
     }
-    if (t == _i24.MemberDeviceGrantOutcome) {
-      return _i24.MemberDeviceGrantOutcome.fromJson(data) as T;
+    if (t == _igy7ui1b.MemberDeviceGrantOutcome) {
+      return _igy7ui1b.MemberDeviceGrantOutcome.fromJson(data) as T;
     }
-    if (t == _i25.PublicChallenge) {
-      return _i25.PublicChallenge.fromJson(data) as T;
+    if (t == _iju4wcr1.PublicChallenge) {
+      return _iju4wcr1.PublicChallenge.fromJson(data) as T;
     }
-    if (t == _i26.PublicChallengeResponse) {
-      return _i26.PublicChallengeResponse.fromJson(data) as T;
+    if (t == _i8x07tkq.PublicChallengeResponse) {
+      return _i8x07tkq.PublicChallengeResponse.fromJson(data) as T;
     }
-    if (t == _i27.RateLimitCounter) {
-      return _i27.RateLimitCounter.fromJson(data) as T;
+    if (t == _i6yhx6i0.RateLimitCounter) {
+      return _i6yhx6i0.RateLimitCounter.fromJson(data) as T;
     }
-    if (t == _i28.ShardRouting) {
-      return _i28.ShardRouting.fromJson(data) as T;
+    if (t == _igkybre3.ShardRouting) {
+      return _igkybre3.ShardRouting.fromJson(data) as T;
     }
-    if (t == _i29.ShareGroup) {
-      return _i29.ShareGroup.fromJson(data) as T;
+    if (t == _i97quwy2.ShareGroup) {
+      return _i97quwy2.ShareGroup.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i5.AnonAccount?>()) {
-      return (data != null ? _i5.AnonAccount.fromJson(data) : null) as T;
+    if (t == _is.getType<_iulmo8pc.AnonAccount?>()) {
+      return (data != null ? _iulmo8pc.AnonAccount.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i6.AccountCreationResponse?>()) {
-      return (data != null ? _i6.AccountCreationResponse.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i7.AccountDevice?>()) {
-      return (data != null ? _i7.AccountDevice.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i8.AnonAccountException?>()) {
-      return (data != null ? _i8.AnonAccountException.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i9.AuthenticationException?>()) {
-      return (data != null ? _i9.AuthenticationException.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i10.AuthenticationResult?>()) {
-      return (data != null ? _i10.AuthenticationResult.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i11.ChallengeExists?>()) {
-      return (data != null ? _i11.ChallengeExists.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i12.DevicePairingEvent?>()) {
-      return (data != null ? _i12.DevicePairingEvent.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i13.DevicePairingInfo?>()) {
-      return (data != null ? _i13.DevicePairingInfo.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i14.EncryptedDataKeyResponse?>()) {
+    if (t == _is.getType<_i6fwxwud.AccountCreationResponse?>()) {
       return (data != null
-              ? _i14.EncryptedDataKeyResponse.fromJson(data)
+              ? _i6fwxwud.AccountCreationResponse.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i15.GrantAttestor?>()) {
-      return (data != null ? _i15.GrantAttestor.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i16.GrantMemberDeviceResult?>()) {
-      return (data != null ? _i16.GrantMemberDeviceResult.fromJson(data) : null)
+    if (t == _is.getType<_iepmyrfy.AccountDevice?>()) {
+      return (data != null ? _iepmyrfy.AccountDevice.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i17.GroupMember?>()) {
-      return (data != null ? _i17.GroupMember.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i18.GroupMemberDevice?>()) {
-      return (data != null ? _i18.GroupMemberDevice.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i19.GroupMemberRole?>()) {
-      return (data != null ? _i19.GroupMemberRole.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i20.GroupMemberView?>()) {
-      return (data != null ? _i20.GroupMemberView.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i21.GroupMembershipView?>()) {
-      return (data != null ? _i21.GroupMembershipView.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i22.GroupOwner?>()) {
-      return (data != null ? _i22.GroupOwner.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i23.MemberDeviceGrant?>()) {
-      return (data != null ? _i23.MemberDeviceGrant.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i24.MemberDeviceGrantOutcome?>()) {
+    if (t == _is.getType<_isa71u4f.AnonAccountException?>()) {
       return (data != null
-              ? _i24.MemberDeviceGrantOutcome.fromJson(data)
+              ? _isa71u4f.AnonAccountException.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i25.PublicChallenge?>()) {
-      return (data != null ? _i25.PublicChallenge.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i26.PublicChallengeResponse?>()) {
-      return (data != null ? _i26.PublicChallengeResponse.fromJson(data) : null)
+    if (t == _is.getType<_ip8v2uua.AuthenticationException?>()) {
+      return (data != null
+              ? _ip8v2uua.AuthenticationException.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i27.RateLimitCounter?>()) {
-      return (data != null ? _i27.RateLimitCounter.fromJson(data) : null) as T;
+    if (t == _is.getType<_if3kndoe.AuthenticationResult?>()) {
+      return (data != null
+              ? _if3kndoe.AuthenticationResult.fromJson(data)
+              : null)
+          as T;
     }
-    if (t == _i1.getType<_i28.ShardRouting?>()) {
-      return (data != null ? _i28.ShardRouting.fromJson(data) : null) as T;
+    if (t == _is.getType<_i3oy6vzg.ChallengeExists?>()) {
+      return (data != null ? _i3oy6vzg.ChallengeExists.fromJson(data) : null)
+          as T;
     }
-    if (t == _i1.getType<_i29.ShareGroup?>()) {
-      return (data != null ? _i29.ShareGroup.fromJson(data) : null) as T;
+    if (t == _is.getType<_ipncc0vk.DevicePairingEvent?>()) {
+      return (data != null ? _ipncc0vk.DevicePairingEvent.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ib6tjkvl.DevicePairingInfo?>()) {
+      return (data != null ? _ib6tjkvl.DevicePairingInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i3v40fce.EncryptedDataKeyResponse?>()) {
+      return (data != null
+              ? _i3v40fce.EncryptedDataKeyResponse.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_iayw0ozf.GrantAttestor?>()) {
+      return (data != null ? _iayw0ozf.GrantAttestor.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_iimy53uo.GrantMemberDeviceResult?>()) {
+      return (data != null
+              ? _iimy53uo.GrantMemberDeviceResult.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_igiek2ee.GroupMember?>()) {
+      return (data != null ? _igiek2ee.GroupMember.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ijdcafmt.GroupMemberDevice?>()) {
+      return (data != null ? _ijdcafmt.GroupMemberDevice.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_imgpb098.GroupMemberRole?>()) {
+      return (data != null ? _imgpb098.GroupMemberRole.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_iizktvdn.GroupMemberView?>()) {
+      return (data != null ? _iizktvdn.GroupMemberView.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ilz3mlqj.GroupMembershipView?>()) {
+      return (data != null
+              ? _ilz3mlqj.GroupMembershipView.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_ibp98ugq.GroupOwner?>()) {
+      return (data != null ? _ibp98ugq.GroupOwner.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i3iqayiq.MemberDeviceGrant?>()) {
+      return (data != null ? _i3iqayiq.MemberDeviceGrant.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_igy7ui1b.MemberDeviceGrantOutcome?>()) {
+      return (data != null
+              ? _igy7ui1b.MemberDeviceGrantOutcome.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_iju4wcr1.PublicChallenge?>()) {
+      return (data != null ? _iju4wcr1.PublicChallenge.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i8x07tkq.PublicChallengeResponse?>()) {
+      return (data != null
+              ? _i8x07tkq.PublicChallengeResponse.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_i6yhx6i0.RateLimitCounter?>()) {
+      return (data != null ? _i6yhx6i0.RateLimitCounter.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_igkybre3.ShardRouting?>()) {
+      return (data != null ? _igkybre3.ShardRouting.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i97quwy2.ShareGroup?>()) {
+      return (data != null ? _i97quwy2.ShareGroup.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -1229,7 +1163,7 @@ class Protocol extends _i1.SerializationManagerServer {
           )
           as T;
     }
-    if (t == _i1.getType<Map<String, String>?>()) {
+    if (t == _is.getType<Map<String, String>?>()) {
       return (data != null
               ? (data as Map).map(
                   (k, v) =>
@@ -1238,78 +1172,78 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i24.MemberDeviceGrantOutcome>) {
+    if (t == List<_igy7ui1b.MemberDeviceGrantOutcome>) {
       return (data as List)
-              .map((e) => deserialize<_i24.MemberDeviceGrantOutcome>(e))
+              .map((e) => deserialize<_igy7ui1b.MemberDeviceGrantOutcome>(e))
               .toList()
           as T;
     }
-    if (t == List<_i30.AccountDevice>) {
+    if (t == List<_i048gg9e.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i30.AccountDevice>(e))
+              .map((e) => deserialize<_i048gg9e.AccountDevice>(e))
               .toList()
           as T;
     }
-    if (t == List<_i31.GroupMembershipView>) {
+    if (t == List<_ivankdcm.GroupMembershipView>) {
       return (data as List)
-              .map((e) => deserialize<_i31.GroupMembershipView>(e))
+              .map((e) => deserialize<_ivankdcm.GroupMembershipView>(e))
               .toList()
           as T;
     }
-    if (t == List<_i32.GroupMemberView>) {
+    if (t == List<_i7ifz6hk.GroupMemberView>) {
       return (data as List)
-              .map((e) => deserialize<_i32.GroupMemberView>(e))
+              .map((e) => deserialize<_i7ifz6hk.GroupMemberView>(e))
               .toList()
           as T;
     }
-    if (t == List<_i33.MemberDeviceGrant>) {
+    if (t == List<_ij4d8jf2.MemberDeviceGrant>) {
       return (data as List)
-              .map((e) => deserialize<_i33.MemberDeviceGrant>(e))
+              .map((e) => deserialize<_ij4d8jf2.MemberDeviceGrant>(e))
               .toList()
           as T;
     }
     try {
-      return _i3.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _iais.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i4.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _iacs.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i34.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _ijl9ntd6.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i2.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _isp.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i5.AnonAccount => 'AnonAccount',
-      _i6.AccountCreationResponse => 'AccountCreationResponse',
-      _i7.AccountDevice => 'AccountDevice',
-      _i8.AnonAccountException => 'AnonAccountException',
-      _i9.AuthenticationException => 'AuthenticationException',
-      _i10.AuthenticationResult => 'AuthenticationResult',
-      _i11.ChallengeExists => 'ChallengeExists',
-      _i12.DevicePairingEvent => 'DevicePairingEvent',
-      _i13.DevicePairingInfo => 'DevicePairingInfo',
-      _i14.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
-      _i15.GrantAttestor => 'GrantAttestor',
-      _i16.GrantMemberDeviceResult => 'GrantMemberDeviceResult',
-      _i17.GroupMember => 'GroupMember',
-      _i18.GroupMemberDevice => 'GroupMemberDevice',
-      _i19.GroupMemberRole => 'GroupMemberRole',
-      _i20.GroupMemberView => 'GroupMemberView',
-      _i21.GroupMembershipView => 'GroupMembershipView',
-      _i22.GroupOwner => 'GroupOwner',
-      _i23.MemberDeviceGrant => 'MemberDeviceGrant',
-      _i24.MemberDeviceGrantOutcome => 'MemberDeviceGrantOutcome',
-      _i25.PublicChallenge => 'PublicChallenge',
-      _i26.PublicChallengeResponse => 'PublicChallengeResponse',
-      _i27.RateLimitCounter => 'RateLimitCounter',
-      _i28.ShardRouting => 'ShardRouting',
-      _i29.ShareGroup => 'ShareGroup',
+      _iulmo8pc.AnonAccount => 'AnonAccount',
+      _i6fwxwud.AccountCreationResponse => 'AccountCreationResponse',
+      _iepmyrfy.AccountDevice => 'AccountDevice',
+      _isa71u4f.AnonAccountException => 'AnonAccountException',
+      _ip8v2uua.AuthenticationException => 'AuthenticationException',
+      _if3kndoe.AuthenticationResult => 'AuthenticationResult',
+      _i3oy6vzg.ChallengeExists => 'ChallengeExists',
+      _ipncc0vk.DevicePairingEvent => 'DevicePairingEvent',
+      _ib6tjkvl.DevicePairingInfo => 'DevicePairingInfo',
+      _i3v40fce.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
+      _iayw0ozf.GrantAttestor => 'GrantAttestor',
+      _iimy53uo.GrantMemberDeviceResult => 'GrantMemberDeviceResult',
+      _igiek2ee.GroupMember => 'GroupMember',
+      _ijdcafmt.GroupMemberDevice => 'GroupMemberDevice',
+      _imgpb098.GroupMemberRole => 'GroupMemberRole',
+      _iizktvdn.GroupMemberView => 'GroupMemberView',
+      _ilz3mlqj.GroupMembershipView => 'GroupMembershipView',
+      _ibp98ugq.GroupOwner => 'GroupOwner',
+      _i3iqayiq.MemberDeviceGrant => 'MemberDeviceGrant',
+      _igy7ui1b.MemberDeviceGrantOutcome => 'MemberDeviceGrantOutcome',
+      _iju4wcr1.PublicChallenge => 'PublicChallenge',
+      _i8x07tkq.PublicChallengeResponse => 'PublicChallengeResponse',
+      _i6yhx6i0.RateLimitCounter => 'RateLimitCounter',
+      _igkybre3.ShardRouting => 'ShardRouting',
+      _i97quwy2.ShareGroup => 'ShareGroup',
       _ => null,
     };
   }
@@ -1324,68 +1258,62 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i5.AnonAccount():
+      case _iulmo8pc.AnonAccount():
         return 'AnonAccount';
-      case _i6.AccountCreationResponse():
+      case _i6fwxwud.AccountCreationResponse():
         return 'AccountCreationResponse';
-      case _i7.AccountDevice():
+      case _iepmyrfy.AccountDevice():
         return 'AccountDevice';
-      case _i8.AnonAccountException():
+      case _isa71u4f.AnonAccountException():
         return 'AnonAccountException';
-      case _i9.AuthenticationException():
+      case _ip8v2uua.AuthenticationException():
         return 'AuthenticationException';
-      case _i10.AuthenticationResult():
+      case _if3kndoe.AuthenticationResult():
         return 'AuthenticationResult';
-      case _i11.ChallengeExists():
+      case _i3oy6vzg.ChallengeExists():
         return 'ChallengeExists';
-      case _i12.DevicePairingEvent():
+      case _ipncc0vk.DevicePairingEvent():
         return 'DevicePairingEvent';
-      case _i13.DevicePairingInfo():
+      case _ib6tjkvl.DevicePairingInfo():
         return 'DevicePairingInfo';
-      case _i14.EncryptedDataKeyResponse():
+      case _i3v40fce.EncryptedDataKeyResponse():
         return 'EncryptedDataKeyResponse';
-      case _i15.GrantAttestor():
+      case _iayw0ozf.GrantAttestor():
         return 'GrantAttestor';
-      case _i16.GrantMemberDeviceResult():
+      case _iimy53uo.GrantMemberDeviceResult():
         return 'GrantMemberDeviceResult';
-      case _i17.GroupMember():
+      case _igiek2ee.GroupMember():
         return 'GroupMember';
-      case _i18.GroupMemberDevice():
+      case _ijdcafmt.GroupMemberDevice():
         return 'GroupMemberDevice';
-      case _i19.GroupMemberRole():
+      case _imgpb098.GroupMemberRole():
         return 'GroupMemberRole';
-      case _i20.GroupMemberView():
+      case _iizktvdn.GroupMemberView():
         return 'GroupMemberView';
-      case _i21.GroupMembershipView():
+      case _ilz3mlqj.GroupMembershipView():
         return 'GroupMembershipView';
-      case _i22.GroupOwner():
+      case _ibp98ugq.GroupOwner():
         return 'GroupOwner';
-      case _i23.MemberDeviceGrant():
+      case _i3iqayiq.MemberDeviceGrant():
         return 'MemberDeviceGrant';
-      case _i24.MemberDeviceGrantOutcome():
+      case _igy7ui1b.MemberDeviceGrantOutcome():
         return 'MemberDeviceGrantOutcome';
-      case _i25.PublicChallenge():
+      case _iju4wcr1.PublicChallenge():
         return 'PublicChallenge';
-      case _i26.PublicChallengeResponse():
+      case _i8x07tkq.PublicChallengeResponse():
         return 'PublicChallengeResponse';
-      case _i27.RateLimitCounter():
+      case _i6yhx6i0.RateLimitCounter():
         return 'RateLimitCounter';
-      case _i28.ShardRouting():
+      case _igkybre3.ShardRouting():
         return 'ShardRouting';
-      case _i29.ShareGroup():
+      case _i97quwy2.ShareGroup():
         return 'ShareGroup';
     }
-    className = _i2.Protocol().getClassNameForObject(data);
+    className = _ijl9ntd6.Protocol().getClassNameForObject(data);
+    if (className != null) return className;
+    className = _isp.Protocol().getClassNameForObject(data);
     if (className != null) {
-      return 'serverpod.$className';
-    }
-    className = _i3.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'serverpod_auth_idp.$className';
-    }
-    className = _i4.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'serverpod_auth_core.$className';
+      return className.contains('.') ? className : 'serverpod.$className';
     }
     return null;
   }
@@ -1397,138 +1325,198 @@ class Protocol extends _i1.SerializationManagerServer {
       return super.deserializeByClassName(data);
     }
     if (dataClassName == 'AnonAccount') {
-      return deserialize<_i5.AnonAccount>(data['data']);
+      return deserialize<_iulmo8pc.AnonAccount>(data['data']);
     }
     if (dataClassName == 'AccountCreationResponse') {
-      return deserialize<_i6.AccountCreationResponse>(data['data']);
+      return deserialize<_i6fwxwud.AccountCreationResponse>(data['data']);
     }
     if (dataClassName == 'AccountDevice') {
-      return deserialize<_i7.AccountDevice>(data['data']);
+      return deserialize<_iepmyrfy.AccountDevice>(data['data']);
     }
     if (dataClassName == 'AnonAccountException') {
-      return deserialize<_i8.AnonAccountException>(data['data']);
+      return deserialize<_isa71u4f.AnonAccountException>(data['data']);
     }
     if (dataClassName == 'AuthenticationException') {
-      return deserialize<_i9.AuthenticationException>(data['data']);
+      return deserialize<_ip8v2uua.AuthenticationException>(data['data']);
     }
     if (dataClassName == 'AuthenticationResult') {
-      return deserialize<_i10.AuthenticationResult>(data['data']);
+      return deserialize<_if3kndoe.AuthenticationResult>(data['data']);
     }
     if (dataClassName == 'ChallengeExists') {
-      return deserialize<_i11.ChallengeExists>(data['data']);
+      return deserialize<_i3oy6vzg.ChallengeExists>(data['data']);
     }
     if (dataClassName == 'DevicePairingEvent') {
-      return deserialize<_i12.DevicePairingEvent>(data['data']);
+      return deserialize<_ipncc0vk.DevicePairingEvent>(data['data']);
     }
     if (dataClassName == 'DevicePairingInfo') {
-      return deserialize<_i13.DevicePairingInfo>(data['data']);
+      return deserialize<_ib6tjkvl.DevicePairingInfo>(data['data']);
     }
     if (dataClassName == 'EncryptedDataKeyResponse') {
-      return deserialize<_i14.EncryptedDataKeyResponse>(data['data']);
+      return deserialize<_i3v40fce.EncryptedDataKeyResponse>(data['data']);
     }
     if (dataClassName == 'GrantAttestor') {
-      return deserialize<_i15.GrantAttestor>(data['data']);
+      return deserialize<_iayw0ozf.GrantAttestor>(data['data']);
     }
     if (dataClassName == 'GrantMemberDeviceResult') {
-      return deserialize<_i16.GrantMemberDeviceResult>(data['data']);
+      return deserialize<_iimy53uo.GrantMemberDeviceResult>(data['data']);
     }
     if (dataClassName == 'GroupMember') {
-      return deserialize<_i17.GroupMember>(data['data']);
+      return deserialize<_igiek2ee.GroupMember>(data['data']);
     }
     if (dataClassName == 'GroupMemberDevice') {
-      return deserialize<_i18.GroupMemberDevice>(data['data']);
+      return deserialize<_ijdcafmt.GroupMemberDevice>(data['data']);
     }
     if (dataClassName == 'GroupMemberRole') {
-      return deserialize<_i19.GroupMemberRole>(data['data']);
+      return deserialize<_imgpb098.GroupMemberRole>(data['data']);
     }
     if (dataClassName == 'GroupMemberView') {
-      return deserialize<_i20.GroupMemberView>(data['data']);
+      return deserialize<_iizktvdn.GroupMemberView>(data['data']);
     }
     if (dataClassName == 'GroupMembershipView') {
-      return deserialize<_i21.GroupMembershipView>(data['data']);
+      return deserialize<_ilz3mlqj.GroupMembershipView>(data['data']);
     }
     if (dataClassName == 'GroupOwner') {
-      return deserialize<_i22.GroupOwner>(data['data']);
+      return deserialize<_ibp98ugq.GroupOwner>(data['data']);
     }
     if (dataClassName == 'MemberDeviceGrant') {
-      return deserialize<_i23.MemberDeviceGrant>(data['data']);
+      return deserialize<_i3iqayiq.MemberDeviceGrant>(data['data']);
     }
     if (dataClassName == 'MemberDeviceGrantOutcome') {
-      return deserialize<_i24.MemberDeviceGrantOutcome>(data['data']);
+      return deserialize<_igy7ui1b.MemberDeviceGrantOutcome>(data['data']);
     }
     if (dataClassName == 'PublicChallenge') {
-      return deserialize<_i25.PublicChallenge>(data['data']);
+      return deserialize<_iju4wcr1.PublicChallenge>(data['data']);
     }
     if (dataClassName == 'PublicChallengeResponse') {
-      return deserialize<_i26.PublicChallengeResponse>(data['data']);
+      return deserialize<_i8x07tkq.PublicChallengeResponse>(data['data']);
     }
     if (dataClassName == 'RateLimitCounter') {
-      return deserialize<_i27.RateLimitCounter>(data['data']);
+      return deserialize<_i6yhx6i0.RateLimitCounter>(data['data']);
     }
     if (dataClassName == 'ShardRouting') {
-      return deserialize<_i28.ShardRouting>(data['data']);
+      return deserialize<_igkybre3.ShardRouting>(data['data']);
     }
     if (dataClassName == 'ShareGroup') {
-      return deserialize<_i29.ShareGroup>(data['data']);
+      return deserialize<_i97quwy2.ShareGroup>(data['data']);
     }
+    try {
+      return _ijl9ntd6.Protocol().deserializeByClassName(data);
+    } on _is.DeserializationClassNameNotFoundException catch (_) {}
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
-      return _i2.Protocol().deserializeByClassName(data);
-    }
-    if (dataClassName.startsWith('serverpod_auth_idp.')) {
-      data['className'] = dataClassName.substring(19);
-      return _i3.Protocol().deserializeByClassName(data);
-    }
-    if (dataClassName.startsWith('serverpod_auth_core.')) {
-      data['className'] = dataClassName.substring(20);
-      return _i4.Protocol().deserializeByClassName(data);
+      return _isp.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
 
   @override
-  _i1.Table? getTableForType(Type t) {
+  Object? dynamicFieldToJson(Object? object, {bool forProtocol = false}) {
+    if ((object is List || object is Set || object is Map) ||
+        getClassNameForObject(object) != null) {
+      return super.dynamicFieldToJson(object, forProtocol: forProtocol);
+    }
+    for (final protocol in _hostProtocols) {
+      final className = protocol.getClassNameForObject(object);
+      if (className == null) continue;
+      final host = protocol.getModuleName();
+      final wrapped = {
+        'className': className.contains('.') ? className : '$host.$className',
+        'data': object,
+      };
+      return forProtocol
+          ? _is.SerializationManager.toEncodableForProtocol(wrapped)
+          : _is.SerializationManager.toEncodable(wrapped);
+    }
+    return super.dynamicFieldToJson(object, forProtocol: forProtocol);
+  }
+
+  @override
+  dynamic deserializeDynamicFieldValue(Object? value) {
+    if (value == null) return null;
+    if (value is! Map<String, dynamic> || value['className'] is! String) {
+      throw FormatException(
+        'Dynamic fields are encoded as a Map with className and data, but got '
+        '${value.runtimeType} instead.',
+      );
+    }
+    final className = value['className'] as String;
+    for (final protocol in _hostProtocols) {
+      final host = protocol.getModuleName();
+      final hostPrefix = '$host.';
+      if (className.startsWith(hostPrefix)) {
+        final strippedClassName = className.substring(hostPrefix.length);
+        if (strippedClassName.contains('.')) {
+          throw FormatException(
+            'Dynamic field className must not use multiple prefixes: $className',
+          );
+        }
+        final hostData = Map<String, dynamic>.from(value);
+        hostData['className'] = strippedClassName;
+        return protocol.deserializeByClassName(hostData);
+      }
+    }
+    if (className.contains('.')) {
+      for (final protocol in _hostProtocols) {
+        try {
+          return protocol.deserializeByClassName(value);
+        } on _is.DeserializationClassNameNotFoundException catch (_) {}
+      }
+    }
+    return deserializeByClassName(value);
+  }
+
+  @override
+  _is.Table? getTableForType(Type t) {
     {
-      var table = _i3.Protocol().getTableForType(t);
+      var table = _iais.Protocol().getTableForType(t);
       if (table != null) {
         return table;
       }
     }
     {
-      var table = _i4.Protocol().getTableForType(t);
+      var table = _iacs.Protocol().getTableForType(t);
       if (table != null) {
         return table;
       }
     }
     {
-      var table = _i2.Protocol().getTableForType(t);
+      var protocol = _ijl9ntd6.Protocol();
+      var table = protocol is _is.DatabaseSerializationManager
+          ? (protocol as _is.DatabaseSerializationManager).getTableForType(t)
+          : null;
+      if (table != null) {
+        return table;
+      }
+    }
+    {
+      var table = _isp.Protocol().getTableForType(t);
       if (table != null) {
         return table;
       }
     }
     switch (t) {
-      case _i5.AnonAccount:
-        return _i5.AnonAccount.t;
-      case _i7.AccountDevice:
-        return _i7.AccountDevice.t;
-      case _i17.GroupMember:
-        return _i17.GroupMember.t;
-      case _i18.GroupMemberDevice:
-        return _i18.GroupMemberDevice.t;
-      case _i22.GroupOwner:
-        return _i22.GroupOwner.t;
-      case _i25.PublicChallenge:
-        return _i25.PublicChallenge.t;
-      case _i28.ShardRouting:
-        return _i28.ShardRouting.t;
-      case _i29.ShareGroup:
-        return _i29.ShareGroup.t;
+      case _iulmo8pc.AnonAccount:
+        return _iulmo8pc.AnonAccount.t;
+      case _iepmyrfy.AccountDevice:
+        return _iepmyrfy.AccountDevice.t;
+      case _igiek2ee.GroupMember:
+        return _igiek2ee.GroupMember.t;
+      case _ijdcafmt.GroupMemberDevice:
+        return _ijdcafmt.GroupMemberDevice.t;
+      case _ibp98ugq.GroupOwner:
+        return _ibp98ugq.GroupOwner.t;
+      case _iju4wcr1.PublicChallenge:
+        return _iju4wcr1.PublicChallenge.t;
+      case _igkybre3.ShardRouting:
+        return _igkybre3.ShardRouting.t;
+      case _i97quwy2.ShareGroup:
+        return _i97quwy2.ShareGroup.t;
     }
     return null;
   }
 
   @override
-  List<_i2.TableDefinition> getTargetTableDefinitions() =>
+  List<_isp.TableDefinition> getTargetTableDefinitions() =>
       targetTableDefinitions;
 
   @override
@@ -1544,10 +1532,10 @@ class Protocol extends _i1.SerializationManagerServer {
       return null;
     }
     try {
-      return _i3.Protocol().mapRecordToJson(record);
+      return _iais.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i4.Protocol().mapRecordToJson(record);
+      return _iacs.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

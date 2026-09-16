@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class ShardRouting implements _i1.SerializableModel {
+abstract class ShardRouting
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   ShardRouting._({
     this.id,
     required this.tenantId,
@@ -23,8 +24,8 @@ abstract class ShardRouting implements _i1.SerializableModel {
        updatedAt = updatedAt ?? DateTime.now();
 
   factory ShardRouting({
-    _i1.UuidValue? id,
-    required _i1.UuidValue tenantId,
+    _isc.UuidValue? id,
+    required _isc.UuidValue tenantId,
     required String tenantType,
     String? shardName,
     DateTime? updatedAt,
@@ -34,24 +35,24 @@ abstract class ShardRouting implements _i1.SerializableModel {
     return ShardRouting(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      tenantId: _i1.UuidValueJsonExtension.fromJson(
+          : _isc.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      tenantId: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['tenantId'],
       ),
       tenantType: jsonSerialization['tenantType'] as String,
       shardName: jsonSerialization['shardName'] as String?,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
     );
   }
 
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  _i1.UuidValue? id;
+  _isc.UuidValue? id;
 
-  _i1.UuidValue tenantId;
+  _isc.UuidValue tenantId;
 
   String tenantType;
 
@@ -61,10 +62,10 @@ abstract class ShardRouting implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [ShardRouting]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   ShardRouting copyWith({
-    _i1.UuidValue? id,
-    _i1.UuidValue? tenantId,
+    _isc.UuidValue? id,
+    _isc.UuidValue? tenantId,
     String? tenantType,
     String? shardName,
     DateTime? updatedAt,
@@ -82,8 +83,20 @@ abstract class ShardRouting implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.ShardRouting',
+      if (id != null) 'id': id?.toJson(),
+      'tenantId': tenantId.toJson(),
+      'tenantType': tenantType,
+      'shardName': shardName,
+      'updatedAt': updatedAt.toJson(),
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -91,8 +104,8 @@ class _Undefined {}
 
 class _ShardRoutingImpl extends ShardRouting {
   _ShardRoutingImpl({
-    _i1.UuidValue? id,
-    required _i1.UuidValue tenantId,
+    _isc.UuidValue? id,
+    required _isc.UuidValue tenantId,
     required String tenantType,
     String? shardName,
     DateTime? updatedAt,
@@ -106,17 +119,17 @@ class _ShardRoutingImpl extends ShardRouting {
 
   /// Returns a shallow copy of this [ShardRouting]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   ShardRouting copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? tenantId,
+    _isc.UuidValue? tenantId,
     String? tenantType,
     String? shardName,
     DateTime? updatedAt,
   }) {
     return ShardRouting(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _isc.UuidValue? ? id : this.id,
       tenantId: tenantId ?? this.tenantId,
       tenantType: tenantType ?? this.tenantType,
       shardName: shardName ?? this.shardName,

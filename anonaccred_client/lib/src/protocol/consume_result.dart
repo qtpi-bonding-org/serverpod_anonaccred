@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class ConsumeResult implements _i1.SerializableModel {
+abstract class ConsumeResult
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   ConsumeResult._({
     required this.success,
     required this.availableBalance,
@@ -27,7 +28,7 @@ abstract class ConsumeResult implements _i1.SerializableModel {
 
   factory ConsumeResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return ConsumeResult(
-      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      success: _isc.BoolJsonExtension.fromJson(jsonSerialization['success']),
       availableBalance: (jsonSerialization['availableBalance'] as num)
           .toDouble(),
       errorMessage: jsonSerialization['errorMessage'] as String?,
@@ -42,7 +43,7 @@ abstract class ConsumeResult implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [ConsumeResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   ConsumeResult copyWith({
     bool? success,
     double? availableBalance,
@@ -59,8 +60,18 @@ abstract class ConsumeResult implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.ConsumeResult',
+      'success': success,
+      'availableBalance': availableBalance,
+      if (errorMessage != null) 'errorMessage': errorMessage,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -79,7 +90,7 @@ class _ConsumeResultImpl extends ConsumeResult {
 
   /// Returns a shallow copy of this [ConsumeResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   ConsumeResult copyWith({
     bool? success,

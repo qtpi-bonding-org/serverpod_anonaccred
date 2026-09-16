@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class EphemeralAccreditationGroup
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   EphemeralAccreditationGroup._({
     this.id,
     required this.accountUuid,
@@ -23,8 +23,8 @@ abstract class EphemeralAccreditationGroup
 
   factory EphemeralAccreditationGroup({
     int? id,
-    required _i1.UuidValue accountUuid,
-    required _i1.UuidValue shareGroupUuid,
+    required _is.UuidValue accountUuid,
+    required _is.UuidValue shareGroupUuid,
     required DateTime transactionTimestamp,
   }) = _EphemeralAccreditationGroupImpl;
 
@@ -33,13 +33,13 @@ abstract class EphemeralAccreditationGroup
   ) {
     return EphemeralAccreditationGroup(
       id: jsonSerialization['id'] as int?,
-      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+      accountUuid: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['accountUuid'],
       ),
-      shareGroupUuid: _i1.UuidValueJsonExtension.fromJson(
+      shareGroupUuid: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['shareGroupUuid'],
       ),
-      transactionTimestamp: _i1.DateTimeJsonExtension.fromJson(
+      transactionTimestamp: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['transactionTimestamp'],
       ),
     );
@@ -52,22 +52,22 @@ abstract class EphemeralAccreditationGroup
   @override
   int? id;
 
-  _i1.UuidValue accountUuid;
+  _is.UuidValue accountUuid;
 
-  _i1.UuidValue shareGroupUuid;
+  _is.UuidValue shareGroupUuid;
 
   DateTime transactionTimestamp;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [EphemeralAccreditationGroup]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   EphemeralAccreditationGroup copyWith({
     int? id,
-    _i1.UuidValue? accountUuid,
-    _i1.UuidValue? shareGroupUuid,
+    _is.UuidValue? accountUuid,
+    _is.UuidValue? shareGroupUuid,
     DateTime? transactionTimestamp,
   });
   @override
@@ -97,12 +97,11 @@ abstract class EphemeralAccreditationGroup
   }
 
   static EphemeralAccreditationGroupIncludeList includeList({
-    _i1.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
+    _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
+    _is.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
+    _is.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
     EphemeralAccreditationGroupInclude? include,
   }) {
     return EphemeralAccreditationGroupIncludeList._(
@@ -110,7 +109,6 @@ abstract class EphemeralAccreditationGroup
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(EphemeralAccreditationGroup.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(EphemeralAccreditationGroup.t),
       include: include,
     );
@@ -118,7 +116,7 @@ abstract class EphemeralAccreditationGroup
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -127,8 +125,8 @@ class _Undefined {}
 class _EphemeralAccreditationGroupImpl extends EphemeralAccreditationGroup {
   _EphemeralAccreditationGroupImpl({
     int? id,
-    required _i1.UuidValue accountUuid,
-    required _i1.UuidValue shareGroupUuid,
+    required _is.UuidValue accountUuid,
+    required _is.UuidValue shareGroupUuid,
     required DateTime transactionTimestamp,
   }) : super._(
          id: id,
@@ -139,12 +137,12 @@ class _EphemeralAccreditationGroupImpl extends EphemeralAccreditationGroup {
 
   /// Returns a shallow copy of this [EphemeralAccreditationGroup]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   EphemeralAccreditationGroup copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? accountUuid,
-    _i1.UuidValue? shareGroupUuid,
+    _is.UuidValue? accountUuid,
+    _is.UuidValue? shareGroupUuid,
     DateTime? transactionTimestamp,
   }) {
     return EphemeralAccreditationGroup(
@@ -157,58 +155,40 @@ class _EphemeralAccreditationGroupImpl extends EphemeralAccreditationGroup {
 }
 
 class EphemeralAccreditationGroupUpdateTable
-    extends _i1.UpdateTable<EphemeralAccreditationGroupTable> {
+    extends _is.UpdateTable<EphemeralAccreditationGroupTable> {
   EphemeralAccreditationGroupUpdateTable(super.table);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> accountUuid(
-    _i1.UuidValue value,
-  ) => _i1.ColumnValue(
-    table.accountUuid,
-    value,
-  );
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> accountUuid(
+    _is.UuidValue value,
+  ) => _is.ColumnValue(table.accountUuid, value);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> shareGroupUuid(
-    _i1.UuidValue value,
-  ) => _i1.ColumnValue(
-    table.shareGroupUuid,
-    value,
-  );
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> shareGroupUuid(
+    _is.UuidValue value,
+  ) => _is.ColumnValue(table.shareGroupUuid, value);
 
-  _i1.ColumnValue<DateTime, DateTime> transactionTimestamp(DateTime value) =>
-      _i1.ColumnValue(
-        table.transactionTimestamp,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> transactionTimestamp(DateTime value) =>
+      _is.ColumnValue(table.transactionTimestamp, value);
 }
 
-class EphemeralAccreditationGroupTable extends _i1.Table<int?> {
+class EphemeralAccreditationGroupTable extends _is.Table<int?> {
   EphemeralAccreditationGroupTable({super.tableRelation})
     : super(tableName: 'ephemeral_accreditation_group') {
     updateTable = EphemeralAccreditationGroupUpdateTable(this);
-    accountUuid = _i1.ColumnUuid(
-      'accountUuid',
-      this,
-    );
-    shareGroupUuid = _i1.ColumnUuid(
-      'shareGroupUuid',
-      this,
-    );
-    transactionTimestamp = _i1.ColumnDateTime(
-      'transactionTimestamp',
-      this,
-    );
+    accountUuid = _is.ColumnUuid('accountUuid', this);
+    shareGroupUuid = _is.ColumnUuid('shareGroupUuid', this);
+    transactionTimestamp = _is.ColumnDateTime('transactionTimestamp', this);
   }
 
   late final EphemeralAccreditationGroupUpdateTable updateTable;
 
-  late final _i1.ColumnUuid accountUuid;
+  late final _is.ColumnUuid accountUuid;
 
-  late final _i1.ColumnUuid shareGroupUuid;
+  late final _is.ColumnUuid shareGroupUuid;
 
-  late final _i1.ColumnDateTime transactionTimestamp;
+  late final _is.ColumnDateTime transactionTimestamp;
 
   @override
-  List<_i1.Column> get columns => [
+  List<_is.Column> get columns => [
     id,
     accountUuid,
     shareGroupUuid,
@@ -216,23 +196,22 @@ class EphemeralAccreditationGroupTable extends _i1.Table<int?> {
   ];
 }
 
-class EphemeralAccreditationGroupInclude extends _i1.IncludeObject {
+class EphemeralAccreditationGroupInclude extends _is.IncludeObject {
   EphemeralAccreditationGroupInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => EphemeralAccreditationGroup.t;
+  _is.Table<int?> get table => EphemeralAccreditationGroup.t;
 }
 
-class EphemeralAccreditationGroupIncludeList extends _i1.IncludeList {
+class EphemeralAccreditationGroupIncludeList extends _is.IncludeList {
   EphemeralAccreditationGroupIncludeList._({
-    _i1.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
+    _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -240,10 +219,10 @@ class EphemeralAccreditationGroupIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => EphemeralAccreditationGroup.t;
+  _is.Table<int?> get table => EphemeralAccreditationGroup.t;
 }
 
 class EphemeralAccreditationGroupRepository {
@@ -272,22 +251,20 @@ class EphemeralAccreditationGroupRepository {
   /// );
   /// ```
   Future<List<EphemeralAccreditationGroup>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
+    _is.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<EphemeralAccreditationGroup>(
       where: where?.call(EphemeralAccreditationGroup.t),
       orderBy: orderBy?.call(EphemeralAccreditationGroup.t),
       orderByList: orderByList?.call(EphemeralAccreditationGroup.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -314,21 +291,19 @@ class EphemeralAccreditationGroupRepository {
   /// );
   /// ```
   Future<EphemeralAccreditationGroup?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
     int? offset,
-    _i1.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
+    _is.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<EphemeralAccreditationGroup>(
       where: where?.call(EphemeralAccreditationGroup.t),
       orderBy: orderBy?.call(EphemeralAccreditationGroup.t),
       orderByList: orderByList?.call(EphemeralAccreditationGroup.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -338,11 +313,11 @@ class EphemeralAccreditationGroupRepository {
 
   /// Finds a single [EphemeralAccreditationGroup] by its [id] or null if no such row exists.
   Future<EphemeralAccreditationGroup?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<EphemeralAccreditationGroup>(
       id,
@@ -362,16 +337,22 @@ class EphemeralAccreditationGroupRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<EphemeralAccreditationGroup>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<EphemeralAccreditationGroup> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<EphemeralAccreditationGroup>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -379,12 +360,83 @@ class EphemeralAccreditationGroupRepository {
   ///
   /// The returned [EphemeralAccreditationGroup] will have its `id` field set.
   Future<EphemeralAccreditationGroup> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     EphemeralAccreditationGroup row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.insertRow<EphemeralAccreditationGroup>(
       row,
+      transaction: transaction,
+    );
+  }
+
+  /// Upserts all [EphemeralAccreditationGroup]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [EphemeralAccreditationGroup]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<EphemeralAccreditationGroup>> upsert(
+    _is.DatabaseSession session,
+    List<EphemeralAccreditationGroup> rows, {
+    required _is.ColumnSelections<EphemeralAccreditationGroupTable>
+    conflictColumns,
+    _is.ColumnSelections<EphemeralAccreditationGroupTable>? updateColumns,
+    _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<EphemeralAccreditationGroup>(
+      rows,
+      conflictColumns: conflictColumns(EphemeralAccreditationGroup.t),
+      updateColumns: updateColumns?.call(EphemeralAccreditationGroup.t),
+      updateWhere: updateWhere?.call(EphemeralAccreditationGroup.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [EphemeralAccreditationGroup] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [EphemeralAccreditationGroup] will have its `id` field set.
+  Future<EphemeralAccreditationGroup?> upsertRow(
+    _is.DatabaseSession session,
+    EphemeralAccreditationGroup row, {
+    required _is.ColumnSelections<EphemeralAccreditationGroupTable>
+    conflictColumns,
+    _is.ColumnSelections<EphemeralAccreditationGroupTable>? updateColumns,
+    _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<EphemeralAccreditationGroup>(
+      row,
+      conflictColumns: conflictColumns(EphemeralAccreditationGroup.t),
+      updateColumns: updateColumns?.call(EphemeralAccreditationGroup.t),
+      updateWhere: updateWhere?.call(EphemeralAccreditationGroup.t),
       transaction: transaction,
     );
   }
@@ -394,16 +446,22 @@ class EphemeralAccreditationGroupRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<EphemeralAccreditationGroup>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<EphemeralAccreditationGroup> rows, {
-    _i1.ColumnSelections<EphemeralAccreditationGroupTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<EphemeralAccreditationGroupTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<EphemeralAccreditationGroup>(
       rows,
       columns: columns?.call(EphemeralAccreditationGroup.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -411,10 +469,10 @@ class EphemeralAccreditationGroupRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<EphemeralAccreditationGroup> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     EphemeralAccreditationGroup row, {
-    _i1.ColumnSelections<EphemeralAccreditationGroupTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<EphemeralAccreditationGroupTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<EphemeralAccreditationGroup>(
       row,
@@ -426,11 +484,11 @@ class EphemeralAccreditationGroupRepository {
   /// Updates a single [EphemeralAccreditationGroup] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<EphemeralAccreditationGroup?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<EphemeralAccreditationGroupUpdateTable>
+    required _is.ColumnValueListBuilder<EphemeralAccreditationGroupUpdateTable>
     columnValues,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<EphemeralAccreditationGroup>(
       id,
@@ -441,17 +499,21 @@ class EphemeralAccreditationGroupRepository {
 
   /// Updates all [EphemeralAccreditationGroup]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<EphemeralAccreditationGroup>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<EphemeralAccreditationGroupUpdateTable>
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<EphemeralAccreditationGroupUpdateTable>
     columnValues,
-    required _i1.WhereExpressionBuilder<EphemeralAccreditationGroupTable> where,
+    required _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
-    _i1.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
+    _is.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<EphemeralAccreditationGroup>(
       columnValues: columnValues(EphemeralAccreditationGroup.t.updateTable),
@@ -460,30 +522,44 @@ class EphemeralAccreditationGroupRepository {
       offset: offset,
       orderBy: orderBy?.call(EphemeralAccreditationGroup.t),
       orderByList: orderByList?.call(EphemeralAccreditationGroup.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [EphemeralAccreditationGroup]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<EphemeralAccreditationGroup>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<EphemeralAccreditationGroup> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
+    _is.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<EphemeralAccreditationGroup>(
       rows,
+      orderBy: orderBy?.call(EphemeralAccreditationGroup.t),
+      orderByList: orderByList?.call(EphemeralAccreditationGroup.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [EphemeralAccreditationGroup].
   Future<EphemeralAccreditationGroup> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     EphemeralAccreditationGroup row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.deleteRow<EphemeralAccreditationGroup>(
       row,
@@ -492,24 +568,37 @@ class EphemeralAccreditationGroupRepository {
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<EphemeralAccreditationGroup>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<EphemeralAccreditationGroupTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable> where,
+    _is.OrderByBuilder<EphemeralAccreditationGroupTable>? orderBy,
+    _is.OrderByListBuilder<EphemeralAccreditationGroupTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<EphemeralAccreditationGroup>(
       where: where(EphemeralAccreditationGroup.t),
+      orderBy: orderBy?.call(EphemeralAccreditationGroup.t),
+      orderByList: orderByList?.call(EphemeralAccreditationGroup.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<EphemeralAccreditationGroup>(
       where: where?.call(EphemeralAccreditationGroup.t),
@@ -520,11 +609,11 @@ class EphemeralAccreditationGroupRepository {
 
   /// Acquires row-level locks on [EphemeralAccreditationGroup] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<EphemeralAccreditationGroupTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<EphemeralAccreditationGroupTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<EphemeralAccreditationGroup>(
       where: where(EphemeralAccreditationGroup.t),

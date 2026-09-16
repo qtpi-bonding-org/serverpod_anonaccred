@@ -8,15 +8,15 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
-// ignore_for_file: unnecessary_null_comparison
+// ignore_for_file: dead_code, unnecessary_null_comparison
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'account.dart' as _i2;
-import 'package:anonaccount_server/src/generated/protocol.dart' as _i3;
+import 'package:anonaccount_server/src/generated/protocol.dart' as _i1j1ale0;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'account.dart' as _iulmo8pc;
 
 abstract class AccountDevice
-    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<_is.UuidValue?>, _is.ProtocolSerialization {
   AccountDevice._({
     this.id,
     required this.anonAccountId,
@@ -38,9 +38,9 @@ abstract class AccountDevice
        keyEpoch = keyEpoch ?? 0;
 
   factory AccountDevice({
-    _i1.UuidValue? id,
-    required _i1.UuidValue anonAccountId,
-    _i2.AnonAccount? anonAccount,
+    _is.UuidValue? id,
+    required _is.UuidValue anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
     required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
@@ -58,13 +58,13 @@ abstract class AccountDevice
     return AccountDevice(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      anonAccountId: _i1.UuidValueJsonExtension.fromJson(
+          : _is.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      anonAccountId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['anonAccountId'],
       ),
       anonAccount: jsonSerialization['anonAccount'] == null
           ? null
-          : _i3.Protocol().deserialize<_i2.AnonAccount>(
+          : _i1j1ale0.Protocol().deserialize<_iulmo8pc.AnonAccount>(
               jsonSerialization['anonAccount'],
             ),
       deviceSigningPublicKeyHex:
@@ -78,16 +78,16 @@ abstract class AccountDevice
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
       lastActive: jsonSerialization['lastActive'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['lastActive']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['lastActive']),
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
+          : _is.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
       revokedAt: jsonSerialization['revokedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
@@ -97,11 +97,11 @@ abstract class AccountDevice
   static const db = AccountDeviceRepository._();
 
   @override
-  _i1.UuidValue? id;
+  _is.UuidValue? id;
 
-  _i1.UuidValue anonAccountId;
+  _is.UuidValue anonAccountId;
 
-  _i2.AnonAccount? anonAccount;
+  _iulmo8pc.AnonAccount? anonAccount;
 
   String deviceSigningPublicKeyHex;
 
@@ -126,15 +126,15 @@ abstract class AccountDevice
   int keyEpoch;
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => t;
+  _is.Table<_is.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [AccountDevice]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   AccountDevice copyWith({
-    _i1.UuidValue? id,
-    _i1.UuidValue? anonAccountId,
-    _i2.AnonAccount? anonAccount,
+    _is.UuidValue? id,
+    _is.UuidValue? anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     String? deviceSigningPublicKeyHex,
     String? deviceEncryptionPublicKeyHex,
     String? encryptedDataKey,
@@ -189,17 +189,18 @@ abstract class AccountDevice
     };
   }
 
-  static AccountDeviceInclude include({_i2.AnonAccountInclude? anonAccount}) {
+  static AccountDeviceInclude include({
+    _iulmo8pc.AnonAccountInclude? anonAccount,
+  }) {
     return AccountDeviceInclude._(anonAccount: anonAccount);
   }
 
   static AccountDeviceIncludeList includeList({
-    _i1.WhereExpressionBuilder<AccountDeviceTable>? where,
+    _is.WhereExpressionBuilder<AccountDeviceTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<AccountDeviceTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<AccountDeviceTable>? orderByList,
+    _is.OrderByBuilder<AccountDeviceTable>? orderBy,
+    _is.OrderByListBuilder<AccountDeviceTable>? orderByList,
     AccountDeviceInclude? include,
   }) {
     return AccountDeviceIncludeList._(
@@ -207,7 +208,6 @@ abstract class AccountDevice
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(AccountDevice.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(AccountDevice.t),
       include: include,
     );
@@ -215,7 +215,7 @@ abstract class AccountDevice
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -223,9 +223,9 @@ class _Undefined {}
 
 class _AccountDeviceImpl extends AccountDevice {
   _AccountDeviceImpl({
-    _i1.UuidValue? id,
-    required _i1.UuidValue anonAccountId,
-    _i2.AnonAccount? anonAccount,
+    _is.UuidValue? id,
+    required _is.UuidValue anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     required String deviceSigningPublicKeyHex,
     required String deviceEncryptionPublicKeyHex,
     required String encryptedDataKey,
@@ -256,11 +256,11 @@ class _AccountDeviceImpl extends AccountDevice {
 
   /// Returns a shallow copy of this [AccountDevice]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   AccountDevice copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? anonAccountId,
+    _is.UuidValue? anonAccountId,
     Object? anonAccount = _Undefined,
     String? deviceSigningPublicKeyHex,
     String? deviceEncryptionPublicKeyHex,
@@ -275,9 +275,9 @@ class _AccountDeviceImpl extends AccountDevice {
     int? keyEpoch,
   }) {
     return AccountDevice(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _is.UuidValue? ? id : this.id,
       anonAccountId: anonAccountId ?? this.anonAccountId,
-      anonAccount: anonAccount is _i2.AnonAccount?
+      anonAccount: anonAccount is _iulmo8pc.AnonAccount?
           ? anonAccount
           : this.anonAccount?.copyWith(),
       deviceSigningPublicKeyHex:
@@ -298,181 +298,117 @@ class _AccountDeviceImpl extends AccountDevice {
   }
 }
 
-class AccountDeviceUpdateTable extends _i1.UpdateTable<AccountDeviceTable> {
+class AccountDeviceUpdateTable extends _is.UpdateTable<AccountDeviceTable> {
   AccountDeviceUpdateTable(super.table);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> anonAccountId(
-    _i1.UuidValue value,
-  ) => _i1.ColumnValue(
-    table.anonAccountId,
-    value,
-  );
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> anonAccountId(
+    _is.UuidValue value,
+  ) => _is.ColumnValue(table.anonAccountId, value);
 
-  _i1.ColumnValue<String, String> deviceSigningPublicKeyHex(String value) =>
-      _i1.ColumnValue(
-        table.deviceSigningPublicKeyHex,
-        value,
-      );
+  _is.ColumnValue<String, String> deviceSigningPublicKeyHex(String value) =>
+      _is.ColumnValue(table.deviceSigningPublicKeyHex, value);
 
-  _i1.ColumnValue<String, String> deviceEncryptionPublicKeyHex(String value) =>
-      _i1.ColumnValue(
-        table.deviceEncryptionPublicKeyHex,
-        value,
-      );
+  _is.ColumnValue<String, String> deviceEncryptionPublicKeyHex(String value) =>
+      _is.ColumnValue(table.deviceEncryptionPublicKeyHex, value);
 
-  _i1.ColumnValue<String, String> encryptedDataKey(String value) =>
-      _i1.ColumnValue(
-        table.encryptedDataKey,
-        value,
-      );
+  _is.ColumnValue<String, String> encryptedDataKey(String value) =>
+      _is.ColumnValue(table.encryptedDataKey, value);
 
-  _i1.ColumnValue<String, String> label(String value) => _i1.ColumnValue(
-    table.label,
-    value,
-  );
+  _is.ColumnValue<String, String> label(String value) =>
+      _is.ColumnValue(table.label, value);
 
-  _i1.ColumnValue<String, String> addedByAttestorPublicKeyHex(String value) =>
-      _i1.ColumnValue(
-        table.addedByAttestorPublicKeyHex,
-        value,
-      );
+  _is.ColumnValue<String, String> addedByAttestorPublicKeyHex(String value) =>
+      _is.ColumnValue(table.addedByAttestorPublicKeyHex, value);
 
-  _i1.ColumnValue<String, String> addedByAttestation(String value) =>
-      _i1.ColumnValue(
-        table.addedByAttestation,
-        value,
-      );
+  _is.ColumnValue<String, String> addedByAttestation(String value) =>
+      _is.ColumnValue(table.addedByAttestation, value);
 
-  _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
-      _i1.ColumnValue(
-        table.createdAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
+      _is.ColumnValue(table.createdAt, value);
 
-  _i1.ColumnValue<DateTime, DateTime> lastActive(DateTime value) =>
-      _i1.ColumnValue(
-        table.lastActive,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> lastActive(DateTime value) =>
+      _is.ColumnValue(table.lastActive, value);
 
-  _i1.ColumnValue<bool, bool> isRevoked(bool value) => _i1.ColumnValue(
-    table.isRevoked,
-    value,
-  );
+  _is.ColumnValue<bool, bool> isRevoked(bool value) =>
+      _is.ColumnValue(table.isRevoked, value);
 
-  _i1.ColumnValue<DateTime, DateTime> revokedAt(DateTime? value) =>
-      _i1.ColumnValue(
-        table.revokedAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> revokedAt(DateTime? value) =>
+      _is.ColumnValue(table.revokedAt, value);
 
-  _i1.ColumnValue<int, int> keyEpoch(int value) => _i1.ColumnValue(
-    table.keyEpoch,
-    value,
-  );
+  _is.ColumnValue<int, int> keyEpoch(int value) =>
+      _is.ColumnValue(table.keyEpoch, value);
 }
 
-class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
+class AccountDeviceTable extends _is.Table<_is.UuidValue?> {
   AccountDeviceTable({super.tableRelation})
     : super(tableName: 'account_device') {
     updateTable = AccountDeviceUpdateTable(this);
-    anonAccountId = _i1.ColumnUuid(
-      'anonAccountId',
-      this,
-    );
-    deviceSigningPublicKeyHex = _i1.ColumnString(
+    anonAccountId = _is.ColumnUuid('anonAccountId', this);
+    deviceSigningPublicKeyHex = _is.ColumnString(
       'deviceSigningPublicKeyHex',
       this,
     );
-    deviceEncryptionPublicKeyHex = _i1.ColumnString(
+    deviceEncryptionPublicKeyHex = _is.ColumnString(
       'deviceEncryptionPublicKeyHex',
       this,
     );
-    encryptedDataKey = _i1.ColumnString(
-      'encryptedDataKey',
-      this,
-    );
-    label = _i1.ColumnString(
-      'label',
-      this,
-    );
-    addedByAttestorPublicKeyHex = _i1.ColumnString(
+    encryptedDataKey = _is.ColumnString('encryptedDataKey', this);
+    label = _is.ColumnString('label', this);
+    addedByAttestorPublicKeyHex = _is.ColumnString(
       'addedByAttestorPublicKeyHex',
       this,
     );
-    addedByAttestation = _i1.ColumnString(
-      'addedByAttestation',
-      this,
-    );
-    createdAt = _i1.ColumnDateTime(
-      'createdAt',
-      this,
-      hasDefault: true,
-    );
-    lastActive = _i1.ColumnDateTime(
-      'lastActive',
-      this,
-      hasDefault: true,
-    );
-    isRevoked = _i1.ColumnBool(
-      'isRevoked',
-      this,
-      hasDefault: true,
-    );
-    revokedAt = _i1.ColumnDateTime(
-      'revokedAt',
-      this,
-    );
-    keyEpoch = _i1.ColumnInt(
-      'keyEpoch',
-      this,
-      hasDefault: true,
-    );
+    addedByAttestation = _is.ColumnString('addedByAttestation', this);
+    createdAt = _is.ColumnDateTime('createdAt', this, hasDefault: true);
+    lastActive = _is.ColumnDateTime('lastActive', this, hasDefault: true);
+    isRevoked = _is.ColumnBool('isRevoked', this, hasDefault: true);
+    revokedAt = _is.ColumnDateTime('revokedAt', this);
+    keyEpoch = _is.ColumnInt('keyEpoch', this, hasDefault: true);
   }
 
   late final AccountDeviceUpdateTable updateTable;
 
-  late final _i1.ColumnUuid anonAccountId;
+  late final _is.ColumnUuid anonAccountId;
 
-  _i2.AnonAccountTable? _anonAccount;
+  _iulmo8pc.AnonAccountTable? _anonAccount;
 
-  late final _i1.ColumnString deviceSigningPublicKeyHex;
+  late final _is.ColumnString deviceSigningPublicKeyHex;
 
-  late final _i1.ColumnString deviceEncryptionPublicKeyHex;
+  late final _is.ColumnString deviceEncryptionPublicKeyHex;
 
-  late final _i1.ColumnString encryptedDataKey;
+  late final _is.ColumnString encryptedDataKey;
 
-  late final _i1.ColumnString label;
+  late final _is.ColumnString label;
 
-  late final _i1.ColumnString addedByAttestorPublicKeyHex;
+  late final _is.ColumnString addedByAttestorPublicKeyHex;
 
-  late final _i1.ColumnString addedByAttestation;
+  late final _is.ColumnString addedByAttestation;
 
-  late final _i1.ColumnDateTime createdAt;
+  late final _is.ColumnDateTime createdAt;
 
-  late final _i1.ColumnDateTime lastActive;
+  late final _is.ColumnDateTime lastActive;
 
-  late final _i1.ColumnBool isRevoked;
+  late final _is.ColumnBool isRevoked;
 
-  late final _i1.ColumnDateTime revokedAt;
+  late final _is.ColumnDateTime revokedAt;
 
-  late final _i1.ColumnInt keyEpoch;
+  late final _is.ColumnInt keyEpoch;
 
-  _i2.AnonAccountTable get anonAccount {
+  _iulmo8pc.AnonAccountTable get anonAccount {
     if (_anonAccount != null) return _anonAccount!;
-    _anonAccount = _i1.createRelationTable(
+    _anonAccount = _is.createRelationTable(
       relationFieldName: 'anonAccount',
       field: AccountDevice.t.anonAccountId,
-      foreignField: _i2.AnonAccount.t.id,
+      foreignField: _iulmo8pc.AnonAccount.t.id,
       tableRelation: tableRelation,
       createTable: (foreignTableRelation) =>
-          _i2.AnonAccountTable(tableRelation: foreignTableRelation),
+          _iulmo8pc.AnonAccountTable(tableRelation: foreignTableRelation),
     );
     return _anonAccount!;
   }
 
   @override
-  List<_i1.Column> get columns => [
+  List<_is.Column> get columns => [
     id,
     anonAccountId,
     deviceSigningPublicKeyHex,
@@ -489,7 +425,7 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
   ];
 
   @override
-  _i1.Table? getRelationTable(String relationField) {
+  _is.Table? getRelationTable(String relationField) {
     if (relationField == 'anonAccount') {
       return anonAccount;
     }
@@ -497,27 +433,26 @@ class AccountDeviceTable extends _i1.Table<_i1.UuidValue?> {
   }
 }
 
-class AccountDeviceInclude extends _i1.IncludeObject {
-  AccountDeviceInclude._({_i2.AnonAccountInclude? anonAccount}) {
+class AccountDeviceInclude extends _is.IncludeObject {
+  AccountDeviceInclude._({_iulmo8pc.AnonAccountInclude? anonAccount}) {
     _anonAccount = anonAccount;
   }
 
-  _i2.AnonAccountInclude? _anonAccount;
+  _iulmo8pc.AnonAccountInclude? _anonAccount;
 
   @override
-  Map<String, _i1.Include?> get includes => {'anonAccount': _anonAccount};
+  Map<String, _is.Include?> get includes => {'anonAccount': _anonAccount};
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => AccountDevice.t;
+  _is.Table<_is.UuidValue?> get table => AccountDevice.t;
 }
 
-class AccountDeviceIncludeList extends _i1.IncludeList {
+class AccountDeviceIncludeList extends _is.IncludeList {
   AccountDeviceIncludeList._({
-    _i1.WhereExpressionBuilder<AccountDeviceTable>? where,
+    _is.WhereExpressionBuilder<AccountDeviceTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -525,10 +460,10 @@ class AccountDeviceIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => AccountDevice.t;
+  _is.Table<_is.UuidValue?> get table => AccountDevice.t;
 }
 
 class AccountDeviceRepository {
@@ -559,23 +494,21 @@ class AccountDeviceRepository {
   /// );
   /// ```
   Future<List<AccountDevice>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<AccountDeviceTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<AccountDeviceTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<AccountDeviceTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<AccountDeviceTable>? orderByList,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<AccountDeviceTable>? orderBy,
+    _is.OrderByListBuilder<AccountDeviceTable>? orderByList,
+    _is.Transaction? transaction,
     AccountDeviceInclude? include,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<AccountDevice>(
       where: where?.call(AccountDevice.t),
       orderBy: orderBy?.call(AccountDevice.t),
       orderByList: orderByList?.call(AccountDevice.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -603,22 +536,20 @@ class AccountDeviceRepository {
   /// );
   /// ```
   Future<AccountDevice?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<AccountDeviceTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<AccountDeviceTable>? where,
     int? offset,
-    _i1.OrderByBuilder<AccountDeviceTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<AccountDeviceTable>? orderByList,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<AccountDeviceTable>? orderBy,
+    _is.OrderByListBuilder<AccountDeviceTable>? orderByList,
+    _is.Transaction? transaction,
     AccountDeviceInclude? include,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<AccountDevice>(
       where: where?.call(AccountDevice.t),
       orderBy: orderBy?.call(AccountDevice.t),
       orderByList: orderByList?.call(AccountDevice.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       include: include,
@@ -629,12 +560,12 @@ class AccountDeviceRepository {
 
   /// Finds a single [AccountDevice] by its [id] or null if no such row exists.
   Future<AccountDevice?> findById(
-    _i1.Session session,
-    _i1.UuidValue id, {
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session,
+    _is.UuidValue id, {
+    _is.Transaction? transaction,
     AccountDeviceInclude? include,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<AccountDevice>(
       id,
@@ -655,16 +586,22 @@ class AccountDeviceRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AccountDevice>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<AccountDevice> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<AccountDevice>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -672,12 +609,78 @@ class AccountDeviceRepository {
   ///
   /// The returned [AccountDevice] will have its `id` field set.
   Future<AccountDevice> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     AccountDevice row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<AccountDevice>(
+    return session.db.insertRow<AccountDevice>(row, transaction: transaction);
+  }
+
+  /// Upserts all [AccountDevice]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [AccountDevice]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<AccountDevice>> upsert(
+    _is.DatabaseSession session,
+    List<AccountDevice> rows, {
+    required _is.ColumnSelections<AccountDeviceTable> conflictColumns,
+    _is.ColumnSelections<AccountDeviceTable>? updateColumns,
+    _is.WhereExpressionBuilder<AccountDeviceTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<AccountDevice>(
+      rows,
+      conflictColumns: conflictColumns(AccountDevice.t),
+      updateColumns: updateColumns?.call(AccountDevice.t),
+      updateWhere: updateWhere?.call(AccountDevice.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [AccountDevice] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [AccountDevice] will have its `id` field set.
+  Future<AccountDevice?> upsertRow(
+    _is.DatabaseSession session,
+    AccountDevice row, {
+    required _is.ColumnSelections<AccountDeviceTable> conflictColumns,
+    _is.ColumnSelections<AccountDeviceTable>? updateColumns,
+    _is.WhereExpressionBuilder<AccountDeviceTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<AccountDevice>(
       row,
+      conflictColumns: conflictColumns(AccountDevice.t),
+      updateColumns: updateColumns?.call(AccountDevice.t),
+      updateWhere: updateWhere?.call(AccountDevice.t),
       transaction: transaction,
     );
   }
@@ -687,16 +690,22 @@ class AccountDeviceRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AccountDevice>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<AccountDevice> rows, {
-    _i1.ColumnSelections<AccountDeviceTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<AccountDeviceTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<AccountDevice>(
       rows,
       columns: columns?.call(AccountDevice.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -704,10 +713,10 @@ class AccountDeviceRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<AccountDevice> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     AccountDevice row, {
-    _i1.ColumnSelections<AccountDeviceTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<AccountDeviceTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<AccountDevice>(
       row,
@@ -719,10 +728,10 @@ class AccountDeviceRepository {
   /// Updates a single [AccountDevice] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<AccountDevice?> updateById(
-    _i1.Session session,
-    _i1.UuidValue id, {
-    required _i1.ColumnValueListBuilder<AccountDeviceUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session,
+    _is.UuidValue id, {
+    required _is.ColumnValueListBuilder<AccountDeviceUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<AccountDevice>(
       id,
@@ -733,16 +742,20 @@ class AccountDeviceRepository {
 
   /// Updates all [AccountDevice]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AccountDevice>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<AccountDeviceUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<AccountDeviceTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<AccountDeviceUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<AccountDeviceTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<AccountDeviceTable>? orderBy,
-    _i1.OrderByListBuilder<AccountDeviceTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<AccountDeviceTable>? orderBy,
+    _is.OrderByListBuilder<AccountDeviceTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<AccountDevice>(
       columnValues: columnValues(AccountDevice.t.updateTable),
@@ -751,56 +764,80 @@ class AccountDeviceRepository {
       offset: offset,
       orderBy: orderBy?.call(AccountDevice.t),
       orderByList: orderByList?.call(AccountDevice.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [AccountDevice]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AccountDevice>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<AccountDevice> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<AccountDeviceTable>? orderBy,
+    _is.OrderByListBuilder<AccountDeviceTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<AccountDevice>(
       rows,
+      orderBy: orderBy?.call(AccountDevice.t),
+      orderByList: orderByList?.call(AccountDevice.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [AccountDevice].
   Future<AccountDevice> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     AccountDevice row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<AccountDevice>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<AccountDevice>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AccountDevice>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<AccountDeviceTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<AccountDeviceTable> where,
+    _is.OrderByBuilder<AccountDeviceTable>? orderBy,
+    _is.OrderByListBuilder<AccountDeviceTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<AccountDevice>(
       where: where(AccountDevice.t),
+      orderBy: orderBy?.call(AccountDevice.t),
+      orderByList: orderByList?.call(AccountDevice.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<AccountDeviceTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<AccountDeviceTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<AccountDevice>(
       where: where?.call(AccountDevice.t),
@@ -811,11 +848,11 @@ class AccountDeviceRepository {
 
   /// Acquires row-level locks on [AccountDevice] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<AccountDeviceTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<AccountDeviceTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<AccountDevice>(
       where: where(AccountDevice.t),
@@ -832,10 +869,10 @@ class AccountDeviceAttachRowRepository {
   /// Creates a relation between the given [AccountDevice] and [AnonAccount]
   /// by setting the [AccountDevice]'s foreign key `anonAccountId` to refer to the [AnonAccount].
   Future<void> anonAccount(
-    _i1.Session session,
+    _is.DatabaseSession session,
     AccountDevice accountDevice,
-    _i2.AnonAccount anonAccount, {
-    _i1.Transaction? transaction,
+    _iulmo8pc.AnonAccount anonAccount, {
+    _is.Transaction? transaction,
   }) async {
     if (accountDevice.id == null) {
       throw ArgumentError.notNull('accountDevice.id');

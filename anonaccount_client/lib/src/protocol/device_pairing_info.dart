@@ -10,13 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
 /// Device pairing info returned when polling for registration completion.
 ///
 /// Contains only the encrypted data key blob - no account identifiers exposed.
 /// Device B uses this to complete pairing after Device A registers it.
-abstract class DevicePairingInfo implements _i1.SerializableModel {
+abstract class DevicePairingInfo
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   DevicePairingInfo._({required this.encryptedDataKey});
 
   factory DevicePairingInfo({required String encryptedDataKey}) =
@@ -34,7 +35,7 @@ abstract class DevicePairingInfo implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [DevicePairingInfo]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   DevicePairingInfo copyWith({String? encryptedDataKey});
   @override
   Map<String, dynamic> toJson() {
@@ -45,8 +46,16 @@ abstract class DevicePairingInfo implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.DevicePairingInfo',
+      'encryptedDataKey': encryptedDataKey,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -56,7 +65,7 @@ class _DevicePairingInfoImpl extends DevicePairingInfo {
 
   /// Returns a shallow copy of this [DevicePairingInfo]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   DevicePairingInfo copyWith({String? encryptedDataKey}) {
     return DevicePairingInfo(

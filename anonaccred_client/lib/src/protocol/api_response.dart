@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class ApiResponse implements _i1.SerializableModel {
+abstract class ApiResponse
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   ApiResponse._({
     required this.success,
     this.jsonData,
@@ -29,7 +30,7 @@ abstract class ApiResponse implements _i1.SerializableModel {
 
   factory ApiResponse.fromJson(Map<String, dynamic> jsonSerialization) {
     return ApiResponse(
-      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      success: _isc.BoolJsonExtension.fromJson(jsonSerialization['success']),
       jsonData: jsonSerialization['jsonData'] as String?,
       httpStatus: jsonSerialization['httpStatus'] as int?,
       error: jsonSerialization['error'] as String?,
@@ -46,7 +47,7 @@ abstract class ApiResponse implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [ApiResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   ApiResponse copyWith({
     bool? success,
     String? jsonData,
@@ -65,8 +66,19 @@ abstract class ApiResponse implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.ApiResponse',
+      'success': success,
+      if (jsonData != null) 'jsonData': jsonData,
+      if (httpStatus != null) 'httpStatus': httpStatus,
+      if (error != null) 'error': error,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -87,7 +99,7 @@ class _ApiResponseImpl extends ApiResponse {
 
   /// Returns a shallow copy of this [ApiResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   ApiResponse copyWith({
     bool? success,

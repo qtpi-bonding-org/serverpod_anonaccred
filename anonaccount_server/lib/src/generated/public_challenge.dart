@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class PublicChallenge
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   PublicChallenge._({
     this.id,
     required this.challenge,
@@ -30,7 +30,7 @@ abstract class PublicChallenge
     return PublicChallenge(
       id: jsonSerialization['id'] as int?,
       challenge: jsonSerialization['challenge'] as String,
-      expiresAt: _i1.DateTimeJsonExtension.fromJson(
+      expiresAt: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['expiresAt'],
       ),
     );
@@ -48,16 +48,12 @@ abstract class PublicChallenge
   DateTime expiresAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [PublicChallenge]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
-  PublicChallenge copyWith({
-    int? id,
-    String? challenge,
-    DateTime? expiresAt,
-  });
+  @_is.useResult
+  PublicChallenge copyWith({int? id, String? challenge, DateTime? expiresAt});
   @override
   Map<String, dynamic> toJson() {
     return {
@@ -83,12 +79,11 @@ abstract class PublicChallenge
   }
 
   static PublicChallengeIncludeList includeList({
-    _i1.WhereExpressionBuilder<PublicChallengeTable>? where,
+    _is.WhereExpressionBuilder<PublicChallengeTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<PublicChallengeTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<PublicChallengeTable>? orderByList,
+    _is.OrderByBuilder<PublicChallengeTable>? orderBy,
+    _is.OrderByListBuilder<PublicChallengeTable>? orderByList,
     PublicChallengeInclude? include,
   }) {
     return PublicChallengeIncludeList._(
@@ -96,7 +91,6 @@ abstract class PublicChallenge
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(PublicChallenge.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(PublicChallenge.t),
       include: include,
     );
@@ -104,7 +98,7 @@ abstract class PublicChallenge
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -115,15 +109,11 @@ class _PublicChallengeImpl extends PublicChallenge {
     int? id,
     required String challenge,
     required DateTime expiresAt,
-  }) : super._(
-         id: id,
-         challenge: challenge,
-         expiresAt: expiresAt,
-       );
+  }) : super._(id: id, challenge: challenge, expiresAt: expiresAt);
 
   /// Returns a shallow copy of this [PublicChallenge]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   PublicChallenge copyWith({
     Object? id = _Undefined,
@@ -138,66 +128,50 @@ class _PublicChallengeImpl extends PublicChallenge {
   }
 }
 
-class PublicChallengeUpdateTable extends _i1.UpdateTable<PublicChallengeTable> {
+class PublicChallengeUpdateTable extends _is.UpdateTable<PublicChallengeTable> {
   PublicChallengeUpdateTable(super.table);
 
-  _i1.ColumnValue<String, String> challenge(String value) => _i1.ColumnValue(
-    table.challenge,
-    value,
-  );
+  _is.ColumnValue<String, String> challenge(String value) =>
+      _is.ColumnValue(table.challenge, value);
 
-  _i1.ColumnValue<DateTime, DateTime> expiresAt(DateTime value) =>
-      _i1.ColumnValue(
-        table.expiresAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> expiresAt(DateTime value) =>
+      _is.ColumnValue(table.expiresAt, value);
 }
 
-class PublicChallengeTable extends _i1.Table<int?> {
+class PublicChallengeTable extends _is.Table<int?> {
   PublicChallengeTable({super.tableRelation})
     : super(tableName: 'public_challenges') {
     updateTable = PublicChallengeUpdateTable(this);
-    challenge = _i1.ColumnString(
-      'challenge',
-      this,
-    );
-    expiresAt = _i1.ColumnDateTime(
-      'expiresAt',
-      this,
-    );
+    challenge = _is.ColumnString('challenge', this);
+    expiresAt = _is.ColumnDateTime('expiresAt', this);
   }
 
   late final PublicChallengeUpdateTable updateTable;
 
-  late final _i1.ColumnString challenge;
+  late final _is.ColumnString challenge;
 
-  late final _i1.ColumnDateTime expiresAt;
+  late final _is.ColumnDateTime expiresAt;
 
   @override
-  List<_i1.Column> get columns => [
-    id,
-    challenge,
-    expiresAt,
-  ];
+  List<_is.Column> get columns => [id, challenge, expiresAt];
 }
 
-class PublicChallengeInclude extends _i1.IncludeObject {
+class PublicChallengeInclude extends _is.IncludeObject {
   PublicChallengeInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => PublicChallenge.t;
+  _is.Table<int?> get table => PublicChallenge.t;
 }
 
-class PublicChallengeIncludeList extends _i1.IncludeList {
+class PublicChallengeIncludeList extends _is.IncludeList {
   PublicChallengeIncludeList._({
-    _i1.WhereExpressionBuilder<PublicChallengeTable>? where,
+    _is.WhereExpressionBuilder<PublicChallengeTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -205,10 +179,10 @@ class PublicChallengeIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => PublicChallenge.t;
+  _is.Table<int?> get table => PublicChallenge.t;
 }
 
 class PublicChallengeRepository {
@@ -237,22 +211,20 @@ class PublicChallengeRepository {
   /// );
   /// ```
   Future<List<PublicChallenge>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<PublicChallengeTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<PublicChallengeTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<PublicChallengeTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<PublicChallengeTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<PublicChallengeTable>? orderBy,
+    _is.OrderByListBuilder<PublicChallengeTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<PublicChallenge>(
       where: where?.call(PublicChallenge.t),
       orderBy: orderBy?.call(PublicChallenge.t),
       orderByList: orderByList?.call(PublicChallenge.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -279,21 +251,19 @@ class PublicChallengeRepository {
   /// );
   /// ```
   Future<PublicChallenge?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<PublicChallengeTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<PublicChallengeTable>? where,
     int? offset,
-    _i1.OrderByBuilder<PublicChallengeTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<PublicChallengeTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<PublicChallengeTable>? orderBy,
+    _is.OrderByListBuilder<PublicChallengeTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<PublicChallenge>(
       where: where?.call(PublicChallenge.t),
       orderBy: orderBy?.call(PublicChallenge.t),
       orderByList: orderByList?.call(PublicChallenge.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -303,11 +273,11 @@ class PublicChallengeRepository {
 
   /// Finds a single [PublicChallenge] by its [id] or null if no such row exists.
   Future<PublicChallenge?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<PublicChallenge>(
       id,
@@ -327,16 +297,22 @@ class PublicChallengeRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<PublicChallenge>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<PublicChallenge> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<PublicChallenge>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -344,12 +320,78 @@ class PublicChallengeRepository {
   ///
   /// The returned [PublicChallenge] will have its `id` field set.
   Future<PublicChallenge> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     PublicChallenge row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<PublicChallenge>(
+    return session.db.insertRow<PublicChallenge>(row, transaction: transaction);
+  }
+
+  /// Upserts all [PublicChallenge]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [PublicChallenge]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<PublicChallenge>> upsert(
+    _is.DatabaseSession session,
+    List<PublicChallenge> rows, {
+    required _is.ColumnSelections<PublicChallengeTable> conflictColumns,
+    _is.ColumnSelections<PublicChallengeTable>? updateColumns,
+    _is.WhereExpressionBuilder<PublicChallengeTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<PublicChallenge>(
+      rows,
+      conflictColumns: conflictColumns(PublicChallenge.t),
+      updateColumns: updateColumns?.call(PublicChallenge.t),
+      updateWhere: updateWhere?.call(PublicChallenge.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [PublicChallenge] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [PublicChallenge] will have its `id` field set.
+  Future<PublicChallenge?> upsertRow(
+    _is.DatabaseSession session,
+    PublicChallenge row, {
+    required _is.ColumnSelections<PublicChallengeTable> conflictColumns,
+    _is.ColumnSelections<PublicChallengeTable>? updateColumns,
+    _is.WhereExpressionBuilder<PublicChallengeTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<PublicChallenge>(
       row,
+      conflictColumns: conflictColumns(PublicChallenge.t),
+      updateColumns: updateColumns?.call(PublicChallenge.t),
+      updateWhere: updateWhere?.call(PublicChallenge.t),
       transaction: transaction,
     );
   }
@@ -359,16 +401,22 @@ class PublicChallengeRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<PublicChallenge>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<PublicChallenge> rows, {
-    _i1.ColumnSelections<PublicChallengeTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<PublicChallengeTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<PublicChallenge>(
       rows,
       columns: columns?.call(PublicChallenge.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -376,10 +424,10 @@ class PublicChallengeRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<PublicChallenge> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     PublicChallenge row, {
-    _i1.ColumnSelections<PublicChallengeTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<PublicChallengeTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<PublicChallenge>(
       row,
@@ -391,11 +439,11 @@ class PublicChallengeRepository {
   /// Updates a single [PublicChallenge] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<PublicChallenge?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<PublicChallengeUpdateTable>
+    required _is.ColumnValueListBuilder<PublicChallengeUpdateTable>
     columnValues,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<PublicChallenge>(
       id,
@@ -406,17 +454,21 @@ class PublicChallengeRepository {
 
   /// Updates all [PublicChallenge]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<PublicChallenge>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<PublicChallengeUpdateTable>
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<PublicChallengeUpdateTable>
     columnValues,
-    required _i1.WhereExpressionBuilder<PublicChallengeTable> where,
+    required _is.WhereExpressionBuilder<PublicChallengeTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<PublicChallengeTable>? orderBy,
-    _i1.OrderByListBuilder<PublicChallengeTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<PublicChallengeTable>? orderBy,
+    _is.OrderByListBuilder<PublicChallengeTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<PublicChallenge>(
       columnValues: columnValues(PublicChallenge.t.updateTable),
@@ -425,56 +477,80 @@ class PublicChallengeRepository {
       offset: offset,
       orderBy: orderBy?.call(PublicChallenge.t),
       orderByList: orderByList?.call(PublicChallenge.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [PublicChallenge]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<PublicChallenge>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<PublicChallenge> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<PublicChallengeTable>? orderBy,
+    _is.OrderByListBuilder<PublicChallengeTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<PublicChallenge>(
       rows,
+      orderBy: orderBy?.call(PublicChallenge.t),
+      orderByList: orderByList?.call(PublicChallenge.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [PublicChallenge].
   Future<PublicChallenge> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     PublicChallenge row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<PublicChallenge>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<PublicChallenge>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<PublicChallenge>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<PublicChallengeTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<PublicChallengeTable> where,
+    _is.OrderByBuilder<PublicChallengeTable>? orderBy,
+    _is.OrderByListBuilder<PublicChallengeTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<PublicChallenge>(
       where: where(PublicChallenge.t),
+      orderBy: orderBy?.call(PublicChallenge.t),
+      orderByList: orderByList?.call(PublicChallenge.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<PublicChallengeTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<PublicChallengeTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<PublicChallenge>(
       where: where?.call(PublicChallenge.t),
@@ -485,11 +561,11 @@ class PublicChallengeRepository {
 
   /// Acquires row-level locks on [PublicChallenge] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<PublicChallengeTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<PublicChallengeTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<PublicChallenge>(
       where: where(PublicChallenge.t),

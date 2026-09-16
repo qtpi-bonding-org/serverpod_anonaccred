@@ -10,11 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'payment_rail.dart' as _i2;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'payment_rail.dart' as _i4hkjqgd;
 
 abstract class RefundClaim
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   RefundClaim._({
     this.id,
     required this.paymentRail,
@@ -24,7 +24,7 @@ abstract class RefundClaim
 
   factory RefundClaim({
     int? id,
-    required _i2.PaymentRail paymentRail,
+    required _i4hkjqgd.PaymentRail paymentRail,
     required String paymentRef,
     DateTime? claimedAt,
   }) = _RefundClaimImpl;
@@ -32,13 +32,13 @@ abstract class RefundClaim
   factory RefundClaim.fromJson(Map<String, dynamic> jsonSerialization) {
     return RefundClaim(
       id: jsonSerialization['id'] as int?,
-      paymentRail: _i2.PaymentRail.fromJson(
+      paymentRail: _i4hkjqgd.PaymentRail.fromJson(
         (jsonSerialization['paymentRail'] as String),
       ),
       paymentRef: jsonSerialization['paymentRef'] as String,
       claimedAt: jsonSerialization['claimedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['claimedAt']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['claimedAt']),
     );
   }
 
@@ -49,21 +49,21 @@ abstract class RefundClaim
   @override
   int? id;
 
-  _i2.PaymentRail paymentRail;
+  _i4hkjqgd.PaymentRail paymentRail;
 
   String paymentRef;
 
   DateTime claimedAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [RefundClaim]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   RefundClaim copyWith({
     int? id,
-    _i2.PaymentRail? paymentRail,
+    _i4hkjqgd.PaymentRail? paymentRail,
     String? paymentRef,
     DateTime? claimedAt,
   });
@@ -94,12 +94,11 @@ abstract class RefundClaim
   }
 
   static RefundClaimIncludeList includeList({
-    _i1.WhereExpressionBuilder<RefundClaimTable>? where,
+    _is.WhereExpressionBuilder<RefundClaimTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RefundClaimTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RefundClaimTable>? orderByList,
+    _is.OrderByBuilder<RefundClaimTable>? orderBy,
+    _is.OrderByListBuilder<RefundClaimTable>? orderByList,
     RefundClaimInclude? include,
   }) {
     return RefundClaimIncludeList._(
@@ -107,7 +106,6 @@ abstract class RefundClaim
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(RefundClaim.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(RefundClaim.t),
       include: include,
     );
@@ -115,7 +113,7 @@ abstract class RefundClaim
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -124,7 +122,7 @@ class _Undefined {}
 class _RefundClaimImpl extends RefundClaim {
   _RefundClaimImpl({
     int? id,
-    required _i2.PaymentRail paymentRail,
+    required _i4hkjqgd.PaymentRail paymentRail,
     required String paymentRef,
     DateTime? claimedAt,
   }) : super._(
@@ -136,11 +134,11 @@ class _RefundClaimImpl extends RefundClaim {
 
   /// Returns a shallow copy of this [RefundClaim]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   RefundClaim copyWith({
     Object? id = _Undefined,
-    _i2.PaymentRail? paymentRail,
+    _i4hkjqgd.PaymentRail? paymentRail,
     String? paymentRef,
     DateTime? claimedAt,
   }) {
@@ -153,81 +151,60 @@ class _RefundClaimImpl extends RefundClaim {
   }
 }
 
-class RefundClaimUpdateTable extends _i1.UpdateTable<RefundClaimTable> {
+class RefundClaimUpdateTable extends _is.UpdateTable<RefundClaimTable> {
   RefundClaimUpdateTable(super.table);
 
-  _i1.ColumnValue<_i2.PaymentRail, _i2.PaymentRail> paymentRail(
-    _i2.PaymentRail value,
-  ) => _i1.ColumnValue(
-    table.paymentRail,
-    value,
-  );
+  _is.ColumnValue<_i4hkjqgd.PaymentRail, _i4hkjqgd.PaymentRail> paymentRail(
+    _i4hkjqgd.PaymentRail value,
+  ) => _is.ColumnValue(table.paymentRail, value);
 
-  _i1.ColumnValue<String, String> paymentRef(String value) => _i1.ColumnValue(
-    table.paymentRef,
-    value,
-  );
+  _is.ColumnValue<String, String> paymentRef(String value) =>
+      _is.ColumnValue(table.paymentRef, value);
 
-  _i1.ColumnValue<DateTime, DateTime> claimedAt(DateTime value) =>
-      _i1.ColumnValue(
-        table.claimedAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> claimedAt(DateTime value) =>
+      _is.ColumnValue(table.claimedAt, value);
 }
 
-class RefundClaimTable extends _i1.Table<int?> {
+class RefundClaimTable extends _is.Table<int?> {
   RefundClaimTable({super.tableRelation}) : super(tableName: 'refund_claim') {
     updateTable = RefundClaimUpdateTable(this);
-    paymentRail = _i1.ColumnEnum(
+    paymentRail = _is.ColumnEnum(
       'paymentRail',
       this,
-      _i1.EnumSerialization.byName,
+      _is.EnumSerialization.byName,
     );
-    paymentRef = _i1.ColumnString(
-      'paymentRef',
-      this,
-    );
-    claimedAt = _i1.ColumnDateTime(
-      'claimedAt',
-      this,
-      hasDefault: true,
-    );
+    paymentRef = _is.ColumnString('paymentRef', this);
+    claimedAt = _is.ColumnDateTime('claimedAt', this, hasDefault: true);
   }
 
   late final RefundClaimUpdateTable updateTable;
 
-  late final _i1.ColumnEnum<_i2.PaymentRail> paymentRail;
+  late final _is.ColumnEnum<_i4hkjqgd.PaymentRail> paymentRail;
 
-  late final _i1.ColumnString paymentRef;
+  late final _is.ColumnString paymentRef;
 
-  late final _i1.ColumnDateTime claimedAt;
+  late final _is.ColumnDateTime claimedAt;
 
   @override
-  List<_i1.Column> get columns => [
-    id,
-    paymentRail,
-    paymentRef,
-    claimedAt,
-  ];
+  List<_is.Column> get columns => [id, paymentRail, paymentRef, claimedAt];
 }
 
-class RefundClaimInclude extends _i1.IncludeObject {
+class RefundClaimInclude extends _is.IncludeObject {
   RefundClaimInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => RefundClaim.t;
+  _is.Table<int?> get table => RefundClaim.t;
 }
 
-class RefundClaimIncludeList extends _i1.IncludeList {
+class RefundClaimIncludeList extends _is.IncludeList {
   RefundClaimIncludeList._({
-    _i1.WhereExpressionBuilder<RefundClaimTable>? where,
+    _is.WhereExpressionBuilder<RefundClaimTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -235,10 +212,10 @@ class RefundClaimIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => RefundClaim.t;
+  _is.Table<int?> get table => RefundClaim.t;
 }
 
 class RefundClaimRepository {
@@ -267,22 +244,20 @@ class RefundClaimRepository {
   /// );
   /// ```
   Future<List<RefundClaim>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RefundClaimTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RefundClaimTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RefundClaimTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RefundClaimTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<RefundClaimTable>? orderBy,
+    _is.OrderByListBuilder<RefundClaimTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<RefundClaim>(
       where: where?.call(RefundClaim.t),
       orderBy: orderBy?.call(RefundClaim.t),
       orderByList: orderByList?.call(RefundClaim.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -309,21 +284,19 @@ class RefundClaimRepository {
   /// );
   /// ```
   Future<RefundClaim?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RefundClaimTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RefundClaimTable>? where,
     int? offset,
-    _i1.OrderByBuilder<RefundClaimTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RefundClaimTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<RefundClaimTable>? orderBy,
+    _is.OrderByListBuilder<RefundClaimTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<RefundClaim>(
       where: where?.call(RefundClaim.t),
       orderBy: orderBy?.call(RefundClaim.t),
       orderByList: orderByList?.call(RefundClaim.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -333,11 +306,11 @@ class RefundClaimRepository {
 
   /// Finds a single [RefundClaim] by its [id] or null if no such row exists.
   Future<RefundClaim?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<RefundClaim>(
       id,
@@ -357,16 +330,22 @@ class RefundClaimRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RefundClaim>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RefundClaim> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<RefundClaim>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -374,12 +353,78 @@ class RefundClaimRepository {
   ///
   /// The returned [RefundClaim] will have its `id` field set.
   Future<RefundClaim> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RefundClaim row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<RefundClaim>(
+    return session.db.insertRow<RefundClaim>(row, transaction: transaction);
+  }
+
+  /// Upserts all [RefundClaim]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [RefundClaim]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<RefundClaim>> upsert(
+    _is.DatabaseSession session,
+    List<RefundClaim> rows, {
+    required _is.ColumnSelections<RefundClaimTable> conflictColumns,
+    _is.ColumnSelections<RefundClaimTable>? updateColumns,
+    _is.WhereExpressionBuilder<RefundClaimTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<RefundClaim>(
+      rows,
+      conflictColumns: conflictColumns(RefundClaim.t),
+      updateColumns: updateColumns?.call(RefundClaim.t),
+      updateWhere: updateWhere?.call(RefundClaim.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [RefundClaim] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [RefundClaim] will have its `id` field set.
+  Future<RefundClaim?> upsertRow(
+    _is.DatabaseSession session,
+    RefundClaim row, {
+    required _is.ColumnSelections<RefundClaimTable> conflictColumns,
+    _is.ColumnSelections<RefundClaimTable>? updateColumns,
+    _is.WhereExpressionBuilder<RefundClaimTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<RefundClaim>(
       row,
+      conflictColumns: conflictColumns(RefundClaim.t),
+      updateColumns: updateColumns?.call(RefundClaim.t),
+      updateWhere: updateWhere?.call(RefundClaim.t),
       transaction: transaction,
     );
   }
@@ -389,16 +434,22 @@ class RefundClaimRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RefundClaim>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RefundClaim> rows, {
-    _i1.ColumnSelections<RefundClaimTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<RefundClaimTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<RefundClaim>(
       rows,
       columns: columns?.call(RefundClaim.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -406,10 +457,10 @@ class RefundClaimRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<RefundClaim> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RefundClaim row, {
-    _i1.ColumnSelections<RefundClaimTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<RefundClaimTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<RefundClaim>(
       row,
@@ -421,10 +472,10 @@ class RefundClaimRepository {
   /// Updates a single [RefundClaim] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<RefundClaim?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<RefundClaimUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    required _is.ColumnValueListBuilder<RefundClaimUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<RefundClaim>(
       id,
@@ -435,16 +486,20 @@ class RefundClaimRepository {
 
   /// Updates all [RefundClaim]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RefundClaim>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<RefundClaimUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<RefundClaimTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<RefundClaimUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<RefundClaimTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RefundClaimTable>? orderBy,
-    _i1.OrderByListBuilder<RefundClaimTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<RefundClaimTable>? orderBy,
+    _is.OrderByListBuilder<RefundClaimTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<RefundClaim>(
       columnValues: columnValues(RefundClaim.t.updateTable),
@@ -453,56 +508,80 @@ class RefundClaimRepository {
       offset: offset,
       orderBy: orderBy?.call(RefundClaim.t),
       orderByList: orderByList?.call(RefundClaim.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [RefundClaim]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RefundClaim>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RefundClaim> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<RefundClaimTable>? orderBy,
+    _is.OrderByListBuilder<RefundClaimTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<RefundClaim>(
       rows,
+      orderBy: orderBy?.call(RefundClaim.t),
+      orderByList: orderByList?.call(RefundClaim.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [RefundClaim].
   Future<RefundClaim> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RefundClaim row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<RefundClaim>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<RefundClaim>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RefundClaim>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<RefundClaimTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<RefundClaimTable> where,
+    _is.OrderByBuilder<RefundClaimTable>? orderBy,
+    _is.OrderByListBuilder<RefundClaimTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<RefundClaim>(
       where: where(RefundClaim.t),
+      orderBy: orderBy?.call(RefundClaim.t),
+      orderByList: orderByList?.call(RefundClaim.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RefundClaimTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RefundClaimTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<RefundClaim>(
       where: where?.call(RefundClaim.t),
@@ -513,11 +592,11 @@ class RefundClaimRepository {
 
   /// Acquires row-level locks on [RefundClaim] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<RefundClaimTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<RefundClaimTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<RefundClaim>(
       where: where(RefundClaim.t),

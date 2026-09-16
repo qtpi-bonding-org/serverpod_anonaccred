@@ -68,6 +68,7 @@ abstract class SignedPowEndpoint extends PowEndpoint {
   }
 
   /// Verifies the signed outer envelope and resolves an active caller.
+  @doNotGenerate
   Future<AuthenticatedCaller> guard(
     Session session, {
     required String challenge,

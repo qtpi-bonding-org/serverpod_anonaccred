@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class RateLimitCounter implements _i1.SerializableModel {
+abstract class RateLimitCounter
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   RateLimitCounter._({required this.count});
 
   factory RateLimitCounter({required int count}) = _RateLimitCounterImpl;
@@ -25,19 +26,21 @@ abstract class RateLimitCounter implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [RateLimitCounter]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   RateLimitCounter copyWith({int? count});
   @override
   Map<String, dynamic> toJson() {
-    return {
-      '__className__': 'anonaccount.RateLimitCounter',
-      'count': count,
-    };
+    return {'__className__': 'anonaccount.RateLimitCounter', 'count': count};
+  }
+
+  @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {'__className__': 'anonaccount.RateLimitCounter', 'count': count};
   }
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -46,7 +49,7 @@ class _RateLimitCounterImpl extends RateLimitCounter {
 
   /// Returns a shallow copy of this [RateLimitCounter]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   RateLimitCounter copyWith({int? count}) {
     return RateLimitCounter(count: count ?? this.count);

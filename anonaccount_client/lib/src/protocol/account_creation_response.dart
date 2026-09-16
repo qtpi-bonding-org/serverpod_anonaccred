@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class AccountCreationResponse implements _i1.SerializableModel {
+abstract class AccountCreationResponse
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   AccountCreationResponse._({
     required this.ultimateSigningPublicKeyHex,
     required this.encryptedDataKey,
@@ -36,7 +37,7 @@ abstract class AccountCreationResponse implements _i1.SerializableModel {
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       ultimateEncryptionPublicKeyHex:
           jsonSerialization['ultimateEncryptionPublicKeyHex'] as String,
-      createdAt: _i1.DateTimeJsonExtension.fromJson(
+      createdAt: _isc.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
     );
@@ -52,7 +53,7 @@ abstract class AccountCreationResponse implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [AccountCreationResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   AccountCreationResponse copyWith({
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
@@ -71,8 +72,19 @@ abstract class AccountCreationResponse implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.AccountCreationResponse',
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+      'encryptedDataKey': encryptedDataKey,
+      'ultimateEncryptionPublicKeyHex': ultimateEncryptionPublicKeyHex,
+      'createdAt': createdAt.toJson(),
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -91,7 +103,7 @@ class _AccountCreationResponseImpl extends AccountCreationResponse {
 
   /// Returns a shallow copy of this [AccountCreationResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   AccountCreationResponse copyWith({
     String? ultimateSigningPublicKeyHex,

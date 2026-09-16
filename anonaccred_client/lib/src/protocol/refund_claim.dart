@@ -10,10 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'payment_rail.dart' as _i2;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'payment_rail.dart' as _i4hkjqgd;
 
-abstract class RefundClaim implements _i1.SerializableModel {
+abstract class RefundClaim
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   RefundClaim._({
     this.id,
     required this.paymentRail,
@@ -23,7 +24,7 @@ abstract class RefundClaim implements _i1.SerializableModel {
 
   factory RefundClaim({
     int? id,
-    required _i2.PaymentRail paymentRail,
+    required _i4hkjqgd.PaymentRail paymentRail,
     required String paymentRef,
     DateTime? claimedAt,
   }) = _RefundClaimImpl;
@@ -31,13 +32,13 @@ abstract class RefundClaim implements _i1.SerializableModel {
   factory RefundClaim.fromJson(Map<String, dynamic> jsonSerialization) {
     return RefundClaim(
       id: jsonSerialization['id'] as int?,
-      paymentRail: _i2.PaymentRail.fromJson(
+      paymentRail: _i4hkjqgd.PaymentRail.fromJson(
         (jsonSerialization['paymentRail'] as String),
       ),
       paymentRef: jsonSerialization['paymentRef'] as String,
       claimedAt: jsonSerialization['claimedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['claimedAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['claimedAt']),
     );
   }
 
@@ -46,7 +47,7 @@ abstract class RefundClaim implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  _i2.PaymentRail paymentRail;
+  _i4hkjqgd.PaymentRail paymentRail;
 
   String paymentRef;
 
@@ -54,10 +55,10 @@ abstract class RefundClaim implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [RefundClaim]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   RefundClaim copyWith({
     int? id,
-    _i2.PaymentRail? paymentRail,
+    _i4hkjqgd.PaymentRail? paymentRail,
     String? paymentRef,
     DateTime? claimedAt,
   });
@@ -73,8 +74,19 @@ abstract class RefundClaim implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.RefundClaim',
+      if (id != null) 'id': id,
+      'paymentRail': paymentRail.toJson(),
+      'paymentRef': paymentRef,
+      'claimedAt': claimedAt.toJson(),
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -83,7 +95,7 @@ class _Undefined {}
 class _RefundClaimImpl extends RefundClaim {
   _RefundClaimImpl({
     int? id,
-    required _i2.PaymentRail paymentRail,
+    required _i4hkjqgd.PaymentRail paymentRail,
     required String paymentRef,
     DateTime? claimedAt,
   }) : super._(
@@ -95,11 +107,11 @@ class _RefundClaimImpl extends RefundClaim {
 
   /// Returns a shallow copy of this [RefundClaim]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   RefundClaim copyWith({
     Object? id = _Undefined,
-    _i2.PaymentRail? paymentRail,
+    _i4hkjqgd.PaymentRail? paymentRail,
     String? paymentRef,
     DateTime? claimedAt,
   }) {

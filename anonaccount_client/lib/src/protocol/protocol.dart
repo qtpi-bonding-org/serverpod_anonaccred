@@ -8,44 +8,47 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
+// ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'account.dart' as _i2;
-import 'account_creation_response.dart' as _i3;
-import 'account_device.dart' as _i4;
-import 'anonaccount_exception.dart' as _i5;
-import 'authentication_exception.dart' as _i6;
-import 'authentication_result.dart' as _i7;
-import 'device_pairing_event.dart' as _i8;
-import 'device_pairing_info.dart' as _i9;
-import 'encrypted_data_key_response.dart' as _i10;
-import 'grant_attestor.dart' as _i11;
-import 'grant_member_device_result.dart' as _i12;
-import 'group_member.dart' as _i13;
-import 'group_member_device.dart' as _i14;
-import 'group_member_role.dart' as _i15;
-import 'group_member_view.dart' as _i16;
-import 'group_membership_view.dart' as _i17;
-import 'group_owner.dart' as _i18;
-import 'member_device_grant.dart' as _i19;
-import 'member_device_grant_outcome.dart' as _i20;
-import 'public_challenge.dart' as _i21;
-import 'public_challenge_response.dart' as _i22;
-import 'rate_limit_counter.dart' as _i23;
-import 'shard_routing.dart' as _i24;
-import 'share_group.dart' as _i25;
-import 'package:anonaccount_client/src/protocol/account_device.dart' as _i26;
+import 'package:anonaccount_client/src/protocol/account_device.dart'
+    as _imd12fyn;
+import 'package:anonaccount_client/src/protocol/group_member_view.dart'
+    as _ijdqq23n;
 import 'package:anonaccount_client/src/protocol/group_membership_view.dart'
-    as _i27;
-import 'package:anonaccount_client/src/protocol/group_member_view.dart' as _i28;
+    as _iluvf5aa;
 import 'package:anonaccount_client/src/protocol/member_device_grant.dart'
-    as _i29;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i30;
+    as _iboo1wkl;
+import 'package:anonaccount_protocol/anonaccount_protocol.dart' as _ijl9ntd6;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i31;
-import 'package:anonaccount_protocol/anonaccount_protocol.dart' as _i32;
+    as _iacc;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _iaic;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'account.dart' as _iulmo8pc;
+import 'account_creation_response.dart' as _i6fwxwud;
+import 'account_device.dart' as _iepmyrfy;
+import 'anonaccount_exception.dart' as _isa71u4f;
+import 'authentication_exception.dart' as _ip8v2uua;
+import 'authentication_result.dart' as _if3kndoe;
+import 'device_pairing_event.dart' as _ipncc0vk;
+import 'device_pairing_info.dart' as _ib6tjkvl;
+import 'encrypted_data_key_response.dart' as _i3v40fce;
+import 'grant_attestor.dart' as _iayw0ozf;
+import 'grant_member_device_result.dart' as _iimy53uo;
+import 'group_member.dart' as _igiek2ee;
+import 'group_member_device.dart' as _ijdcafmt;
+import 'group_member_role.dart' as _imgpb098;
+import 'group_member_view.dart' as _iizktvdn;
+import 'group_membership_view.dart' as _ilz3mlqj;
+import 'group_owner.dart' as _ibp98ugq;
+import 'member_device_grant.dart' as _i3iqayiq;
+import 'member_device_grant_outcome.dart' as _igy7ui1b;
+import 'public_challenge.dart' as _iju4wcr1;
+import 'public_challenge_response.dart' as _i8x07tkq;
+import 'rate_limit_counter.dart' as _i6yhx6i0;
+import 'shard_routing.dart' as _igkybre3;
+import 'share_group.dart' as _i97quwy2;
 export 'account.dart';
 export 'account_creation_response.dart';
 export 'account_device.dart';
@@ -70,14 +73,25 @@ export 'public_challenge_response.dart';
 export 'rate_limit_counter.dart';
 export 'shard_routing.dart';
 export 'share_group.dart';
+export 'package:anonaccount_protocol/anonaccount_protocol.dart' hide Protocol;
 export 'client.dart';
 
-class Protocol extends _i1.SerializationManager {
+class Protocol extends _isc.SerializationManager {
   Protocol._();
 
   factory Protocol() => _instance;
 
   static final Protocol _instance = Protocol._();
+
+  final Set<_isc.SerializationManager> _hostProtocols = {};
+
+  void registerHostProtocol(
+    String projectName,
+    _isc.SerializationManager protocol,
+  ) {
+    _hostProtocols.add(protocol);
+    _ijl9ntd6.Protocol().registerHostProtocol(projectName, protocol);
+  }
 
   static String? getClassNameFromObjectJson(dynamic data) {
     if (data is! Map) return null;
@@ -88,10 +102,7 @@ class Protocol extends _i1.SerializationManager {
   }
 
   @override
-  T deserialize<T>(
-    dynamic data, [
-    Type? t,
-  ]) {
+  T deserialize<T>(dynamic data, [Type? t]) {
     t ??= T;
 
     final dataClassName = getClassNameFromObjectJson(data);
@@ -101,169 +112,193 @@ class Protocol extends _i1.SerializationManager {
           'className': dataClassName,
           'data': data,
         });
-      } on FormatException catch (_) {
+      } on _isc.DeserializationClassNameNotFoundException catch (_) {
         // If the className is not recognized (e.g., older client receiving
         // data with a new subtype), fall back to deserializing without the
         // className, using the expected type T.
       }
     }
 
-    if (t == _i2.AnonAccount) {
-      return _i2.AnonAccount.fromJson(data) as T;
+    if (t == _iulmo8pc.AnonAccount) {
+      return _iulmo8pc.AnonAccount.fromJson(data) as T;
     }
-    if (t == _i3.AccountCreationResponse) {
-      return _i3.AccountCreationResponse.fromJson(data) as T;
+    if (t == _i6fwxwud.AccountCreationResponse) {
+      return _i6fwxwud.AccountCreationResponse.fromJson(data) as T;
     }
-    if (t == _i4.AccountDevice) {
-      return _i4.AccountDevice.fromJson(data) as T;
+    if (t == _iepmyrfy.AccountDevice) {
+      return _iepmyrfy.AccountDevice.fromJson(data) as T;
     }
-    if (t == _i5.AnonAccountException) {
-      return _i5.AnonAccountException.fromJson(data) as T;
+    if (t == _isa71u4f.AnonAccountException) {
+      return _isa71u4f.AnonAccountException.fromJson(data) as T;
     }
-    if (t == _i6.AuthenticationException) {
-      return _i6.AuthenticationException.fromJson(data) as T;
+    if (t == _ip8v2uua.AuthenticationException) {
+      return _ip8v2uua.AuthenticationException.fromJson(data) as T;
     }
-    if (t == _i7.AuthenticationResult) {
-      return _i7.AuthenticationResult.fromJson(data) as T;
+    if (t == _if3kndoe.AuthenticationResult) {
+      return _if3kndoe.AuthenticationResult.fromJson(data) as T;
     }
-    if (t == _i8.DevicePairingEvent) {
-      return _i8.DevicePairingEvent.fromJson(data) as T;
+    if (t == _ipncc0vk.DevicePairingEvent) {
+      return _ipncc0vk.DevicePairingEvent.fromJson(data) as T;
     }
-    if (t == _i9.DevicePairingInfo) {
-      return _i9.DevicePairingInfo.fromJson(data) as T;
+    if (t == _ib6tjkvl.DevicePairingInfo) {
+      return _ib6tjkvl.DevicePairingInfo.fromJson(data) as T;
     }
-    if (t == _i10.EncryptedDataKeyResponse) {
-      return _i10.EncryptedDataKeyResponse.fromJson(data) as T;
+    if (t == _i3v40fce.EncryptedDataKeyResponse) {
+      return _i3v40fce.EncryptedDataKeyResponse.fromJson(data) as T;
     }
-    if (t == _i11.GrantAttestor) {
-      return _i11.GrantAttestor.fromJson(data) as T;
+    if (t == _iayw0ozf.GrantAttestor) {
+      return _iayw0ozf.GrantAttestor.fromJson(data) as T;
     }
-    if (t == _i12.GrantMemberDeviceResult) {
-      return _i12.GrantMemberDeviceResult.fromJson(data) as T;
+    if (t == _iimy53uo.GrantMemberDeviceResult) {
+      return _iimy53uo.GrantMemberDeviceResult.fromJson(data) as T;
     }
-    if (t == _i13.GroupMember) {
-      return _i13.GroupMember.fromJson(data) as T;
+    if (t == _igiek2ee.GroupMember) {
+      return _igiek2ee.GroupMember.fromJson(data) as T;
     }
-    if (t == _i14.GroupMemberDevice) {
-      return _i14.GroupMemberDevice.fromJson(data) as T;
+    if (t == _ijdcafmt.GroupMemberDevice) {
+      return _ijdcafmt.GroupMemberDevice.fromJson(data) as T;
     }
-    if (t == _i15.GroupMemberRole) {
-      return _i15.GroupMemberRole.fromJson(data) as T;
+    if (t == _imgpb098.GroupMemberRole) {
+      return _imgpb098.GroupMemberRole.fromJson(data) as T;
     }
-    if (t == _i16.GroupMemberView) {
-      return _i16.GroupMemberView.fromJson(data) as T;
+    if (t == _iizktvdn.GroupMemberView) {
+      return _iizktvdn.GroupMemberView.fromJson(data) as T;
     }
-    if (t == _i17.GroupMembershipView) {
-      return _i17.GroupMembershipView.fromJson(data) as T;
+    if (t == _ilz3mlqj.GroupMembershipView) {
+      return _ilz3mlqj.GroupMembershipView.fromJson(data) as T;
     }
-    if (t == _i18.GroupOwner) {
-      return _i18.GroupOwner.fromJson(data) as T;
+    if (t == _ibp98ugq.GroupOwner) {
+      return _ibp98ugq.GroupOwner.fromJson(data) as T;
     }
-    if (t == _i19.MemberDeviceGrant) {
-      return _i19.MemberDeviceGrant.fromJson(data) as T;
+    if (t == _i3iqayiq.MemberDeviceGrant) {
+      return _i3iqayiq.MemberDeviceGrant.fromJson(data) as T;
     }
-    if (t == _i20.MemberDeviceGrantOutcome) {
-      return _i20.MemberDeviceGrantOutcome.fromJson(data) as T;
+    if (t == _igy7ui1b.MemberDeviceGrantOutcome) {
+      return _igy7ui1b.MemberDeviceGrantOutcome.fromJson(data) as T;
     }
-    if (t == _i21.PublicChallenge) {
-      return _i21.PublicChallenge.fromJson(data) as T;
+    if (t == _iju4wcr1.PublicChallenge) {
+      return _iju4wcr1.PublicChallenge.fromJson(data) as T;
     }
-    if (t == _i22.PublicChallengeResponse) {
-      return _i22.PublicChallengeResponse.fromJson(data) as T;
+    if (t == _i8x07tkq.PublicChallengeResponse) {
+      return _i8x07tkq.PublicChallengeResponse.fromJson(data) as T;
     }
-    if (t == _i23.RateLimitCounter) {
-      return _i23.RateLimitCounter.fromJson(data) as T;
+    if (t == _i6yhx6i0.RateLimitCounter) {
+      return _i6yhx6i0.RateLimitCounter.fromJson(data) as T;
     }
-    if (t == _i24.ShardRouting) {
-      return _i24.ShardRouting.fromJson(data) as T;
+    if (t == _igkybre3.ShardRouting) {
+      return _igkybre3.ShardRouting.fromJson(data) as T;
     }
-    if (t == _i25.ShareGroup) {
-      return _i25.ShareGroup.fromJson(data) as T;
+    if (t == _i97quwy2.ShareGroup) {
+      return _i97quwy2.ShareGroup.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i2.AnonAccount?>()) {
-      return (data != null ? _i2.AnonAccount.fromJson(data) : null) as T;
+    if (t == _isc.getType<_iulmo8pc.AnonAccount?>()) {
+      return (data != null ? _iulmo8pc.AnonAccount.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i3.AccountCreationResponse?>()) {
-      return (data != null ? _i3.AccountCreationResponse.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i4.AccountDevice?>()) {
-      return (data != null ? _i4.AccountDevice.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i5.AnonAccountException?>()) {
-      return (data != null ? _i5.AnonAccountException.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i6.AuthenticationException?>()) {
-      return (data != null ? _i6.AuthenticationException.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i7.AuthenticationResult?>()) {
-      return (data != null ? _i7.AuthenticationResult.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i8.DevicePairingEvent?>()) {
-      return (data != null ? _i8.DevicePairingEvent.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i9.DevicePairingInfo?>()) {
-      return (data != null ? _i9.DevicePairingInfo.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i10.EncryptedDataKeyResponse?>()) {
+    if (t == _isc.getType<_i6fwxwud.AccountCreationResponse?>()) {
       return (data != null
-              ? _i10.EncryptedDataKeyResponse.fromJson(data)
+              ? _i6fwxwud.AccountCreationResponse.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i11.GrantAttestor?>()) {
-      return (data != null ? _i11.GrantAttestor.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i12.GrantMemberDeviceResult?>()) {
-      return (data != null ? _i12.GrantMemberDeviceResult.fromJson(data) : null)
+    if (t == _isc.getType<_iepmyrfy.AccountDevice?>()) {
+      return (data != null ? _iepmyrfy.AccountDevice.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i13.GroupMember?>()) {
-      return (data != null ? _i13.GroupMember.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i14.GroupMemberDevice?>()) {
-      return (data != null ? _i14.GroupMemberDevice.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i15.GroupMemberRole?>()) {
-      return (data != null ? _i15.GroupMemberRole.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i16.GroupMemberView?>()) {
-      return (data != null ? _i16.GroupMemberView.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i17.GroupMembershipView?>()) {
-      return (data != null ? _i17.GroupMembershipView.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i18.GroupOwner?>()) {
-      return (data != null ? _i18.GroupOwner.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i19.MemberDeviceGrant?>()) {
-      return (data != null ? _i19.MemberDeviceGrant.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i20.MemberDeviceGrantOutcome?>()) {
+    if (t == _isc.getType<_isa71u4f.AnonAccountException?>()) {
       return (data != null
-              ? _i20.MemberDeviceGrantOutcome.fromJson(data)
+              ? _isa71u4f.AnonAccountException.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i21.PublicChallenge?>()) {
-      return (data != null ? _i21.PublicChallenge.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i22.PublicChallengeResponse?>()) {
-      return (data != null ? _i22.PublicChallengeResponse.fromJson(data) : null)
+    if (t == _isc.getType<_ip8v2uua.AuthenticationException?>()) {
+      return (data != null
+              ? _ip8v2uua.AuthenticationException.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i23.RateLimitCounter?>()) {
-      return (data != null ? _i23.RateLimitCounter.fromJson(data) : null) as T;
+    if (t == _isc.getType<_if3kndoe.AuthenticationResult?>()) {
+      return (data != null
+              ? _if3kndoe.AuthenticationResult.fromJson(data)
+              : null)
+          as T;
     }
-    if (t == _i1.getType<_i24.ShardRouting?>()) {
-      return (data != null ? _i24.ShardRouting.fromJson(data) : null) as T;
+    if (t == _isc.getType<_ipncc0vk.DevicePairingEvent?>()) {
+      return (data != null ? _ipncc0vk.DevicePairingEvent.fromJson(data) : null)
+          as T;
     }
-    if (t == _i1.getType<_i25.ShareGroup?>()) {
-      return (data != null ? _i25.ShareGroup.fromJson(data) : null) as T;
+    if (t == _isc.getType<_ib6tjkvl.DevicePairingInfo?>()) {
+      return (data != null ? _ib6tjkvl.DevicePairingInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i3v40fce.EncryptedDataKeyResponse?>()) {
+      return (data != null
+              ? _i3v40fce.EncryptedDataKeyResponse.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_iayw0ozf.GrantAttestor?>()) {
+      return (data != null ? _iayw0ozf.GrantAttestor.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iimy53uo.GrantMemberDeviceResult?>()) {
+      return (data != null
+              ? _iimy53uo.GrantMemberDeviceResult.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_igiek2ee.GroupMember?>()) {
+      return (data != null ? _igiek2ee.GroupMember.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ijdcafmt.GroupMemberDevice?>()) {
+      return (data != null ? _ijdcafmt.GroupMemberDevice.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_imgpb098.GroupMemberRole?>()) {
+      return (data != null ? _imgpb098.GroupMemberRole.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iizktvdn.GroupMemberView?>()) {
+      return (data != null ? _iizktvdn.GroupMemberView.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ilz3mlqj.GroupMembershipView?>()) {
+      return (data != null
+              ? _ilz3mlqj.GroupMembershipView.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_ibp98ugq.GroupOwner?>()) {
+      return (data != null ? _ibp98ugq.GroupOwner.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i3iqayiq.MemberDeviceGrant?>()) {
+      return (data != null ? _i3iqayiq.MemberDeviceGrant.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_igy7ui1b.MemberDeviceGrantOutcome?>()) {
+      return (data != null
+              ? _igy7ui1b.MemberDeviceGrantOutcome.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_iju4wcr1.PublicChallenge?>()) {
+      return (data != null ? _iju4wcr1.PublicChallenge.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i8x07tkq.PublicChallengeResponse?>()) {
+      return (data != null
+              ? _i8x07tkq.PublicChallengeResponse.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_i6yhx6i0.RateLimitCounter?>()) {
+      return (data != null ? _i6yhx6i0.RateLimitCounter.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_igkybre3.ShardRouting?>()) {
+      return (data != null ? _igkybre3.ShardRouting.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i97quwy2.ShareGroup?>()) {
+      return (data != null ? _i97quwy2.ShareGroup.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -271,7 +306,7 @@ class Protocol extends _i1.SerializationManager {
           )
           as T;
     }
-    if (t == _i1.getType<Map<String, String>?>()) {
+    if (t == _isc.getType<Map<String, String>?>()) {
       return (data != null
               ? (data as Map).map(
                   (k, v) =>
@@ -280,74 +315,74 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i20.MemberDeviceGrantOutcome>) {
+    if (t == List<_igy7ui1b.MemberDeviceGrantOutcome>) {
       return (data as List)
-              .map((e) => deserialize<_i20.MemberDeviceGrantOutcome>(e))
+              .map((e) => deserialize<_igy7ui1b.MemberDeviceGrantOutcome>(e))
               .toList()
           as T;
     }
-    if (t == List<_i26.AccountDevice>) {
+    if (t == List<_imd12fyn.AccountDevice>) {
       return (data as List)
-              .map((e) => deserialize<_i26.AccountDevice>(e))
+              .map((e) => deserialize<_imd12fyn.AccountDevice>(e))
               .toList()
           as T;
     }
-    if (t == List<_i27.GroupMembershipView>) {
+    if (t == List<_iluvf5aa.GroupMembershipView>) {
       return (data as List)
-              .map((e) => deserialize<_i27.GroupMembershipView>(e))
+              .map((e) => deserialize<_iluvf5aa.GroupMembershipView>(e))
               .toList()
           as T;
     }
-    if (t == List<_i28.GroupMemberView>) {
+    if (t == List<_ijdqq23n.GroupMemberView>) {
       return (data as List)
-              .map((e) => deserialize<_i28.GroupMemberView>(e))
+              .map((e) => deserialize<_ijdqq23n.GroupMemberView>(e))
               .toList()
           as T;
     }
-    if (t == List<_i29.MemberDeviceGrant>) {
+    if (t == List<_iboo1wkl.MemberDeviceGrant>) {
       return (data as List)
-              .map((e) => deserialize<_i29.MemberDeviceGrant>(e))
+              .map((e) => deserialize<_iboo1wkl.MemberDeviceGrant>(e))
               .toList()
           as T;
     }
     try {
-      return _i30.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _iaic.Protocol().deserialize<T>(data, t);
+    } on _isc.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i31.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _iacc.Protocol().deserialize<T>(data, t);
+    } on _isc.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i32.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _ijl9ntd6.Protocol().deserialize<T>(data, t);
+    } on _isc.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i2.AnonAccount => 'AnonAccount',
-      _i3.AccountCreationResponse => 'AccountCreationResponse',
-      _i4.AccountDevice => 'AccountDevice',
-      _i5.AnonAccountException => 'AnonAccountException',
-      _i6.AuthenticationException => 'AuthenticationException',
-      _i7.AuthenticationResult => 'AuthenticationResult',
-      _i8.DevicePairingEvent => 'DevicePairingEvent',
-      _i9.DevicePairingInfo => 'DevicePairingInfo',
-      _i10.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
-      _i11.GrantAttestor => 'GrantAttestor',
-      _i12.GrantMemberDeviceResult => 'GrantMemberDeviceResult',
-      _i13.GroupMember => 'GroupMember',
-      _i14.GroupMemberDevice => 'GroupMemberDevice',
-      _i15.GroupMemberRole => 'GroupMemberRole',
-      _i16.GroupMemberView => 'GroupMemberView',
-      _i17.GroupMembershipView => 'GroupMembershipView',
-      _i18.GroupOwner => 'GroupOwner',
-      _i19.MemberDeviceGrant => 'MemberDeviceGrant',
-      _i20.MemberDeviceGrantOutcome => 'MemberDeviceGrantOutcome',
-      _i21.PublicChallenge => 'PublicChallenge',
-      _i22.PublicChallengeResponse => 'PublicChallengeResponse',
-      _i23.RateLimitCounter => 'RateLimitCounter',
-      _i24.ShardRouting => 'ShardRouting',
-      _i25.ShareGroup => 'ShareGroup',
+      _iulmo8pc.AnonAccount => 'AnonAccount',
+      _i6fwxwud.AccountCreationResponse => 'AccountCreationResponse',
+      _iepmyrfy.AccountDevice => 'AccountDevice',
+      _isa71u4f.AnonAccountException => 'AnonAccountException',
+      _ip8v2uua.AuthenticationException => 'AuthenticationException',
+      _if3kndoe.AuthenticationResult => 'AuthenticationResult',
+      _ipncc0vk.DevicePairingEvent => 'DevicePairingEvent',
+      _ib6tjkvl.DevicePairingInfo => 'DevicePairingInfo',
+      _i3v40fce.EncryptedDataKeyResponse => 'EncryptedDataKeyResponse',
+      _iayw0ozf.GrantAttestor => 'GrantAttestor',
+      _iimy53uo.GrantMemberDeviceResult => 'GrantMemberDeviceResult',
+      _igiek2ee.GroupMember => 'GroupMember',
+      _ijdcafmt.GroupMemberDevice => 'GroupMemberDevice',
+      _imgpb098.GroupMemberRole => 'GroupMemberRole',
+      _iizktvdn.GroupMemberView => 'GroupMemberView',
+      _ilz3mlqj.GroupMembershipView => 'GroupMembershipView',
+      _ibp98ugq.GroupOwner => 'GroupOwner',
+      _i3iqayiq.MemberDeviceGrant => 'MemberDeviceGrant',
+      _igy7ui1b.MemberDeviceGrantOutcome => 'MemberDeviceGrantOutcome',
+      _iju4wcr1.PublicChallenge => 'PublicChallenge',
+      _i8x07tkq.PublicChallengeResponse => 'PublicChallengeResponse',
+      _i6yhx6i0.RateLimitCounter => 'RateLimitCounter',
+      _igkybre3.ShardRouting => 'ShardRouting',
+      _i97quwy2.ShareGroup => 'ShareGroup',
       _ => null,
     };
   }
@@ -362,63 +397,57 @@ class Protocol extends _i1.SerializationManager {
     }
 
     switch (data) {
-      case _i2.AnonAccount():
+      case _iulmo8pc.AnonAccount():
         return 'AnonAccount';
-      case _i3.AccountCreationResponse():
+      case _i6fwxwud.AccountCreationResponse():
         return 'AccountCreationResponse';
-      case _i4.AccountDevice():
+      case _iepmyrfy.AccountDevice():
         return 'AccountDevice';
-      case _i5.AnonAccountException():
+      case _isa71u4f.AnonAccountException():
         return 'AnonAccountException';
-      case _i6.AuthenticationException():
+      case _ip8v2uua.AuthenticationException():
         return 'AuthenticationException';
-      case _i7.AuthenticationResult():
+      case _if3kndoe.AuthenticationResult():
         return 'AuthenticationResult';
-      case _i8.DevicePairingEvent():
+      case _ipncc0vk.DevicePairingEvent():
         return 'DevicePairingEvent';
-      case _i9.DevicePairingInfo():
+      case _ib6tjkvl.DevicePairingInfo():
         return 'DevicePairingInfo';
-      case _i10.EncryptedDataKeyResponse():
+      case _i3v40fce.EncryptedDataKeyResponse():
         return 'EncryptedDataKeyResponse';
-      case _i11.GrantAttestor():
+      case _iayw0ozf.GrantAttestor():
         return 'GrantAttestor';
-      case _i12.GrantMemberDeviceResult():
+      case _iimy53uo.GrantMemberDeviceResult():
         return 'GrantMemberDeviceResult';
-      case _i13.GroupMember():
+      case _igiek2ee.GroupMember():
         return 'GroupMember';
-      case _i14.GroupMemberDevice():
+      case _ijdcafmt.GroupMemberDevice():
         return 'GroupMemberDevice';
-      case _i15.GroupMemberRole():
+      case _imgpb098.GroupMemberRole():
         return 'GroupMemberRole';
-      case _i16.GroupMemberView():
+      case _iizktvdn.GroupMemberView():
         return 'GroupMemberView';
-      case _i17.GroupMembershipView():
+      case _ilz3mlqj.GroupMembershipView():
         return 'GroupMembershipView';
-      case _i18.GroupOwner():
+      case _ibp98ugq.GroupOwner():
         return 'GroupOwner';
-      case _i19.MemberDeviceGrant():
+      case _i3iqayiq.MemberDeviceGrant():
         return 'MemberDeviceGrant';
-      case _i20.MemberDeviceGrantOutcome():
+      case _igy7ui1b.MemberDeviceGrantOutcome():
         return 'MemberDeviceGrantOutcome';
-      case _i21.PublicChallenge():
+      case _iju4wcr1.PublicChallenge():
         return 'PublicChallenge';
-      case _i22.PublicChallengeResponse():
+      case _i8x07tkq.PublicChallengeResponse():
         return 'PublicChallengeResponse';
-      case _i23.RateLimitCounter():
+      case _i6yhx6i0.RateLimitCounter():
         return 'RateLimitCounter';
-      case _i24.ShardRouting():
+      case _igkybre3.ShardRouting():
         return 'ShardRouting';
-      case _i25.ShareGroup():
+      case _i97quwy2.ShareGroup():
         return 'ShareGroup';
     }
-    className = _i30.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'serverpod_auth_idp.$className';
-    }
-    className = _i31.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'serverpod_auth_core.$className';
-    }
+    className = _ijl9ntd6.Protocol().getClassNameForObject(data);
+    if (className != null) return className;
     return null;
   }
 
@@ -429,87 +458,141 @@ class Protocol extends _i1.SerializationManager {
       return super.deserializeByClassName(data);
     }
     if (dataClassName == 'AnonAccount') {
-      return deserialize<_i2.AnonAccount>(data['data']);
+      return deserialize<_iulmo8pc.AnonAccount>(data['data']);
     }
     if (dataClassName == 'AccountCreationResponse') {
-      return deserialize<_i3.AccountCreationResponse>(data['data']);
+      return deserialize<_i6fwxwud.AccountCreationResponse>(data['data']);
     }
     if (dataClassName == 'AccountDevice') {
-      return deserialize<_i4.AccountDevice>(data['data']);
+      return deserialize<_iepmyrfy.AccountDevice>(data['data']);
     }
     if (dataClassName == 'AnonAccountException') {
-      return deserialize<_i5.AnonAccountException>(data['data']);
+      return deserialize<_isa71u4f.AnonAccountException>(data['data']);
     }
     if (dataClassName == 'AuthenticationException') {
-      return deserialize<_i6.AuthenticationException>(data['data']);
+      return deserialize<_ip8v2uua.AuthenticationException>(data['data']);
     }
     if (dataClassName == 'AuthenticationResult') {
-      return deserialize<_i7.AuthenticationResult>(data['data']);
+      return deserialize<_if3kndoe.AuthenticationResult>(data['data']);
     }
     if (dataClassName == 'DevicePairingEvent') {
-      return deserialize<_i8.DevicePairingEvent>(data['data']);
+      return deserialize<_ipncc0vk.DevicePairingEvent>(data['data']);
     }
     if (dataClassName == 'DevicePairingInfo') {
-      return deserialize<_i9.DevicePairingInfo>(data['data']);
+      return deserialize<_ib6tjkvl.DevicePairingInfo>(data['data']);
     }
     if (dataClassName == 'EncryptedDataKeyResponse') {
-      return deserialize<_i10.EncryptedDataKeyResponse>(data['data']);
+      return deserialize<_i3v40fce.EncryptedDataKeyResponse>(data['data']);
     }
     if (dataClassName == 'GrantAttestor') {
-      return deserialize<_i11.GrantAttestor>(data['data']);
+      return deserialize<_iayw0ozf.GrantAttestor>(data['data']);
     }
     if (dataClassName == 'GrantMemberDeviceResult') {
-      return deserialize<_i12.GrantMemberDeviceResult>(data['data']);
+      return deserialize<_iimy53uo.GrantMemberDeviceResult>(data['data']);
     }
     if (dataClassName == 'GroupMember') {
-      return deserialize<_i13.GroupMember>(data['data']);
+      return deserialize<_igiek2ee.GroupMember>(data['data']);
     }
     if (dataClassName == 'GroupMemberDevice') {
-      return deserialize<_i14.GroupMemberDevice>(data['data']);
+      return deserialize<_ijdcafmt.GroupMemberDevice>(data['data']);
     }
     if (dataClassName == 'GroupMemberRole') {
-      return deserialize<_i15.GroupMemberRole>(data['data']);
+      return deserialize<_imgpb098.GroupMemberRole>(data['data']);
     }
     if (dataClassName == 'GroupMemberView') {
-      return deserialize<_i16.GroupMemberView>(data['data']);
+      return deserialize<_iizktvdn.GroupMemberView>(data['data']);
     }
     if (dataClassName == 'GroupMembershipView') {
-      return deserialize<_i17.GroupMembershipView>(data['data']);
+      return deserialize<_ilz3mlqj.GroupMembershipView>(data['data']);
     }
     if (dataClassName == 'GroupOwner') {
-      return deserialize<_i18.GroupOwner>(data['data']);
+      return deserialize<_ibp98ugq.GroupOwner>(data['data']);
     }
     if (dataClassName == 'MemberDeviceGrant') {
-      return deserialize<_i19.MemberDeviceGrant>(data['data']);
+      return deserialize<_i3iqayiq.MemberDeviceGrant>(data['data']);
     }
     if (dataClassName == 'MemberDeviceGrantOutcome') {
-      return deserialize<_i20.MemberDeviceGrantOutcome>(data['data']);
+      return deserialize<_igy7ui1b.MemberDeviceGrantOutcome>(data['data']);
     }
     if (dataClassName == 'PublicChallenge') {
-      return deserialize<_i21.PublicChallenge>(data['data']);
+      return deserialize<_iju4wcr1.PublicChallenge>(data['data']);
     }
     if (dataClassName == 'PublicChallengeResponse') {
-      return deserialize<_i22.PublicChallengeResponse>(data['data']);
+      return deserialize<_i8x07tkq.PublicChallengeResponse>(data['data']);
     }
     if (dataClassName == 'RateLimitCounter') {
-      return deserialize<_i23.RateLimitCounter>(data['data']);
+      return deserialize<_i6yhx6i0.RateLimitCounter>(data['data']);
     }
     if (dataClassName == 'ShardRouting') {
-      return deserialize<_i24.ShardRouting>(data['data']);
+      return deserialize<_igkybre3.ShardRouting>(data['data']);
     }
     if (dataClassName == 'ShareGroup') {
-      return deserialize<_i25.ShareGroup>(data['data']);
+      return deserialize<_i97quwy2.ShareGroup>(data['data']);
     }
-    if (dataClassName.startsWith('serverpod_auth_idp.')) {
-      data['className'] = dataClassName.substring(19);
-      return _i30.Protocol().deserializeByClassName(data);
-    }
-    if (dataClassName.startsWith('serverpod_auth_core.')) {
-      data['className'] = dataClassName.substring(20);
-      return _i31.Protocol().deserializeByClassName(data);
-    }
+    try {
+      return _ijl9ntd6.Protocol().deserializeByClassName(data);
+    } on _isc.DeserializationClassNameNotFoundException catch (_) {}
     return super.deserializeByClassName(data);
   }
+
+  @override
+  Object? dynamicFieldToJson(Object? object, {bool forProtocol = false}) {
+    if ((object is List || object is Set || object is Map) ||
+        getClassNameForObject(object) != null) {
+      return super.dynamicFieldToJson(object, forProtocol: forProtocol);
+    }
+    for (final protocol in _hostProtocols) {
+      final className = protocol.getClassNameForObject(object);
+      if (className == null) continue;
+      final host = protocol.getModuleName();
+      final wrapped = {
+        'className': className.contains('.') ? className : '$host.$className',
+        'data': object,
+      };
+      return forProtocol
+          ? _isc.SerializationManager.toEncodableForProtocol(wrapped)
+          : _isc.SerializationManager.toEncodable(wrapped);
+    }
+    return super.dynamicFieldToJson(object, forProtocol: forProtocol);
+  }
+
+  @override
+  dynamic deserializeDynamicFieldValue(Object? value) {
+    if (value == null) return null;
+    if (value is! Map<String, dynamic> || value['className'] is! String) {
+      throw FormatException(
+        'Dynamic fields are encoded as a Map with className and data, but got '
+        '${value.runtimeType} instead.',
+      );
+    }
+    final className = value['className'] as String;
+    for (final protocol in _hostProtocols) {
+      final host = protocol.getModuleName();
+      final hostPrefix = '$host.';
+      if (className.startsWith(hostPrefix)) {
+        final strippedClassName = className.substring(hostPrefix.length);
+        if (strippedClassName.contains('.')) {
+          throw FormatException(
+            'Dynamic field className must not use multiple prefixes: $className',
+          );
+        }
+        final hostData = Map<String, dynamic>.from(value);
+        hostData['className'] = strippedClassName;
+        return protocol.deserializeByClassName(hostData);
+      }
+    }
+    if (className.contains('.')) {
+      for (final protocol in _hostProtocols) {
+        try {
+          return protocol.deserializeByClassName(value);
+        } on _isc.DeserializationClassNameNotFoundException catch (_) {}
+      }
+    }
+    return deserializeByClassName(value);
+  }
+
+  @override
+  String getModuleName() => 'anonaccount';
 
   /// Maps any `Record`s known to this [Protocol] to their JSON representation
   ///
@@ -521,10 +604,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i30.Protocol().mapRecordToJson(record);
+      return _iaic.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i31.Protocol().mapRecordToJson(record);
+      return _iacc.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

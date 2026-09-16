@@ -10,19 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class ModuleClass
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
-  ModuleClass._({
-    required this.name,
-    required this.data,
-  });
+    implements _is.SerializableModel, _is.ProtocolSerialization {
+  ModuleClass._({required this.name, required this.data});
 
-  factory ModuleClass({
-    required String name,
-    required int data,
-  }) = _ModuleClassImpl;
+  factory ModuleClass({required String name, required int data}) =
+      _ModuleClassImpl;
 
   factory ModuleClass.fromJson(Map<String, dynamic> jsonSerialization) {
     return ModuleClass(
@@ -37,11 +32,8 @@ abstract class ModuleClass
 
   /// Returns a shallow copy of this [ModuleClass]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
-  ModuleClass copyWith({
-    String? name,
-    int? data,
-  });
+  @_is.useResult
+  ModuleClass copyWith({String? name, int? data});
   @override
   Map<String, dynamic> toJson() {
     return {
@@ -62,30 +54,19 @@ abstract class ModuleClass
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
 class _ModuleClassImpl extends ModuleClass {
-  _ModuleClassImpl({
-    required String name,
-    required int data,
-  }) : super._(
-         name: name,
-         data: data,
-       );
+  _ModuleClassImpl({required String name, required int data})
+    : super._(name: name, data: data);
 
   /// Returns a shallow copy of this [ModuleClass]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
-  ModuleClass copyWith({
-    String? name,
-    int? data,
-  }) {
-    return ModuleClass(
-      name: name ?? this.name,
-      data: data ?? this.data,
-    );
+  ModuleClass copyWith({String? name, int? data}) {
+    return ModuleClass(name: name ?? this.name, data: data ?? this.data);
   }
 }

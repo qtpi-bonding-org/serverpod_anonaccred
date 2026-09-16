@@ -10,14 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:anonaccred_server/src/generated/protocol.dart' as _i2;
+import 'package:anonaccred_server/src/generated/protocol.dart' as _irewcktm;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class InventoryException
     implements
-        _i1.SerializableException,
-        _i1.SerializableModel,
-        _i1.ProtocolSerialization {
+        _is.SerializableException,
+        _is.SerializableModel,
+        _is.ProtocolSerialization {
   InventoryException._({
     required this.code,
     required this.message,
@@ -38,7 +38,7 @@ abstract class InventoryException
       message: jsonSerialization['message'] as String,
       details: jsonSerialization['details'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _irewcktm.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
       tag: jsonSerialization['tag'] as String?,
@@ -55,7 +55,7 @@ abstract class InventoryException
 
   /// Returns a shallow copy of this [InventoryException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   InventoryException copyWith({
     String? code,
     String? message,
@@ -98,16 +98,11 @@ class _InventoryExceptionImpl extends InventoryException {
     required String message,
     Map<String, String>? details,
     String? tag,
-  }) : super._(
-         code: code,
-         message: message,
-         details: details,
-         tag: tag,
-       );
+  }) : super._(code: code, message: message, details: details, tag: tag);
 
   /// Returns a shallow copy of this [InventoryException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   InventoryException copyWith({
     String? code,
@@ -120,15 +115,7 @@ class _InventoryExceptionImpl extends InventoryException {
       message: message ?? this.message,
       details: details is Map<String, String>?
           ? details
-          : this.details?.map(
-              (
-                key0,
-                value0,
-              ) => MapEntry(
-                key0,
-                value0,
-              ),
-            ),
+          : this.details?.map((key0, value0) => MapEntry(key0, value0)),
       tag: tag is String? ? tag : this.tag,
     );
   }

@@ -10,11 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'grant_attestor.dart' as _i2;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'grant_attestor.dart' as _iayw0ozf;
 
 abstract class MemberDeviceGrant
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   MemberDeviceGrant._({
     required this.groupMemberId,
     required this.accountDeviceId,
@@ -25,53 +25,53 @@ abstract class MemberDeviceGrant
   });
 
   factory MemberDeviceGrant({
-    required _i1.UuidValue groupMemberId,
-    required _i1.UuidValue accountDeviceId,
+    required _is.UuidValue groupMemberId,
+    required _is.UuidValue accountDeviceId,
     required String encryptedDataKey,
     required String attestorSigningPublicKeyHex,
-    required _i2.GrantAttestor attestor,
+    required _iayw0ozf.GrantAttestor attestor,
     required String attestation,
   }) = _MemberDeviceGrantImpl;
 
   factory MemberDeviceGrant.fromJson(Map<String, dynamic> jsonSerialization) {
     return MemberDeviceGrant(
-      groupMemberId: _i1.UuidValueJsonExtension.fromJson(
+      groupMemberId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['groupMemberId'],
       ),
-      accountDeviceId: _i1.UuidValueJsonExtension.fromJson(
+      accountDeviceId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['accountDeviceId'],
       ),
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
       attestorSigningPublicKeyHex:
           jsonSerialization['attestorSigningPublicKeyHex'] as String,
-      attestor: _i2.GrantAttestor.fromJson(
+      attestor: _iayw0ozf.GrantAttestor.fromJson(
         (jsonSerialization['attestor'] as String),
       ),
       attestation: jsonSerialization['attestation'] as String,
     );
   }
 
-  _i1.UuidValue groupMemberId;
+  _is.UuidValue groupMemberId;
 
-  _i1.UuidValue accountDeviceId;
+  _is.UuidValue accountDeviceId;
 
   String encryptedDataKey;
 
   String attestorSigningPublicKeyHex;
 
-  _i2.GrantAttestor attestor;
+  _iayw0ozf.GrantAttestor attestor;
 
   String attestation;
 
   /// Returns a shallow copy of this [MemberDeviceGrant]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   MemberDeviceGrant copyWith({
-    _i1.UuidValue? groupMemberId,
-    _i1.UuidValue? accountDeviceId,
+    _is.UuidValue? groupMemberId,
+    _is.UuidValue? accountDeviceId,
     String? encryptedDataKey,
     String? attestorSigningPublicKeyHex,
-    _i2.GrantAttestor? attestor,
+    _iayw0ozf.GrantAttestor? attestor,
     String? attestation,
   });
   @override
@@ -102,17 +102,17 @@ abstract class MemberDeviceGrant
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
 class _MemberDeviceGrantImpl extends MemberDeviceGrant {
   _MemberDeviceGrantImpl({
-    required _i1.UuidValue groupMemberId,
-    required _i1.UuidValue accountDeviceId,
+    required _is.UuidValue groupMemberId,
+    required _is.UuidValue accountDeviceId,
     required String encryptedDataKey,
     required String attestorSigningPublicKeyHex,
-    required _i2.GrantAttestor attestor,
+    required _iayw0ozf.GrantAttestor attestor,
     required String attestation,
   }) : super._(
          groupMemberId: groupMemberId,
@@ -125,14 +125,14 @@ class _MemberDeviceGrantImpl extends MemberDeviceGrant {
 
   /// Returns a shallow copy of this [MemberDeviceGrant]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   MemberDeviceGrant copyWith({
-    _i1.UuidValue? groupMemberId,
-    _i1.UuidValue? accountDeviceId,
+    _is.UuidValue? groupMemberId,
+    _is.UuidValue? accountDeviceId,
     String? encryptedDataKey,
     String? attestorSigningPublicKeyHex,
-    _i2.GrantAttestor? attestor,
+    _iayw0ozf.GrantAttestor? attestor,
     String? attestation,
   }) {
     return MemberDeviceGrant(

@@ -10,17 +10,17 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class ChallengeExists
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   ChallengeExists._({required this.exists});
 
   factory ChallengeExists({required bool exists}) = _ChallengeExistsImpl;
 
   factory ChallengeExists.fromJson(Map<String, dynamic> jsonSerialization) {
     return ChallengeExists(
-      exists: _i1.BoolJsonExtension.fromJson(jsonSerialization['exists']),
+      exists: _is.BoolJsonExtension.fromJson(jsonSerialization['exists']),
     );
   }
 
@@ -28,14 +28,11 @@ abstract class ChallengeExists
 
   /// Returns a shallow copy of this [ChallengeExists]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   ChallengeExists copyWith({bool? exists});
   @override
   Map<String, dynamic> toJson() {
-    return {
-      '__className__': 'anonaccount.ChallengeExists',
-      'exists': exists,
-    };
+    return {'__className__': 'anonaccount.ChallengeExists', 'exists': exists};
   }
 
   @override
@@ -45,7 +42,7 @@ abstract class ChallengeExists
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -54,7 +51,7 @@ class _ChallengeExistsImpl extends ChallengeExists {
 
   /// Returns a shallow copy of this [ChallengeExists]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   ChallengeExists copyWith({bool? exists}) {
     return ChallengeExists(exists: exists ?? this.exists);

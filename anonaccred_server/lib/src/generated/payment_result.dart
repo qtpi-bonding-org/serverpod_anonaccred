@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class PaymentResult
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   PaymentResult._({
     required this.success,
     this.internalTransactionId,
@@ -30,12 +30,12 @@ abstract class PaymentResult
 
   factory PaymentResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return PaymentResult(
-      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      success: _is.BoolJsonExtension.fromJson(jsonSerialization['success']),
       internalTransactionId:
           jsonSerialization['internalTransactionId'] as String?,
       transactionTimestamp: jsonSerialization['transactionTimestamp'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(
+          : _is.DateTimeJsonExtension.fromJson(
               jsonSerialization['transactionTimestamp'],
             ),
       errorMessage: jsonSerialization['errorMessage'] as String?,
@@ -52,7 +52,7 @@ abstract class PaymentResult
 
   /// Returns a shallow copy of this [PaymentResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   PaymentResult copyWith({
     bool? success,
     String? internalTransactionId,
@@ -87,7 +87,7 @@ abstract class PaymentResult
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -108,7 +108,7 @@ class _PaymentResultImpl extends PaymentResult {
 
   /// Returns a shallow copy of this [PaymentResult]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   PaymentResult copyWith({
     bool? success,

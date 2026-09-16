@@ -10,11 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'payment_rail.dart' as _i2;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'payment_rail.dart' as _i4hkjqgd;
 
 abstract class RailProduct
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   RailProduct._({
     this.id,
     required this.rail,
@@ -24,7 +24,7 @@ abstract class RailProduct
 
   factory RailProduct({
     int? id,
-    required _i2.PaymentRail rail,
+    required _i4hkjqgd.PaymentRail rail,
     required String storeProductId,
     required bool isActive,
   }) = _RailProductImpl;
@@ -32,9 +32,11 @@ abstract class RailProduct
   factory RailProduct.fromJson(Map<String, dynamic> jsonSerialization) {
     return RailProduct(
       id: jsonSerialization['id'] as int?,
-      rail: _i2.PaymentRail.fromJson((jsonSerialization['rail'] as String)),
+      rail: _i4hkjqgd.PaymentRail.fromJson(
+        (jsonSerialization['rail'] as String),
+      ),
       storeProductId: jsonSerialization['storeProductId'] as String,
-      isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
+      isActive: _is.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
     );
   }
 
@@ -45,21 +47,21 @@ abstract class RailProduct
   @override
   int? id;
 
-  _i2.PaymentRail rail;
+  _i4hkjqgd.PaymentRail rail;
 
   String storeProductId;
 
   bool isActive;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [RailProduct]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   RailProduct copyWith({
     int? id,
-    _i2.PaymentRail? rail,
+    _i4hkjqgd.PaymentRail? rail,
     String? storeProductId,
     bool? isActive,
   });
@@ -90,12 +92,11 @@ abstract class RailProduct
   }
 
   static RailProductIncludeList includeList({
-    _i1.WhereExpressionBuilder<RailProductTable>? where,
+    _is.WhereExpressionBuilder<RailProductTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RailProductTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RailProductTable>? orderByList,
+    _is.OrderByBuilder<RailProductTable>? orderBy,
+    _is.OrderByListBuilder<RailProductTable>? orderByList,
     RailProductInclude? include,
   }) {
     return RailProductIncludeList._(
@@ -103,7 +104,6 @@ abstract class RailProduct
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(RailProduct.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(RailProduct.t),
       include: include,
     );
@@ -111,7 +111,7 @@ abstract class RailProduct
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -120,7 +120,7 @@ class _Undefined {}
 class _RailProductImpl extends RailProduct {
   _RailProductImpl({
     int? id,
-    required _i2.PaymentRail rail,
+    required _i4hkjqgd.PaymentRail rail,
     required String storeProductId,
     required bool isActive,
   }) : super._(
@@ -132,11 +132,11 @@ class _RailProductImpl extends RailProduct {
 
   /// Returns a shallow copy of this [RailProduct]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   RailProduct copyWith({
     Object? id = _Undefined,
-    _i2.PaymentRail? rail,
+    _i4hkjqgd.PaymentRail? rail,
     String? storeProductId,
     bool? isActive,
   }) {
@@ -149,80 +149,56 @@ class _RailProductImpl extends RailProduct {
   }
 }
 
-class RailProductUpdateTable extends _i1.UpdateTable<RailProductTable> {
+class RailProductUpdateTable extends _is.UpdateTable<RailProductTable> {
   RailProductUpdateTable(super.table);
 
-  _i1.ColumnValue<_i2.PaymentRail, _i2.PaymentRail> rail(
-    _i2.PaymentRail value,
-  ) => _i1.ColumnValue(
-    table.rail,
-    value,
-  );
+  _is.ColumnValue<_i4hkjqgd.PaymentRail, _i4hkjqgd.PaymentRail> rail(
+    _i4hkjqgd.PaymentRail value,
+  ) => _is.ColumnValue(table.rail, value);
 
-  _i1.ColumnValue<String, String> storeProductId(String value) =>
-      _i1.ColumnValue(
-        table.storeProductId,
-        value,
-      );
+  _is.ColumnValue<String, String> storeProductId(String value) =>
+      _is.ColumnValue(table.storeProductId, value);
 
-  _i1.ColumnValue<bool, bool> isActive(bool value) => _i1.ColumnValue(
-    table.isActive,
-    value,
-  );
+  _is.ColumnValue<bool, bool> isActive(bool value) =>
+      _is.ColumnValue(table.isActive, value);
 }
 
-class RailProductTable extends _i1.Table<int?> {
+class RailProductTable extends _is.Table<int?> {
   RailProductTable({super.tableRelation}) : super(tableName: 'rail_product') {
     updateTable = RailProductUpdateTable(this);
-    rail = _i1.ColumnEnum(
-      'rail',
-      this,
-      _i1.EnumSerialization.byName,
-    );
-    storeProductId = _i1.ColumnString(
-      'storeProductId',
-      this,
-    );
-    isActive = _i1.ColumnBool(
-      'isActive',
-      this,
-    );
+    rail = _is.ColumnEnum('rail', this, _is.EnumSerialization.byName);
+    storeProductId = _is.ColumnString('storeProductId', this);
+    isActive = _is.ColumnBool('isActive', this);
   }
 
   late final RailProductUpdateTable updateTable;
 
-  late final _i1.ColumnEnum<_i2.PaymentRail> rail;
+  late final _is.ColumnEnum<_i4hkjqgd.PaymentRail> rail;
 
-  late final _i1.ColumnString storeProductId;
+  late final _is.ColumnString storeProductId;
 
-  late final _i1.ColumnBool isActive;
+  late final _is.ColumnBool isActive;
 
   @override
-  List<_i1.Column> get columns => [
-    id,
-    rail,
-    storeProductId,
-    isActive,
-  ];
+  List<_is.Column> get columns => [id, rail, storeProductId, isActive];
 }
 
-class RailProductInclude extends _i1.IncludeObject {
+class RailProductInclude extends _is.IncludeObject {
   RailProductInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => RailProduct.t;
+  _is.Table<int?> get table => RailProduct.t;
 }
 
-class RailProductIncludeList extends _i1.IncludeList {
+class RailProductIncludeList extends _is.IncludeList {
   RailProductIncludeList._({
-    _i1.WhereExpressionBuilder<RailProductTable>? where,
+    _is.WhereExpressionBuilder<RailProductTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -230,10 +206,10 @@ class RailProductIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => RailProduct.t;
+  _is.Table<int?> get table => RailProduct.t;
 }
 
 class RailProductRepository {
@@ -262,22 +238,20 @@ class RailProductRepository {
   /// );
   /// ```
   Future<List<RailProduct>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RailProductTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RailProductTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RailProductTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RailProductTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<RailProductTable>? orderBy,
+    _is.OrderByListBuilder<RailProductTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<RailProduct>(
       where: where?.call(RailProduct.t),
       orderBy: orderBy?.call(RailProduct.t),
       orderByList: orderByList?.call(RailProduct.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -304,21 +278,19 @@ class RailProductRepository {
   /// );
   /// ```
   Future<RailProduct?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RailProductTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RailProductTable>? where,
     int? offset,
-    _i1.OrderByBuilder<RailProductTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RailProductTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<RailProductTable>? orderBy,
+    _is.OrderByListBuilder<RailProductTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<RailProduct>(
       where: where?.call(RailProduct.t),
       orderBy: orderBy?.call(RailProduct.t),
       orderByList: orderByList?.call(RailProduct.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -328,11 +300,11 @@ class RailProductRepository {
 
   /// Finds a single [RailProduct] by its [id] or null if no such row exists.
   Future<RailProduct?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<RailProduct>(
       id,
@@ -352,16 +324,22 @@ class RailProductRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProduct>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RailProduct> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<RailProduct>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -369,12 +347,78 @@ class RailProductRepository {
   ///
   /// The returned [RailProduct] will have its `id` field set.
   Future<RailProduct> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RailProduct row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<RailProduct>(
+    return session.db.insertRow<RailProduct>(row, transaction: transaction);
+  }
+
+  /// Upserts all [RailProduct]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [RailProduct]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<RailProduct>> upsert(
+    _is.DatabaseSession session,
+    List<RailProduct> rows, {
+    required _is.ColumnSelections<RailProductTable> conflictColumns,
+    _is.ColumnSelections<RailProductTable>? updateColumns,
+    _is.WhereExpressionBuilder<RailProductTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<RailProduct>(
+      rows,
+      conflictColumns: conflictColumns(RailProduct.t),
+      updateColumns: updateColumns?.call(RailProduct.t),
+      updateWhere: updateWhere?.call(RailProduct.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [RailProduct] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [RailProduct] will have its `id` field set.
+  Future<RailProduct?> upsertRow(
+    _is.DatabaseSession session,
+    RailProduct row, {
+    required _is.ColumnSelections<RailProductTable> conflictColumns,
+    _is.ColumnSelections<RailProductTable>? updateColumns,
+    _is.WhereExpressionBuilder<RailProductTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<RailProduct>(
       row,
+      conflictColumns: conflictColumns(RailProduct.t),
+      updateColumns: updateColumns?.call(RailProduct.t),
+      updateWhere: updateWhere?.call(RailProduct.t),
       transaction: transaction,
     );
   }
@@ -384,16 +428,22 @@ class RailProductRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProduct>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RailProduct> rows, {
-    _i1.ColumnSelections<RailProductTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<RailProductTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<RailProduct>(
       rows,
       columns: columns?.call(RailProduct.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -401,10 +451,10 @@ class RailProductRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<RailProduct> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RailProduct row, {
-    _i1.ColumnSelections<RailProductTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<RailProductTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<RailProduct>(
       row,
@@ -416,10 +466,10 @@ class RailProductRepository {
   /// Updates a single [RailProduct] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<RailProduct?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<RailProductUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    required _is.ColumnValueListBuilder<RailProductUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<RailProduct>(
       id,
@@ -430,16 +480,20 @@ class RailProductRepository {
 
   /// Updates all [RailProduct]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProduct>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<RailProductUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<RailProductTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<RailProductUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<RailProductTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RailProductTable>? orderBy,
-    _i1.OrderByListBuilder<RailProductTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<RailProductTable>? orderBy,
+    _is.OrderByListBuilder<RailProductTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<RailProduct>(
       columnValues: columnValues(RailProduct.t.updateTable),
@@ -448,56 +502,80 @@ class RailProductRepository {
       offset: offset,
       orderBy: orderBy?.call(RailProduct.t),
       orderByList: orderByList?.call(RailProduct.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [RailProduct]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProduct>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RailProduct> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<RailProductTable>? orderBy,
+    _is.OrderByListBuilder<RailProductTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<RailProduct>(
       rows,
+      orderBy: orderBy?.call(RailProduct.t),
+      orderByList: orderByList?.call(RailProduct.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [RailProduct].
   Future<RailProduct> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RailProduct row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<RailProduct>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<RailProduct>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProduct>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<RailProductTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<RailProductTable> where,
+    _is.OrderByBuilder<RailProductTable>? orderBy,
+    _is.OrderByListBuilder<RailProductTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<RailProduct>(
       where: where(RailProduct.t),
+      orderBy: orderBy?.call(RailProduct.t),
+      orderByList: orderByList?.call(RailProduct.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RailProductTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RailProductTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<RailProduct>(
       where: where?.call(RailProduct.t),
@@ -508,11 +586,11 @@ class RailProductRepository {
 
   /// Acquires row-level locks on [RailProduct] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<RailProductTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<RailProductTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<RailProduct>(
       where: where(RailProduct.t),

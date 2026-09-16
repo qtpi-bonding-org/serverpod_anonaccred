@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class ConsumptionLog
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   ConsumptionLog._({
     this.id,
     required this.accountUuid,
@@ -25,7 +25,7 @@ abstract class ConsumptionLog
 
   factory ConsumptionLog({
     int? id,
-    required _i1.UuidValue accountUuid,
+    required _is.UuidValue accountUuid,
     required int entitlementId,
     required double amount,
     required String reason,
@@ -35,7 +35,7 @@ abstract class ConsumptionLog
   factory ConsumptionLog.fromJson(Map<String, dynamic> jsonSerialization) {
     return ConsumptionLog(
       id: jsonSerialization['id'] as int?,
-      accountUuid: _i1.UuidValueJsonExtension.fromJson(
+      accountUuid: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['accountUuid'],
       ),
       entitlementId: jsonSerialization['entitlementId'] as int,
@@ -43,7 +43,7 @@ abstract class ConsumptionLog
       reason: jsonSerialization['reason'] as String,
       timestamp: jsonSerialization['timestamp'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['timestamp']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['timestamp']),
     );
   }
 
@@ -54,7 +54,7 @@ abstract class ConsumptionLog
   @override
   int? id;
 
-  _i1.UuidValue accountUuid;
+  _is.UuidValue accountUuid;
 
   int entitlementId;
 
@@ -65,14 +65,14 @@ abstract class ConsumptionLog
   DateTime timestamp;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [ConsumptionLog]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   ConsumptionLog copyWith({
     int? id,
-    _i1.UuidValue? accountUuid,
+    _is.UuidValue? accountUuid,
     int? entitlementId,
     double? amount,
     String? reason,
@@ -109,12 +109,11 @@ abstract class ConsumptionLog
   }
 
   static ConsumptionLogIncludeList includeList({
-    _i1.WhereExpressionBuilder<ConsumptionLogTable>? where,
+    _is.WhereExpressionBuilder<ConsumptionLogTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ConsumptionLogTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ConsumptionLogTable>? orderByList,
+    _is.OrderByBuilder<ConsumptionLogTable>? orderBy,
+    _is.OrderByListBuilder<ConsumptionLogTable>? orderByList,
     ConsumptionLogInclude? include,
   }) {
     return ConsumptionLogIncludeList._(
@@ -122,7 +121,6 @@ abstract class ConsumptionLog
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(ConsumptionLog.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(ConsumptionLog.t),
       include: include,
     );
@@ -130,7 +128,7 @@ abstract class ConsumptionLog
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -139,7 +137,7 @@ class _Undefined {}
 class _ConsumptionLogImpl extends ConsumptionLog {
   _ConsumptionLogImpl({
     int? id,
-    required _i1.UuidValue accountUuid,
+    required _is.UuidValue accountUuid,
     required int entitlementId,
     required double amount,
     required String reason,
@@ -155,11 +153,11 @@ class _ConsumptionLogImpl extends ConsumptionLog {
 
   /// Returns a shallow copy of this [ConsumptionLog]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   ConsumptionLog copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? accountUuid,
+    _is.UuidValue? accountUuid,
     int? entitlementId,
     double? amount,
     String? reason,
@@ -176,79 +174,51 @@ class _ConsumptionLogImpl extends ConsumptionLog {
   }
 }
 
-class ConsumptionLogUpdateTable extends _i1.UpdateTable<ConsumptionLogTable> {
+class ConsumptionLogUpdateTable extends _is.UpdateTable<ConsumptionLogTable> {
   ConsumptionLogUpdateTable(super.table);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> accountUuid(
-    _i1.UuidValue value,
-  ) => _i1.ColumnValue(
-    table.accountUuid,
-    value,
-  );
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> accountUuid(
+    _is.UuidValue value,
+  ) => _is.ColumnValue(table.accountUuid, value);
 
-  _i1.ColumnValue<int, int> entitlementId(int value) => _i1.ColumnValue(
-    table.entitlementId,
-    value,
-  );
+  _is.ColumnValue<int, int> entitlementId(int value) =>
+      _is.ColumnValue(table.entitlementId, value);
 
-  _i1.ColumnValue<double, double> amount(double value) => _i1.ColumnValue(
-    table.amount,
-    value,
-  );
+  _is.ColumnValue<double, double> amount(double value) =>
+      _is.ColumnValue(table.amount, value);
 
-  _i1.ColumnValue<String, String> reason(String value) => _i1.ColumnValue(
-    table.reason,
-    value,
-  );
+  _is.ColumnValue<String, String> reason(String value) =>
+      _is.ColumnValue(table.reason, value);
 
-  _i1.ColumnValue<DateTime, DateTime> timestamp(DateTime value) =>
-      _i1.ColumnValue(
-        table.timestamp,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> timestamp(DateTime value) =>
+      _is.ColumnValue(table.timestamp, value);
 }
 
-class ConsumptionLogTable extends _i1.Table<int?> {
+class ConsumptionLogTable extends _is.Table<int?> {
   ConsumptionLogTable({super.tableRelation})
     : super(tableName: 'consumption_log') {
     updateTable = ConsumptionLogUpdateTable(this);
-    accountUuid = _i1.ColumnUuid(
-      'accountUuid',
-      this,
-    );
-    entitlementId = _i1.ColumnInt(
-      'entitlementId',
-      this,
-    );
-    amount = _i1.ColumnDouble(
-      'amount',
-      this,
-    );
-    reason = _i1.ColumnString(
-      'reason',
-      this,
-    );
-    timestamp = _i1.ColumnDateTime(
-      'timestamp',
-      this,
-      hasDefault: true,
-    );
+    accountUuid = _is.ColumnUuid('accountUuid', this);
+    entitlementId = _is.ColumnInt('entitlementId', this);
+    amount = _is.ColumnDouble('amount', this);
+    reason = _is.ColumnString('reason', this);
+    timestamp = _is.ColumnDateTime('timestamp', this, hasDefault: true);
   }
 
   late final ConsumptionLogUpdateTable updateTable;
 
-  late final _i1.ColumnUuid accountUuid;
+  late final _is.ColumnUuid accountUuid;
 
-  late final _i1.ColumnInt entitlementId;
+  late final _is.ColumnInt entitlementId;
 
-  late final _i1.ColumnDouble amount;
+  late final _is.ColumnDouble amount;
 
-  late final _i1.ColumnString reason;
+  late final _is.ColumnString reason;
 
-  late final _i1.ColumnDateTime timestamp;
+  late final _is.ColumnDateTime timestamp;
 
   @override
-  List<_i1.Column> get columns => [
+  List<_is.Column> get columns => [
     id,
     accountUuid,
     entitlementId,
@@ -258,23 +228,22 @@ class ConsumptionLogTable extends _i1.Table<int?> {
   ];
 }
 
-class ConsumptionLogInclude extends _i1.IncludeObject {
+class ConsumptionLogInclude extends _is.IncludeObject {
   ConsumptionLogInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => ConsumptionLog.t;
+  _is.Table<int?> get table => ConsumptionLog.t;
 }
 
-class ConsumptionLogIncludeList extends _i1.IncludeList {
+class ConsumptionLogIncludeList extends _is.IncludeList {
   ConsumptionLogIncludeList._({
-    _i1.WhereExpressionBuilder<ConsumptionLogTable>? where,
+    _is.WhereExpressionBuilder<ConsumptionLogTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -282,10 +251,10 @@ class ConsumptionLogIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => ConsumptionLog.t;
+  _is.Table<int?> get table => ConsumptionLog.t;
 }
 
 class ConsumptionLogRepository {
@@ -314,22 +283,20 @@ class ConsumptionLogRepository {
   /// );
   /// ```
   Future<List<ConsumptionLog>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ConsumptionLogTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ConsumptionLogTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ConsumptionLogTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ConsumptionLogTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<ConsumptionLogTable>? orderBy,
+    _is.OrderByListBuilder<ConsumptionLogTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<ConsumptionLog>(
       where: where?.call(ConsumptionLog.t),
       orderBy: orderBy?.call(ConsumptionLog.t),
       orderByList: orderByList?.call(ConsumptionLog.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -356,21 +323,19 @@ class ConsumptionLogRepository {
   /// );
   /// ```
   Future<ConsumptionLog?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ConsumptionLogTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ConsumptionLogTable>? where,
     int? offset,
-    _i1.OrderByBuilder<ConsumptionLogTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<ConsumptionLogTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<ConsumptionLogTable>? orderBy,
+    _is.OrderByListBuilder<ConsumptionLogTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<ConsumptionLog>(
       where: where?.call(ConsumptionLog.t),
       orderBy: orderBy?.call(ConsumptionLog.t),
       orderByList: orderByList?.call(ConsumptionLog.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -380,11 +345,11 @@ class ConsumptionLogRepository {
 
   /// Finds a single [ConsumptionLog] by its [id] or null if no such row exists.
   Future<ConsumptionLog?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<ConsumptionLog>(
       id,
@@ -404,16 +369,22 @@ class ConsumptionLogRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ConsumptionLog>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ConsumptionLog> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<ConsumptionLog>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -421,12 +392,78 @@ class ConsumptionLogRepository {
   ///
   /// The returned [ConsumptionLog] will have its `id` field set.
   Future<ConsumptionLog> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ConsumptionLog row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<ConsumptionLog>(
+    return session.db.insertRow<ConsumptionLog>(row, transaction: transaction);
+  }
+
+  /// Upserts all [ConsumptionLog]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [ConsumptionLog]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<ConsumptionLog>> upsert(
+    _is.DatabaseSession session,
+    List<ConsumptionLog> rows, {
+    required _is.ColumnSelections<ConsumptionLogTable> conflictColumns,
+    _is.ColumnSelections<ConsumptionLogTable>? updateColumns,
+    _is.WhereExpressionBuilder<ConsumptionLogTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<ConsumptionLog>(
+      rows,
+      conflictColumns: conflictColumns(ConsumptionLog.t),
+      updateColumns: updateColumns?.call(ConsumptionLog.t),
+      updateWhere: updateWhere?.call(ConsumptionLog.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [ConsumptionLog] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [ConsumptionLog] will have its `id` field set.
+  Future<ConsumptionLog?> upsertRow(
+    _is.DatabaseSession session,
+    ConsumptionLog row, {
+    required _is.ColumnSelections<ConsumptionLogTable> conflictColumns,
+    _is.ColumnSelections<ConsumptionLogTable>? updateColumns,
+    _is.WhereExpressionBuilder<ConsumptionLogTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<ConsumptionLog>(
       row,
+      conflictColumns: conflictColumns(ConsumptionLog.t),
+      updateColumns: updateColumns?.call(ConsumptionLog.t),
+      updateWhere: updateWhere?.call(ConsumptionLog.t),
       transaction: transaction,
     );
   }
@@ -436,16 +473,22 @@ class ConsumptionLogRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ConsumptionLog>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ConsumptionLog> rows, {
-    _i1.ColumnSelections<ConsumptionLogTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<ConsumptionLogTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<ConsumptionLog>(
       rows,
       columns: columns?.call(ConsumptionLog.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -453,10 +496,10 @@ class ConsumptionLogRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<ConsumptionLog> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ConsumptionLog row, {
-    _i1.ColumnSelections<ConsumptionLogTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<ConsumptionLogTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<ConsumptionLog>(
       row,
@@ -468,10 +511,10 @@ class ConsumptionLogRepository {
   /// Updates a single [ConsumptionLog] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<ConsumptionLog?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<ConsumptionLogUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    required _is.ColumnValueListBuilder<ConsumptionLogUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<ConsumptionLog>(
       id,
@@ -482,16 +525,20 @@ class ConsumptionLogRepository {
 
   /// Updates all [ConsumptionLog]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ConsumptionLog>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<ConsumptionLogUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<ConsumptionLogTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<ConsumptionLogUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<ConsumptionLogTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<ConsumptionLogTable>? orderBy,
-    _i1.OrderByListBuilder<ConsumptionLogTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<ConsumptionLogTable>? orderBy,
+    _is.OrderByListBuilder<ConsumptionLogTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<ConsumptionLog>(
       columnValues: columnValues(ConsumptionLog.t.updateTable),
@@ -500,56 +547,80 @@ class ConsumptionLogRepository {
       offset: offset,
       orderBy: orderBy?.call(ConsumptionLog.t),
       orderByList: orderByList?.call(ConsumptionLog.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [ConsumptionLog]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ConsumptionLog>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<ConsumptionLog> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<ConsumptionLogTable>? orderBy,
+    _is.OrderByListBuilder<ConsumptionLogTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<ConsumptionLog>(
       rows,
+      orderBy: orderBy?.call(ConsumptionLog.t),
+      orderByList: orderByList?.call(ConsumptionLog.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [ConsumptionLog].
   Future<ConsumptionLog> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     ConsumptionLog row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<ConsumptionLog>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<ConsumptionLog>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<ConsumptionLog>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<ConsumptionLogTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<ConsumptionLogTable> where,
+    _is.OrderByBuilder<ConsumptionLogTable>? orderBy,
+    _is.OrderByListBuilder<ConsumptionLogTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<ConsumptionLog>(
       where: where(ConsumptionLog.t),
+      orderBy: orderBy?.call(ConsumptionLog.t),
+      orderByList: orderByList?.call(ConsumptionLog.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<ConsumptionLogTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<ConsumptionLogTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<ConsumptionLog>(
       where: where?.call(ConsumptionLog.t),
@@ -560,11 +631,11 @@ class ConsumptionLogRepository {
 
   /// Acquires row-level locks on [ConsumptionLog] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<ConsumptionLogTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<ConsumptionLogTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<ConsumptionLog>(
       where: where(ConsumptionLog.t),

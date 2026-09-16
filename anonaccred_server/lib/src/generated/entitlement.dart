@@ -10,11 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'entitlement_type.dart' as _i2;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'entitlement_type.dart' as _i02qbmjp;
 
 abstract class Entitlement
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   Entitlement._({
     this.id,
     required this.tag,
@@ -27,7 +27,7 @@ abstract class Entitlement
     int? id,
     required String tag,
     required String name,
-    required _i2.EntitlementType type,
+    required _i02qbmjp.EntitlementType type,
     required bool serverValidated,
   }) = _EntitlementImpl;
 
@@ -36,8 +36,10 @@ abstract class Entitlement
       id: jsonSerialization['id'] as int?,
       tag: jsonSerialization['tag'] as String,
       name: jsonSerialization['name'] as String,
-      type: _i2.EntitlementType.fromJson((jsonSerialization['type'] as String)),
-      serverValidated: _i1.BoolJsonExtension.fromJson(
+      type: _i02qbmjp.EntitlementType.fromJson(
+        (jsonSerialization['type'] as String),
+      ),
+      serverValidated: _is.BoolJsonExtension.fromJson(
         jsonSerialization['serverValidated'],
       ),
     );
@@ -54,21 +56,21 @@ abstract class Entitlement
 
   String name;
 
-  _i2.EntitlementType type;
+  _i02qbmjp.EntitlementType type;
 
   bool serverValidated;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [Entitlement]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   Entitlement copyWith({
     int? id,
     String? tag,
     String? name,
-    _i2.EntitlementType? type,
+    _i02qbmjp.EntitlementType? type,
     bool? serverValidated,
   });
   @override
@@ -100,12 +102,11 @@ abstract class Entitlement
   }
 
   static EntitlementIncludeList includeList({
-    _i1.WhereExpressionBuilder<EntitlementTable>? where,
+    _is.WhereExpressionBuilder<EntitlementTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EntitlementTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<EntitlementTable>? orderByList,
+    _is.OrderByBuilder<EntitlementTable>? orderBy,
+    _is.OrderByListBuilder<EntitlementTable>? orderByList,
     EntitlementInclude? include,
   }) {
     return EntitlementIncludeList._(
@@ -113,7 +114,6 @@ abstract class Entitlement
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(Entitlement.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(Entitlement.t),
       include: include,
     );
@@ -121,7 +121,7 @@ abstract class Entitlement
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -132,7 +132,7 @@ class _EntitlementImpl extends Entitlement {
     int? id,
     required String tag,
     required String name,
-    required _i2.EntitlementType type,
+    required _i02qbmjp.EntitlementType type,
     required bool serverValidated,
   }) : super._(
          id: id,
@@ -144,13 +144,13 @@ class _EntitlementImpl extends Entitlement {
 
   /// Returns a shallow copy of this [Entitlement]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   Entitlement copyWith({
     Object? id = _Undefined,
     String? tag,
     String? name,
-    _i2.EntitlementType? type,
+    _i02qbmjp.EntitlementType? type,
     bool? serverValidated,
   }) {
     return Entitlement(
@@ -163,91 +163,62 @@ class _EntitlementImpl extends Entitlement {
   }
 }
 
-class EntitlementUpdateTable extends _i1.UpdateTable<EntitlementTable> {
+class EntitlementUpdateTable extends _is.UpdateTable<EntitlementTable> {
   EntitlementUpdateTable(super.table);
 
-  _i1.ColumnValue<String, String> tag(String value) => _i1.ColumnValue(
-    table.tag,
-    value,
-  );
+  _is.ColumnValue<String, String> tag(String value) =>
+      _is.ColumnValue(table.tag, value);
 
-  _i1.ColumnValue<String, String> name(String value) => _i1.ColumnValue(
-    table.name,
-    value,
-  );
+  _is.ColumnValue<String, String> name(String value) =>
+      _is.ColumnValue(table.name, value);
 
-  _i1.ColumnValue<_i2.EntitlementType, _i2.EntitlementType> type(
-    _i2.EntitlementType value,
-  ) => _i1.ColumnValue(
-    table.type,
-    value,
-  );
+  _is.ColumnValue<_i02qbmjp.EntitlementType, _i02qbmjp.EntitlementType> type(
+    _i02qbmjp.EntitlementType value,
+  ) => _is.ColumnValue(table.type, value);
 
-  _i1.ColumnValue<bool, bool> serverValidated(bool value) => _i1.ColumnValue(
-    table.serverValidated,
-    value,
-  );
+  _is.ColumnValue<bool, bool> serverValidated(bool value) =>
+      _is.ColumnValue(table.serverValidated, value);
 }
 
-class EntitlementTable extends _i1.Table<int?> {
+class EntitlementTable extends _is.Table<int?> {
   EntitlementTable({super.tableRelation}) : super(tableName: 'entitlement') {
     updateTable = EntitlementUpdateTable(this);
-    tag = _i1.ColumnString(
-      'tag',
-      this,
-    );
-    name = _i1.ColumnString(
-      'name',
-      this,
-    );
-    type = _i1.ColumnEnum(
-      'type',
-      this,
-      _i1.EnumSerialization.byName,
-    );
-    serverValidated = _i1.ColumnBool(
-      'serverValidated',
-      this,
-    );
+    tag = _is.ColumnString('tag', this);
+    name = _is.ColumnString('name', this);
+    type = _is.ColumnEnum('type', this, _is.EnumSerialization.byName);
+    serverValidated = _is.ColumnBool('serverValidated', this);
   }
 
   late final EntitlementUpdateTable updateTable;
 
-  late final _i1.ColumnString tag;
+  late final _is.ColumnString tag;
 
-  late final _i1.ColumnString name;
+  late final _is.ColumnString name;
 
-  late final _i1.ColumnEnum<_i2.EntitlementType> type;
+  late final _is.ColumnEnum<_i02qbmjp.EntitlementType> type;
 
-  late final _i1.ColumnBool serverValidated;
+  late final _is.ColumnBool serverValidated;
 
   @override
-  List<_i1.Column> get columns => [
-    id,
-    tag,
-    name,
-    type,
-    serverValidated,
-  ];
+  List<_is.Column> get columns => [id, tag, name, type, serverValidated];
 }
 
-class EntitlementInclude extends _i1.IncludeObject {
+class EntitlementInclude extends _is.IncludeObject {
   EntitlementInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => Entitlement.t;
+  _is.Table<int?> get table => Entitlement.t;
 }
 
-class EntitlementIncludeList extends _i1.IncludeList {
+class EntitlementIncludeList extends _is.IncludeList {
   EntitlementIncludeList._({
-    _i1.WhereExpressionBuilder<EntitlementTable>? where,
+    _is.WhereExpressionBuilder<EntitlementTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -255,10 +226,10 @@ class EntitlementIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => Entitlement.t;
+  _is.Table<int?> get table => Entitlement.t;
 }
 
 class EntitlementRepository {
@@ -287,22 +258,20 @@ class EntitlementRepository {
   /// );
   /// ```
   Future<List<Entitlement>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<EntitlementTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<EntitlementTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EntitlementTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<EntitlementTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<EntitlementTable>? orderBy,
+    _is.OrderByListBuilder<EntitlementTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<Entitlement>(
       where: where?.call(Entitlement.t),
       orderBy: orderBy?.call(Entitlement.t),
       orderByList: orderByList?.call(Entitlement.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -329,21 +298,19 @@ class EntitlementRepository {
   /// );
   /// ```
   Future<Entitlement?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<EntitlementTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<EntitlementTable>? where,
     int? offset,
-    _i1.OrderByBuilder<EntitlementTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<EntitlementTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<EntitlementTable>? orderBy,
+    _is.OrderByListBuilder<EntitlementTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<Entitlement>(
       where: where?.call(Entitlement.t),
       orderBy: orderBy?.call(Entitlement.t),
       orderByList: orderByList?.call(Entitlement.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -353,11 +320,11 @@ class EntitlementRepository {
 
   /// Finds a single [Entitlement] by its [id] or null if no such row exists.
   Future<Entitlement?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<Entitlement>(
       id,
@@ -377,16 +344,22 @@ class EntitlementRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<Entitlement>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<Entitlement> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<Entitlement>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -394,12 +367,78 @@ class EntitlementRepository {
   ///
   /// The returned [Entitlement] will have its `id` field set.
   Future<Entitlement> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     Entitlement row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<Entitlement>(
+    return session.db.insertRow<Entitlement>(row, transaction: transaction);
+  }
+
+  /// Upserts all [Entitlement]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [Entitlement]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<Entitlement>> upsert(
+    _is.DatabaseSession session,
+    List<Entitlement> rows, {
+    required _is.ColumnSelections<EntitlementTable> conflictColumns,
+    _is.ColumnSelections<EntitlementTable>? updateColumns,
+    _is.WhereExpressionBuilder<EntitlementTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<Entitlement>(
+      rows,
+      conflictColumns: conflictColumns(Entitlement.t),
+      updateColumns: updateColumns?.call(Entitlement.t),
+      updateWhere: updateWhere?.call(Entitlement.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [Entitlement] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [Entitlement] will have its `id` field set.
+  Future<Entitlement?> upsertRow(
+    _is.DatabaseSession session,
+    Entitlement row, {
+    required _is.ColumnSelections<EntitlementTable> conflictColumns,
+    _is.ColumnSelections<EntitlementTable>? updateColumns,
+    _is.WhereExpressionBuilder<EntitlementTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<Entitlement>(
       row,
+      conflictColumns: conflictColumns(Entitlement.t),
+      updateColumns: updateColumns?.call(Entitlement.t),
+      updateWhere: updateWhere?.call(Entitlement.t),
       transaction: transaction,
     );
   }
@@ -409,16 +448,22 @@ class EntitlementRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<Entitlement>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<Entitlement> rows, {
-    _i1.ColumnSelections<EntitlementTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<EntitlementTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<Entitlement>(
       rows,
       columns: columns?.call(Entitlement.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -426,10 +471,10 @@ class EntitlementRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<Entitlement> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     Entitlement row, {
-    _i1.ColumnSelections<EntitlementTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<EntitlementTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<Entitlement>(
       row,
@@ -441,10 +486,10 @@ class EntitlementRepository {
   /// Updates a single [Entitlement] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<Entitlement?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<EntitlementUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    required _is.ColumnValueListBuilder<EntitlementUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<Entitlement>(
       id,
@@ -455,16 +500,20 @@ class EntitlementRepository {
 
   /// Updates all [Entitlement]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<Entitlement>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<EntitlementUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<EntitlementTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<EntitlementUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<EntitlementTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EntitlementTable>? orderBy,
-    _i1.OrderByListBuilder<EntitlementTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<EntitlementTable>? orderBy,
+    _is.OrderByListBuilder<EntitlementTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<Entitlement>(
       columnValues: columnValues(Entitlement.t.updateTable),
@@ -473,56 +522,80 @@ class EntitlementRepository {
       offset: offset,
       orderBy: orderBy?.call(Entitlement.t),
       orderByList: orderByList?.call(Entitlement.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [Entitlement]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<Entitlement>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<Entitlement> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<EntitlementTable>? orderBy,
+    _is.OrderByListBuilder<EntitlementTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<Entitlement>(
       rows,
+      orderBy: orderBy?.call(Entitlement.t),
+      orderByList: orderByList?.call(Entitlement.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [Entitlement].
   Future<Entitlement> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     Entitlement row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<Entitlement>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<Entitlement>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<Entitlement>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<EntitlementTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<EntitlementTable> where,
+    _is.OrderByBuilder<EntitlementTable>? orderBy,
+    _is.OrderByListBuilder<EntitlementTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<Entitlement>(
       where: where(Entitlement.t),
+      orderBy: orderBy?.call(Entitlement.t),
+      orderByList: orderByList?.call(Entitlement.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<EntitlementTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<EntitlementTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<Entitlement>(
       where: where?.call(Entitlement.t),
@@ -533,11 +606,11 @@ class EntitlementRepository {
 
   /// Acquires row-level locks on [Entitlement] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<EntitlementTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<EntitlementTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<Entitlement>(
       where: where(Entitlement.t),

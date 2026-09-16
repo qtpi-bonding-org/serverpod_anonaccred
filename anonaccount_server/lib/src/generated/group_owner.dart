@@ -8,16 +8,16 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
-// ignore_for_file: unnecessary_null_comparison
+// ignore_for_file: dead_code, unnecessary_null_comparison
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'share_group.dart' as _i2;
-import 'account.dart' as _i3;
-import 'package:anonaccount_server/src/generated/protocol.dart' as _i4;
+import 'package:anonaccount_server/src/generated/protocol.dart' as _i1j1ale0;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'account.dart' as _iulmo8pc;
+import 'share_group.dart' as _i97quwy2;
 
 abstract class GroupOwner
-    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<_is.UuidValue?>, _is.ProtocolSerialization {
   GroupOwner._({
     this.id,
     required this.shareGroupId,
@@ -38,11 +38,11 @@ abstract class GroupOwner
        isRevoked = isRevoked ?? false;
 
   factory GroupOwner({
-    _i1.UuidValue? id,
-    required _i1.UuidValue shareGroupId,
-    _i2.ShareGroup? shareGroup,
-    required _i1.UuidValue anonAccountId,
-    _i3.AnonAccount? anonAccount,
+    _is.UuidValue? id,
+    required _is.UuidValue shareGroupId,
+    _i97quwy2.ShareGroup? shareGroup,
+    required _is.UuidValue anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     required String encryptedUltimateKey,
     required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
@@ -58,21 +58,21 @@ abstract class GroupOwner
     return GroupOwner(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      shareGroupId: _i1.UuidValueJsonExtension.fromJson(
+          : _is.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      shareGroupId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['shareGroupId'],
       ),
       shareGroup: jsonSerialization['shareGroup'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.ShareGroup>(
+          : _i1j1ale0.Protocol().deserialize<_i97quwy2.ShareGroup>(
               jsonSerialization['shareGroup'],
             ),
-      anonAccountId: _i1.UuidValueJsonExtension.fromJson(
+      anonAccountId: _is.UuidValueJsonExtension.fromJson(
         jsonSerialization['anonAccountId'],
       ),
       anonAccount: jsonSerialization['anonAccount'] == null
           ? null
-          : _i4.Protocol().deserialize<_i3.AnonAccount>(
+          : _i1j1ale0.Protocol().deserialize<_iulmo8pc.AnonAccount>(
               jsonSerialization['anonAccount'],
             ),
       encryptedUltimateKey: jsonSerialization['encryptedUltimateKey'] as String,
@@ -82,13 +82,13 @@ abstract class GroupOwner
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
+          : _is.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
       revokedAt: jsonSerialization['revokedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       revokedByAttestorPublicKeyHex:
           jsonSerialization['revokedByAttestorPublicKeyHex'] as String?,
       revokedByAttestation:
@@ -101,15 +101,15 @@ abstract class GroupOwner
   static const db = GroupOwnerRepository._();
 
   @override
-  _i1.UuidValue? id;
+  _is.UuidValue? id;
 
-  _i1.UuidValue shareGroupId;
+  _is.UuidValue shareGroupId;
 
-  _i2.ShareGroup? shareGroup;
+  _i97quwy2.ShareGroup? shareGroup;
 
-  _i1.UuidValue anonAccountId;
+  _is.UuidValue anonAccountId;
 
-  _i3.AnonAccount? anonAccount;
+  _iulmo8pc.AnonAccount? anonAccount;
 
   String encryptedUltimateKey;
 
@@ -130,17 +130,17 @@ abstract class GroupOwner
   String? revokedByAttestation;
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => t;
+  _is.Table<_is.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [GroupOwner]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   GroupOwner copyWith({
-    _i1.UuidValue? id,
-    _i1.UuidValue? shareGroupId,
-    _i2.ShareGroup? shareGroup,
-    _i1.UuidValue? anonAccountId,
-    _i3.AnonAccount? anonAccount,
+    _is.UuidValue? id,
+    _is.UuidValue? shareGroupId,
+    _i97quwy2.ShareGroup? shareGroup,
+    _is.UuidValue? anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     String? encryptedUltimateKey,
     String? addedByAttestorPublicKeyHex,
     String? addedByAttestation,
@@ -198,8 +198,8 @@ abstract class GroupOwner
   }
 
   static GroupOwnerInclude include({
-    _i2.ShareGroupInclude? shareGroup,
-    _i3.AnonAccountInclude? anonAccount,
+    _i97quwy2.ShareGroupInclude? shareGroup,
+    _iulmo8pc.AnonAccountInclude? anonAccount,
   }) {
     return GroupOwnerInclude._(
       shareGroup: shareGroup,
@@ -208,12 +208,11 @@ abstract class GroupOwner
   }
 
   static GroupOwnerIncludeList includeList({
-    _i1.WhereExpressionBuilder<GroupOwnerTable>? where,
+    _is.WhereExpressionBuilder<GroupOwnerTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<GroupOwnerTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<GroupOwnerTable>? orderByList,
+    _is.OrderByBuilder<GroupOwnerTable>? orderBy,
+    _is.OrderByListBuilder<GroupOwnerTable>? orderByList,
     GroupOwnerInclude? include,
   }) {
     return GroupOwnerIncludeList._(
@@ -221,7 +220,6 @@ abstract class GroupOwner
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(GroupOwner.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(GroupOwner.t),
       include: include,
     );
@@ -229,7 +227,7 @@ abstract class GroupOwner
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -237,11 +235,11 @@ class _Undefined {}
 
 class _GroupOwnerImpl extends GroupOwner {
   _GroupOwnerImpl({
-    _i1.UuidValue? id,
-    required _i1.UuidValue shareGroupId,
-    _i2.ShareGroup? shareGroup,
-    required _i1.UuidValue anonAccountId,
-    _i3.AnonAccount? anonAccount,
+    _is.UuidValue? id,
+    required _is.UuidValue shareGroupId,
+    _i97quwy2.ShareGroup? shareGroup,
+    required _is.UuidValue anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
     required String encryptedUltimateKey,
     required String addedByAttestorPublicKeyHex,
     required String addedByAttestation,
@@ -270,13 +268,13 @@ class _GroupOwnerImpl extends GroupOwner {
 
   /// Returns a shallow copy of this [GroupOwner]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   GroupOwner copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? shareGroupId,
+    _is.UuidValue? shareGroupId,
     Object? shareGroup = _Undefined,
-    _i1.UuidValue? anonAccountId,
+    _is.UuidValue? anonAccountId,
     Object? anonAccount = _Undefined,
     String? encryptedUltimateKey,
     String? addedByAttestorPublicKeyHex,
@@ -289,13 +287,13 @@ class _GroupOwnerImpl extends GroupOwner {
     Object? revokedByAttestation = _Undefined,
   }) {
     return GroupOwner(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _is.UuidValue? ? id : this.id,
       shareGroupId: shareGroupId ?? this.shareGroupId,
-      shareGroup: shareGroup is _i2.ShareGroup?
+      shareGroup: shareGroup is _i97quwy2.ShareGroup?
           ? shareGroup
           : this.shareGroup?.copyWith(),
       anonAccountId: anonAccountId ?? this.anonAccountId,
-      anonAccount: anonAccount is _i3.AnonAccount?
+      anonAccount: anonAccount is _iulmo8pc.AnonAccount?
           ? anonAccount
           : this.anonAccount?.copyWith(),
       encryptedUltimateKey: encryptedUltimateKey ?? this.encryptedUltimateKey,
@@ -316,185 +314,124 @@ class _GroupOwnerImpl extends GroupOwner {
   }
 }
 
-class GroupOwnerUpdateTable extends _i1.UpdateTable<GroupOwnerTable> {
+class GroupOwnerUpdateTable extends _is.UpdateTable<GroupOwnerTable> {
   GroupOwnerUpdateTable(super.table);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> shareGroupId(
-    _i1.UuidValue value,
-  ) => _i1.ColumnValue(
-    table.shareGroupId,
-    value,
-  );
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> shareGroupId(
+    _is.UuidValue value,
+  ) => _is.ColumnValue(table.shareGroupId, value);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> anonAccountId(
-    _i1.UuidValue value,
-  ) => _i1.ColumnValue(
-    table.anonAccountId,
-    value,
-  );
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> anonAccountId(
+    _is.UuidValue value,
+  ) => _is.ColumnValue(table.anonAccountId, value);
 
-  _i1.ColumnValue<String, String> encryptedUltimateKey(String value) =>
-      _i1.ColumnValue(
-        table.encryptedUltimateKey,
-        value,
-      );
+  _is.ColumnValue<String, String> encryptedUltimateKey(String value) =>
+      _is.ColumnValue(table.encryptedUltimateKey, value);
 
-  _i1.ColumnValue<String, String> addedByAttestorPublicKeyHex(String value) =>
-      _i1.ColumnValue(
-        table.addedByAttestorPublicKeyHex,
-        value,
-      );
+  _is.ColumnValue<String, String> addedByAttestorPublicKeyHex(String value) =>
+      _is.ColumnValue(table.addedByAttestorPublicKeyHex, value);
 
-  _i1.ColumnValue<String, String> addedByAttestation(String value) =>
-      _i1.ColumnValue(
-        table.addedByAttestation,
-        value,
-      );
+  _is.ColumnValue<String, String> addedByAttestation(String value) =>
+      _is.ColumnValue(table.addedByAttestation, value);
 
-  _i1.ColumnValue<int, int> keyEpoch(int value) => _i1.ColumnValue(
-    table.keyEpoch,
-    value,
-  );
+  _is.ColumnValue<int, int> keyEpoch(int value) =>
+      _is.ColumnValue(table.keyEpoch, value);
 
-  _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
-      _i1.ColumnValue(
-        table.createdAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
+      _is.ColumnValue(table.createdAt, value);
 
-  _i1.ColumnValue<bool, bool> isRevoked(bool value) => _i1.ColumnValue(
-    table.isRevoked,
-    value,
-  );
+  _is.ColumnValue<bool, bool> isRevoked(bool value) =>
+      _is.ColumnValue(table.isRevoked, value);
 
-  _i1.ColumnValue<DateTime, DateTime> revokedAt(DateTime? value) =>
-      _i1.ColumnValue(
-        table.revokedAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> revokedAt(DateTime? value) =>
+      _is.ColumnValue(table.revokedAt, value);
 
-  _i1.ColumnValue<String, String> revokedByAttestorPublicKeyHex(
+  _is.ColumnValue<String, String> revokedByAttestorPublicKeyHex(
     String? value,
-  ) => _i1.ColumnValue(
-    table.revokedByAttestorPublicKeyHex,
-    value,
-  );
+  ) => _is.ColumnValue(table.revokedByAttestorPublicKeyHex, value);
 
-  _i1.ColumnValue<String, String> revokedByAttestation(String? value) =>
-      _i1.ColumnValue(
-        table.revokedByAttestation,
-        value,
-      );
+  _is.ColumnValue<String, String> revokedByAttestation(String? value) =>
+      _is.ColumnValue(table.revokedByAttestation, value);
 }
 
-class GroupOwnerTable extends _i1.Table<_i1.UuidValue?> {
+class GroupOwnerTable extends _is.Table<_is.UuidValue?> {
   GroupOwnerTable({super.tableRelation}) : super(tableName: 'group_owner') {
     updateTable = GroupOwnerUpdateTable(this);
-    shareGroupId = _i1.ColumnUuid(
-      'shareGroupId',
-      this,
-    );
-    anonAccountId = _i1.ColumnUuid(
-      'anonAccountId',
-      this,
-    );
-    encryptedUltimateKey = _i1.ColumnString(
-      'encryptedUltimateKey',
-      this,
-    );
-    addedByAttestorPublicKeyHex = _i1.ColumnString(
+    shareGroupId = _is.ColumnUuid('shareGroupId', this);
+    anonAccountId = _is.ColumnUuid('anonAccountId', this);
+    encryptedUltimateKey = _is.ColumnString('encryptedUltimateKey', this);
+    addedByAttestorPublicKeyHex = _is.ColumnString(
       'addedByAttestorPublicKeyHex',
       this,
     );
-    addedByAttestation = _i1.ColumnString(
-      'addedByAttestation',
-      this,
-    );
-    keyEpoch = _i1.ColumnInt(
-      'keyEpoch',
-      this,
-      hasDefault: true,
-    );
-    createdAt = _i1.ColumnDateTime(
-      'createdAt',
-      this,
-      hasDefault: true,
-    );
-    isRevoked = _i1.ColumnBool(
-      'isRevoked',
-      this,
-      hasDefault: true,
-    );
-    revokedAt = _i1.ColumnDateTime(
-      'revokedAt',
-      this,
-    );
-    revokedByAttestorPublicKeyHex = _i1.ColumnString(
+    addedByAttestation = _is.ColumnString('addedByAttestation', this);
+    keyEpoch = _is.ColumnInt('keyEpoch', this, hasDefault: true);
+    createdAt = _is.ColumnDateTime('createdAt', this, hasDefault: true);
+    isRevoked = _is.ColumnBool('isRevoked', this, hasDefault: true);
+    revokedAt = _is.ColumnDateTime('revokedAt', this);
+    revokedByAttestorPublicKeyHex = _is.ColumnString(
       'revokedByAttestorPublicKeyHex',
       this,
     );
-    revokedByAttestation = _i1.ColumnString(
-      'revokedByAttestation',
-      this,
-    );
+    revokedByAttestation = _is.ColumnString('revokedByAttestation', this);
   }
 
   late final GroupOwnerUpdateTable updateTable;
 
-  late final _i1.ColumnUuid shareGroupId;
+  late final _is.ColumnUuid shareGroupId;
 
-  _i2.ShareGroupTable? _shareGroup;
+  _i97quwy2.ShareGroupTable? _shareGroup;
 
-  late final _i1.ColumnUuid anonAccountId;
+  late final _is.ColumnUuid anonAccountId;
 
-  _i3.AnonAccountTable? _anonAccount;
+  _iulmo8pc.AnonAccountTable? _anonAccount;
 
-  late final _i1.ColumnString encryptedUltimateKey;
+  late final _is.ColumnString encryptedUltimateKey;
 
-  late final _i1.ColumnString addedByAttestorPublicKeyHex;
+  late final _is.ColumnString addedByAttestorPublicKeyHex;
 
-  late final _i1.ColumnString addedByAttestation;
+  late final _is.ColumnString addedByAttestation;
 
-  late final _i1.ColumnInt keyEpoch;
+  late final _is.ColumnInt keyEpoch;
 
-  late final _i1.ColumnDateTime createdAt;
+  late final _is.ColumnDateTime createdAt;
 
-  late final _i1.ColumnBool isRevoked;
+  late final _is.ColumnBool isRevoked;
 
-  late final _i1.ColumnDateTime revokedAt;
+  late final _is.ColumnDateTime revokedAt;
 
-  late final _i1.ColumnString revokedByAttestorPublicKeyHex;
+  late final _is.ColumnString revokedByAttestorPublicKeyHex;
 
-  late final _i1.ColumnString revokedByAttestation;
+  late final _is.ColumnString revokedByAttestation;
 
-  _i2.ShareGroupTable get shareGroup {
+  _i97quwy2.ShareGroupTable get shareGroup {
     if (_shareGroup != null) return _shareGroup!;
-    _shareGroup = _i1.createRelationTable(
+    _shareGroup = _is.createRelationTable(
       relationFieldName: 'shareGroup',
       field: GroupOwner.t.shareGroupId,
-      foreignField: _i2.ShareGroup.t.id,
+      foreignField: _i97quwy2.ShareGroup.t.id,
       tableRelation: tableRelation,
       createTable: (foreignTableRelation) =>
-          _i2.ShareGroupTable(tableRelation: foreignTableRelation),
+          _i97quwy2.ShareGroupTable(tableRelation: foreignTableRelation),
     );
     return _shareGroup!;
   }
 
-  _i3.AnonAccountTable get anonAccount {
+  _iulmo8pc.AnonAccountTable get anonAccount {
     if (_anonAccount != null) return _anonAccount!;
-    _anonAccount = _i1.createRelationTable(
+    _anonAccount = _is.createRelationTable(
       relationFieldName: 'anonAccount',
       field: GroupOwner.t.anonAccountId,
-      foreignField: _i3.AnonAccount.t.id,
+      foreignField: _iulmo8pc.AnonAccount.t.id,
       tableRelation: tableRelation,
       createTable: (foreignTableRelation) =>
-          _i3.AnonAccountTable(tableRelation: foreignTableRelation),
+          _iulmo8pc.AnonAccountTable(tableRelation: foreignTableRelation),
     );
     return _anonAccount!;
   }
 
   @override
-  List<_i1.Column> get columns => [
+  List<_is.Column> get columns => [
     id,
     shareGroupId,
     anonAccountId,
@@ -510,7 +447,7 @@ class GroupOwnerTable extends _i1.Table<_i1.UuidValue?> {
   ];
 
   @override
-  _i1.Table? getRelationTable(String relationField) {
+  _is.Table? getRelationTable(String relationField) {
     if (relationField == 'shareGroup') {
       return shareGroup;
     }
@@ -521,36 +458,35 @@ class GroupOwnerTable extends _i1.Table<_i1.UuidValue?> {
   }
 }
 
-class GroupOwnerInclude extends _i1.IncludeObject {
+class GroupOwnerInclude extends _is.IncludeObject {
   GroupOwnerInclude._({
-    _i2.ShareGroupInclude? shareGroup,
-    _i3.AnonAccountInclude? anonAccount,
+    _i97quwy2.ShareGroupInclude? shareGroup,
+    _iulmo8pc.AnonAccountInclude? anonAccount,
   }) {
     _shareGroup = shareGroup;
     _anonAccount = anonAccount;
   }
 
-  _i2.ShareGroupInclude? _shareGroup;
+  _i97quwy2.ShareGroupInclude? _shareGroup;
 
-  _i3.AnonAccountInclude? _anonAccount;
+  _iulmo8pc.AnonAccountInclude? _anonAccount;
 
   @override
-  Map<String, _i1.Include?> get includes => {
+  Map<String, _is.Include?> get includes => {
     'shareGroup': _shareGroup,
     'anonAccount': _anonAccount,
   };
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => GroupOwner.t;
+  _is.Table<_is.UuidValue?> get table => GroupOwner.t;
 }
 
-class GroupOwnerIncludeList extends _i1.IncludeList {
+class GroupOwnerIncludeList extends _is.IncludeList {
   GroupOwnerIncludeList._({
-    _i1.WhereExpressionBuilder<GroupOwnerTable>? where,
+    _is.WhereExpressionBuilder<GroupOwnerTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -558,10 +494,10 @@ class GroupOwnerIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => GroupOwner.t;
+  _is.Table<_is.UuidValue?> get table => GroupOwner.t;
 }
 
 class GroupOwnerRepository {
@@ -592,23 +528,21 @@ class GroupOwnerRepository {
   /// );
   /// ```
   Future<List<GroupOwner>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<GroupOwnerTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<GroupOwnerTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<GroupOwnerTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<GroupOwnerTable>? orderByList,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<GroupOwnerTable>? orderBy,
+    _is.OrderByListBuilder<GroupOwnerTable>? orderByList,
+    _is.Transaction? transaction,
     GroupOwnerInclude? include,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<GroupOwner>(
       where: where?.call(GroupOwner.t),
       orderBy: orderBy?.call(GroupOwner.t),
       orderByList: orderByList?.call(GroupOwner.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -636,22 +570,20 @@ class GroupOwnerRepository {
   /// );
   /// ```
   Future<GroupOwner?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<GroupOwnerTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<GroupOwnerTable>? where,
     int? offset,
-    _i1.OrderByBuilder<GroupOwnerTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<GroupOwnerTable>? orderByList,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<GroupOwnerTable>? orderBy,
+    _is.OrderByListBuilder<GroupOwnerTable>? orderByList,
+    _is.Transaction? transaction,
     GroupOwnerInclude? include,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<GroupOwner>(
       where: where?.call(GroupOwner.t),
       orderBy: orderBy?.call(GroupOwner.t),
       orderByList: orderByList?.call(GroupOwner.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       include: include,
@@ -662,12 +594,12 @@ class GroupOwnerRepository {
 
   /// Finds a single [GroupOwner] by its [id] or null if no such row exists.
   Future<GroupOwner?> findById(
-    _i1.Session session,
-    _i1.UuidValue id, {
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session,
+    _is.UuidValue id, {
+    _is.Transaction? transaction,
     GroupOwnerInclude? include,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<GroupOwner>(
       id,
@@ -688,16 +620,22 @@ class GroupOwnerRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<GroupOwner>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<GroupOwner> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<GroupOwner>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -705,12 +643,78 @@ class GroupOwnerRepository {
   ///
   /// The returned [GroupOwner] will have its `id` field set.
   Future<GroupOwner> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     GroupOwner row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<GroupOwner>(
+    return session.db.insertRow<GroupOwner>(row, transaction: transaction);
+  }
+
+  /// Upserts all [GroupOwner]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [GroupOwner]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<GroupOwner>> upsert(
+    _is.DatabaseSession session,
+    List<GroupOwner> rows, {
+    required _is.ColumnSelections<GroupOwnerTable> conflictColumns,
+    _is.ColumnSelections<GroupOwnerTable>? updateColumns,
+    _is.WhereExpressionBuilder<GroupOwnerTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<GroupOwner>(
+      rows,
+      conflictColumns: conflictColumns(GroupOwner.t),
+      updateColumns: updateColumns?.call(GroupOwner.t),
+      updateWhere: updateWhere?.call(GroupOwner.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [GroupOwner] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [GroupOwner] will have its `id` field set.
+  Future<GroupOwner?> upsertRow(
+    _is.DatabaseSession session,
+    GroupOwner row, {
+    required _is.ColumnSelections<GroupOwnerTable> conflictColumns,
+    _is.ColumnSelections<GroupOwnerTable>? updateColumns,
+    _is.WhereExpressionBuilder<GroupOwnerTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<GroupOwner>(
       row,
+      conflictColumns: conflictColumns(GroupOwner.t),
+      updateColumns: updateColumns?.call(GroupOwner.t),
+      updateWhere: updateWhere?.call(GroupOwner.t),
       transaction: transaction,
     );
   }
@@ -720,16 +724,22 @@ class GroupOwnerRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<GroupOwner>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<GroupOwner> rows, {
-    _i1.ColumnSelections<GroupOwnerTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<GroupOwnerTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<GroupOwner>(
       rows,
       columns: columns?.call(GroupOwner.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -737,10 +747,10 @@ class GroupOwnerRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<GroupOwner> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     GroupOwner row, {
-    _i1.ColumnSelections<GroupOwnerTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<GroupOwnerTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<GroupOwner>(
       row,
@@ -752,10 +762,10 @@ class GroupOwnerRepository {
   /// Updates a single [GroupOwner] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<GroupOwner?> updateById(
-    _i1.Session session,
-    _i1.UuidValue id, {
-    required _i1.ColumnValueListBuilder<GroupOwnerUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session,
+    _is.UuidValue id, {
+    required _is.ColumnValueListBuilder<GroupOwnerUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<GroupOwner>(
       id,
@@ -766,16 +776,20 @@ class GroupOwnerRepository {
 
   /// Updates all [GroupOwner]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<GroupOwner>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<GroupOwnerUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<GroupOwnerTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<GroupOwnerUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<GroupOwnerTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<GroupOwnerTable>? orderBy,
-    _i1.OrderByListBuilder<GroupOwnerTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<GroupOwnerTable>? orderBy,
+    _is.OrderByListBuilder<GroupOwnerTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<GroupOwner>(
       columnValues: columnValues(GroupOwner.t.updateTable),
@@ -784,56 +798,80 @@ class GroupOwnerRepository {
       offset: offset,
       orderBy: orderBy?.call(GroupOwner.t),
       orderByList: orderByList?.call(GroupOwner.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [GroupOwner]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<GroupOwner>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<GroupOwner> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<GroupOwnerTable>? orderBy,
+    _is.OrderByListBuilder<GroupOwnerTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<GroupOwner>(
       rows,
+      orderBy: orderBy?.call(GroupOwner.t),
+      orderByList: orderByList?.call(GroupOwner.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [GroupOwner].
   Future<GroupOwner> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     GroupOwner row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<GroupOwner>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<GroupOwner>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<GroupOwner>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<GroupOwnerTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<GroupOwnerTable> where,
+    _is.OrderByBuilder<GroupOwnerTable>? orderBy,
+    _is.OrderByListBuilder<GroupOwnerTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<GroupOwner>(
       where: where(GroupOwner.t),
+      orderBy: orderBy?.call(GroupOwner.t),
+      orderByList: orderByList?.call(GroupOwner.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<GroupOwnerTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<GroupOwnerTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<GroupOwner>(
       where: where?.call(GroupOwner.t),
@@ -844,11 +882,11 @@ class GroupOwnerRepository {
 
   /// Acquires row-level locks on [GroupOwner] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<GroupOwnerTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<GroupOwnerTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<GroupOwner>(
       where: where(GroupOwner.t),
@@ -865,10 +903,10 @@ class GroupOwnerAttachRowRepository {
   /// Creates a relation between the given [GroupOwner] and [ShareGroup]
   /// by setting the [GroupOwner]'s foreign key `shareGroupId` to refer to the [ShareGroup].
   Future<void> shareGroup(
-    _i1.Session session,
+    _is.DatabaseSession session,
     GroupOwner groupOwner,
-    _i2.ShareGroup shareGroup, {
-    _i1.Transaction? transaction,
+    _i97quwy2.ShareGroup shareGroup, {
+    _is.Transaction? transaction,
   }) async {
     if (groupOwner.id == null) {
       throw ArgumentError.notNull('groupOwner.id');
@@ -888,10 +926,10 @@ class GroupOwnerAttachRowRepository {
   /// Creates a relation between the given [GroupOwner] and [AnonAccount]
   /// by setting the [GroupOwner]'s foreign key `anonAccountId` to refer to the [AnonAccount].
   Future<void> anonAccount(
-    _i1.Session session,
+    _is.DatabaseSession session,
     GroupOwner groupOwner,
-    _i3.AnonAccount anonAccount, {
-    _i1.Transaction? transaction,
+    _iulmo8pc.AnonAccount anonAccount, {
+    _is.Transaction? transaction,
   }) async {
     if (groupOwner.id == null) {
       throw ArgumentError.notNull('groupOwner.id');

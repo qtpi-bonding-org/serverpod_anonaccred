@@ -1,0 +1,3 @@
+version: 1
+shared_packages:
+  - anonaccount_protocol

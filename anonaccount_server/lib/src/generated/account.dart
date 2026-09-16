@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class AnonAccount
-    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<_is.UuidValue?>, _is.ProtocolSerialization {
   AnonAccount._({
     this.id,
     required this.ultimateSigningPublicKeyHex,
@@ -25,7 +25,7 @@ abstract class AnonAccount
        keyEpoch = keyEpoch ?? 0;
 
   factory AnonAccount({
-    _i1.UuidValue? id,
+    _is.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimateEncryptionPublicKeyHex,
@@ -37,7 +37,7 @@ abstract class AnonAccount
     return AnonAccount(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+          : _is.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       ultimateSigningPublicKeyHex:
           jsonSerialization['ultimateSigningPublicKeyHex'] as String,
       encryptedDataKey: jsonSerialization['encryptedDataKey'] as String,
@@ -45,7 +45,7 @@ abstract class AnonAccount
           jsonSerialization['ultimateEncryptionPublicKeyHex'] as String,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
     );
   }
@@ -55,7 +55,7 @@ abstract class AnonAccount
   static const db = AnonAccountRepository._();
 
   @override
-  _i1.UuidValue? id;
+  _is.UuidValue? id;
 
   String ultimateSigningPublicKeyHex;
 
@@ -68,13 +68,13 @@ abstract class AnonAccount
   int keyEpoch;
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => t;
+  _is.Table<_is.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [AnonAccount]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   AnonAccount copyWith({
-    _i1.UuidValue? id,
+    _is.UuidValue? id,
     String? ultimateSigningPublicKeyHex,
     String? encryptedDataKey,
     String? ultimateEncryptionPublicKeyHex,
@@ -112,12 +112,11 @@ abstract class AnonAccount
   }
 
   static AnonAccountIncludeList includeList({
-    _i1.WhereExpressionBuilder<AnonAccountTable>? where,
+    _is.WhereExpressionBuilder<AnonAccountTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<AnonAccountTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<AnonAccountTable>? orderByList,
+    _is.OrderByBuilder<AnonAccountTable>? orderBy,
+    _is.OrderByListBuilder<AnonAccountTable>? orderByList,
     AnonAccountInclude? include,
   }) {
     return AnonAccountIncludeList._(
@@ -125,7 +124,6 @@ abstract class AnonAccount
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(AnonAccount.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(AnonAccount.t),
       include: include,
     );
@@ -133,7 +131,7 @@ abstract class AnonAccount
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -141,7 +139,7 @@ class _Undefined {}
 
 class _AnonAccountImpl extends AnonAccount {
   _AnonAccountImpl({
-    _i1.UuidValue? id,
+    _is.UuidValue? id,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimateEncryptionPublicKeyHex,
@@ -158,7 +156,7 @@ class _AnonAccountImpl extends AnonAccount {
 
   /// Returns a shallow copy of this [AnonAccount]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   AnonAccount copyWith({
     Object? id = _Undefined,
@@ -169,7 +167,7 @@ class _AnonAccountImpl extends AnonAccount {
     int? keyEpoch,
   }) {
     return AnonAccount(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _is.UuidValue? ? id : this.id,
       ultimateSigningPublicKeyHex:
           ultimateSigningPublicKeyHex ?? this.ultimateSigningPublicKeyHex,
       encryptedDataKey: encryptedDataKey ?? this.encryptedDataKey,
@@ -181,81 +179,56 @@ class _AnonAccountImpl extends AnonAccount {
   }
 }
 
-class AnonAccountUpdateTable extends _i1.UpdateTable<AnonAccountTable> {
+class AnonAccountUpdateTable extends _is.UpdateTable<AnonAccountTable> {
   AnonAccountUpdateTable(super.table);
 
-  _i1.ColumnValue<String, String> ultimateSigningPublicKeyHex(String value) =>
-      _i1.ColumnValue(
-        table.ultimateSigningPublicKeyHex,
-        value,
-      );
+  _is.ColumnValue<String, String> ultimateSigningPublicKeyHex(String value) =>
+      _is.ColumnValue(table.ultimateSigningPublicKeyHex, value);
 
-  _i1.ColumnValue<String, String> encryptedDataKey(String value) =>
-      _i1.ColumnValue(
-        table.encryptedDataKey,
-        value,
-      );
+  _is.ColumnValue<String, String> encryptedDataKey(String value) =>
+      _is.ColumnValue(table.encryptedDataKey, value);
 
-  _i1.ColumnValue<String, String> ultimateEncryptionPublicKeyHex(
+  _is.ColumnValue<String, String> ultimateEncryptionPublicKeyHex(
     String value,
-  ) => _i1.ColumnValue(
-    table.ultimateEncryptionPublicKeyHex,
-    value,
-  );
+  ) => _is.ColumnValue(table.ultimateEncryptionPublicKeyHex, value);
 
-  _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
-      _i1.ColumnValue(
-        table.createdAt,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
+      _is.ColumnValue(table.createdAt, value);
 
-  _i1.ColumnValue<int, int> keyEpoch(int value) => _i1.ColumnValue(
-    table.keyEpoch,
-    value,
-  );
+  _is.ColumnValue<int, int> keyEpoch(int value) =>
+      _is.ColumnValue(table.keyEpoch, value);
 }
 
-class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
+class AnonAccountTable extends _is.Table<_is.UuidValue?> {
   AnonAccountTable({super.tableRelation}) : super(tableName: 'anon_account') {
     updateTable = AnonAccountUpdateTable(this);
-    ultimateSigningPublicKeyHex = _i1.ColumnString(
+    ultimateSigningPublicKeyHex = _is.ColumnString(
       'ultimateSigningPublicKeyHex',
       this,
     );
-    encryptedDataKey = _i1.ColumnString(
-      'encryptedDataKey',
-      this,
-    );
-    ultimateEncryptionPublicKeyHex = _i1.ColumnString(
+    encryptedDataKey = _is.ColumnString('encryptedDataKey', this);
+    ultimateEncryptionPublicKeyHex = _is.ColumnString(
       'ultimateEncryptionPublicKeyHex',
       this,
     );
-    createdAt = _i1.ColumnDateTime(
-      'createdAt',
-      this,
-      hasDefault: true,
-    );
-    keyEpoch = _i1.ColumnInt(
-      'keyEpoch',
-      this,
-      hasDefault: true,
-    );
+    createdAt = _is.ColumnDateTime('createdAt', this, hasDefault: true);
+    keyEpoch = _is.ColumnInt('keyEpoch', this, hasDefault: true);
   }
 
   late final AnonAccountUpdateTable updateTable;
 
-  late final _i1.ColumnString ultimateSigningPublicKeyHex;
+  late final _is.ColumnString ultimateSigningPublicKeyHex;
 
-  late final _i1.ColumnString encryptedDataKey;
+  late final _is.ColumnString encryptedDataKey;
 
-  late final _i1.ColumnString ultimateEncryptionPublicKeyHex;
+  late final _is.ColumnString ultimateEncryptionPublicKeyHex;
 
-  late final _i1.ColumnDateTime createdAt;
+  late final _is.ColumnDateTime createdAt;
 
-  late final _i1.ColumnInt keyEpoch;
+  late final _is.ColumnInt keyEpoch;
 
   @override
-  List<_i1.Column> get columns => [
+  List<_is.Column> get columns => [
     id,
     ultimateSigningPublicKeyHex,
     encryptedDataKey,
@@ -265,23 +238,22 @@ class AnonAccountTable extends _i1.Table<_i1.UuidValue?> {
   ];
 }
 
-class AnonAccountInclude extends _i1.IncludeObject {
+class AnonAccountInclude extends _is.IncludeObject {
   AnonAccountInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => AnonAccount.t;
+  _is.Table<_is.UuidValue?> get table => AnonAccount.t;
 }
 
-class AnonAccountIncludeList extends _i1.IncludeList {
+class AnonAccountIncludeList extends _is.IncludeList {
   AnonAccountIncludeList._({
-    _i1.WhereExpressionBuilder<AnonAccountTable>? where,
+    _is.WhereExpressionBuilder<AnonAccountTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -289,10 +261,10 @@ class AnonAccountIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<_i1.UuidValue?> get table => AnonAccount.t;
+  _is.Table<_is.UuidValue?> get table => AnonAccount.t;
 }
 
 class AnonAccountRepository {
@@ -321,22 +293,20 @@ class AnonAccountRepository {
   /// );
   /// ```
   Future<List<AnonAccount>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<AnonAccountTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<AnonAccountTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<AnonAccountTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<AnonAccountTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<AnonAccountTable>? orderBy,
+    _is.OrderByListBuilder<AnonAccountTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<AnonAccount>(
       where: where?.call(AnonAccount.t),
       orderBy: orderBy?.call(AnonAccount.t),
       orderByList: orderByList?.call(AnonAccount.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -363,21 +333,19 @@ class AnonAccountRepository {
   /// );
   /// ```
   Future<AnonAccount?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<AnonAccountTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<AnonAccountTable>? where,
     int? offset,
-    _i1.OrderByBuilder<AnonAccountTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<AnonAccountTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<AnonAccountTable>? orderBy,
+    _is.OrderByListBuilder<AnonAccountTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<AnonAccount>(
       where: where?.call(AnonAccount.t),
       orderBy: orderBy?.call(AnonAccount.t),
       orderByList: orderByList?.call(AnonAccount.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -387,11 +355,11 @@ class AnonAccountRepository {
 
   /// Finds a single [AnonAccount] by its [id] or null if no such row exists.
   Future<AnonAccount?> findById(
-    _i1.Session session,
-    _i1.UuidValue id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.DatabaseSession session,
+    _is.UuidValue id, {
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<AnonAccount>(
       id,
@@ -411,16 +379,22 @@ class AnonAccountRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AnonAccount>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<AnonAccount> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<AnonAccount>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -428,12 +402,78 @@ class AnonAccountRepository {
   ///
   /// The returned [AnonAccount] will have its `id` field set.
   Future<AnonAccount> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     AnonAccount row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.insertRow<AnonAccount>(
+    return session.db.insertRow<AnonAccount>(row, transaction: transaction);
+  }
+
+  /// Upserts all [AnonAccount]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [AnonAccount]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<AnonAccount>> upsert(
+    _is.DatabaseSession session,
+    List<AnonAccount> rows, {
+    required _is.ColumnSelections<AnonAccountTable> conflictColumns,
+    _is.ColumnSelections<AnonAccountTable>? updateColumns,
+    _is.WhereExpressionBuilder<AnonAccountTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<AnonAccount>(
+      rows,
+      conflictColumns: conflictColumns(AnonAccount.t),
+      updateColumns: updateColumns?.call(AnonAccount.t),
+      updateWhere: updateWhere?.call(AnonAccount.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [AnonAccount] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [AnonAccount] will have its `id` field set.
+  Future<AnonAccount?> upsertRow(
+    _is.DatabaseSession session,
+    AnonAccount row, {
+    required _is.ColumnSelections<AnonAccountTable> conflictColumns,
+    _is.ColumnSelections<AnonAccountTable>? updateColumns,
+    _is.WhereExpressionBuilder<AnonAccountTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<AnonAccount>(
       row,
+      conflictColumns: conflictColumns(AnonAccount.t),
+      updateColumns: updateColumns?.call(AnonAccount.t),
+      updateWhere: updateWhere?.call(AnonAccount.t),
       transaction: transaction,
     );
   }
@@ -443,16 +483,22 @@ class AnonAccountRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AnonAccount>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<AnonAccount> rows, {
-    _i1.ColumnSelections<AnonAccountTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<AnonAccountTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<AnonAccount>(
       rows,
       columns: columns?.call(AnonAccount.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -460,10 +506,10 @@ class AnonAccountRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<AnonAccount> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     AnonAccount row, {
-    _i1.ColumnSelections<AnonAccountTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<AnonAccountTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<AnonAccount>(
       row,
@@ -475,10 +521,10 @@ class AnonAccountRepository {
   /// Updates a single [AnonAccount] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<AnonAccount?> updateById(
-    _i1.Session session,
-    _i1.UuidValue id, {
-    required _i1.ColumnValueListBuilder<AnonAccountUpdateTable> columnValues,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session,
+    _is.UuidValue id, {
+    required _is.ColumnValueListBuilder<AnonAccountUpdateTable> columnValues,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<AnonAccount>(
       id,
@@ -489,16 +535,20 @@ class AnonAccountRepository {
 
   /// Updates all [AnonAccount]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AnonAccount>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<AnonAccountUpdateTable> columnValues,
-    required _i1.WhereExpressionBuilder<AnonAccountTable> where,
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<AnonAccountUpdateTable> columnValues,
+    required _is.WhereExpressionBuilder<AnonAccountTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<AnonAccountTable>? orderBy,
-    _i1.OrderByListBuilder<AnonAccountTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<AnonAccountTable>? orderBy,
+    _is.OrderByListBuilder<AnonAccountTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<AnonAccount>(
       columnValues: columnValues(AnonAccount.t.updateTable),
@@ -507,56 +557,80 @@ class AnonAccountRepository {
       offset: offset,
       orderBy: orderBy?.call(AnonAccount.t),
       orderByList: orderByList?.call(AnonAccount.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [AnonAccount]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AnonAccount>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<AnonAccount> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<AnonAccountTable>? orderBy,
+    _is.OrderByListBuilder<AnonAccountTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<AnonAccount>(
       rows,
+      orderBy: orderBy?.call(AnonAccount.t),
+      orderByList: orderByList?.call(AnonAccount.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [AnonAccount].
   Future<AnonAccount> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     AnonAccount row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<AnonAccount>(
-      row,
-      transaction: transaction,
-    );
+    return session.db.deleteRow<AnonAccount>(row, transaction: transaction);
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<AnonAccount>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<AnonAccountTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<AnonAccountTable> where,
+    _is.OrderByBuilder<AnonAccountTable>? orderBy,
+    _is.OrderByListBuilder<AnonAccountTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<AnonAccount>(
       where: where(AnonAccount.t),
+      orderBy: orderBy?.call(AnonAccount.t),
+      orderByList: orderByList?.call(AnonAccount.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<AnonAccountTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<AnonAccountTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<AnonAccount>(
       where: where?.call(AnonAccount.t),
@@ -567,11 +641,11 @@ class AnonAccountRepository {
 
   /// Acquires row-level locks on [AnonAccount] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<AnonAccountTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<AnonAccountTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<AnonAccount>(
       where: where(AnonAccount.t),

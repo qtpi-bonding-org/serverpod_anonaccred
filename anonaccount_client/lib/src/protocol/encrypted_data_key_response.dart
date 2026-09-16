@@ -10,13 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
 /// Response model for encrypted data key retrieval.
 ///
 /// Contains only the encrypted blob — callers must decrypt with their private key.
 /// Used by both retrieveEncryptedDataKey (device path) and recoverEncryptedDataKey (ultimate path).
-abstract class EncryptedDataKeyResponse implements _i1.SerializableModel {
+abstract class EncryptedDataKeyResponse
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   EncryptedDataKeyResponse._({required this.encryptedDataKey});
 
   factory EncryptedDataKeyResponse({required String encryptedDataKey}) =
@@ -34,7 +35,7 @@ abstract class EncryptedDataKeyResponse implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [EncryptedDataKeyResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   EncryptedDataKeyResponse copyWith({String? encryptedDataKey});
   @override
   Map<String, dynamic> toJson() {
@@ -45,8 +46,16 @@ abstract class EncryptedDataKeyResponse implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.EncryptedDataKeyResponse',
+      'encryptedDataKey': encryptedDataKey,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -56,7 +65,7 @@ class _EncryptedDataKeyResponseImpl extends EncryptedDataKeyResponse {
 
   /// Returns a shallow copy of this [EncryptedDataKeyResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   EncryptedDataKeyResponse copyWith({String? encryptedDataKey}) {
     return EncryptedDataKeyResponse(

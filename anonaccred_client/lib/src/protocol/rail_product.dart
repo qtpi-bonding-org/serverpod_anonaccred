@@ -10,10 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'payment_rail.dart' as _i2;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'payment_rail.dart' as _i4hkjqgd;
 
-abstract class RailProduct implements _i1.SerializableModel {
+abstract class RailProduct
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   RailProduct._({
     this.id,
     required this.rail,
@@ -23,7 +24,7 @@ abstract class RailProduct implements _i1.SerializableModel {
 
   factory RailProduct({
     int? id,
-    required _i2.PaymentRail rail,
+    required _i4hkjqgd.PaymentRail rail,
     required String storeProductId,
     required bool isActive,
   }) = _RailProductImpl;
@@ -31,9 +32,11 @@ abstract class RailProduct implements _i1.SerializableModel {
   factory RailProduct.fromJson(Map<String, dynamic> jsonSerialization) {
     return RailProduct(
       id: jsonSerialization['id'] as int?,
-      rail: _i2.PaymentRail.fromJson((jsonSerialization['rail'] as String)),
+      rail: _i4hkjqgd.PaymentRail.fromJson(
+        (jsonSerialization['rail'] as String),
+      ),
       storeProductId: jsonSerialization['storeProductId'] as String,
-      isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
+      isActive: _isc.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
     );
   }
 
@@ -42,7 +45,7 @@ abstract class RailProduct implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  _i2.PaymentRail rail;
+  _i4hkjqgd.PaymentRail rail;
 
   String storeProductId;
 
@@ -50,10 +53,10 @@ abstract class RailProduct implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [RailProduct]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   RailProduct copyWith({
     int? id,
-    _i2.PaymentRail? rail,
+    _i4hkjqgd.PaymentRail? rail,
     String? storeProductId,
     bool? isActive,
   });
@@ -69,8 +72,19 @@ abstract class RailProduct implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.RailProduct',
+      if (id != null) 'id': id,
+      'rail': rail.toJson(),
+      'storeProductId': storeProductId,
+      'isActive': isActive,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -79,7 +93,7 @@ class _Undefined {}
 class _RailProductImpl extends RailProduct {
   _RailProductImpl({
     int? id,
-    required _i2.PaymentRail rail,
+    required _i4hkjqgd.PaymentRail rail,
     required String storeProductId,
     required bool isActive,
   }) : super._(
@@ -91,11 +105,11 @@ class _RailProductImpl extends RailProduct {
 
   /// Returns a shallow copy of this [RailProduct]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   RailProduct copyWith({
     Object? id = _Undefined,
-    _i2.PaymentRail? rail,
+    _i4hkjqgd.PaymentRail? rail,
     String? storeProductId,
     bool? isActive,
   }) {

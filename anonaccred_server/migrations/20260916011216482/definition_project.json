@@ -1,5 +1,6 @@
 {
   "__className__": "serverpod.DatabaseDefinition",
+  "schemaVersion": 2,
   "moduleName": "anonaccred",
   "tables": [
     {
@@ -12,14 +13,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('account_entitlement_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "accountUuid",
+          "fieldName": "accountUuid",
           "columnType": 7,
           "isNullable": false,
           "dartType": "UuidValue"
@@ -27,6 +30,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "entitlementId",
+          "fieldName": "entitlementId",
           "columnType": 6,
           "isNullable": false,
           "dartType": "int"
@@ -34,6 +38,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "balance",
+          "fieldName": "balance",
           "columnType": 3,
           "isNullable": false,
           "dartType": "double"
@@ -56,20 +61,6 @@
         }
       ],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "account_entitlement_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "account_entitlement_idx",
@@ -102,14 +93,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('consumption_log_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "accountUuid",
+          "fieldName": "accountUuid",
           "columnType": 7,
           "isNullable": false,
           "dartType": "UuidValue"
@@ -117,6 +110,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "entitlementId",
+          "fieldName": "entitlementId",
           "columnType": 6,
           "isNullable": false,
           "dartType": "int"
@@ -124,6 +118,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "amount",
+          "fieldName": "amount",
           "columnType": 3,
           "isNullable": false,
           "dartType": "double"
@@ -131,6 +126,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "reason",
+          "fieldName": "reason",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -138,9 +134,10 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "timestamp",
+          "fieldName": "timestamp",
           "columnType": 4,
           "isNullable": false,
-          "columnDefault": "CURRENT_TIMESTAMP",
+          "columnDefault": "now",
           "dartType": "DateTime"
         }
       ],
@@ -161,20 +158,6 @@
         }
       ],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "consumption_log_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "account_idx",
@@ -216,14 +199,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('entitlement_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "tag",
+          "fieldName": "tag",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -231,6 +216,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "name",
+          "fieldName": "name",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -238,6 +224,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "type",
+          "fieldName": "type",
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:EntitlementType"
@@ -245,6 +232,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "serverValidated",
+          "fieldName": "serverValidated",
           "columnType": 1,
           "isNullable": false,
           "dartType": "bool"
@@ -252,20 +240,6 @@
       ],
       "foreignKeys": [],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "entitlement_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "tag_idx",
@@ -293,14 +267,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('ephemeral_accreditation_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "accountUuid",
+          "fieldName": "accountUuid",
           "columnType": 7,
           "isNullable": false,
           "dartType": "UuidValue"
@@ -308,6 +284,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "transactionTimestamp",
+          "fieldName": "transactionTimestamp",
           "columnType": 4,
           "isNullable": false,
           "dartType": "DateTime"
@@ -315,20 +292,6 @@
       ],
       "foreignKeys": [],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "ephemeral_accreditation_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "lookup_idx",
@@ -356,14 +319,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('ephemeral_accreditation_group_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "accountUuid",
+          "fieldName": "accountUuid",
           "columnType": 7,
           "isNullable": false,
           "dartType": "UuidValue"
@@ -371,6 +336,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "shareGroupUuid",
+          "fieldName": "shareGroupUuid",
           "columnType": 7,
           "isNullable": false,
           "dartType": "UuidValue"
@@ -378,6 +344,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "transactionTimestamp",
+          "fieldName": "transactionTimestamp",
           "columnType": 4,
           "isNullable": false,
           "dartType": "DateTime"
@@ -385,20 +352,6 @@
       ],
       "foreignKeys": [],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "ephemeral_accreditation_group_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "ephemeral_group_lookup_idx",
@@ -426,14 +379,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('group_consumption_log_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "shareGroupUuid",
+          "fieldName": "shareGroupUuid",
           "columnType": 7,
           "isNullable": false,
           "dartType": "UuidValue"
@@ -441,6 +396,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "entitlementId",
+          "fieldName": "entitlementId",
           "columnType": 6,
           "isNullable": false,
           "dartType": "int"
@@ -448,6 +404,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "amount",
+          "fieldName": "amount",
           "columnType": 3,
           "isNullable": false,
           "dartType": "double"
@@ -455,6 +412,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "reason",
+          "fieldName": "reason",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -462,14 +420,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "timestamp",
+          "fieldName": "timestamp",
           "columnType": 4,
           "isNullable": false,
-          "columnDefault": "CURRENT_TIMESTAMP",
+          "columnDefault": "now",
           "dartType": "DateTime"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "consumingAccountUuid",
+          "fieldName": "consumingAccountUuid",
           "columnType": 7,
           "isNullable": true,
           "dartType": "UuidValue?"
@@ -492,20 +452,6 @@
         }
       ],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "group_consumption_log_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "group_consumption_group_idx",
@@ -547,14 +493,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('group_entitlement_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "shareGroupUuid",
+          "fieldName": "shareGroupUuid",
           "columnType": 7,
           "isNullable": false,
           "dartType": "UuidValue"
@@ -562,6 +510,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "entitlementId",
+          "fieldName": "entitlementId",
           "columnType": 6,
           "isNullable": false,
           "dartType": "int"
@@ -569,6 +518,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "balance",
+          "fieldName": "balance",
           "columnType": 3,
           "isNullable": false,
           "dartType": "double"
@@ -591,20 +541,6 @@
         }
       ],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "group_entitlement_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "group_entitlement_idx",
@@ -637,14 +573,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('rail_product_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "rail",
+          "fieldName": "rail",
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:PaymentRail"
@@ -652,6 +590,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "storeProductId",
+          "fieldName": "storeProductId",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -659,6 +598,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "isActive",
+          "fieldName": "isActive",
           "columnType": 1,
           "isNullable": false,
           "dartType": "bool"
@@ -666,20 +606,6 @@
       ],
       "foreignKeys": [],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "rail_product_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "store_product_idx",
@@ -712,14 +638,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('rail_product_grant_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "railProductId",
+          "fieldName": "railProductId",
           "columnType": 6,
           "isNullable": false,
           "dartType": "int"
@@ -727,6 +655,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "entitlementId",
+          "fieldName": "entitlementId",
           "columnType": 6,
           "isNullable": false,
           "dartType": "int"
@@ -734,6 +663,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "quantity",
+          "fieldName": "quantity",
           "columnType": 3,
           "isNullable": false,
           "dartType": "double"
@@ -769,22 +699,7 @@
           "onDelete": 3
         }
       ],
-      "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "rail_product_grant_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        }
-      ],
+      "indexes": [],
       "managed": true
     },
     {
@@ -797,14 +712,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('receipt_hash_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "hash",
+          "fieldName": "hash",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -812,6 +729,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "paymentRail",
+          "fieldName": "paymentRail",
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:PaymentRail"
@@ -819,28 +737,15 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "processedAt",
+          "fieldName": "processedAt",
           "columnType": 4,
           "isNullable": false,
-          "columnDefault": "CURRENT_TIMESTAMP",
+          "columnDefault": "now",
           "dartType": "DateTime"
         }
       ],
       "foreignKeys": [],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "receipt_hash_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "hash_idx",
@@ -868,14 +773,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('refund_claim_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "paymentRail",
+          "fieldName": "paymentRail",
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:PaymentRail"
@@ -883,6 +790,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "paymentRef",
+          "fieldName": "paymentRef",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -890,28 +798,15 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "claimedAt",
+          "fieldName": "claimedAt",
           "columnType": 4,
           "isNullable": false,
-          "columnDefault": "CURRENT_TIMESTAMP",
+          "columnDefault": "now",
           "dartType": "DateTime"
         }
       ],
       "foreignKeys": [],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "refund_claim_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "refund_claim_idx",
@@ -944,14 +839,16 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "id",
+          "fieldName": "id",
           "columnType": 6,
           "isNullable": false,
-          "columnDefault": "nextval('transaction_payment_id_seq'::regclass)",
+          "columnDefault": "serial",
           "dartType": "int?"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "railProductId",
+          "fieldName": "railProductId",
           "columnType": 6,
           "isNullable": false,
           "dartType": "int"
@@ -959,6 +856,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "internalTransactionId",
+          "fieldName": "internalTransactionId",
           "columnType": 0,
           "isNullable": false,
           "dartType": "String"
@@ -966,6 +864,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "priceCurrency",
+          "fieldName": "priceCurrency",
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:Currency"
@@ -973,6 +872,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "price",
+          "fieldName": "price",
           "columnType": 3,
           "isNullable": false,
           "dartType": "double"
@@ -980,6 +880,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "paymentRail",
+          "fieldName": "paymentRail",
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:PaymentRail"
@@ -987,6 +888,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "paymentCurrency",
+          "fieldName": "paymentCurrency",
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:Currency"
@@ -994,6 +896,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "paymentAmount",
+          "fieldName": "paymentAmount",
           "columnType": 3,
           "isNullable": false,
           "dartType": "double"
@@ -1001,6 +904,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "paymentRef",
+          "fieldName": "paymentRef",
           "columnType": 0,
           "isNullable": true,
           "dartType": "String?"
@@ -1008,6 +912,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "transactionTimestamp",
+          "fieldName": "transactionTimestamp",
           "columnType": 4,
           "isNullable": false,
           "dartType": "DateTime"
@@ -1015,6 +920,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "clientReference",
+          "fieldName": "clientReference",
           "columnType": 0,
           "isNullable": true,
           "dartType": "String?"
@@ -1022,6 +928,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "status",
+          "fieldName": "status",
           "columnType": 0,
           "isNullable": false,
           "dartType": "protocol:OrderStatus"
@@ -1029,6 +936,7 @@
         {
           "__className__": "serverpod.ColumnDefinition",
           "name": "railDataJson",
+          "fieldName": "railDataJson",
           "columnType": 0,
           "isNullable": true,
           "dartType": "String?"
@@ -1051,20 +959,6 @@
         }
       ],
       "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "transaction_payment_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
         {
           "__className__": "serverpod.IndexDefinition",
           "indexName": "internal_tx_id_idx",
@@ -1120,22 +1014,22 @@
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "anonaccount",
-      "version": "20260803202213672"
+      "version": "20260916011142008"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "serverpod",
-      "version": "20260129180959368"
+      "version": "20260824182259319"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "serverpod_auth_idp",
-      "version": "20260213194423028"
+      "version": "20260910193913364-string-rate-limit-keys"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "serverpod_auth_core",
-      "version": "20260129181112269"
+      "version": "20260824182354731"
     }
   ],
   "migrationApiVersion": 1

@@ -10,9 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-abstract class GroupConsumptionLog implements _i1.SerializableModel {
+abstract class GroupConsumptionLog
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   GroupConsumptionLog._({
     this.id,
     required this.shareGroupUuid,
@@ -25,18 +26,18 @@ abstract class GroupConsumptionLog implements _i1.SerializableModel {
 
   factory GroupConsumptionLog({
     int? id,
-    required _i1.UuidValue shareGroupUuid,
+    required _isc.UuidValue shareGroupUuid,
     required int entitlementId,
     required double amount,
     required String reason,
     DateTime? timestamp,
-    _i1.UuidValue? consumingAccountUuid,
+    _isc.UuidValue? consumingAccountUuid,
   }) = _GroupConsumptionLogImpl;
 
   factory GroupConsumptionLog.fromJson(Map<String, dynamic> jsonSerialization) {
     return GroupConsumptionLog(
       id: jsonSerialization['id'] as int?,
-      shareGroupUuid: _i1.UuidValueJsonExtension.fromJson(
+      shareGroupUuid: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['shareGroupUuid'],
       ),
       entitlementId: jsonSerialization['entitlementId'] as int,
@@ -44,10 +45,10 @@ abstract class GroupConsumptionLog implements _i1.SerializableModel {
       reason: jsonSerialization['reason'] as String,
       timestamp: jsonSerialization['timestamp'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['timestamp']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['timestamp']),
       consumingAccountUuid: jsonSerialization['consumingAccountUuid'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(
+          : _isc.UuidValueJsonExtension.fromJson(
               jsonSerialization['consumingAccountUuid'],
             ),
     );
@@ -58,7 +59,7 @@ abstract class GroupConsumptionLog implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  _i1.UuidValue shareGroupUuid;
+  _isc.UuidValue shareGroupUuid;
 
   int entitlementId;
 
@@ -68,19 +69,19 @@ abstract class GroupConsumptionLog implements _i1.SerializableModel {
 
   DateTime timestamp;
 
-  _i1.UuidValue? consumingAccountUuid;
+  _isc.UuidValue? consumingAccountUuid;
 
   /// Returns a shallow copy of this [GroupConsumptionLog]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   GroupConsumptionLog copyWith({
     int? id,
-    _i1.UuidValue? shareGroupUuid,
+    _isc.UuidValue? shareGroupUuid,
     int? entitlementId,
     double? amount,
     String? reason,
     DateTime? timestamp,
-    _i1.UuidValue? consumingAccountUuid,
+    _isc.UuidValue? consumingAccountUuid,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -98,8 +99,23 @@ abstract class GroupConsumptionLog implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccred.GroupConsumptionLog',
+      if (id != null) 'id': id,
+      'shareGroupUuid': shareGroupUuid.toJson(),
+      'entitlementId': entitlementId,
+      'amount': amount,
+      'reason': reason,
+      'timestamp': timestamp.toJson(),
+      if (consumingAccountUuid != null)
+        'consumingAccountUuid': consumingAccountUuid?.toJson(),
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -108,12 +124,12 @@ class _Undefined {}
 class _GroupConsumptionLogImpl extends GroupConsumptionLog {
   _GroupConsumptionLogImpl({
     int? id,
-    required _i1.UuidValue shareGroupUuid,
+    required _isc.UuidValue shareGroupUuid,
     required int entitlementId,
     required double amount,
     required String reason,
     DateTime? timestamp,
-    _i1.UuidValue? consumingAccountUuid,
+    _isc.UuidValue? consumingAccountUuid,
   }) : super._(
          id: id,
          shareGroupUuid: shareGroupUuid,
@@ -126,11 +142,11 @@ class _GroupConsumptionLogImpl extends GroupConsumptionLog {
 
   /// Returns a shallow copy of this [GroupConsumptionLog]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   GroupConsumptionLog copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? shareGroupUuid,
+    _isc.UuidValue? shareGroupUuid,
     int? entitlementId,
     double? amount,
     String? reason,
@@ -144,7 +160,7 @@ class _GroupConsumptionLogImpl extends GroupConsumptionLog {
       amount: amount ?? this.amount,
       reason: reason ?? this.reason,
       timestamp: timestamp ?? this.timestamp,
-      consumingAccountUuid: consumingAccountUuid is _i1.UuidValue?
+      consumingAccountUuid: consumingAccountUuid is _isc.UuidValue?
           ? consumingAccountUuid
           : this.consumingAccountUuid,
     );

@@ -8,41 +8,43 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
+// ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'account_entitlement.dart' as _i2;
-import 'api_response.dart' as _i3;
-import 'consume_result.dart' as _i4;
-import 'consumption_log.dart' as _i5;
-import 'currency.dart' as _i6;
-import 'entitlement.dart' as _i7;
-import 'entitlement_type.dart' as _i8;
-import 'ephemeral_accreditation.dart' as _i9;
-import 'ephemeral_accreditation_group.dart' as _i10;
-import 'group_consumption_log.dart' as _i11;
-import 'group_entitlement.dart' as _i12;
-import 'iap_validation_response.dart' as _i13;
-import 'inventory_exception.dart' as _i14;
-import 'module_class.dart' as _i15;
-import 'order_status.dart' as _i16;
-import 'payment_exception.dart' as _i17;
-import 'payment_rail.dart' as _i18;
-import 'payment_request.dart' as _i19;
-import 'payment_result.dart' as _i20;
-import 'rail_product.dart' as _i21;
-import 'rail_product_grant.dart' as _i22;
-import 'receipt_hash.dart' as _i23;
-import 'refund_claim.dart' as _i24;
-import 'transaction_payment.dart' as _i25;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i3nzkmxo;
 import 'package:anonaccred_client/src/protocol/account_entitlement.dart'
-    as _i26;
-import 'package:anonaccred_client/src/protocol/group_entitlement.dart' as _i27;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i28;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i29;
+    as _iwyotwlc;
+import 'package:anonaccred_client/src/protocol/group_entitlement.dart'
+    as _iskjyox1;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i30;
+    as _iacc;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _iaic;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'account_entitlement.dart' as _iy7wdaeu;
+import 'api_response.dart' as _ivocdqwh;
+import 'consume_result.dart' as _imwsjh26;
+import 'consumption_log.dart' as _iupk08di;
+import 'currency.dart' as _iez2mem4;
+import 'entitlement.dart' as _ico1e66l;
+import 'entitlement_type.dart' as _i02qbmjp;
+import 'ephemeral_accreditation.dart' as _if0a11t5;
+import 'ephemeral_accreditation_group.dart' as _inxw1hvq;
+import 'group_consumption_log.dart' as _im17zz1w;
+import 'group_entitlement.dart' as _icykdmu9;
+import 'iap_validation_response.dart' as _iomp5ggy;
+import 'inventory_exception.dart' as _ic3ogqfy;
+import 'module_class.dart' as _izah8b1s;
+import 'order_status.dart' as _idpqotwg;
+import 'payment_exception.dart' as _i8wa6pax;
+import 'payment_rail.dart' as _i4hkjqgd;
+import 'payment_request.dart' as _ikpjr0wv;
+import 'payment_result.dart' as _iu7zczvw;
+import 'rail_product.dart' as _ii096092;
+import 'rail_product_grant.dart' as _ip94uwhy;
+import 'receipt_hash.dart' as _i7pzcogb;
+import 'refund_claim.dart' as _i4ysmc15;
+import 'transaction_payment.dart' as _i849cfmo;
 export 'account_entitlement.dart';
 export 'api_response.dart';
 export 'consume_result.dart';
@@ -69,12 +71,21 @@ export 'refund_claim.dart';
 export 'transaction_payment.dart';
 export 'client.dart';
 
-class Protocol extends _i1.SerializationManager {
+class Protocol extends _isc.SerializationManager {
   Protocol._();
 
   factory Protocol() => _instance;
 
   static final Protocol _instance = Protocol._();
+
+  final Set<_isc.SerializationManager> _hostProtocols = {};
+
+  void registerHostProtocol(
+    String projectName,
+    _isc.SerializationManager protocol,
+  ) {
+    _hostProtocols.add(protocol);
+  }
 
   static String? getClassNameFromObjectJson(dynamic data) {
     if (data is! Map) return null;
@@ -85,10 +96,7 @@ class Protocol extends _i1.SerializationManager {
   }
 
   @override
-  T deserialize<T>(
-    dynamic data, [
-    Type? t,
-  ]) {
+  T deserialize<T>(dynamic data, [Type? t]) {
     t ??= T;
 
     final dataClassName = getClassNameFromObjectJson(data);
@@ -98,215 +106,230 @@ class Protocol extends _i1.SerializationManager {
           'className': dataClassName,
           'data': data,
         });
-      } on FormatException catch (_) {
+      } on _isc.DeserializationClassNameNotFoundException catch (_) {
         // If the className is not recognized (e.g., older client receiving
         // data with a new subtype), fall back to deserializing without the
         // className, using the expected type T.
       }
     }
 
-    if (t == _i2.AccountEntitlement) {
-      return _i2.AccountEntitlement.fromJson(data) as T;
+    if (t == _iy7wdaeu.AccountEntitlement) {
+      return _iy7wdaeu.AccountEntitlement.fromJson(data) as T;
     }
-    if (t == _i3.ApiResponse) {
-      return _i3.ApiResponse.fromJson(data) as T;
+    if (t == _ivocdqwh.ApiResponse) {
+      return _ivocdqwh.ApiResponse.fromJson(data) as T;
     }
-    if (t == _i4.ConsumeResult) {
-      return _i4.ConsumeResult.fromJson(data) as T;
+    if (t == _imwsjh26.ConsumeResult) {
+      return _imwsjh26.ConsumeResult.fromJson(data) as T;
     }
-    if (t == _i5.ConsumptionLog) {
-      return _i5.ConsumptionLog.fromJson(data) as T;
+    if (t == _iupk08di.ConsumptionLog) {
+      return _iupk08di.ConsumptionLog.fromJson(data) as T;
     }
-    if (t == _i6.Currency) {
-      return _i6.Currency.fromJson(data) as T;
+    if (t == _iez2mem4.Currency) {
+      return _iez2mem4.Currency.fromJson(data) as T;
     }
-    if (t == _i7.Entitlement) {
-      return _i7.Entitlement.fromJson(data) as T;
+    if (t == _ico1e66l.Entitlement) {
+      return _ico1e66l.Entitlement.fromJson(data) as T;
     }
-    if (t == _i8.EntitlementType) {
-      return _i8.EntitlementType.fromJson(data) as T;
+    if (t == _i02qbmjp.EntitlementType) {
+      return _i02qbmjp.EntitlementType.fromJson(data) as T;
     }
-    if (t == _i9.EphemeralAccreditation) {
-      return _i9.EphemeralAccreditation.fromJson(data) as T;
+    if (t == _if0a11t5.EphemeralAccreditation) {
+      return _if0a11t5.EphemeralAccreditation.fromJson(data) as T;
     }
-    if (t == _i10.EphemeralAccreditationGroup) {
-      return _i10.EphemeralAccreditationGroup.fromJson(data) as T;
+    if (t == _inxw1hvq.EphemeralAccreditationGroup) {
+      return _inxw1hvq.EphemeralAccreditationGroup.fromJson(data) as T;
     }
-    if (t == _i11.GroupConsumptionLog) {
-      return _i11.GroupConsumptionLog.fromJson(data) as T;
+    if (t == _im17zz1w.GroupConsumptionLog) {
+      return _im17zz1w.GroupConsumptionLog.fromJson(data) as T;
     }
-    if (t == _i12.GroupEntitlement) {
-      return _i12.GroupEntitlement.fromJson(data) as T;
+    if (t == _icykdmu9.GroupEntitlement) {
+      return _icykdmu9.GroupEntitlement.fromJson(data) as T;
     }
-    if (t == _i13.IapValidationResponse) {
-      return _i13.IapValidationResponse.fromJson(data) as T;
+    if (t == _iomp5ggy.IapValidationResponse) {
+      return _iomp5ggy.IapValidationResponse.fromJson(data) as T;
     }
-    if (t == _i14.InventoryException) {
-      return _i14.InventoryException.fromJson(data) as T;
+    if (t == _ic3ogqfy.InventoryException) {
+      return _ic3ogqfy.InventoryException.fromJson(data) as T;
     }
-    if (t == _i15.ModuleClass) {
-      return _i15.ModuleClass.fromJson(data) as T;
+    if (t == _izah8b1s.ModuleClass) {
+      return _izah8b1s.ModuleClass.fromJson(data) as T;
     }
-    if (t == _i16.OrderStatus) {
-      return _i16.OrderStatus.fromJson(data) as T;
+    if (t == _idpqotwg.OrderStatus) {
+      return _idpqotwg.OrderStatus.fromJson(data) as T;
     }
-    if (t == _i17.PaymentException) {
-      return _i17.PaymentException.fromJson(data) as T;
+    if (t == _i8wa6pax.PaymentException) {
+      return _i8wa6pax.PaymentException.fromJson(data) as T;
     }
-    if (t == _i18.PaymentRail) {
-      return _i18.PaymentRail.fromJson(data) as T;
+    if (t == _i4hkjqgd.PaymentRail) {
+      return _i4hkjqgd.PaymentRail.fromJson(data) as T;
     }
-    if (t == _i19.PaymentRequest) {
-      return _i19.PaymentRequest.fromJson(data) as T;
+    if (t == _ikpjr0wv.PaymentRequest) {
+      return _ikpjr0wv.PaymentRequest.fromJson(data) as T;
     }
-    if (t == _i20.PaymentResult) {
-      return _i20.PaymentResult.fromJson(data) as T;
+    if (t == _iu7zczvw.PaymentResult) {
+      return _iu7zczvw.PaymentResult.fromJson(data) as T;
     }
-    if (t == _i21.RailProduct) {
-      return _i21.RailProduct.fromJson(data) as T;
+    if (t == _ii096092.RailProduct) {
+      return _ii096092.RailProduct.fromJson(data) as T;
     }
-    if (t == _i22.RailProductGrant) {
-      return _i22.RailProductGrant.fromJson(data) as T;
+    if (t == _ip94uwhy.RailProductGrant) {
+      return _ip94uwhy.RailProductGrant.fromJson(data) as T;
     }
-    if (t == _i23.ReceiptHash) {
-      return _i23.ReceiptHash.fromJson(data) as T;
+    if (t == _i7pzcogb.ReceiptHash) {
+      return _i7pzcogb.ReceiptHash.fromJson(data) as T;
     }
-    if (t == _i24.RefundClaim) {
-      return _i24.RefundClaim.fromJson(data) as T;
+    if (t == _i4ysmc15.RefundClaim) {
+      return _i4ysmc15.RefundClaim.fromJson(data) as T;
     }
-    if (t == _i25.TransactionPayment) {
-      return _i25.TransactionPayment.fromJson(data) as T;
+    if (t == _i849cfmo.TransactionPayment) {
+      return _i849cfmo.TransactionPayment.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i2.AccountEntitlement?>()) {
-      return (data != null ? _i2.AccountEntitlement.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i3.ApiResponse?>()) {
-      return (data != null ? _i3.ApiResponse.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i4.ConsumeResult?>()) {
-      return (data != null ? _i4.ConsumeResult.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i5.ConsumptionLog?>()) {
-      return (data != null ? _i5.ConsumptionLog.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i6.Currency?>()) {
-      return (data != null ? _i6.Currency.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i7.Entitlement?>()) {
-      return (data != null ? _i7.Entitlement.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i8.EntitlementType?>()) {
-      return (data != null ? _i8.EntitlementType.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i9.EphemeralAccreditation?>()) {
-      return (data != null ? _i9.EphemeralAccreditation.fromJson(data) : null)
+    if (t == _isc.getType<_iy7wdaeu.AccountEntitlement?>()) {
+      return (data != null ? _iy7wdaeu.AccountEntitlement.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i10.EphemeralAccreditationGroup?>()) {
+    if (t == _isc.getType<_ivocdqwh.ApiResponse?>()) {
+      return (data != null ? _ivocdqwh.ApiResponse.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_imwsjh26.ConsumeResult?>()) {
+      return (data != null ? _imwsjh26.ConsumeResult.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iupk08di.ConsumptionLog?>()) {
+      return (data != null ? _iupk08di.ConsumptionLog.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iez2mem4.Currency?>()) {
+      return (data != null ? _iez2mem4.Currency.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ico1e66l.Entitlement?>()) {
+      return (data != null ? _ico1e66l.Entitlement.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i02qbmjp.EntitlementType?>()) {
+      return (data != null ? _i02qbmjp.EntitlementType.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_if0a11t5.EphemeralAccreditation?>()) {
       return (data != null
-              ? _i10.EphemeralAccreditationGroup.fromJson(data)
+              ? _if0a11t5.EphemeralAccreditation.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i11.GroupConsumptionLog?>()) {
-      return (data != null ? _i11.GroupConsumptionLog.fromJson(data) : null)
+    if (t == _isc.getType<_inxw1hvq.EphemeralAccreditationGroup?>()) {
+      return (data != null
+              ? _inxw1hvq.EphemeralAccreditationGroup.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i12.GroupEntitlement?>()) {
-      return (data != null ? _i12.GroupEntitlement.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i13.IapValidationResponse?>()) {
-      return (data != null ? _i13.IapValidationResponse.fromJson(data) : null)
+    if (t == _isc.getType<_im17zz1w.GroupConsumptionLog?>()) {
+      return (data != null
+              ? _im17zz1w.GroupConsumptionLog.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i14.InventoryException?>()) {
-      return (data != null ? _i14.InventoryException.fromJson(data) : null)
+    if (t == _isc.getType<_icykdmu9.GroupEntitlement?>()) {
+      return (data != null ? _icykdmu9.GroupEntitlement.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i15.ModuleClass?>()) {
-      return (data != null ? _i15.ModuleClass.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i16.OrderStatus?>()) {
-      return (data != null ? _i16.OrderStatus.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i17.PaymentException?>()) {
-      return (data != null ? _i17.PaymentException.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i18.PaymentRail?>()) {
-      return (data != null ? _i18.PaymentRail.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i19.PaymentRequest?>()) {
-      return (data != null ? _i19.PaymentRequest.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i20.PaymentResult?>()) {
-      return (data != null ? _i20.PaymentResult.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i21.RailProduct?>()) {
-      return (data != null ? _i21.RailProduct.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i22.RailProductGrant?>()) {
-      return (data != null ? _i22.RailProductGrant.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i23.ReceiptHash?>()) {
-      return (data != null ? _i23.ReceiptHash.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i24.RefundClaim?>()) {
-      return (data != null ? _i24.RefundClaim.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i25.TransactionPayment?>()) {
-      return (data != null ? _i25.TransactionPayment.fromJson(data) : null)
+    if (t == _isc.getType<_iomp5ggy.IapValidationResponse?>()) {
+      return (data != null
+              ? _iomp5ggy.IapValidationResponse.fromJson(data)
+              : null)
           as T;
     }
-    if (t == List<_i26.AccountEntitlement>) {
+    if (t == _isc.getType<_ic3ogqfy.InventoryException?>()) {
+      return (data != null ? _ic3ogqfy.InventoryException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_izah8b1s.ModuleClass?>()) {
+      return (data != null ? _izah8b1s.ModuleClass.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_idpqotwg.OrderStatus?>()) {
+      return (data != null ? _idpqotwg.OrderStatus.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i8wa6pax.PaymentException?>()) {
+      return (data != null ? _i8wa6pax.PaymentException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i4hkjqgd.PaymentRail?>()) {
+      return (data != null ? _i4hkjqgd.PaymentRail.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ikpjr0wv.PaymentRequest?>()) {
+      return (data != null ? _ikpjr0wv.PaymentRequest.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iu7zczvw.PaymentResult?>()) {
+      return (data != null ? _iu7zczvw.PaymentResult.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ii096092.RailProduct?>()) {
+      return (data != null ? _ii096092.RailProduct.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ip94uwhy.RailProductGrant?>()) {
+      return (data != null ? _ip94uwhy.RailProductGrant.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i7pzcogb.ReceiptHash?>()) {
+      return (data != null ? _i7pzcogb.ReceiptHash.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i4ysmc15.RefundClaim?>()) {
+      return (data != null ? _i4ysmc15.RefundClaim.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i849cfmo.TransactionPayment?>()) {
+      return (data != null ? _i849cfmo.TransactionPayment.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<_iwyotwlc.AccountEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i26.AccountEntitlement>(e))
+              .map((e) => deserialize<_iwyotwlc.AccountEntitlement>(e))
               .toList()
           as T;
     }
-    if (t == List<_i27.GroupEntitlement>) {
+    if (t == List<_iskjyox1.GroupEntitlement>) {
       return (data as List)
-              .map((e) => deserialize<_i27.GroupEntitlement>(e))
+              .map((e) => deserialize<_iskjyox1.GroupEntitlement>(e))
               .toList()
           as T;
     }
     try {
-      return _i28.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _i3nzkmxo.Protocol().deserialize<T>(data, t);
+    } on _isc.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i29.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _iaic.Protocol().deserialize<T>(data, t);
+    } on _isc.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i30.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+      return _iacc.Protocol().deserialize<T>(data, t);
+    } on _isc.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i2.AccountEntitlement => 'AccountEntitlement',
-      _i3.ApiResponse => 'ApiResponse',
-      _i4.ConsumeResult => 'ConsumeResult',
-      _i5.ConsumptionLog => 'ConsumptionLog',
-      _i6.Currency => 'Currency',
-      _i7.Entitlement => 'Entitlement',
-      _i8.EntitlementType => 'EntitlementType',
-      _i9.EphemeralAccreditation => 'EphemeralAccreditation',
-      _i10.EphemeralAccreditationGroup => 'EphemeralAccreditationGroup',
-      _i11.GroupConsumptionLog => 'GroupConsumptionLog',
-      _i12.GroupEntitlement => 'GroupEntitlement',
-      _i13.IapValidationResponse => 'IapValidationResponse',
-      _i14.InventoryException => 'InventoryException',
-      _i15.ModuleClass => 'ModuleClass',
-      _i16.OrderStatus => 'OrderStatus',
-      _i17.PaymentException => 'PaymentException',
-      _i18.PaymentRail => 'PaymentRail',
-      _i19.PaymentRequest => 'PaymentRequest',
-      _i20.PaymentResult => 'PaymentResult',
-      _i21.RailProduct => 'RailProduct',
-      _i22.RailProductGrant => 'RailProductGrant',
-      _i23.ReceiptHash => 'ReceiptHash',
-      _i24.RefundClaim => 'RefundClaim',
-      _i25.TransactionPayment => 'TransactionPayment',
+      _iy7wdaeu.AccountEntitlement => 'AccountEntitlement',
+      _ivocdqwh.ApiResponse => 'ApiResponse',
+      _imwsjh26.ConsumeResult => 'ConsumeResult',
+      _iupk08di.ConsumptionLog => 'ConsumptionLog',
+      _iez2mem4.Currency => 'Currency',
+      _ico1e66l.Entitlement => 'Entitlement',
+      _i02qbmjp.EntitlementType => 'EntitlementType',
+      _if0a11t5.EphemeralAccreditation => 'EphemeralAccreditation',
+      _inxw1hvq.EphemeralAccreditationGroup => 'EphemeralAccreditationGroup',
+      _im17zz1w.GroupConsumptionLog => 'GroupConsumptionLog',
+      _icykdmu9.GroupEntitlement => 'GroupEntitlement',
+      _iomp5ggy.IapValidationResponse => 'IapValidationResponse',
+      _ic3ogqfy.InventoryException => 'InventoryException',
+      _izah8b1s.ModuleClass => 'ModuleClass',
+      _idpqotwg.OrderStatus => 'OrderStatus',
+      _i8wa6pax.PaymentException => 'PaymentException',
+      _i4hkjqgd.PaymentRail => 'PaymentRail',
+      _ikpjr0wv.PaymentRequest => 'PaymentRequest',
+      _iu7zczvw.PaymentResult => 'PaymentResult',
+      _ii096092.RailProduct => 'RailProduct',
+      _ip94uwhy.RailProductGrant => 'RailProductGrant',
+      _i7pzcogb.ReceiptHash => 'ReceiptHash',
+      _i4ysmc15.RefundClaim => 'RefundClaim',
+      _i849cfmo.TransactionPayment => 'TransactionPayment',
       _ => null,
     };
   }
@@ -321,66 +344,54 @@ class Protocol extends _i1.SerializationManager {
     }
 
     switch (data) {
-      case _i2.AccountEntitlement():
+      case _iy7wdaeu.AccountEntitlement():
         return 'AccountEntitlement';
-      case _i3.ApiResponse():
+      case _ivocdqwh.ApiResponse():
         return 'ApiResponse';
-      case _i4.ConsumeResult():
+      case _imwsjh26.ConsumeResult():
         return 'ConsumeResult';
-      case _i5.ConsumptionLog():
+      case _iupk08di.ConsumptionLog():
         return 'ConsumptionLog';
-      case _i6.Currency():
+      case _iez2mem4.Currency():
         return 'Currency';
-      case _i7.Entitlement():
+      case _ico1e66l.Entitlement():
         return 'Entitlement';
-      case _i8.EntitlementType():
+      case _i02qbmjp.EntitlementType():
         return 'EntitlementType';
-      case _i9.EphemeralAccreditation():
+      case _if0a11t5.EphemeralAccreditation():
         return 'EphemeralAccreditation';
-      case _i10.EphemeralAccreditationGroup():
+      case _inxw1hvq.EphemeralAccreditationGroup():
         return 'EphemeralAccreditationGroup';
-      case _i11.GroupConsumptionLog():
+      case _im17zz1w.GroupConsumptionLog():
         return 'GroupConsumptionLog';
-      case _i12.GroupEntitlement():
+      case _icykdmu9.GroupEntitlement():
         return 'GroupEntitlement';
-      case _i13.IapValidationResponse():
+      case _iomp5ggy.IapValidationResponse():
         return 'IapValidationResponse';
-      case _i14.InventoryException():
+      case _ic3ogqfy.InventoryException():
         return 'InventoryException';
-      case _i15.ModuleClass():
+      case _izah8b1s.ModuleClass():
         return 'ModuleClass';
-      case _i16.OrderStatus():
+      case _idpqotwg.OrderStatus():
         return 'OrderStatus';
-      case _i17.PaymentException():
+      case _i8wa6pax.PaymentException():
         return 'PaymentException';
-      case _i18.PaymentRail():
+      case _i4hkjqgd.PaymentRail():
         return 'PaymentRail';
-      case _i19.PaymentRequest():
+      case _ikpjr0wv.PaymentRequest():
         return 'PaymentRequest';
-      case _i20.PaymentResult():
+      case _iu7zczvw.PaymentResult():
         return 'PaymentResult';
-      case _i21.RailProduct():
+      case _ii096092.RailProduct():
         return 'RailProduct';
-      case _i22.RailProductGrant():
+      case _ip94uwhy.RailProductGrant():
         return 'RailProductGrant';
-      case _i23.ReceiptHash():
+      case _i7pzcogb.ReceiptHash():
         return 'ReceiptHash';
-      case _i24.RefundClaim():
+      case _i4ysmc15.RefundClaim():
         return 'RefundClaim';
-      case _i25.TransactionPayment():
+      case _i849cfmo.TransactionPayment():
         return 'TransactionPayment';
-    }
-    className = _i28.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'anonaccount.$className';
-    }
-    className = _i29.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'serverpod_auth_idp.$className';
-    }
-    className = _i30.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'serverpod_auth_core.$className';
     }
     return null;
   }
@@ -392,91 +403,138 @@ class Protocol extends _i1.SerializationManager {
       return super.deserializeByClassName(data);
     }
     if (dataClassName == 'AccountEntitlement') {
-      return deserialize<_i2.AccountEntitlement>(data['data']);
+      return deserialize<_iy7wdaeu.AccountEntitlement>(data['data']);
     }
     if (dataClassName == 'ApiResponse') {
-      return deserialize<_i3.ApiResponse>(data['data']);
+      return deserialize<_ivocdqwh.ApiResponse>(data['data']);
     }
     if (dataClassName == 'ConsumeResult') {
-      return deserialize<_i4.ConsumeResult>(data['data']);
+      return deserialize<_imwsjh26.ConsumeResult>(data['data']);
     }
     if (dataClassName == 'ConsumptionLog') {
-      return deserialize<_i5.ConsumptionLog>(data['data']);
+      return deserialize<_iupk08di.ConsumptionLog>(data['data']);
     }
     if (dataClassName == 'Currency') {
-      return deserialize<_i6.Currency>(data['data']);
+      return deserialize<_iez2mem4.Currency>(data['data']);
     }
     if (dataClassName == 'Entitlement') {
-      return deserialize<_i7.Entitlement>(data['data']);
+      return deserialize<_ico1e66l.Entitlement>(data['data']);
     }
     if (dataClassName == 'EntitlementType') {
-      return deserialize<_i8.EntitlementType>(data['data']);
+      return deserialize<_i02qbmjp.EntitlementType>(data['data']);
     }
     if (dataClassName == 'EphemeralAccreditation') {
-      return deserialize<_i9.EphemeralAccreditation>(data['data']);
+      return deserialize<_if0a11t5.EphemeralAccreditation>(data['data']);
     }
     if (dataClassName == 'EphemeralAccreditationGroup') {
-      return deserialize<_i10.EphemeralAccreditationGroup>(data['data']);
+      return deserialize<_inxw1hvq.EphemeralAccreditationGroup>(data['data']);
     }
     if (dataClassName == 'GroupConsumptionLog') {
-      return deserialize<_i11.GroupConsumptionLog>(data['data']);
+      return deserialize<_im17zz1w.GroupConsumptionLog>(data['data']);
     }
     if (dataClassName == 'GroupEntitlement') {
-      return deserialize<_i12.GroupEntitlement>(data['data']);
+      return deserialize<_icykdmu9.GroupEntitlement>(data['data']);
     }
     if (dataClassName == 'IapValidationResponse') {
-      return deserialize<_i13.IapValidationResponse>(data['data']);
+      return deserialize<_iomp5ggy.IapValidationResponse>(data['data']);
     }
     if (dataClassName == 'InventoryException') {
-      return deserialize<_i14.InventoryException>(data['data']);
+      return deserialize<_ic3ogqfy.InventoryException>(data['data']);
     }
     if (dataClassName == 'ModuleClass') {
-      return deserialize<_i15.ModuleClass>(data['data']);
+      return deserialize<_izah8b1s.ModuleClass>(data['data']);
     }
     if (dataClassName == 'OrderStatus') {
-      return deserialize<_i16.OrderStatus>(data['data']);
+      return deserialize<_idpqotwg.OrderStatus>(data['data']);
     }
     if (dataClassName == 'PaymentException') {
-      return deserialize<_i17.PaymentException>(data['data']);
+      return deserialize<_i8wa6pax.PaymentException>(data['data']);
     }
     if (dataClassName == 'PaymentRail') {
-      return deserialize<_i18.PaymentRail>(data['data']);
+      return deserialize<_i4hkjqgd.PaymentRail>(data['data']);
     }
     if (dataClassName == 'PaymentRequest') {
-      return deserialize<_i19.PaymentRequest>(data['data']);
+      return deserialize<_ikpjr0wv.PaymentRequest>(data['data']);
     }
     if (dataClassName == 'PaymentResult') {
-      return deserialize<_i20.PaymentResult>(data['data']);
+      return deserialize<_iu7zczvw.PaymentResult>(data['data']);
     }
     if (dataClassName == 'RailProduct') {
-      return deserialize<_i21.RailProduct>(data['data']);
+      return deserialize<_ii096092.RailProduct>(data['data']);
     }
     if (dataClassName == 'RailProductGrant') {
-      return deserialize<_i22.RailProductGrant>(data['data']);
+      return deserialize<_ip94uwhy.RailProductGrant>(data['data']);
     }
     if (dataClassName == 'ReceiptHash') {
-      return deserialize<_i23.ReceiptHash>(data['data']);
+      return deserialize<_i7pzcogb.ReceiptHash>(data['data']);
     }
     if (dataClassName == 'RefundClaim') {
-      return deserialize<_i24.RefundClaim>(data['data']);
+      return deserialize<_i4ysmc15.RefundClaim>(data['data']);
     }
     if (dataClassName == 'TransactionPayment') {
-      return deserialize<_i25.TransactionPayment>(data['data']);
-    }
-    if (dataClassName.startsWith('anonaccount.')) {
-      data['className'] = dataClassName.substring(12);
-      return _i28.Protocol().deserializeByClassName(data);
-    }
-    if (dataClassName.startsWith('serverpod_auth_idp.')) {
-      data['className'] = dataClassName.substring(19);
-      return _i29.Protocol().deserializeByClassName(data);
-    }
-    if (dataClassName.startsWith('serverpod_auth_core.')) {
-      data['className'] = dataClassName.substring(20);
-      return _i30.Protocol().deserializeByClassName(data);
+      return deserialize<_i849cfmo.TransactionPayment>(data['data']);
     }
     return super.deserializeByClassName(data);
   }
+
+  @override
+  Object? dynamicFieldToJson(Object? object, {bool forProtocol = false}) {
+    if ((object is List || object is Set || object is Map) ||
+        getClassNameForObject(object) != null) {
+      return super.dynamicFieldToJson(object, forProtocol: forProtocol);
+    }
+    for (final protocol in _hostProtocols) {
+      final className = protocol.getClassNameForObject(object);
+      if (className == null) continue;
+      final host = protocol.getModuleName();
+      final wrapped = {
+        'className': className.contains('.') ? className : '$host.$className',
+        'data': object,
+      };
+      return forProtocol
+          ? _isc.SerializationManager.toEncodableForProtocol(wrapped)
+          : _isc.SerializationManager.toEncodable(wrapped);
+    }
+    return super.dynamicFieldToJson(object, forProtocol: forProtocol);
+  }
+
+  @override
+  dynamic deserializeDynamicFieldValue(Object? value) {
+    if (value == null) return null;
+    if (value is! Map<String, dynamic> || value['className'] is! String) {
+      throw FormatException(
+        'Dynamic fields are encoded as a Map with className and data, but got '
+        '${value.runtimeType} instead.',
+      );
+    }
+    final className = value['className'] as String;
+    for (final protocol in _hostProtocols) {
+      final host = protocol.getModuleName();
+      final hostPrefix = '$host.';
+      if (className.startsWith(hostPrefix)) {
+        final strippedClassName = className.substring(hostPrefix.length);
+        if (strippedClassName.contains('.')) {
+          throw FormatException(
+            'Dynamic field className must not use multiple prefixes: $className',
+          );
+        }
+        final hostData = Map<String, dynamic>.from(value);
+        hostData['className'] = strippedClassName;
+        return protocol.deserializeByClassName(hostData);
+      }
+    }
+    if (className.contains('.')) {
+      for (final protocol in _hostProtocols) {
+        try {
+          return protocol.deserializeByClassName(value);
+        } on _isc.DeserializationClassNameNotFoundException catch (_) {}
+      }
+    }
+    return deserializeByClassName(value);
+  }
+
+  @override
+  String getModuleName() => 'anonaccred';
 
   /// Maps any `Record`s known to this [Protocol] to their JSON representation
   ///
@@ -488,13 +546,13 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i28.Protocol().mapRecordToJson(record);
+      return _i3nzkmxo.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i29.Protocol().mapRecordToJson(record);
+      return _iaic.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i30.Protocol().mapRecordToJson(record);
+      return _iacc.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

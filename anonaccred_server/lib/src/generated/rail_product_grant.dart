@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class RailProductGrant
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   RailProductGrant._({
     this.id,
     required this.railProductId,
@@ -51,11 +51,11 @@ abstract class RailProductGrant
   double quantity;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [RailProductGrant]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   RailProductGrant copyWith({
     int? id,
     int? railProductId,
@@ -89,12 +89,11 @@ abstract class RailProductGrant
   }
 
   static RailProductGrantIncludeList includeList({
-    _i1.WhereExpressionBuilder<RailProductGrantTable>? where,
+    _is.WhereExpressionBuilder<RailProductGrantTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RailProductGrantTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RailProductGrantTable>? orderByList,
+    _is.OrderByBuilder<RailProductGrantTable>? orderBy,
+    _is.OrderByListBuilder<RailProductGrantTable>? orderByList,
     RailProductGrantInclude? include,
   }) {
     return RailProductGrantIncludeList._(
@@ -102,7 +101,6 @@ abstract class RailProductGrant
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(RailProductGrant.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(RailProductGrant.t),
       include: include,
     );
@@ -110,7 +108,7 @@ abstract class RailProductGrant
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -131,7 +129,7 @@ class _RailProductGrantImpl extends RailProductGrant {
 
   /// Returns a shallow copy of this [RailProductGrant]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   RailProductGrant copyWith({
     Object? id = _Undefined,
@@ -149,77 +147,56 @@ class _RailProductGrantImpl extends RailProductGrant {
 }
 
 class RailProductGrantUpdateTable
-    extends _i1.UpdateTable<RailProductGrantTable> {
+    extends _is.UpdateTable<RailProductGrantTable> {
   RailProductGrantUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> railProductId(int value) => _i1.ColumnValue(
-    table.railProductId,
-    value,
-  );
+  _is.ColumnValue<int, int> railProductId(int value) =>
+      _is.ColumnValue(table.railProductId, value);
 
-  _i1.ColumnValue<int, int> entitlementId(int value) => _i1.ColumnValue(
-    table.entitlementId,
-    value,
-  );
+  _is.ColumnValue<int, int> entitlementId(int value) =>
+      _is.ColumnValue(table.entitlementId, value);
 
-  _i1.ColumnValue<double, double> quantity(double value) => _i1.ColumnValue(
-    table.quantity,
-    value,
-  );
+  _is.ColumnValue<double, double> quantity(double value) =>
+      _is.ColumnValue(table.quantity, value);
 }
 
-class RailProductGrantTable extends _i1.Table<int?> {
+class RailProductGrantTable extends _is.Table<int?> {
   RailProductGrantTable({super.tableRelation})
     : super(tableName: 'rail_product_grant') {
     updateTable = RailProductGrantUpdateTable(this);
-    railProductId = _i1.ColumnInt(
-      'railProductId',
-      this,
-    );
-    entitlementId = _i1.ColumnInt(
-      'entitlementId',
-      this,
-    );
-    quantity = _i1.ColumnDouble(
-      'quantity',
-      this,
-    );
+    railProductId = _is.ColumnInt('railProductId', this);
+    entitlementId = _is.ColumnInt('entitlementId', this);
+    quantity = _is.ColumnDouble('quantity', this);
   }
 
   late final RailProductGrantUpdateTable updateTable;
 
-  late final _i1.ColumnInt railProductId;
+  late final _is.ColumnInt railProductId;
 
-  late final _i1.ColumnInt entitlementId;
+  late final _is.ColumnInt entitlementId;
 
-  late final _i1.ColumnDouble quantity;
+  late final _is.ColumnDouble quantity;
 
   @override
-  List<_i1.Column> get columns => [
-    id,
-    railProductId,
-    entitlementId,
-    quantity,
-  ];
+  List<_is.Column> get columns => [id, railProductId, entitlementId, quantity];
 }
 
-class RailProductGrantInclude extends _i1.IncludeObject {
+class RailProductGrantInclude extends _is.IncludeObject {
   RailProductGrantInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => RailProductGrant.t;
+  _is.Table<int?> get table => RailProductGrant.t;
 }
 
-class RailProductGrantIncludeList extends _i1.IncludeList {
+class RailProductGrantIncludeList extends _is.IncludeList {
   RailProductGrantIncludeList._({
-    _i1.WhereExpressionBuilder<RailProductGrantTable>? where,
+    _is.WhereExpressionBuilder<RailProductGrantTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -227,10 +204,10 @@ class RailProductGrantIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => RailProductGrant.t;
+  _is.Table<int?> get table => RailProductGrant.t;
 }
 
 class RailProductGrantRepository {
@@ -259,22 +236,20 @@ class RailProductGrantRepository {
   /// );
   /// ```
   Future<List<RailProductGrant>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RailProductGrantTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RailProductGrantTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RailProductGrantTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RailProductGrantTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<RailProductGrantTable>? orderBy,
+    _is.OrderByListBuilder<RailProductGrantTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<RailProductGrant>(
       where: where?.call(RailProductGrant.t),
       orderBy: orderBy?.call(RailProductGrant.t),
       orderByList: orderByList?.call(RailProductGrant.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -301,21 +276,19 @@ class RailProductGrantRepository {
   /// );
   /// ```
   Future<RailProductGrant?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RailProductGrantTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RailProductGrantTable>? where,
     int? offset,
-    _i1.OrderByBuilder<RailProductGrantTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<RailProductGrantTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<RailProductGrantTable>? orderBy,
+    _is.OrderByListBuilder<RailProductGrantTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<RailProductGrant>(
       where: where?.call(RailProductGrant.t),
       orderBy: orderBy?.call(RailProductGrant.t),
       orderByList: orderByList?.call(RailProductGrant.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -325,11 +298,11 @@ class RailProductGrantRepository {
 
   /// Finds a single [RailProductGrant] by its [id] or null if no such row exists.
   Future<RailProductGrant?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<RailProductGrant>(
       id,
@@ -349,16 +322,22 @@ class RailProductGrantRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProductGrant>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RailProductGrant> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<RailProductGrant>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -366,12 +345,81 @@ class RailProductGrantRepository {
   ///
   /// The returned [RailProductGrant] will have its `id` field set.
   Future<RailProductGrant> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RailProductGrant row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.insertRow<RailProductGrant>(
       row,
+      transaction: transaction,
+    );
+  }
+
+  /// Upserts all [RailProductGrant]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [RailProductGrant]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<RailProductGrant>> upsert(
+    _is.DatabaseSession session,
+    List<RailProductGrant> rows, {
+    required _is.ColumnSelections<RailProductGrantTable> conflictColumns,
+    _is.ColumnSelections<RailProductGrantTable>? updateColumns,
+    _is.WhereExpressionBuilder<RailProductGrantTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<RailProductGrant>(
+      rows,
+      conflictColumns: conflictColumns(RailProductGrant.t),
+      updateColumns: updateColumns?.call(RailProductGrant.t),
+      updateWhere: updateWhere?.call(RailProductGrant.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [RailProductGrant] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [RailProductGrant] will have its `id` field set.
+  Future<RailProductGrant?> upsertRow(
+    _is.DatabaseSession session,
+    RailProductGrant row, {
+    required _is.ColumnSelections<RailProductGrantTable> conflictColumns,
+    _is.ColumnSelections<RailProductGrantTable>? updateColumns,
+    _is.WhereExpressionBuilder<RailProductGrantTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<RailProductGrant>(
+      row,
+      conflictColumns: conflictColumns(RailProductGrant.t),
+      updateColumns: updateColumns?.call(RailProductGrant.t),
+      updateWhere: updateWhere?.call(RailProductGrant.t),
       transaction: transaction,
     );
   }
@@ -381,16 +429,22 @@ class RailProductGrantRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProductGrant>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RailProductGrant> rows, {
-    _i1.ColumnSelections<RailProductGrantTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<RailProductGrantTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<RailProductGrant>(
       rows,
       columns: columns?.call(RailProductGrant.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -398,10 +452,10 @@ class RailProductGrantRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<RailProductGrant> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RailProductGrant row, {
-    _i1.ColumnSelections<RailProductGrantTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<RailProductGrantTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<RailProductGrant>(
       row,
@@ -413,11 +467,11 @@ class RailProductGrantRepository {
   /// Updates a single [RailProductGrant] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<RailProductGrant?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<RailProductGrantUpdateTable>
+    required _is.ColumnValueListBuilder<RailProductGrantUpdateTable>
     columnValues,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<RailProductGrant>(
       id,
@@ -428,17 +482,21 @@ class RailProductGrantRepository {
 
   /// Updates all [RailProductGrant]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProductGrant>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<RailProductGrantUpdateTable>
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<RailProductGrantUpdateTable>
     columnValues,
-    required _i1.WhereExpressionBuilder<RailProductGrantTable> where,
+    required _is.WhereExpressionBuilder<RailProductGrantTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<RailProductGrantTable>? orderBy,
-    _i1.OrderByListBuilder<RailProductGrantTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<RailProductGrantTable>? orderBy,
+    _is.OrderByListBuilder<RailProductGrantTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<RailProductGrant>(
       columnValues: columnValues(RailProductGrant.t.updateTable),
@@ -447,30 +505,44 @@ class RailProductGrantRepository {
       offset: offset,
       orderBy: orderBy?.call(RailProductGrant.t),
       orderByList: orderByList?.call(RailProductGrant.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [RailProductGrant]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProductGrant>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<RailProductGrant> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<RailProductGrantTable>? orderBy,
+    _is.OrderByListBuilder<RailProductGrantTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<RailProductGrant>(
       rows,
+      orderBy: orderBy?.call(RailProductGrant.t),
+      orderByList: orderByList?.call(RailProductGrant.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [RailProductGrant].
   Future<RailProductGrant> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     RailProductGrant row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.deleteRow<RailProductGrant>(
       row,
@@ -479,24 +551,37 @@ class RailProductGrantRepository {
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<RailProductGrant>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<RailProductGrantTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<RailProductGrantTable> where,
+    _is.OrderByBuilder<RailProductGrantTable>? orderBy,
+    _is.OrderByListBuilder<RailProductGrantTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<RailProductGrant>(
       where: where(RailProductGrant.t),
+      orderBy: orderBy?.call(RailProductGrant.t),
+      orderByList: orderByList?.call(RailProductGrant.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<RailProductGrantTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<RailProductGrantTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<RailProductGrant>(
       where: where?.call(RailProductGrant.t),
@@ -507,11 +592,11 @@ class RailProductGrantRepository {
 
   /// Acquires row-level locks on [RailProductGrant] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<RailProductGrantTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<RailProductGrantTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<RailProductGrant>(
       where: where(RailProductGrant.t),

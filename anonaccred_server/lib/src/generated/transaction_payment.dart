@@ -10,13 +10,13 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
-import 'currency.dart' as _i2;
-import 'payment_rail.dart' as _i3;
-import 'order_status.dart' as _i4;
+import 'package:serverpod/serverpod.dart' as _is;
+import 'currency.dart' as _iez2mem4;
+import 'order_status.dart' as _idpqotwg;
+import 'payment_rail.dart' as _i4hkjqgd;
 
 abstract class TransactionPayment
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _is.TableRow<int?>, _is.ProtocolSerialization {
   TransactionPayment._({
     this.id,
     required this.railProductId,
@@ -37,15 +37,15 @@ abstract class TransactionPayment
     int? id,
     required int railProductId,
     required String internalTransactionId,
-    required _i2.Currency priceCurrency,
+    required _iez2mem4.Currency priceCurrency,
     required double price,
-    required _i3.PaymentRail paymentRail,
-    required _i2.Currency paymentCurrency,
+    required _i4hkjqgd.PaymentRail paymentRail,
+    required _iez2mem4.Currency paymentCurrency,
     required double paymentAmount,
     String? paymentRef,
     required DateTime transactionTimestamp,
     String? clientReference,
-    required _i4.OrderStatus status,
+    required _idpqotwg.OrderStatus status,
     String? railDataJson,
   }) = _TransactionPaymentImpl;
 
@@ -55,23 +55,25 @@ abstract class TransactionPayment
       railProductId: jsonSerialization['railProductId'] as int,
       internalTransactionId:
           jsonSerialization['internalTransactionId'] as String,
-      priceCurrency: _i2.Currency.fromJson(
+      priceCurrency: _iez2mem4.Currency.fromJson(
         (jsonSerialization['priceCurrency'] as String),
       ),
       price: (jsonSerialization['price'] as num).toDouble(),
-      paymentRail: _i3.PaymentRail.fromJson(
+      paymentRail: _i4hkjqgd.PaymentRail.fromJson(
         (jsonSerialization['paymentRail'] as String),
       ),
-      paymentCurrency: _i2.Currency.fromJson(
+      paymentCurrency: _iez2mem4.Currency.fromJson(
         (jsonSerialization['paymentCurrency'] as String),
       ),
       paymentAmount: (jsonSerialization['paymentAmount'] as num).toDouble(),
       paymentRef: jsonSerialization['paymentRef'] as String?,
-      transactionTimestamp: _i1.DateTimeJsonExtension.fromJson(
+      transactionTimestamp: _is.DateTimeJsonExtension.fromJson(
         jsonSerialization['transactionTimestamp'],
       ),
       clientReference: jsonSerialization['clientReference'] as String?,
-      status: _i4.OrderStatus.fromJson((jsonSerialization['status'] as String)),
+      status: _idpqotwg.OrderStatus.fromJson(
+        (jsonSerialization['status'] as String),
+      ),
       railDataJson: jsonSerialization['railDataJson'] as String?,
     );
   }
@@ -87,13 +89,13 @@ abstract class TransactionPayment
 
   String internalTransactionId;
 
-  _i2.Currency priceCurrency;
+  _iez2mem4.Currency priceCurrency;
 
   double price;
 
-  _i3.PaymentRail paymentRail;
+  _i4hkjqgd.PaymentRail paymentRail;
 
-  _i2.Currency paymentCurrency;
+  _iez2mem4.Currency paymentCurrency;
 
   double paymentAmount;
 
@@ -103,29 +105,29 @@ abstract class TransactionPayment
 
   String? clientReference;
 
-  _i4.OrderStatus status;
+  _idpqotwg.OrderStatus status;
 
   String? railDataJson;
 
   @override
-  _i1.Table<int?> get table => t;
+  _is.Table<int?> get table => t;
 
   /// Returns a shallow copy of this [TransactionPayment]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   TransactionPayment copyWith({
     int? id,
     int? railProductId,
     String? internalTransactionId,
-    _i2.Currency? priceCurrency,
+    _iez2mem4.Currency? priceCurrency,
     double? price,
-    _i3.PaymentRail? paymentRail,
-    _i2.Currency? paymentCurrency,
+    _i4hkjqgd.PaymentRail? paymentRail,
+    _iez2mem4.Currency? paymentCurrency,
     double? paymentAmount,
     String? paymentRef,
     DateTime? transactionTimestamp,
     String? clientReference,
-    _i4.OrderStatus? status,
+    _idpqotwg.OrderStatus? status,
     String? railDataJson,
   });
   @override
@@ -173,12 +175,11 @@ abstract class TransactionPayment
   }
 
   static TransactionPaymentIncludeList includeList({
-    _i1.WhereExpressionBuilder<TransactionPaymentTable>? where,
+    _is.WhereExpressionBuilder<TransactionPaymentTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<TransactionPaymentTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<TransactionPaymentTable>? orderByList,
+    _is.OrderByBuilder<TransactionPaymentTable>? orderBy,
+    _is.OrderByListBuilder<TransactionPaymentTable>? orderByList,
     TransactionPaymentInclude? include,
   }) {
     return TransactionPaymentIncludeList._(
@@ -186,7 +187,6 @@ abstract class TransactionPayment
       limit: limit,
       offset: offset,
       orderBy: orderBy?.call(TransactionPayment.t),
-      orderDescending: orderDescending,
       orderByList: orderByList?.call(TransactionPayment.t),
       include: include,
     );
@@ -194,7 +194,7 @@ abstract class TransactionPayment
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -205,15 +205,15 @@ class _TransactionPaymentImpl extends TransactionPayment {
     int? id,
     required int railProductId,
     required String internalTransactionId,
-    required _i2.Currency priceCurrency,
+    required _iez2mem4.Currency priceCurrency,
     required double price,
-    required _i3.PaymentRail paymentRail,
-    required _i2.Currency paymentCurrency,
+    required _i4hkjqgd.PaymentRail paymentRail,
+    required _iez2mem4.Currency paymentCurrency,
     required double paymentAmount,
     String? paymentRef,
     required DateTime transactionTimestamp,
     String? clientReference,
-    required _i4.OrderStatus status,
+    required _idpqotwg.OrderStatus status,
     String? railDataJson,
   }) : super._(
          id: id,
@@ -233,21 +233,21 @@ class _TransactionPaymentImpl extends TransactionPayment {
 
   /// Returns a shallow copy of this [TransactionPayment]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   TransactionPayment copyWith({
     Object? id = _Undefined,
     int? railProductId,
     String? internalTransactionId,
-    _i2.Currency? priceCurrency,
+    _iez2mem4.Currency? priceCurrency,
     double? price,
-    _i3.PaymentRail? paymentRail,
-    _i2.Currency? paymentCurrency,
+    _i4hkjqgd.PaymentRail? paymentRail,
+    _iez2mem4.Currency? paymentCurrency,
     double? paymentAmount,
     Object? paymentRef = _Undefined,
     DateTime? transactionTimestamp,
     Object? clientReference = _Undefined,
-    _i4.OrderStatus? status,
+    _idpqotwg.OrderStatus? status,
     Object? railDataJson = _Undefined,
   }) {
     return TransactionPayment(
@@ -272,169 +272,108 @@ class _TransactionPaymentImpl extends TransactionPayment {
 }
 
 class TransactionPaymentUpdateTable
-    extends _i1.UpdateTable<TransactionPaymentTable> {
+    extends _is.UpdateTable<TransactionPaymentTable> {
   TransactionPaymentUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> railProductId(int value) => _i1.ColumnValue(
-    table.railProductId,
-    value,
-  );
+  _is.ColumnValue<int, int> railProductId(int value) =>
+      _is.ColumnValue(table.railProductId, value);
 
-  _i1.ColumnValue<String, String> internalTransactionId(String value) =>
-      _i1.ColumnValue(
-        table.internalTransactionId,
-        value,
-      );
+  _is.ColumnValue<String, String> internalTransactionId(String value) =>
+      _is.ColumnValue(table.internalTransactionId, value);
 
-  _i1.ColumnValue<_i2.Currency, _i2.Currency> priceCurrency(
-    _i2.Currency value,
-  ) => _i1.ColumnValue(
-    table.priceCurrency,
-    value,
-  );
+  _is.ColumnValue<_iez2mem4.Currency, _iez2mem4.Currency> priceCurrency(
+    _iez2mem4.Currency value,
+  ) => _is.ColumnValue(table.priceCurrency, value);
 
-  _i1.ColumnValue<double, double> price(double value) => _i1.ColumnValue(
-    table.price,
-    value,
-  );
+  _is.ColumnValue<double, double> price(double value) =>
+      _is.ColumnValue(table.price, value);
 
-  _i1.ColumnValue<_i3.PaymentRail, _i3.PaymentRail> paymentRail(
-    _i3.PaymentRail value,
-  ) => _i1.ColumnValue(
-    table.paymentRail,
-    value,
-  );
+  _is.ColumnValue<_i4hkjqgd.PaymentRail, _i4hkjqgd.PaymentRail> paymentRail(
+    _i4hkjqgd.PaymentRail value,
+  ) => _is.ColumnValue(table.paymentRail, value);
 
-  _i1.ColumnValue<_i2.Currency, _i2.Currency> paymentCurrency(
-    _i2.Currency value,
-  ) => _i1.ColumnValue(
-    table.paymentCurrency,
-    value,
-  );
+  _is.ColumnValue<_iez2mem4.Currency, _iez2mem4.Currency> paymentCurrency(
+    _iez2mem4.Currency value,
+  ) => _is.ColumnValue(table.paymentCurrency, value);
 
-  _i1.ColumnValue<double, double> paymentAmount(double value) =>
-      _i1.ColumnValue(
-        table.paymentAmount,
-        value,
-      );
+  _is.ColumnValue<double, double> paymentAmount(double value) =>
+      _is.ColumnValue(table.paymentAmount, value);
 
-  _i1.ColumnValue<String, String> paymentRef(String? value) => _i1.ColumnValue(
-    table.paymentRef,
-    value,
-  );
+  _is.ColumnValue<String, String> paymentRef(String? value) =>
+      _is.ColumnValue(table.paymentRef, value);
 
-  _i1.ColumnValue<DateTime, DateTime> transactionTimestamp(DateTime value) =>
-      _i1.ColumnValue(
-        table.transactionTimestamp,
-        value,
-      );
+  _is.ColumnValue<DateTime, DateTime> transactionTimestamp(DateTime value) =>
+      _is.ColumnValue(table.transactionTimestamp, value);
 
-  _i1.ColumnValue<String, String> clientReference(String? value) =>
-      _i1.ColumnValue(
-        table.clientReference,
-        value,
-      );
+  _is.ColumnValue<String, String> clientReference(String? value) =>
+      _is.ColumnValue(table.clientReference, value);
 
-  _i1.ColumnValue<_i4.OrderStatus, _i4.OrderStatus> status(
-    _i4.OrderStatus value,
-  ) => _i1.ColumnValue(
-    table.status,
-    value,
-  );
+  _is.ColumnValue<_idpqotwg.OrderStatus, _idpqotwg.OrderStatus> status(
+    _idpqotwg.OrderStatus value,
+  ) => _is.ColumnValue(table.status, value);
 
-  _i1.ColumnValue<String, String> railDataJson(String? value) =>
-      _i1.ColumnValue(
-        table.railDataJson,
-        value,
-      );
+  _is.ColumnValue<String, String> railDataJson(String? value) =>
+      _is.ColumnValue(table.railDataJson, value);
 }
 
-class TransactionPaymentTable extends _i1.Table<int?> {
+class TransactionPaymentTable extends _is.Table<int?> {
   TransactionPaymentTable({super.tableRelation})
     : super(tableName: 'transaction_payment') {
     updateTable = TransactionPaymentUpdateTable(this);
-    railProductId = _i1.ColumnInt(
-      'railProductId',
-      this,
-    );
-    internalTransactionId = _i1.ColumnString(
-      'internalTransactionId',
-      this,
-    );
-    priceCurrency = _i1.ColumnEnum(
+    railProductId = _is.ColumnInt('railProductId', this);
+    internalTransactionId = _is.ColumnString('internalTransactionId', this);
+    priceCurrency = _is.ColumnEnum(
       'priceCurrency',
       this,
-      _i1.EnumSerialization.byName,
+      _is.EnumSerialization.byName,
     );
-    price = _i1.ColumnDouble(
-      'price',
-      this,
-    );
-    paymentRail = _i1.ColumnEnum(
+    price = _is.ColumnDouble('price', this);
+    paymentRail = _is.ColumnEnum(
       'paymentRail',
       this,
-      _i1.EnumSerialization.byName,
+      _is.EnumSerialization.byName,
     );
-    paymentCurrency = _i1.ColumnEnum(
+    paymentCurrency = _is.ColumnEnum(
       'paymentCurrency',
       this,
-      _i1.EnumSerialization.byName,
+      _is.EnumSerialization.byName,
     );
-    paymentAmount = _i1.ColumnDouble(
-      'paymentAmount',
-      this,
-    );
-    paymentRef = _i1.ColumnString(
-      'paymentRef',
-      this,
-    );
-    transactionTimestamp = _i1.ColumnDateTime(
-      'transactionTimestamp',
-      this,
-    );
-    clientReference = _i1.ColumnString(
-      'clientReference',
-      this,
-    );
-    status = _i1.ColumnEnum(
-      'status',
-      this,
-      _i1.EnumSerialization.byName,
-    );
-    railDataJson = _i1.ColumnString(
-      'railDataJson',
-      this,
-    );
+    paymentAmount = _is.ColumnDouble('paymentAmount', this);
+    paymentRef = _is.ColumnString('paymentRef', this);
+    transactionTimestamp = _is.ColumnDateTime('transactionTimestamp', this);
+    clientReference = _is.ColumnString('clientReference', this);
+    status = _is.ColumnEnum('status', this, _is.EnumSerialization.byName);
+    railDataJson = _is.ColumnString('railDataJson', this);
   }
 
   late final TransactionPaymentUpdateTable updateTable;
 
-  late final _i1.ColumnInt railProductId;
+  late final _is.ColumnInt railProductId;
 
-  late final _i1.ColumnString internalTransactionId;
+  late final _is.ColumnString internalTransactionId;
 
-  late final _i1.ColumnEnum<_i2.Currency> priceCurrency;
+  late final _is.ColumnEnum<_iez2mem4.Currency> priceCurrency;
 
-  late final _i1.ColumnDouble price;
+  late final _is.ColumnDouble price;
 
-  late final _i1.ColumnEnum<_i3.PaymentRail> paymentRail;
+  late final _is.ColumnEnum<_i4hkjqgd.PaymentRail> paymentRail;
 
-  late final _i1.ColumnEnum<_i2.Currency> paymentCurrency;
+  late final _is.ColumnEnum<_iez2mem4.Currency> paymentCurrency;
 
-  late final _i1.ColumnDouble paymentAmount;
+  late final _is.ColumnDouble paymentAmount;
 
-  late final _i1.ColumnString paymentRef;
+  late final _is.ColumnString paymentRef;
 
-  late final _i1.ColumnDateTime transactionTimestamp;
+  late final _is.ColumnDateTime transactionTimestamp;
 
-  late final _i1.ColumnString clientReference;
+  late final _is.ColumnString clientReference;
 
-  late final _i1.ColumnEnum<_i4.OrderStatus> status;
+  late final _is.ColumnEnum<_idpqotwg.OrderStatus> status;
 
-  late final _i1.ColumnString railDataJson;
+  late final _is.ColumnString railDataJson;
 
   @override
-  List<_i1.Column> get columns => [
+  List<_is.Column> get columns => [
     id,
     railProductId,
     internalTransactionId,
@@ -451,23 +390,22 @@ class TransactionPaymentTable extends _i1.Table<int?> {
   ];
 }
 
-class TransactionPaymentInclude extends _i1.IncludeObject {
+class TransactionPaymentInclude extends _is.IncludeObject {
   TransactionPaymentInclude._();
 
   @override
-  Map<String, _i1.Include?> get includes => {};
+  Map<String, _is.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => TransactionPayment.t;
+  _is.Table<int?> get table => TransactionPayment.t;
 }
 
-class TransactionPaymentIncludeList extends _i1.IncludeList {
+class TransactionPaymentIncludeList extends _is.IncludeList {
   TransactionPaymentIncludeList._({
-    _i1.WhereExpressionBuilder<TransactionPaymentTable>? where,
+    _is.WhereExpressionBuilder<TransactionPaymentTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
-    super.orderDescending,
     super.orderByList,
     super.include,
   }) {
@@ -475,10 +413,10 @@ class TransactionPaymentIncludeList extends _i1.IncludeList {
   }
 
   @override
-  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+  Map<String, _is.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => TransactionPayment.t;
+  _is.Table<int?> get table => TransactionPayment.t;
 }
 
 class TransactionPaymentRepository {
@@ -507,22 +445,20 @@ class TransactionPaymentRepository {
   /// );
   /// ```
   Future<List<TransactionPayment>> find(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<TransactionPaymentTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<TransactionPaymentTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<TransactionPaymentTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<TransactionPaymentTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<TransactionPaymentTable>? orderBy,
+    _is.OrderByListBuilder<TransactionPaymentTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<TransactionPayment>(
       where: where?.call(TransactionPayment.t),
       orderBy: orderBy?.call(TransactionPayment.t),
       orderByList: orderByList?.call(TransactionPayment.t),
-      orderDescending: orderDescending,
       limit: limit,
       offset: offset,
       transaction: transaction,
@@ -549,21 +485,19 @@ class TransactionPaymentRepository {
   /// );
   /// ```
   Future<TransactionPayment?> findFirstRow(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<TransactionPaymentTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<TransactionPaymentTable>? where,
     int? offset,
-    _i1.OrderByBuilder<TransactionPaymentTable>? orderBy,
-    bool orderDescending = false,
-    _i1.OrderByListBuilder<TransactionPaymentTable>? orderByList,
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.OrderByBuilder<TransactionPaymentTable>? orderBy,
+    _is.OrderByListBuilder<TransactionPaymentTable>? orderByList,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<TransactionPayment>(
       where: where?.call(TransactionPayment.t),
       orderBy: orderBy?.call(TransactionPayment.t),
       orderByList: orderByList?.call(TransactionPayment.t),
-      orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
       lockMode: lockMode,
@@ -573,11 +507,11 @@ class TransactionPaymentRepository {
 
   /// Finds a single [TransactionPayment] by its [id] or null if no such row exists.
   Future<TransactionPayment?> findById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    _i1.Transaction? transaction,
-    _i1.LockMode? lockMode,
-    _i1.LockBehavior? lockBehavior,
+    _is.Transaction? transaction,
+    _is.LockMode? lockMode,
+    _is.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<TransactionPayment>(
       id,
@@ -597,16 +531,22 @@ class TransactionPaymentRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
+  ///
+  /// If [noReturn] is set to `true`, the inserted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<TransactionPayment>> insert(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<TransactionPayment> rows, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
     bool ignoreConflicts = false,
+    bool noReturn = false,
   }) async {
     return session.db.insert<TransactionPayment>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
+      noReturn: noReturn,
     );
   }
 
@@ -614,12 +554,81 @@ class TransactionPaymentRepository {
   ///
   /// The returned [TransactionPayment] will have its `id` field set.
   Future<TransactionPayment> insertRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     TransactionPayment row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.insertRow<TransactionPayment>(
       row,
+      transaction: transaction,
+    );
+  }
+
+  /// Upserts all [TransactionPayment]s in the list and returns the resulting rows.
+  ///
+  /// If a row conflicts on the given [conflictColumns], the existing row is
+  /// updated with the new values. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies to rows matching the
+  /// given expression. Conflicting rows that don't match are skipped and not
+  /// returned, so the resulting list may be shorter than [rows].
+  ///
+  /// The returned [TransactionPayment]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails,
+  /// none of the rows will be affected.
+  ///
+  /// If [noReturn] is set to `true`, the resulting rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
+  Future<List<TransactionPayment>> upsert(
+    _is.DatabaseSession session,
+    List<TransactionPayment> rows, {
+    required _is.ColumnSelections<TransactionPaymentTable> conflictColumns,
+    _is.ColumnSelections<TransactionPaymentTable>? updateColumns,
+    _is.WhereExpressionBuilder<TransactionPaymentTable>? updateWhere,
+    _is.Transaction? transaction,
+    bool noReturn = false,
+  }) async {
+    return session.db.upsert<TransactionPayment>(
+      rows,
+      conflictColumns: conflictColumns(TransactionPayment.t),
+      updateColumns: updateColumns?.call(TransactionPayment.t),
+      updateWhere: updateWhere?.call(TransactionPayment.t),
+      transaction: transaction,
+      noReturn: noReturn,
+    );
+  }
+
+  /// Upserts a single [TransactionPayment] and returns the resulting row.
+  ///
+  /// If the row conflicts on the given [conflictColumns], the existing row is
+  /// updated. Otherwise, a new row is inserted.
+  ///
+  /// If [updateColumns] is provided, only those columns will be updated on
+  /// conflict. If null, all non-conflict, non-id columns are updated.
+  ///
+  /// If [updateWhere] is provided, the update only applies when the existing
+  /// row matches the expression. Returns `null` if no row was affected — for
+  /// example when [updateWhere] does not match the conflicting row.
+  ///
+  /// The returned [TransactionPayment] will have its `id` field set.
+  Future<TransactionPayment?> upsertRow(
+    _is.DatabaseSession session,
+    TransactionPayment row, {
+    required _is.ColumnSelections<TransactionPaymentTable> conflictColumns,
+    _is.ColumnSelections<TransactionPaymentTable>? updateColumns,
+    _is.WhereExpressionBuilder<TransactionPaymentTable>? updateWhere,
+    _is.Transaction? transaction,
+  }) async {
+    return session.db.upsertRow<TransactionPayment>(
+      row,
+      conflictColumns: conflictColumns(TransactionPayment.t),
+      updateColumns: updateColumns?.call(TransactionPayment.t),
+      updateWhere: updateWhere?.call(TransactionPayment.t),
       transaction: transaction,
     );
   }
@@ -629,16 +638,22 @@ class TransactionPaymentRepository {
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<TransactionPayment>> update(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<TransactionPayment> rows, {
-    _i1.ColumnSelections<TransactionPaymentTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<TransactionPaymentTable>? columns,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.update<TransactionPayment>(
       rows,
       columns: columns?.call(TransactionPayment.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
@@ -646,10 +661,10 @@ class TransactionPaymentRepository {
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
   Future<TransactionPayment> updateRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     TransactionPayment row, {
-    _i1.ColumnSelections<TransactionPaymentTable>? columns,
-    _i1.Transaction? transaction,
+    _is.ColumnSelections<TransactionPaymentTable>? columns,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateRow<TransactionPayment>(
       row,
@@ -661,11 +676,11 @@ class TransactionPaymentRepository {
   /// Updates a single [TransactionPayment] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
   Future<TransactionPayment?> updateById(
-    _i1.Session session,
+    _is.DatabaseSession session,
     int id, {
-    required _i1.ColumnValueListBuilder<TransactionPaymentUpdateTable>
+    required _is.ColumnValueListBuilder<TransactionPaymentUpdateTable>
     columnValues,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.updateById<TransactionPayment>(
       id,
@@ -676,17 +691,21 @@ class TransactionPaymentRepository {
 
   /// Updates all [TransactionPayment]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
+  ///
+  /// If [noReturn] is set to `true`, the updated rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<TransactionPayment>> updateWhere(
-    _i1.Session session, {
-    required _i1.ColumnValueListBuilder<TransactionPaymentUpdateTable>
+    _is.DatabaseSession session, {
+    required _is.ColumnValueListBuilder<TransactionPaymentUpdateTable>
     columnValues,
-    required _i1.WhereExpressionBuilder<TransactionPaymentTable> where,
+    required _is.WhereExpressionBuilder<TransactionPaymentTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<TransactionPaymentTable>? orderBy,
-    _i1.OrderByListBuilder<TransactionPaymentTable>? orderByList,
-    bool orderDescending = false,
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<TransactionPaymentTable>? orderBy,
+    _is.OrderByListBuilder<TransactionPaymentTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.updateWhere<TransactionPayment>(
       columnValues: columnValues(TransactionPayment.t.updateTable),
@@ -695,30 +714,44 @@ class TransactionPaymentRepository {
       offset: offset,
       orderBy: orderBy?.call(TransactionPayment.t),
       orderByList: orderByList?.call(TransactionPayment.t),
-      orderDescending: orderDescending,
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes all [TransactionPayment]s in the list and returns the deleted rows.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<TransactionPayment>> delete(
-    _i1.Session session,
+    _is.DatabaseSession session,
     List<TransactionPayment> rows, {
-    _i1.Transaction? transaction,
+    _is.OrderByBuilder<TransactionPaymentTable>? orderBy,
+    _is.OrderByListBuilder<TransactionPaymentTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.delete<TransactionPayment>(
       rows,
+      orderBy: orderBy?.call(TransactionPayment.t),
+      orderByList: orderByList?.call(TransactionPayment.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Deletes a single [TransactionPayment].
   Future<TransactionPayment> deleteRow(
-    _i1.Session session,
+    _is.DatabaseSession session,
     TransactionPayment row, {
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.deleteRow<TransactionPayment>(
       row,
@@ -727,24 +760,37 @@ class TransactionPaymentRepository {
   }
 
   /// Deletes all rows matching the [where] expression.
+  ///
+  /// To specify the order of the returned rows use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// If [noReturn] is set to `true`, the deleted rows are not read back from
+  /// the database and an empty list is returned. This avoids the overhead of
+  /// transferring and deserializing the rows when the result is not needed.
   Future<List<TransactionPayment>> deleteWhere(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<TransactionPaymentTable> where,
-    _i1.Transaction? transaction,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<TransactionPaymentTable> where,
+    _is.OrderByBuilder<TransactionPaymentTable>? orderBy,
+    _is.OrderByListBuilder<TransactionPaymentTable>? orderByList,
+    _is.Transaction? transaction,
+    bool noReturn = false,
   }) async {
     return session.db.deleteWhere<TransactionPayment>(
       where: where(TransactionPayment.t),
+      orderBy: orderBy?.call(TransactionPayment.t),
+      orderByList: orderByList?.call(TransactionPayment.t),
       transaction: transaction,
+      noReturn: noReturn,
     );
   }
 
   /// Counts the number of rows matching the [where] expression. If omitted,
   /// will return the count of all rows in the table.
   Future<int> count(
-    _i1.Session session, {
-    _i1.WhereExpressionBuilder<TransactionPaymentTable>? where,
+    _is.DatabaseSession session, {
+    _is.WhereExpressionBuilder<TransactionPaymentTable>? where,
     int? limit,
-    _i1.Transaction? transaction,
+    _is.Transaction? transaction,
   }) async {
     return session.db.count<TransactionPayment>(
       where: where?.call(TransactionPayment.t),
@@ -755,11 +801,11 @@ class TransactionPaymentRepository {
 
   /// Acquires row-level locks on [TransactionPayment] rows matching the [where] expression.
   Future<void> lockRows(
-    _i1.Session session, {
-    required _i1.WhereExpressionBuilder<TransactionPaymentTable> where,
-    required _i1.LockMode lockMode,
-    required _i1.Transaction transaction,
-    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+    _is.DatabaseSession session, {
+    required _is.WhereExpressionBuilder<TransactionPaymentTable> where,
+    required _is.LockMode lockMode,
+    required _is.Transaction transaction,
+    _is.LockBehavior lockBehavior = _is.LockBehavior.wait,
   }) async {
     return session.db.lockRows<TransactionPayment>(
       where: where(TransactionPayment.t),

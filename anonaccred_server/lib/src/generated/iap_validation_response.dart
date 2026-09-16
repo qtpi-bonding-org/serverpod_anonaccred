@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class IapValidationResponse
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   IapValidationResponse._({
     required this.success,
     this.productId,
@@ -36,11 +36,11 @@ abstract class IapValidationResponse
     Map<String, dynamic> jsonSerialization,
   ) {
     return IapValidationResponse(
-      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      success: _is.BoolJsonExtension.fromJson(jsonSerialization['success']),
       productId: jsonSerialization['productId'] as String?,
       tag: jsonSerialization['tag'] as String?,
       amount: (jsonSerialization['amount'] as num?)?.toDouble(),
-      fromCache: _i1.BoolJsonExtension.fromJson(jsonSerialization['fromCache']),
+      fromCache: _is.BoolJsonExtension.fromJson(jsonSerialization['fromCache']),
       error: jsonSerialization['error'] as String?,
     );
   }
@@ -59,7 +59,7 @@ abstract class IapValidationResponse
 
   /// Returns a shallow copy of this [IapValidationResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   IapValidationResponse copyWith({
     bool? success,
     String? productId,
@@ -96,7 +96,7 @@ abstract class IapValidationResponse
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -121,7 +121,7 @@ class _IapValidationResponseImpl extends IapValidationResponse {
 
   /// Returns a shallow copy of this [IapValidationResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   IapValidationResponse copyWith({
     bool? success,

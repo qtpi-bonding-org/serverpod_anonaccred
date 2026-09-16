@@ -10,10 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod/serverpod.dart' as _is;
 
 abstract class ApiResponse
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+    implements _is.SerializableModel, _is.ProtocolSerialization {
   ApiResponse._({
     required this.success,
     this.jsonData,
@@ -30,7 +30,7 @@ abstract class ApiResponse
 
   factory ApiResponse.fromJson(Map<String, dynamic> jsonSerialization) {
     return ApiResponse(
-      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      success: _is.BoolJsonExtension.fromJson(jsonSerialization['success']),
       jsonData: jsonSerialization['jsonData'] as String?,
       httpStatus: jsonSerialization['httpStatus'] as int?,
       error: jsonSerialization['error'] as String?,
@@ -47,7 +47,7 @@ abstract class ApiResponse
 
   /// Returns a shallow copy of this [ApiResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   ApiResponse copyWith({
     bool? success,
     String? jsonData,
@@ -78,7 +78,7 @@ abstract class ApiResponse
 
   @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _is.SerializationManager.encode(this);
   }
 }
 
@@ -99,7 +99,7 @@ class _ApiResponseImpl extends ApiResponse {
 
   /// Returns a shallow copy of this [ApiResponse]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_is.useResult
   @override
   ApiResponse copyWith({
     bool? success,

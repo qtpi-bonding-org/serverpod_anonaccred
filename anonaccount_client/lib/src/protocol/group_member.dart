@@ -10,13 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'share_group.dart' as _i2;
-import 'account.dart' as _i3;
-import 'group_member_role.dart' as _i4;
-import 'package:anonaccount_client/src/protocol/protocol.dart' as _i5;
+import 'package:anonaccount_client/src/protocol/protocol.dart' as _iki990kh;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'account.dart' as _iulmo8pc;
+import 'group_member_role.dart' as _imgpb098;
+import 'share_group.dart' as _i97quwy2;
 
-abstract class GroupMember implements _i1.SerializableModel {
+abstract class GroupMember
+    implements _isc.SerializableModel, _isc.ProtocolSerialization {
   GroupMember._({
     this.id,
     required this.shareGroupId,
@@ -44,12 +45,12 @@ abstract class GroupMember implements _i1.SerializableModel {
        keyEpoch = keyEpoch ?? 0;
 
   factory GroupMember({
-    _i1.UuidValue? id,
-    required _i1.UuidValue shareGroupId,
-    _i2.ShareGroup? shareGroup,
-    required _i1.UuidValue anonAccountId,
-    _i3.AnonAccount? anonAccount,
-    required _i4.GroupMemberRole role,
+    _isc.UuidValue? id,
+    required _isc.UuidValue shareGroupId,
+    _i97quwy2.ShareGroup? shareGroup,
+    required _isc.UuidValue anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
+    required _imgpb098.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
     required String memberEncryptionPublicKeyHex,
     required String encryptedDataKey,
@@ -71,24 +72,26 @@ abstract class GroupMember implements _i1.SerializableModel {
     return GroupMember(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      shareGroupId: _i1.UuidValueJsonExtension.fromJson(
+          : _isc.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      shareGroupId: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['shareGroupId'],
       ),
       shareGroup: jsonSerialization['shareGroup'] == null
           ? null
-          : _i5.Protocol().deserialize<_i2.ShareGroup>(
+          : _iki990kh.Protocol().deserialize<_i97quwy2.ShareGroup>(
               jsonSerialization['shareGroup'],
             ),
-      anonAccountId: _i1.UuidValueJsonExtension.fromJson(
+      anonAccountId: _isc.UuidValueJsonExtension.fromJson(
         jsonSerialization['anonAccountId'],
       ),
       anonAccount: jsonSerialization['anonAccount'] == null
           ? null
-          : _i5.Protocol().deserialize<_i3.AnonAccount>(
+          : _iki990kh.Protocol().deserialize<_iulmo8pc.AnonAccount>(
               jsonSerialization['anonAccount'],
             ),
-      role: _i4.GroupMemberRole.fromJson((jsonSerialization['role'] as String)),
+      role: _imgpb098.GroupMemberRole.fromJson(
+        (jsonSerialization['role'] as String),
+      ),
       memberSigningPublicKeyHex:
           jsonSerialization['memberSigningPublicKeyHex'] as String,
       memberEncryptionPublicKeyHex:
@@ -97,10 +100,10 @@ abstract class GroupMember implements _i1.SerializableModel {
       encryptedMemberKey: jsonSerialization['encryptedMemberKey'] as String,
       joinedAt: jsonSerialization['joinedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['joinedAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['joinedAt']),
       isRevoked: jsonSerialization['isRevoked'] == null
           ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
+          : _isc.BoolJsonExtension.fromJson(jsonSerialization['isRevoked']),
       addedByAttestorPublicKeyHex:
           jsonSerialization['addedByAttestorPublicKeyHex'] as String,
       addedByAttestation: jsonSerialization['addedByAttestation'] as String,
@@ -110,11 +113,11 @@ abstract class GroupMember implements _i1.SerializableModel {
           jsonSerialization['revokedByAttestation'] as String?,
       revokedAt: jsonSerialization['revokedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
+          : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['revokedAt']),
       keyEpoch: jsonSerialization['keyEpoch'] as int?,
       roleChangedAt: jsonSerialization['roleChangedAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(
+          : _isc.DateTimeJsonExtension.fromJson(
               jsonSerialization['roleChangedAt'],
             ),
       roleChangedByAttestorPublicKeyHex:
@@ -127,17 +130,17 @@ abstract class GroupMember implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  _i1.UuidValue? id;
+  _isc.UuidValue? id;
 
-  _i1.UuidValue shareGroupId;
+  _isc.UuidValue shareGroupId;
 
-  _i2.ShareGroup? shareGroup;
+  _i97quwy2.ShareGroup? shareGroup;
 
-  _i1.UuidValue anonAccountId;
+  _isc.UuidValue anonAccountId;
 
-  _i3.AnonAccount? anonAccount;
+  _iulmo8pc.AnonAccount? anonAccount;
 
-  _i4.GroupMemberRole role;
+  _imgpb098.GroupMemberRole role;
 
   String memberSigningPublicKeyHex;
 
@@ -171,14 +174,14 @@ abstract class GroupMember implements _i1.SerializableModel {
 
   /// Returns a shallow copy of this [GroupMember]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   GroupMember copyWith({
-    _i1.UuidValue? id,
-    _i1.UuidValue? shareGroupId,
-    _i2.ShareGroup? shareGroup,
-    _i1.UuidValue? anonAccountId,
-    _i3.AnonAccount? anonAccount,
-    _i4.GroupMemberRole? role,
+    _isc.UuidValue? id,
+    _isc.UuidValue? shareGroupId,
+    _i97quwy2.ShareGroup? shareGroup,
+    _isc.UuidValue? anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
+    _imgpb098.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
     String? memberEncryptionPublicKeyHex,
     String? encryptedDataKey,
@@ -228,8 +231,40 @@ abstract class GroupMember implements _i1.SerializableModel {
   }
 
   @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'anonaccount.GroupMember',
+      if (id != null) 'id': id?.toJson(),
+      'shareGroupId': shareGroupId.toJson(),
+      if (shareGroup != null) 'shareGroup': shareGroup?.toJsonForProtocol(),
+      'anonAccountId': anonAccountId.toJson(),
+      if (anonAccount != null) 'anonAccount': anonAccount?.toJsonForProtocol(),
+      'role': role.toJson(),
+      'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
+      'memberEncryptionPublicKeyHex': memberEncryptionPublicKeyHex,
+      'encryptedDataKey': encryptedDataKey,
+      'encryptedMemberKey': encryptedMemberKey,
+      'joinedAt': joinedAt.toJson(),
+      'isRevoked': isRevoked,
+      'addedByAttestorPublicKeyHex': addedByAttestorPublicKeyHex,
+      'addedByAttestation': addedByAttestation,
+      if (revokedByAttestorPublicKeyHex != null)
+        'revokedByAttestorPublicKeyHex': revokedByAttestorPublicKeyHex,
+      if (revokedByAttestation != null)
+        'revokedByAttestation': revokedByAttestation,
+      if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
+      'keyEpoch': keyEpoch,
+      if (roleChangedAt != null) 'roleChangedAt': roleChangedAt?.toJson(),
+      if (roleChangedByAttestorPublicKeyHex != null)
+        'roleChangedByAttestorPublicKeyHex': roleChangedByAttestorPublicKeyHex,
+      if (roleChangedByAttestation != null)
+        'roleChangedByAttestation': roleChangedByAttestation,
+    };
+  }
+
+  @override
   String toString() {
-    return _i1.SerializationManager.encode(this);
+    return _isc.SerializationManager.encode(this);
   }
 }
 
@@ -237,12 +272,12 @@ class _Undefined {}
 
 class _GroupMemberImpl extends GroupMember {
   _GroupMemberImpl({
-    _i1.UuidValue? id,
-    required _i1.UuidValue shareGroupId,
-    _i2.ShareGroup? shareGroup,
-    required _i1.UuidValue anonAccountId,
-    _i3.AnonAccount? anonAccount,
-    required _i4.GroupMemberRole role,
+    _isc.UuidValue? id,
+    required _isc.UuidValue shareGroupId,
+    _i97quwy2.ShareGroup? shareGroup,
+    required _isc.UuidValue anonAccountId,
+    _iulmo8pc.AnonAccount? anonAccount,
+    required _imgpb098.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
     required String memberEncryptionPublicKeyHex,
     required String encryptedDataKey,
@@ -284,15 +319,15 @@ class _GroupMemberImpl extends GroupMember {
 
   /// Returns a shallow copy of this [GroupMember]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   GroupMember copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? shareGroupId,
+    _isc.UuidValue? shareGroupId,
     Object? shareGroup = _Undefined,
-    _i1.UuidValue? anonAccountId,
+    _isc.UuidValue? anonAccountId,
     Object? anonAccount = _Undefined,
-    _i4.GroupMemberRole? role,
+    _imgpb098.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
     String? memberEncryptionPublicKeyHex,
     String? encryptedDataKey,
@@ -310,13 +345,13 @@ class _GroupMemberImpl extends GroupMember {
     Object? roleChangedByAttestation = _Undefined,
   }) {
     return GroupMember(
-      id: id is _i1.UuidValue? ? id : this.id,
+      id: id is _isc.UuidValue? ? id : this.id,
       shareGroupId: shareGroupId ?? this.shareGroupId,
-      shareGroup: shareGroup is _i2.ShareGroup?
+      shareGroup: shareGroup is _i97quwy2.ShareGroup?
           ? shareGroup
           : this.shareGroup?.copyWith(),
       anonAccountId: anonAccountId ?? this.anonAccountId,
-      anonAccount: anonAccount is _i3.AnonAccount?
+      anonAccount: anonAccount is _iulmo8pc.AnonAccount?
           ? anonAccount
           : this.anonAccount?.copyWith(),
       role: role ?? this.role,

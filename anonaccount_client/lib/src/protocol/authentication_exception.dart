@@ -10,11 +10,14 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'package:anonaccount_client/src/protocol/protocol.dart' as _i2;
+import 'package:anonaccount_client/src/protocol/protocol.dart' as _iki990kh;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
 abstract class AuthenticationException
-    implements _i1.SerializableException, _i1.SerializableModel {
+    implements
+        _isc.SerializableException,
+        _isc.SerializableModel,
+        _isc.ProtocolSerialization {
   AuthenticationException._({
     required this.code,
     required this.message,
@@ -38,7 +41,7 @@ abstract class AuthenticationException
       operation: jsonSerialization['operation'] as String?,
       details: jsonSerialization['details'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _iki990kh.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['details'],
             ),
     );
@@ -54,7 +57,7 @@ abstract class AuthenticationException
 
   /// Returns a shallow copy of this [AuthenticationException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   AuthenticationException copyWith({
     String? code,
     String? message,
@@ -63,6 +66,17 @@ abstract class AuthenticationException
   });
   @override
   Map<String, dynamic> toJson() {
+    return {
+      '__className__': 'anonaccount.AuthenticationException',
+      'code': code,
+      'message': message,
+      if (operation != null) 'operation': operation,
+      if (details != null) 'details': details?.toJson(),
+    };
+  }
+
+  @override
+  Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'anonaccount.AuthenticationException',
       'code': code,
@@ -95,7 +109,7 @@ class _AuthenticationExceptionImpl extends AuthenticationException {
 
   /// Returns a shallow copy of this [AuthenticationException]
   /// with some or all fields replaced by the given arguments.
-  @_i1.useResult
+  @_isc.useResult
   @override
   AuthenticationException copyWith({
     String? code,
@@ -109,15 +123,7 @@ class _AuthenticationExceptionImpl extends AuthenticationException {
       operation: operation is String? ? operation : this.operation,
       details: details is Map<String, String>?
           ? details
-          : this.details?.map(
-              (
-                key0,
-                value0,
-              ) => MapEntry(
-                key0,
-                value0,
-              ),
-            ),
+          : this.details?.map((key0, value0) => MapEntry(key0, value0)),
     );
   }
 }
