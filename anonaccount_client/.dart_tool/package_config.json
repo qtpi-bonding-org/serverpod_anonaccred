@@ -177,27 +177,27 @@
     },
     {
       "name": "serverpod_auth_core_client",
-      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_core_client-3.4.1",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_core_client-4.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.12"
     },
     {
       "name": "serverpod_auth_idp_client",
-      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_idp_client-3.4.1",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_idp_client-4.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.12"
     },
     {
       "name": "serverpod_client",
-      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_client-3.4.1",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_client-4.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.12"
     },
     {
       "name": "serverpod_serialization",
-      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_serialization-3.4.1",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_serialization-4.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.12"
     },
     {
       "name": "shelf",
@@ -345,8 +345,8 @@
     }
   ],
   "generator": "pub",
-  "generatorVersion": "3.12.0",
+  "generatorVersion": "3.13.2",
   "flutterRoot": "file:///Users/aicoder/develop/flutter",
-  "flutterVersion": "3.44.0",
+  "flutterVersion": "3.47.2",
   "pubCache": "file:///Users/aicoder/.pub-cache"
 }

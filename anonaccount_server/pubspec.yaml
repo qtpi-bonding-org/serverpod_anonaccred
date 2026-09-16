@@ -19,11 +19,11 @@ platforms:
   windows:
 
 environment:
-  sdk: '^3.8.0'
+  sdk: '^3.12.2'
 
 dependencies:
-  serverpod: 3.4.1
-  serverpod_auth_idp_server: 3.4.1
+  serverpod: 4.0.0
+  serverpod_auth_idp_server: 4.0.0
   pointycastle: ^4.0.0
   crypto: ^3.0.3
   anonaccount_protocol:
@@ -31,7 +31,7 @@ dependencies:
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'
-  serverpod_test: 3.4.1
+  serverpod_test: 4.0.0
   test: ^1.25.5
   webcrypto: ^0.6.0
   anonaccount_sdk:

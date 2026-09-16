@@ -29,7 +29,7 @@ environment:
 dependencies:
   anonaccount_client:
     path: ../anonaccount_client
-  serverpod_client: 3.4.1
+  serverpod_client: 4.0.0
   crypto: ^3.0.3
 
 dev_dependencies:

@@ -46,6 +46,18 @@
       ]
     },
     {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "ffi",
+      "version": "2.2.0",
+      "dependencies": []
+    },
+    {
       "name": "test",
       "version": "1.30.0",
       "dependencies": [
@@ -78,11 +90,15 @@
     },
     {
       "name": "serverpod_test",
-      "version": "3.4.1",
+      "version": "4.0.0",
       "dependencies": [
         "meta",
+        "path",
+        "postgres",
         "serverpod",
+        "serverpod_database",
         "serverpod_lints",
+        "serverpod_shared",
         "synchronized",
         "test"
       ]
@@ -116,13 +132,11 @@
     },
     {
       "name": "serverpod_auth_idp_server",
-      "version": "3.4.1",
+      "version": "4.0.0",
       "dependencies": [
         "clock",
         "dart_jsonwebtoken",
         "email_validator",
-        "googleapis",
-        "googleapis_auth",
         "http",
         "meta",
         "passkeys_server",
@@ -135,19 +149,19 @@
     },
     {
       "name": "serverpod",
-      "version": "3.4.1",
+      "version": "4.0.0",
       "dependencies": [
         "args",
+        "clock",
         "collection",
         "crypto",
         "http",
         "meta",
-        "mustache_template",
         "path",
         "postgres",
         "redis",
         "relic",
-        "retry",
+        "serverpod_database",
         "serverpod_serialization",
         "serverpod_shared",
         "synchronized",
@@ -155,13 +169,9 @@
         "uuid",
         "vm_service",
         "web_socket",
+        "whiskers",
         "yaml"
       ]
-    },
-    {
-      "name": "meta",
-      "version": "1.18.0",
-      "dependencies": []
     },
     {
       "name": "json_annotation",
@@ -172,7 +182,7 @@
     },
     {
       "name": "freezed_annotation",
-      "version": "2.4.4",
+      "version": "3.1.0",
       "dependencies": [
         "collection",
         "json_annotation",
@@ -208,18 +218,6 @@
         "sky_engine",
         "vector_math"
       ]
-    },
-    {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
-      "name": "ffi",
-      "version": "2.2.0",
-      "dependencies": []
     },
     {
       "name": "yaml",
@@ -475,17 +473,63 @@
       "dependencies": []
     },
     {
+      "name": "serverpod_shared",
+      "version": "4.0.0",
+      "dependencies": [
+        "crypto",
+        "ffi",
+        "ffi_leak_tracker",
+        "meta",
+        "path",
+        "serverpod_logging",
+        "win32",
+        "yaml"
+      ]
+    },
+    {
       "name": "serverpod_lints",
-      "version": "3.4.1",
+      "version": "4.0.0",
       "dependencies": [
         "flutter_lints",
         "lints"
       ]
     },
     {
-      "name": "serverpod_serialization",
-      "version": "3.4.1",
+      "name": "serverpod_database",
+      "version": "4.0.0",
       "dependencies": [
+        "collection",
+        "meta",
+        "path",
+        "postgres",
+        "serverpod_embedded_postgres",
+        "serverpod_serialization",
+        "serverpod_shared",
+        "sqlite3",
+        "sqlite_async",
+        "sqlparser"
+      ]
+    },
+    {
+      "name": "postgres",
+      "version": "3.5.9",
+      "dependencies": [
+        "async",
+        "buffer",
+        "charcode",
+        "collection",
+        "crypto",
+        "meta",
+        "pool",
+        "stack_trace",
+        "stream_channel"
+      ]
+    },
+    {
+      "name": "serverpod_serialization",
+      "version": "4.0.0",
+      "dependencies": [
+        "collection",
         "meta",
         "uuid",
         "yaml"
@@ -508,19 +552,8 @@
       ]
     },
     {
-      "name": "serverpod_shared",
-      "version": "3.4.1",
-      "dependencies": [
-        "crypto",
-        "meta",
-        "path",
-        "super_string",
-        "yaml"
-      ]
-    },
-    {
       "name": "serverpod_auth_core_server",
-      "version": "3.4.1",
+      "version": "4.0.0",
       "dependencies": [
         "clock",
         "crypto",
@@ -557,25 +590,6 @@
       ]
     },
     {
-      "name": "googleapis_auth",
-      "version": "2.0.0",
-      "dependencies": [
-        "args",
-        "crypto",
-        "google_identity_services_web",
-        "http",
-        "http_parser"
-      ]
-    },
-    {
-      "name": "googleapis",
-      "version": "16.0.0",
-      "dependencies": [
-        "_discoveryapis_commons",
-        "http"
-      ]
-    },
-    {
       "name": "email_validator",
       "version": "3.0.0",
       "dependencies": []
@@ -593,6 +607,11 @@
     {
       "name": "clock",
       "version": "1.1.2",
+      "dependencies": []
+    },
+    {
+      "name": "whiskers",
+      "version": "0.1.1",
       "dependencies": []
     },
     {
@@ -623,13 +642,8 @@
       ]
     },
     {
-      "name": "retry",
-      "version": "3.1.2",
-      "dependencies": []
-    },
-    {
       "name": "relic",
-      "version": "1.1.1",
+      "version": "2.0.0-rc.1",
       "dependencies": [
         "relic_core",
         "relic_io"
@@ -641,33 +655,13 @@
       "dependencies": []
     },
     {
-      "name": "postgres",
-      "version": "3.5.9",
-      "dependencies": [
-        "async",
-        "buffer",
-        "charcode",
-        "collection",
-        "crypto",
-        "meta",
-        "pool",
-        "stack_trace",
-        "stream_channel"
-      ]
-    },
-    {
-      "name": "mustache_template",
-      "version": "2.0.3",
-      "dependencies": []
-    },
-    {
       "name": "args",
       "version": "2.7.0",
       "dependencies": []
     },
     {
       "name": "serverpod_auth_core_client",
-      "version": "3.4.1",
+      "version": "4.0.0",
       "dependencies": [
         "clock",
         "serverpod_client"
@@ -675,7 +669,7 @@
     },
     {
       "name": "serverpod_auth_idp_client",
-      "version": "3.4.1",
+      "version": "4.0.0",
       "dependencies": [
         "serverpod_auth_core_client",
         "serverpod_client"
@@ -683,12 +677,13 @@
     },
     {
       "name": "serverpod_client",
-      "version": "3.4.1",
+      "version": "4.0.0",
       "dependencies": [
         "collection",
         "http",
         "meta",
         "serverpod_serialization",
+        "web",
         "web_socket",
         "web_socket_channel"
       ]
@@ -696,11 +691,6 @@
     {
       "name": "sky_engine",
       "version": "0.0.0",
-      "dependencies": []
-    },
-    {
-      "name": "vector_math",
-      "version": "2.2.0",
       "dependencies": []
     },
     {
@@ -819,6 +809,21 @@
       ]
     },
     {
+      "name": "serverpod_logging",
+      "version": "0.1.0",
+      "dependencies": [
+        "isolated_object",
+        "meta"
+      ]
+    },
+    {
+      "name": "ffi_leak_tracker",
+      "version": "0.1.2",
+      "dependencies": [
+        "ffi"
+      ]
+    },
+    {
       "name": "flutter_lints",
       "version": "6.0.0",
       "dependencies": [
@@ -826,8 +831,28 @@
       ]
     },
     {
-      "name": "super_string",
-      "version": "1.0.3",
+      "name": "serverpod_embedded_postgres",
+      "version": "4.0.0",
+      "dependencies": [
+        "archive",
+        "config",
+        "crypto",
+        "http",
+        "meta",
+        "path",
+        "postgres",
+        "pub_semver",
+        "serverpod_shared"
+      ]
+    },
+    {
+      "name": "charcode",
+      "version": "1.4.0",
+      "dependencies": []
+    },
+    {
+      "name": "buffer",
+      "version": "1.2.3",
       "dependencies": []
     },
     {
@@ -857,23 +882,6 @@
       "dependencies": []
     },
     {
-      "name": "google_identity_services_web",
-      "version": "0.3.3+1",
-      "dependencies": [
-        "meta",
-        "web"
-      ]
-    },
-    {
-      "name": "_discoveryapis_commons",
-      "version": "1.0.7",
-      "dependencies": [
-        "http",
-        "http_parser",
-        "meta"
-      ]
-    },
-    {
       "name": "ed25519_edwards",
       "version": "0.3.1",
       "dependencies": [
@@ -890,7 +898,7 @@
     },
     {
       "name": "relic_io",
-      "version": "1.1.1",
+      "version": "2.0.0-rc.1",
       "dependencies": [
         "crypto",
         "mime",
@@ -903,7 +911,7 @@
     },
     {
       "name": "relic_core",
-      "version": "1.1.1",
+      "version": "2.0.0-rc.1",
       "dependencies": [
         "async",
         "collection",
@@ -921,21 +929,24 @@
       ]
     },
     {
-      "name": "charcode",
-      "version": "1.4.0",
-      "dependencies": []
-    },
-    {
-      "name": "buffer",
-      "version": "1.2.3",
-      "dependencies": []
-    },
-    {
       "name": "file",
       "version": "7.0.1",
       "dependencies": [
         "meta",
         "path"
+      ]
+    },
+    {
+      "name": "isolated_object",
+      "version": "0.1.0",
+      "dependencies": []
+    },
+    {
+      "name": "archive",
+      "version": "4.0.9",
+      "dependencies": [
+        "path",
+        "posix"
       ]
     },
     {
@@ -945,14 +956,6 @@
         "collection",
         "meta",
         "petitparser"
-      ]
-    },
-    {
-      "name": "archive",
-      "version": "4.0.9",
-      "dependencies": [
-        "path",
-        "posix"
       ]
     },
     {
@@ -968,6 +971,15 @@
       ]
     },
     {
+      "name": "posix",
+      "version": "6.5.0",
+      "dependencies": [
+        "ffi",
+        "meta",
+        "path"
+      ]
+    },
+    {
       "name": "petitparser",
       "version": "7.0.2",
       "dependencies": [
@@ -976,12 +988,157 @@
       ]
     },
     {
-      "name": "posix",
-      "version": "6.5.0",
+      "name": "meta",
+      "version": "1.19.0",
+      "dependencies": []
+    },
+    {
+      "name": "config",
+      "version": "0.9.1",
+      "dependencies": [
+        "args",
+        "collection",
+        "meta",
+        "path",
+        "rfc_6901",
+        "yaml"
+      ]
+    },
+    {
+      "name": "rfc_6901",
+      "version": "0.2.1",
+      "dependencies": []
+    },
+    {
+      "name": "vector_math",
+      "version": "2.4.2",
+      "dependencies": []
+    },
+    {
+      "name": "sqlparser",
+      "version": "0.44.5",
+      "dependencies": [
+        "charcode",
+        "collection",
+        "meta",
+        "source_span"
+      ]
+    },
+    {
+      "name": "win32",
+      "version": "6.4.0",
       "dependencies": [
         "ffi",
+        "ffi_leak_tracker",
+        "meta"
+      ]
+    },
+    {
+      "name": "sqlite_async",
+      "version": "0.14.5",
+      "dependencies": [
+        "async",
+        "collection",
         "meta",
-        "path"
+        "sqlite3",
+        "sqlite3_connection_pool",
+        "sqlite3_web",
+        "web"
+      ]
+    },
+    {
+      "name": "sqlite3_web",
+      "version": "0.9.4",
+      "dependencies": [
+        "meta",
+        "sqlite3",
+        "web"
+      ]
+    },
+    {
+      "name": "sqlite3",
+      "version": "3.6.0",
+      "dependencies": [
+        "code_assets",
+        "collection",
+        "crypto",
+        "ffi",
+        "hooks",
+        "meta",
+        "native_toolchain_c",
+        "path",
+        "typed_data",
+        "web"
+      ]
+    },
+    {
+      "name": "hooks",
+      "version": "2.2.0",
+      "dependencies": [
+        "collection",
+        "crypto",
+        "logging",
+        "pub_semver",
+        "record_use",
+        "yaml"
+      ]
+    },
+    {
+      "name": "record_use",
+      "version": "1.1.1",
+      "dependencies": [
+        "collection",
+        "meta",
+        "pub_semver"
+      ]
+    },
+    {
+      "name": "sqlite3_connection_pool",
+      "version": "0.2.11",
+      "dependencies": [
+        "code_assets",
+        "ffi",
+        "hooks",
+        "meta",
+        "sqlite3"
+      ]
+    },
+    {
+      "name": "code_assets",
+      "version": "2.0.0",
+      "dependencies": [
+        "collection",
+        "hooks",
+        "logging"
+      ]
+    },
+    {
+      "name": "native_toolchain_c",
+      "version": "0.19.4",
+      "dependencies": [
+        "code_assets",
+        "glob",
+        "hooks",
+        "logging",
+        "meta",
+        "process",
+        "pub_semver"
+      ]
+    },
+    {
+      "name": "process",
+      "version": "5.0.6",
+      "dependencies": [
+        "file",
+        "path",
+        "platform"
+      ]
+    },
+    {
+      "name": "platform",
+      "version": "3.2.0",
+      "dependencies": [
+        "meta"
       ]
     }
   ],
