@@ -9,8 +9,8 @@
 /// Deliberately does NOT check that the point lies on P-256. That would mean
 /// parsing keys into curve points, i.e. handling key objects server-side,
 /// which conventions rule 12 keeps out of the server. Curve membership is
-/// enforced client-side on import by webcrypto/BoringSSL. A malformed key is
-/// therefore stored and fails later, client-side.
+/// checked client-side on import by `rust_jwk_duo` (through `dart_jwk_duo`).
+/// A malformed key is therefore stored and fails later, client-side.
 ///
 /// Lowercasing is load-bearing, not cosmetic: hex is case-insensitive but
 /// Postgres `=` and btree unique indexes are not. Storing mixed case would

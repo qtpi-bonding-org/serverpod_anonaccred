@@ -104,6 +104,28 @@ ECDH public key.
 **Reason:** symmetric is right for bulk content; asymmetric is right for handing a
 secret to someone whose secrets you don't hold.
 
+**Every wrap names its purpose and its owner.** `AsymmetricCrypto` takes a
+required `WrapContext`: the HPKE `info` is a per-purpose label and the `aad`
+is the owner's key (or member id and device key). There are seven, one per
+wrap site:
+
+| Context | Wraps | To | Bound to |
+|---|---|---|---|
+| `accountDataKeyForUltimate` | account data key | account ultimate | ultimate signing key |
+| `accountDataKeyForDevice` | account data key | device (create, recover, pairing) | device signing key |
+| `groupDataKeyForGroup` | group data key | group ultimate | group signing key |
+| `groupDataKeyForMember` | group data key | member | group signing key, member signing key |
+| `groupDataKeyForDevice` | group data key | member's device | member id, device signing key |
+| `memberKeyBackup` | member KeyDuo | account ultimate | group signing key, member signing key |
+| `groupOwnerKeyBackup` | group ultimate KeyDuo | account ultimate | group signing key |
+
+**Why:** the server stores every blob. With the context bound in, a blob it
+moves to another row, purpose or group fails to decrypt instead of opening
+as the wrong key. It does not stop the server relabelling a whole
+`listMyGroups` row under another group id; recovery checks that each
+recovered key is the one its row names, and anchoring group ids is out of
+scope.
+
 ### 3. Asymmetric across a trust boundary, symmetric within one
 
 Wrap asymmetrically when the sender doesn't (and shouldn't) hold the recipient's
@@ -266,7 +288,7 @@ silently defeats distinctness checks, unique indexes, and key lookups alike.
 and treats keys as opaque identifiers — parsing them into points would mean
 handling key objects server-side, which is what this rule exists to prevent.
 On-curve validation happens client-side, where keys are actually used:
-`webcrypto`/BoringSSL rejects off-curve points on import. The tradeoff: a malformed
+`rust_jwk_duo` (through `dart_jwk_duo`) rejects off-curve points on import. The tradeoff: a malformed
 key is stored and fails later, away from its cause.
 
 **Where this lives:** `PublicKeyDuo` and the signed-payload builders
@@ -285,10 +307,10 @@ package instead.
 
 ### 12. Key objects stay client-side; everything crossing the wire is a string
 
-The servers do their crypto with `pointycastle` over raw bytes. Key-object
-libraries (`dart_jwk_duo`, `webcrypto`) are runtime dependencies of the SDK only —
-in `anonaccount_server` and `anonaccred_server`, `webcrypto` is a **dev**
-dependency, used for test fixtures. Wire values are hex, base64, or JSON strings.
+The servers do their crypto with `pointycastle` over raw bytes. The SDK's
+only key library is `dart_jwk_duo` (3.0, a binding over `rust_jwk_duo`), a runtime
+dependency of the SDK only. `webcrypto` is a server **dev** dependency, used for
+test fixtures. Wire values are hex, base64, or JSON strings.
 
 **Reason:** it keeps the server's dependency surface small in the component that's
 network-exposed, and it means a breaking change in a key library can't reach the
@@ -300,10 +322,10 @@ point comparison) creates the temptation to add `webcrypto` for its import
 validation. Use `pointycastle` instead — it's already a runtime dep and already
 does the curve arithmetic.
 
-The SDK's public API does expose `KeyDuo` and `webcrypto` types, via narrow `show`
-lists and via `AccountKeyStore`. That's accepted: a key-custody interface has to
-name key types, and wrapping them would relocate the coupling rather than remove
-it.
+The SDK's public API exposes `dart_jwk_duo` types (`KeyDuo`, `SymmetricKey`)
+via narrow `show` lists and via `AccountKeyStore`. That's accepted: a
+key-custody interface has to name key types, and wrapping them would
+relocate the coupling rather than remove it.
 
 ### 13. Revocation is a flag, not key destruction
 
