@@ -10,8 +10,8 @@ part 'scanned_pairing_qr.g.dart';
 ///
 /// The encryption public key is carried as SEC1 uncompressed hex, matching
 /// every other public key in the system — not JWK. Rehydrate it to a
-/// runtime `EcdhPublicKey` via `webcrypto`'s `importPublicKeySec1Hex` (or
-/// `dart_jwk_duo`'s equivalent) at the point of use.
+/// `EncryptionKeyPair.importPublicKeySec1Hex` when a key object is needed.
+/// `AsymmetricCrypto.wrapForRecipient` does this itself.
 @freezed
 abstract class ScannedPairingQr with _$ScannedPairingQr {
   const ScannedPairingQr._();

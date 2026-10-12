@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 // ignore: implementation_imports
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
-    show KeyDuo, EncryptionKeyPair, KeyDuoSerializer;
+    show KeyDuo, KeyDuoSerializer;
 // ignore: implementation_imports
 import 'package:anonaccount_client/src/protocol/account_creation_response.dart'
     show AccountCreationResponse;
@@ -20,6 +20,7 @@ import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 import 'package:anonaccount_client/anonaccount_client.dart' show UuidValue;
 
 import '../crypto/asymmetric.dart';
+import '../crypto/wrap_context.dart';
 import '../models/account_creation_result.dart';
 import '../models/recovered_membership.dart';
 import '../models/registration_payload.dart';
@@ -51,31 +52,13 @@ class AnonaccountAuth {
     ))!,
   );
 
-  /// The encryption-half SEC1 hex for an already-generated device key.
-  Future<String> _deviceEncryptionPublicKeyHex() async {
-    final devicePublicKey = (await _store.getDevicePublicKey())!;
-    return EncryptionKeyPair.publicOnly(
-      publicKey: devicePublicKey,
-    ).exportPublicKeySec1Hex();
-  }
-
-  /// The encryption-half SEC1 hex for the in-memory ultimate key.
-  Future<String> _ultimateEncryptionPublicKeyHex() async {
-    final ultimatePublicKey = (await _store.getUltimatePublicKey())!;
-    return EncryptionKeyPair.publicOnly(
-      publicKey: ultimatePublicKey,
-    ).exportPublicKeySec1Hex();
-  }
-
   /// Local-only: has the [AccountKeyStore] generate a fresh ultimate +
   /// device + symmetric key triple and builds a signed [RegistrationPayload].
   /// Does NOT contact the server.
   ///
-  /// Call [registerAccount] afterwards to submit. Ordering contract: the
-  /// consumer MUST call [registerAccount] (which reads
-  /// `_store.getUltimatePublicKeyJwk`) **before** calling
-  /// `store.getUltimateKeyJwkOnce()` for backup display, since the latter
-  /// wipes the store's in-memory ultimate key.
+  /// Call [registerAccount] afterwards to submit. Ordering contract: this
+  /// signs with the store's in-memory ultimate key, so call it **before**
+  /// `store.getUltimateKeyJwkOnce()` for backup display, which wipes that key.
   Future<AccountCreationResult> createAccount({
     required String deviceLabel,
     required DateTime createdAt,
@@ -89,19 +72,24 @@ class AnonaccountAuth {
     required DateTime createdAt,
   }) async {
     final devicePublicKeyHex = (await _store.getDeviceSigningPublicKeyHex())!;
-    final deviceEncryptionPublicKeyHex = await _deviceEncryptionPublicKeyHex();
+    final deviceEncryptionPublicKeyHex =
+        (await _store.getDeviceEncryptionPublicKeyHex())!;
     final ultimatePublicKeyHex = (await _store
         .getUltimateSigningPublicKeyHex())!;
-    final ultimateEncryptionPublicKeyHex =
-        await _ultimateEncryptionPublicKeyHex();
+    final ultimateEncryptionPublicKeyHex = (await _store
+        .getUltimateEncryptionPublicKeyHex())!;
     final symmetricJwk = (await _store.getSymmetricDataKeyJwk())!;
     final recoveryBlob = await AsymmetricCrypto.wrapForRecipient(
       symmetricJwk,
-      (await _store.getUltimatePublicKey())!,
+      ultimateEncryptionPublicKeyHex,
+      WrapContext.accountDataKeyForUltimate(
+        ultimateSigningHex: ultimatePublicKeyHex,
+      ),
     );
     final deviceBlob = await AsymmetricCrypto.wrapForRecipient(
       symmetricJwk,
-      (await _store.getDevicePublicKey())!,
+      deviceEncryptionPublicKeyHex,
+      WrapContext.accountDataKeyForDevice(deviceSigningHex: devicePublicKeyHex),
     );
     // Attestation covers BOTH halves of the device duo — the encryption key
     // becomes a wrap target, so it must be inside the signature rather than
@@ -222,21 +210,23 @@ class AnonaccountAuth {
       ultimateSigningPublicKeyHex: envelope.publicKeyHex,
     );
 
-    final ultimatePrivateKey = ultimate.encryptionKeyPair.privateKey;
-    if (ultimatePrivateKey == null) {
+    // InMemoryAccountKeyStore's import already refuses a public-only JWK;
+    // this covers app stores whose import does not.
+    if (!ultimate.encryptionKeyPair.hasPrivateKey) {
       throw const InvalidUltimateKeyException(
         'recoverAccount: ultimate key has no private encryption half',
       );
     }
     final symmetricJwk = await AsymmetricCrypto.unwrap(
       response.encryptedDataKey,
-      ultimatePrivateKey,
+      ultimate,
+      WrapContext.accountDataKeyForUltimate(ultimateSigningHex: ultimateHex),
     );
 
     await _store.generateAndStoreDeviceKey();
     final deviceKey = (await _store.getDeviceKey())!;
     final deviceHex = (await _store.getDeviceSigningPublicKeyHex())!;
-    final deviceEncryptionHex = await _deviceEncryptionPublicKeyHex();
+    final deviceEncryptionHex = (await _store.getDeviceEncryptionPublicKeyHex())!;
 
     // Persist the key BEFORE registering. A crash after registration but
     // before this write would leave a device registered server-side with no
@@ -247,7 +237,8 @@ class AnonaccountAuth {
 
     final deviceBlob = await AsymmetricCrypto.wrapForRecipient(
       symmetricJwk,
-      deviceKey.encryptionKeyPair.publicKey,
+      deviceEncryptionHex,
+      WrapContext.accountDataKeyForDevice(deviceSigningHex: deviceHex),
     );
     // Attestation covers BOTH halves of the device duo — see the comment in
     // _buildSignedPayload.
@@ -302,9 +293,20 @@ class AnonaccountAuth {
       try {
         final jwk = await AsymmetricCrypto.unwrap(
           m.encryptedMemberKey,
-          ultimatePrivateKey,
+          ultimate,
+          WrapContext.memberKeyBackup(
+            groupSigningHex: m.groupUltimateSigningPublicKeyHex,
+            memberSigningHex: m.memberSigningPublicKeyHex,
+          ),
         );
         final memberKey = await const KeyDuoSerializer().importKeyDuoJwk(jwk);
+        // The row names the member key it carries; a key that decrypts but
+        // is not that key is a substituted row, reported like a corrupt one.
+        if ((await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value !=
+            m.memberSigningPublicKeyHex) {
+          memberKey.dispose();
+          throw StateError('member key does not match its membership row');
+        }
         await _memberKeys.storeMemberKey(
           UuidValue.fromString(m.groupId),
           memberKey,
@@ -320,11 +322,19 @@ class AnonaccountAuth {
         try {
           final ownerJwk = await AsymmetricCrypto.unwrap(
             m.encryptedUltimateKey!,
-            ultimatePrivateKey,
+            ultimate,
+            WrapContext.groupOwnerKeyBackup(
+              groupSigningHex: m.groupUltimateSigningPublicKeyHex,
+            ),
           );
           final ownerKey = await const KeyDuoSerializer().importKeyDuoJwk(
             ownerJwk,
           );
+          if ((await ownerKey.signingKeyPair.exportPublicKeySec1Hex()).value !=
+              m.groupUltimateSigningPublicKeyHex) {
+            ownerKey.dispose();
+            throw StateError('owner key does not match its group');
+          }
           await _ownerKeys.storeOwnerKey(
             UuidValue.fromString(m.groupId),
             ownerKey,

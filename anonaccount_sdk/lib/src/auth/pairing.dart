@@ -7,11 +7,10 @@ import 'package:anonaccount_client/src/protocol/account_device.dart'
 import 'package:anonaccount_client/src/protocol/client.dart' show Caller;
 import 'package:anonaccount_protocol/anonaccount_protocol.dart'
     show AccountInnerPayloads, DeviceMethods, PublicKeyDuo;
-import 'package:dart_jwk_duo/dart_jwk_duo.dart'
-    show EncryptionKeyPair, EncryptionPublicKeyHex;
-import 'package:webcrypto/webcrypto.dart';
+import 'package:dart_jwk_duo/dart_jwk_duo.dart' show SymmetricKey;
 
 import '../crypto/asymmetric.dart';
+import '../crypto/wrap_context.dart';
 import '../models/generated_pairing_qr.dart';
 import '../models/pairing_delivery.dart';
 import '../models/scanned_pairing_qr.dart';
@@ -37,11 +36,8 @@ class AnonaccountPairing {
   Future<GeneratedPairingQr> beginPairing({required String deviceLabel}) async {
     await _store.generateAndStoreDeviceKey();
     final signingPubkeyHex = (await _store.getDeviceSigningPublicKeyHex())!;
-    final devicePublicKey = (await _store.getDevicePublicKey())!;
     final encryptionPubkeyHex =
-        (await EncryptionKeyPair.publicOnly(publicKey: devicePublicKey)
-                .exportPublicKeySec1Hex())
-            .value;
+        (await _store.getDeviceEncryptionPublicKeyHex())!;
     return GeneratedPairingQr(
       qrPayloadJson: jsonEncode({
         'action': 'pair',
@@ -59,18 +55,21 @@ class AnonaccountPairing {
 
   /// Side B (the joiner): unwrap a wrapped symmetric key blob delivered
   /// by side A via [monitorRegistration]. Persists the unwrapped key
-  /// into the store and returns a live AES-GCM key ready for
-  /// encrypt/decrypt.
-  Future<AesGcmSecretKey> completePairing({required String wrappedKey}) async {
+  /// Persists the unwrapped key's JWK into the store and returns a live
+  /// [SymmetricKey], which the caller owns and disposes.
+  Future<SymmetricKey> completePairing({required String wrappedKey}) async {
     final deviceKey = (await _store.getDeviceKey())!;
-    final privateKey = deviceKey.encryptionKeyPair.privateKey;
-    if (privateKey == null) {
+    if (!deviceKey.encryptionKeyPair.hasPrivateKey) {
       throw ArgumentError('completePairing: device key missing private half');
     }
-    final jwkString = await AsymmetricCrypto.unwrap(wrappedKey, privateKey);
+    final deviceSigningHex = (await _store.getDeviceSigningPublicKeyHex())!;
+    final jwkString = await AsymmetricCrypto.unwrap(
+      wrappedKey,
+      deviceKey,
+      WrapContext.accountDataKeyForDevice(deviceSigningHex: deviceSigningHex),
+    );
     await _store.storeSymmetricDataKeyJwk(jwkString);
-    final jwk = jsonDecode(jwkString) as Map<String, dynamic>;
-    return AesGcmSecretKey.importJsonWebKey(jwk);
+    return SymmetricKey.fromJwk(jwkString);
   }
 
   /// Side B (the joiner): opens a server-sent stream that fires once for
@@ -112,7 +111,6 @@ class AnonaccountPairing {
     required String label,
   }) async {
     final ourDeviceKey = (await _store.getDeviceKey())!;
-    final ourSymmetricKey = (await _store.getSymmetricDataKey())!;
     final ultimateEncryptionPublicKeyHex =
         await _store.getUltimateEncryptionPublicKeyHex();
     final ultimateSigningPublicKeyHex =
@@ -125,13 +123,14 @@ class AnonaccountPairing {
         'produce a device that can never write a group member-key backup.',
       );
     }
-    final theirEncryptionKeyPair = await EncryptionKeyPair.importPublicKeySec1Hex(
-      EncryptionPublicKeyHex(scanned.theirEncryptionPubkeyHex),
-    );
-    final theirEncryptionPubkey = theirEncryptionKeyPair.publicKey;
-    final symJwk = jsonEncode(await ourSymmetricKey.exportJsonWebKey());
+    final symJwk = (await _store.getSymmetricDataKeyJwk())!;
     final wrappedSymKey = await AsymmetricCrypto.wrapForRecipient(
-        symJwk, theirEncryptionPubkey);
+      symJwk,
+      scanned.theirEncryptionPubkeyHex,
+      WrapContext.accountDataKeyForDevice(
+        deviceSigningHex: scanned.theirSigningPubkeyHex,
+      ),
+    );
     final ourDeviceHex =
         (await ourDeviceKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final newDeviceKeys = PublicKeyDuo(

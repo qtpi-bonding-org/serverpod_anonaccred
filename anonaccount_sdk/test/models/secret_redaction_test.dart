@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
+import 'package:dart_jwk_duo/dart_jwk_duo.dart' show GenerationService;
 import 'package:test/test.dart';
-import 'package:webcrypto/webcrypto.dart';
 
 /// Every model that can hold key material, checked against its own material.
 ///
@@ -40,8 +40,9 @@ void main() {
     });
 
     test('CreatedGroup hides the group data key', () async {
-      final dataKey = await AesGcmSecretKey.generateKey(256);
-      final raw = base64Url.encode(await dataKey.exportRawKey());
+      final dataKey = await GenerationService.generateSymmetricKey();
+      final raw = (jsonDecode(await dataKey.toJwk())
+          as Map<String, dynamic>)['k'] as String;
 
       final created = CreatedGroup(
         groupId: 'g',
@@ -50,7 +51,7 @@ void main() {
         createdAt: DateTime.utc(2026, 8, 2),
       );
 
-      expect(created.toString(), isNot(contains(raw.replaceAll('=', ''))));
+      expect(created.toString(), isNot(contains(raw)));
     });
   });
 

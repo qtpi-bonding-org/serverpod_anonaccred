@@ -2,21 +2,9 @@ import 'dart:typed_data';
 import 'package:anonaccount_sdk/src/crypto/signing.dart';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:test/test.dart';
-import 'package:webcrypto/webcrypto.dart';
 
 Future<KeyDuo> _testKeyDuo() async {
-  final signing = await EcdsaPrivateKey.generateKey(EllipticCurve.p256);
-  final encryption = await EcdhPrivateKey.generateKey(EllipticCurve.p256);
-  return KeyDuo(
-    signing: SigningKeyPair(
-      privateKey: signing.privateKey,
-      publicKey: signing.publicKey,
-    ),
-    encryption: EncryptionKeyPair(
-      privateKey: encryption.privateKey,
-      publicKey: encryption.publicKey,
-    ),
-  );
+  return GenerationService.generateKeyDuo();
 }
 
 void main() {

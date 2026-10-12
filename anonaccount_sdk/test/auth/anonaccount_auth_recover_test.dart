@@ -37,7 +37,11 @@ _seedAccount() async {
   final ultimate = await holder.importUltimateKeyJwk(ultimateJwk);
   final recoveryBlob = await AsymmetricCrypto.wrapForRecipient(
     symmetricJwk,
-    ultimate.encryptionKeyPair.publicKey,
+    (await ultimate.encryptionKeyPair.exportPublicKeySec1Hex()).value,
+    WrapContext.accountDataKeyForUltimate(
+      ultimateSigningHex:
+          (await ultimate.signingKeyPair.exportPublicKeySec1Hex()).value,
+    ),
   );
   return (
     ultimateJwk: ultimateJwk,
@@ -65,6 +69,8 @@ void _stubListMyGroups(
   String? encryptedMemberKey,
   wire.UuidValue? shareGroupId,
   String? encryptedUltimateKey,
+  String? memberSigningPublicKeyHex,
+  String? groupUltimateSigningPublicKeyHex,
 }) {
   when(
     () => group.listMyGroups(
@@ -89,7 +95,9 @@ void _stubListMyGroups(
                     '33333333-3333-4333-8333-333333333333',
                   ),
               role: wire.GroupMemberRole.member,
-              memberSigningPublicKeyHex: '04${'m' * 128}',
+              memberSigningPublicKeyHex: memberSigningPublicKeyHex!,
+              groupUltimateSigningPublicKeyHex:
+                  groupUltimateSigningPublicKeyHex!,
               memberEncryptedDataKey: 'group-blob',
               deviceEncryptedDataKey: null,
               joinedAt: DateTime.utc(2026, 8, 2),
@@ -252,7 +260,10 @@ void main() {
       expect(
         await AsymmetricCrypto.unwrap(
           deviceBlob,
-          newDeviceKey.encryptionKeyPair.privateKey!,
+          newDeviceKey,
+          WrapContext.accountDataKeyForDevice(
+            deviceSigningHex: capturedDeviceKeys.signingPublicKeyHex,
+          ),
         ),
         seeded.symmetricJwk,
       );
@@ -306,7 +317,12 @@ void main() {
     final ultimate = await holder.importUltimateKeyJwk(seeded.ultimateJwk);
     final encryptedMemberKey = await AsymmetricCrypto.wrapForRecipient(
       memberKeyJwk,
-      ultimate.encryptionKeyPair.publicKey,
+      (await ultimate.encryptionKeyPair.exportPublicKeySec1Hex()).value,
+      WrapContext.memberKeyBackup(
+        groupSigningHex: seeded.ultimateHex,
+        memberSigningHex:
+            (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
+      ),
     );
     final shareGroupId = wire.UuidValue.fromString(
       '33333333-3333-4333-8333-333333333333',
@@ -315,6 +331,9 @@ void main() {
       group,
       encryptedMemberKey: encryptedMemberKey,
       shareGroupId: shareGroupId,
+      memberSigningPublicKeyHex:
+          (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
+      groupUltimateSigningPublicKeyHex: seeded.ultimateHex,
     );
 
     final store = InMemoryAccountKeyStore();
@@ -354,6 +373,8 @@ void main() {
       group,
       encryptedMemberKey: 'NOT-A-BLOB',
       shareGroupId: shareGroupId,
+      memberSigningPublicKeyHex: seeded.ultimateHex,
+      groupUltimateSigningPublicKeyHex: seeded.ultimateHex,
     );
 
     final store = InMemoryAccountKeyStore();
@@ -389,13 +410,20 @@ void main() {
     );
     final blob = await AsymmetricCrypto.wrapForRecipient(
       ownerJwk,
-      ultimate.encryptionKeyPair.publicKey,
+      (await ultimate.encryptionKeyPair.exportPublicKeySec1Hex()).value,
+      WrapContext.groupOwnerKeyBackup(
+        groupSigningHex:
+            (await ownerKey.signingKeyPair.exportPublicKeySec1Hex()).value,
+      ),
     );
     _stubListMyGroups(
       group,
       encryptedMemberKey: 'bad',
       encryptedUltimateKey: blob,
       shareGroupId: groupId,
+      memberSigningPublicKeyHex: seeded.ultimateHex,
+      groupUltimateSigningPublicKeyHex:
+          (await ownerKey.signingKeyPair.exportPublicKeySec1Hex()).value,
     );
     final ownerStore = InMemoryGroupOwnerKeyStore();
     final auth = AnonaccountAuth(
@@ -422,6 +450,8 @@ void main() {
         group,
         encryptedMemberKey: 'bad',
         encryptedUltimateKey: 'bad',
+        memberSigningPublicKeyHex: seeded.ultimateHex,
+        groupUltimateSigningPublicKeyHex: seeded.ultimateHex,
       );
       final auth = AnonaccountAuth(
         caller,
@@ -441,7 +471,12 @@ void main() {
     final seeded = await _seedAccount();
     _stubRecovery(dataKey, seeded.recoveryBlob);
     _stubRegisterDevice(device);
-    _stubListMyGroups(group, encryptedMemberKey: 'bad');
+    _stubListMyGroups(
+      group,
+      encryptedMemberKey: 'bad',
+      memberSigningPublicKeyHex: seeded.ultimateHex,
+      groupUltimateSigningPublicKeyHex: seeded.ultimateHex,
+    );
     final auth = AnonaccountAuth(
       caller,
       InMemoryAccountKeyStore(),
@@ -483,7 +518,12 @@ void main() {
     final ultimate = await holder.importUltimateKeyJwk(seeded.ultimateJwk);
     final encryptedMemberKey = await AsymmetricCrypto.wrapForRecipient(
       memberKeyJwk,
-      ultimate.encryptionKeyPair.publicKey,
+      (await ultimate.encryptionKeyPair.exportPublicKeySec1Hex()).value,
+      WrapContext.memberKeyBackup(
+        groupSigningHex: seeded.ultimateHex,
+        memberSigningHex:
+            (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
+      ),
     );
     final shareGroupId = wire.UuidValue.fromString(
       '33333333-3333-4333-8333-333333333333',
@@ -492,6 +532,9 @@ void main() {
       group,
       encryptedMemberKey: encryptedMemberKey,
       shareGroupId: shareGroupId,
+      memberSigningPublicKeyHex:
+          (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value,
+      groupUltimateSigningPublicKeyHex: seeded.ultimateHex,
     );
 
     final store = InMemoryAccountKeyStore();
@@ -530,4 +573,177 @@ void main() {
     );
     expect(ok, isTrue);
   });
+
+  test('recoverAccount rejects a public-only ultimate key', () async {
+    final seed = InMemoryAccountKeyStore();
+    await seed.generateAccountKeys();
+    final full = (await seed.getUltimateKeyJwkOnce())!;
+    final duo = await const KeyDuoSerializer().importKeyDuoJwk(full);
+    final publicOnly = await const KeyDuoSerializer().exportPublicKeyDuoJwk(
+      duo,
+    );
+
+    await expectLater(
+      AnonaccountAuth(
+        caller,
+        InMemoryAccountKeyStore(),
+        InMemoryMemberKeyStore(),
+        InMemoryGroupOwnerKeyStore(),
+      ).recoverAccount(ultimateKeyJwk: publicOnly, deviceLabel: 'd'),
+      throwsA(isA<InvalidUltimateKeyException>()),
+    );
+  });
+
+  test(
+    'recoverAccount reports a row whose group key is not the one the backup is bound to',
+    () async {
+      final seeded = await _seedAccount();
+      _stubRecovery(dataKey, seeded.recoveryBlob);
+      _stubRegisterDevice(device);
+
+      final memberKey = await KeyGen.generateDeviceKey();
+      final memberHex =
+          (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final realGroup = await KeyGen.generateUltimateKey();
+      final realGroupHex =
+          (await realGroup.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final otherGroup = await KeyGen.generateUltimateKey();
+      final otherGroupHex =
+          (await otherGroup.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final holder = InMemoryAccountKeyStore();
+      await holder.importUltimateKeyJwk(seeded.ultimateJwk);
+      final encryptedMemberKey = await AsymmetricCrypto.wrapForRecipient(
+        await const KeyDuoSerializer().exportKeyDuoJwk(memberKey),
+        (await holder.getUltimateEncryptionPublicKeyHex())!,
+        WrapContext.memberKeyBackup(
+          groupSigningHex: realGroupHex,
+          memberSigningHex: memberHex,
+        ),
+      );
+      _stubListMyGroups(
+        group,
+        encryptedMemberKey: encryptedMemberKey,
+        memberSigningPublicKeyHex: memberHex,
+        groupUltimateSigningPublicKeyHex: otherGroupHex,
+      );
+
+      final memberStore = InMemoryMemberKeyStore();
+      final recovered = await AnonaccountAuth(
+        caller,
+        InMemoryAccountKeyStore(),
+        memberStore,
+        InMemoryGroupOwnerKeyStore(),
+      ).recoverAccount(ultimateKeyJwk: seeded.ultimateJwk, deviceLabel: 'd');
+
+      expect(recovered.single.recovered, isFalse);
+      expect(
+        await memberStore.getMemberKey(
+          wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333'),
+        ),
+        isNull,
+      );
+    },
+  );
+
+  test(
+    'recoverAccount reports a row whose member key is not the one it names',
+    () async {
+      final seeded = await _seedAccount();
+      _stubRecovery(dataKey, seeded.recoveryBlob);
+      _stubRegisterDevice(device);
+
+      final memberKey = await KeyGen.generateDeviceKey();
+      final namedMember = await KeyGen.generateDeviceKey();
+      final namedHex =
+          (await namedMember.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final groupKey = await KeyGen.generateUltimateKey();
+      final groupHex =
+          (await groupKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final holder = InMemoryAccountKeyStore();
+      await holder.importUltimateKeyJwk(seeded.ultimateJwk);
+      // Wrapped under the row's own binding, but carrying a different key.
+      final encryptedMemberKey = await AsymmetricCrypto.wrapForRecipient(
+        await const KeyDuoSerializer().exportKeyDuoJwk(memberKey),
+        (await holder.getUltimateEncryptionPublicKeyHex())!,
+        WrapContext.memberKeyBackup(
+          groupSigningHex: groupHex,
+          memberSigningHex: namedHex,
+        ),
+      );
+      _stubListMyGroups(
+        group,
+        encryptedMemberKey: encryptedMemberKey,
+        memberSigningPublicKeyHex: namedHex,
+        groupUltimateSigningPublicKeyHex: groupHex,
+      );
+
+      final recovered = await AnonaccountAuth(
+        caller,
+        InMemoryAccountKeyStore(),
+        InMemoryMemberKeyStore(),
+        InMemoryGroupOwnerKeyStore(),
+      ).recoverAccount(ultimateKeyJwk: seeded.ultimateJwk, deviceLabel: 'd');
+
+      expect(recovered.single.recovered, isFalse);
+    },
+  );
+
+  test(
+    'recoverAccount reports an owner backup that is not the group key it names',
+    () async {
+      final seeded = await _seedAccount();
+      _stubRecovery(dataKey, seeded.recoveryBlob);
+      _stubRegisterDevice(device);
+
+      final memberKey = await KeyGen.generateDeviceKey();
+      final memberHex =
+          (await memberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final namedGroup = await KeyGen.generateUltimateKey();
+      final namedGroupHex =
+          (await namedGroup.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final otherOwnerKey = await KeyGen.generateUltimateKey();
+      final holder = InMemoryAccountKeyStore();
+      await holder.importUltimateKeyJwk(seeded.ultimateJwk);
+      final ultimateEncHex = (await holder
+          .getUltimateEncryptionPublicKeyHex())!;
+      final encryptedMemberKey = await AsymmetricCrypto.wrapForRecipient(
+        await const KeyDuoSerializer().exportKeyDuoJwk(memberKey),
+        ultimateEncHex,
+        WrapContext.memberKeyBackup(
+          groupSigningHex: namedGroupHex,
+          memberSigningHex: memberHex,
+        ),
+      );
+      // Bound to the named group, but carrying a different group's key.
+      final encryptedUltimateKey = await AsymmetricCrypto.wrapForRecipient(
+        await const KeyDuoSerializer().exportKeyDuoJwk(otherOwnerKey),
+        ultimateEncHex,
+        WrapContext.groupOwnerKeyBackup(groupSigningHex: namedGroupHex),
+      );
+      _stubListMyGroups(
+        group,
+        encryptedMemberKey: encryptedMemberKey,
+        encryptedUltimateKey: encryptedUltimateKey,
+        memberSigningPublicKeyHex: memberHex,
+        groupUltimateSigningPublicKeyHex: namedGroupHex,
+      );
+
+      final ownerStore = InMemoryGroupOwnerKeyStore();
+      final recovered = await AnonaccountAuth(
+        caller,
+        InMemoryAccountKeyStore(),
+        InMemoryMemberKeyStore(),
+        ownerStore,
+      ).recoverAccount(ultimateKeyJwk: seeded.ultimateJwk, deviceLabel: 'd');
+
+      expect(recovered.single.recovered, isTrue);
+      expect(recovered.single.ownerKeyRecovered, isFalse);
+      expect(
+        await ownerStore.getOwnerKey(
+          wire.UuidValue.fromString('33333333-3333-4333-8333-333333333333'),
+        ),
+        isNull,
+      );
+    },
+  );
 }

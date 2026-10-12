@@ -6,9 +6,13 @@ library anonaccount_sdk;
 
 // Re-exports of upstream types consumers will need.
 export 'package:dart_jwk_duo/dart_jwk_duo.dart'
-    show KeyDuo, IKeyDuo, SigningKeyPair, EncryptionKeyPair, KeyDuoSerializer;
-export 'package:webcrypto/webcrypto.dart'
-    show AesGcmSecretKey, EcdhPublicKey, EcdhPrivateKey, EllipticCurve;
+    show
+        KeyDuo,
+        IKeyDuo,
+        SigningKeyPair,
+        EncryptionKeyPair,
+        KeyDuoSerializer,
+        SymmetricKey;
 
 // Filled in as later tasks land.
 export 'src/auth/exceptions.dart';
@@ -20,6 +24,7 @@ export 'src/models/models.dart';
 export 'src/crypto/symmetric.dart';
 export 'src/crypto/signing.dart';
 export 'src/crypto/asymmetric.dart';
+export 'src/crypto/wrap_context.dart';
 export 'src/crypto/key_gen.dart';
 
 export 'package:anonaccount_client/anonaccount_client.dart'

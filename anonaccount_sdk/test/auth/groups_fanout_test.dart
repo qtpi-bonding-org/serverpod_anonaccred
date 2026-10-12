@@ -1,13 +1,8 @@
-import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 import 'package:anonaccount_protocol/anonaccount_protocol.dart'
     show GroupInnerPayloads;
-// EncryptionPublicKeyHex is part of dart_jwk_duo's public surface, used here
-// to import the sibling device's encryption pubkey so we can wrap to it.
-// ignore: implementation_imports
-import 'package:dart_jwk_duo/dart_jwk_duo.dart' show EncryptionPublicKeyHex;
+import 'package:dart_jwk_duo/dart_jwk_duo.dart' show GenerationService;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -44,16 +39,14 @@ void main() {
     required String id,
     required String signingHex,
     required String encryptionHex,
-    required AesGcmSecretKey dataKey,
+    required SymmetricKey dataKey,
     bool isRevoked = false,
     wire.UuidValue? anonAccountId,
   }) async {
-    final pub = await EncryptionKeyPair.importPublicKeySec1Hex(
-      EncryptionPublicKeyHex(encryptionHex),
-    );
     final blob = await AsymmetricCrypto.wrapForRecipient(
-      jsonEncode(await dataKey.exportJsonWebKey()),
-      pub.publicKey,
+      await dataKey.toJwk(),
+      encryptionHex,
+      WrapContext.accountDataKeyForDevice(deviceSigningHex: signingHex),
     );
     return wire.AccountDevice(
       id: wire.UuidValue.fromString(id),
@@ -100,15 +93,12 @@ void main() {
         (await siblingKey.signingKeyPair.exportPublicKeySec1Hex()).value;
     final revokedHex =
         (await revokedKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-    final callerEnc = (await EncryptionKeyPair.publicOnly(
-      publicKey: callerKey.encryptionKeyPair.publicKey,
-    ).exportPublicKeySec1Hex()).value;
-    final siblingEnc = (await EncryptionKeyPair.publicOnly(
-      publicKey: siblingKey.encryptionKeyPair.publicKey,
-    ).exportPublicKeySec1Hex()).value;
-    final revokedEnc = (await EncryptionKeyPair.publicOnly(
-      publicKey: revokedKey.encryptionKeyPair.publicKey,
-    ).exportPublicKeySec1Hex()).value;
+    final callerEnc =
+        (await callerKey.encryptionKeyPair.exportPublicKeySec1Hex()).value;
+    final siblingEnc =
+        (await siblingKey.encryptionKeyPair.exportPublicKeySec1Hex()).value;
+    final revokedEnc =
+        (await revokedKey.encryptionKeyPair.exportPublicKeySec1Hex()).value;
 
     final callerId = wire.UuidValue.fromString(
       '11111111-1111-4111-8111-111111111111',
@@ -120,7 +110,7 @@ void main() {
       '33333333-3333-4333-8333-333333333333',
     );
 
-    final dataKey = await AesGcmSecretKey.generateKey(256);
+    final dataKey = await GenerationService.generateSymmetricKey();
     final callerDevice = await _makeDevice(
       id: '11111111-1111-4111-8111-111111111111',
       signingHex: callerHex,
@@ -295,9 +285,8 @@ void main() {
       // access to the group data key.
       final d2Key = await KeyGen.generateDeviceKey();
       final d2Hex = (await d2Key.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final d2Enc = (await EncryptionKeyPair.publicOnly(
-        publicKey: d2Key.encryptionKeyPair.publicKey,
-      ).exportPublicKeySec1Hex()).value;
+      final d2Enc =
+          (await d2Key.encryptionKeyPair.exportPublicKeySec1Hex()).value;
 
       final d2Id = wire.UuidValue.fromString(
         '22222222-2222-4222-8222-222222222222',
@@ -308,15 +297,14 @@ void main() {
       final callerKey = await KeyGen.generateDeviceKey();
       final callerHex =
           (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final callerEnc = (await EncryptionKeyPair.publicOnly(
-        publicKey: callerKey.encryptionKeyPair.publicKey,
-      ).exportPublicKeySec1Hex()).value;
+      final callerEnc =
+          (await callerKey.encryptionKeyPair.exportPublicKeySec1Hex()).value;
       final callerId = wire.UuidValue.fromString(
         '11111111-1111-4111-8111-111111111111',
       );
 
-      final dataKey = await AesGcmSecretKey.generateKey(256);
-      final dataKeyJwk = jsonEncode(await dataKey.exportJsonWebKey());
+      final dataKey = await GenerationService.generateSymmetricKey();
+      final dataKeyJwk = await dataKey.toJwk();
 
       final callerDevice = await _makeDevice(
         id: '11111111-1111-4111-8111-111111111111',
@@ -411,13 +399,16 @@ void main() {
       // The blob sent for D2 must unwrap with D2's private key back to the
       // original data key JWK. This is the property that turns a fresh
       // sibling into a group reader.
-      final privateKey = d2Key.encryptionKeyPair.privateKey;
-      if (privateKey == null) {
+      if (!d2Key.encryptionKeyPair.hasPrivateKey) {
         fail('sibling D2 key has no private encryption half');
       }
       final unwrapped = await AsymmetricCrypto.unwrap(
         d2Grant.encryptedDataKey,
-        privateKey,
+        d2Key,
+        WrapContext.groupDataKeyForDevice(
+          memberId: memberId,
+          deviceSigningHex: d2Hex,
+        ),
       );
       expect(unwrapped, dataKeyJwk);
 
@@ -464,9 +455,8 @@ void main() {
       final callerKey = await KeyGen.generateDeviceKey();
       final callerHex =
           (await callerKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final callerEnc = (await EncryptionKeyPair.publicOnly(
-        publicKey: callerKey.encryptionKeyPair.publicKey,
-      ).exportPublicKeySec1Hex()).value;
+      final callerEnc =
+          (await callerKey.encryptionKeyPair.exportPublicKeySec1Hex()).value;
 
       // The new device — generate and read its two public halves back out
       // as SEC1 hex, since the wire type is the hex and a fresh KeyDuo is
@@ -474,9 +464,9 @@ void main() {
       final newDeviceKeyDuo = await KeyGen.generateDeviceKey();
       final newDeviceSigningHex =
           (await newDeviceKeyDuo.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final newDeviceEncHex = (await EncryptionKeyPair.publicOnly(
-        publicKey: newDeviceKeyDuo.encryptionKeyPair.publicKey,
-      ).exportPublicKeySec1Hex()).value;
+      final newDeviceEncHex =
+          (await newDeviceKeyDuo.encryptionKeyPair.exportPublicKeySec1Hex())
+              .value;
 
       // The new device needs an id; AccountDevice on the wire carries one.
       // We construct a minimal row that lists `id` so the SDK can reference it.
@@ -501,8 +491,8 @@ void main() {
       final rootMemberKey = await KeyGen.generateDeviceKey();
       final rootMemberSigningPublicKeyHex =
           (await rootMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final rootDataKey = await AesGcmSecretKey.generateKey(256);
-      final rootDataKeyJwk = jsonEncode(await rootDataKey.exportJsonWebKey());
+      final rootDataKey = await GenerationService.generateSymmetricKey();
+      final rootDataKeyJwk = await rootDataKey.toJwk();
 
       // Peer membership — caller holds only a grant, not the member key.
       final peerMemberId = wire.UuidValue.fromString(
@@ -511,8 +501,8 @@ void main() {
       final peerMemberKey = await KeyGen.generateDeviceKey();
       final peerMemberSigningPublicKeyHex =
           (await peerMemberKey.signingKeyPair.exportPublicKeySec1Hex()).value;
-      final peerDataKey = await AesGcmSecretKey.generateKey(256);
-      final peerDataKeyJwk = jsonEncode(await peerDataKey.exportJsonWebKey());
+      final peerDataKey = await GenerationService.generateSymmetricKey();
+      final peerDataKeyJwk = await peerDataKey.toJwk();
 
       // grantNewDevice re-wraps the caller's own per-device grant blob to
       // the new device — these must be REAL wrapped blobs (to the
@@ -520,11 +510,19 @@ void main() {
       // implementation actually unwraps them.
       final rootDeviceBlobForCaller = await AsymmetricCrypto.wrapForRecipient(
         rootDataKeyJwk,
-        callerKey.encryptionKeyPair.publicKey,
+        callerEnc,
+        WrapContext.groupDataKeyForDevice(
+          memberId: rootMemberId,
+          deviceSigningHex: callerHex,
+        ),
       );
       final peerDeviceBlobForCaller = await AsymmetricCrypto.wrapForRecipient(
         peerDataKeyJwk,
-        callerKey.encryptionKeyPair.publicKey,
+        callerEnc,
+        WrapContext.groupDataKeyForDevice(
+          memberId: peerMemberId,
+          deviceSigningHex: callerHex,
+        ),
       );
 
       final memberships = [
@@ -540,6 +538,7 @@ void main() {
           joinedAt: DateTime.utc(2026, 5, 20),
           encryptedMemberKey: 'root-encrypted-member-key',
           encryptedUltimateKey: null,
+          groupUltimateSigningPublicKeyHex: '04${'e' * 128}',
         ),
         wire.GroupMembershipView(
           memberId: peerMemberId,
@@ -553,6 +552,7 @@ void main() {
           joinedAt: DateTime.utc(2026, 5, 21),
           encryptedMemberKey: 'peer-encrypted-member-key',
           encryptedUltimateKey: null,
+          groupUltimateSigningPublicKeyHex: '04${'f' * 128}',
         ),
       ];
 
@@ -644,13 +644,16 @@ void main() {
       );
       expect(rootOk, isTrue);
       // The root grant's blob unwraps to the root group's data key.
-      final newDevicePriv = newDeviceKeyDuo.encryptionKeyPair.privateKey;
-      if (newDevicePriv == null) {
+      if (!newDeviceKeyDuo.encryptionKeyPair.hasPrivateKey) {
         fail('new device key has no private encryption half');
       }
       final rootUnwrapped = await AsymmetricCrypto.unwrap(
         rootGrant.encryptedDataKey,
-        newDevicePriv,
+        newDeviceKeyDuo,
+        WrapContext.groupDataKeyForDevice(
+          memberId: rootMemberId,
+          deviceSigningHex: newDeviceSigningHex,
+        ),
       );
       expect(rootUnwrapped, rootDataKeyJwk);
 
@@ -673,7 +676,11 @@ void main() {
       expect(peerOk, isTrue);
       final peerUnwrapped = await AsymmetricCrypto.unwrap(
         peerGrant.encryptedDataKey,
-        newDevicePriv,
+        newDeviceKeyDuo,
+        WrapContext.groupDataKeyForDevice(
+          memberId: peerMemberId,
+          deviceSigningHex: newDeviceSigningHex,
+        ),
       );
       expect(peerUnwrapped, peerDataKeyJwk);
     },
@@ -723,10 +730,16 @@ void main() {
       final shareGroupId = wire.UuidValue.fromString(
         '11111111-1111-4111-8111-111111111111',
       );
-      final dataKey = await AesGcmSecretKey.generateKey(256);
+      final dataKey = await GenerationService.generateSymmetricKey();
       final blobForCaller = await AsymmetricCrypto.wrapForRecipient(
-        jsonEncode(await dataKey.exportJsonWebKey()),
-        callerKey.encryptionKeyPair.publicKey,
+        await dataKey.toJwk(),
+        (await callerKey.encryptionKeyPair.exportPublicKeySec1Hex()).value,
+        WrapContext.groupDataKeyForDevice(
+          memberId: wire.UuidValue.fromString(
+            'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          ),
+          deviceSigningHex: callerHex,
+        ),
       );
 
       // The row names one member key; the store holds a different one.
@@ -758,6 +771,7 @@ void main() {
               joinedAt: DateTime.utc(2026, 8, 2),
               encryptedMemberKey: 'member-encrypted-member-key',
               encryptedUltimateKey: null,
+              groupUltimateSigningPublicKeyHex: '04${'g' * 128}',
             ),
           ],
           callerDeviceKey: callerKey,
@@ -791,7 +805,7 @@ void main() {
           memberId: wire.UuidValue.fromString(
             '99999999-9999-4999-8999-999999999999',
           ),
-          groupDataKey: await AesGcmSecretKey.generateKey(256),
+          groupDataKey: await GenerationService.generateSymmetricKey(),
           callerDeviceKey: await KeyGen.generateDeviceKey(),
         ),
         throwsA(isA<StateError>()),

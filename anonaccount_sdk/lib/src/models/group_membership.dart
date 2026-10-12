@@ -53,6 +53,10 @@ abstract class GroupMembership with _$GroupMembership {
     required UuidValue memberId,
     @_GroupMemberRoleConverter() required GroupMemberRole role,
     required String memberSigningPublicKeyHex,
+    /// The group's ultimate signing key: what the member-key and owner-key
+    /// backups are bound to (`WrapContext.memberKeyBackup`,
+    /// `WrapContext.groupOwnerKeyBackup`).
+    required String groupUltimateSigningPublicKeyHex,
     required String memberEncryptedDataKey,
     required String? deviceEncryptedDataKey,
     required DateTime joinedAt,

@@ -1,5 +1,6 @@
 import 'package:anonaccount_client/anonaccount_client.dart' as wire;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
+import 'package:dart_jwk_duo/dart_jwk_duo.dart' show GenerationService;
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -91,7 +92,7 @@ void main() {
 
       expect(created.displayName, 'Family');
       expect(created.groupId, '11111111-1111-4111-8111-111111111111');
-      expect(created.groupDataKey, isA<AesGcmSecretKey>());
+      expect(created.groupDataKey, isA<SymmetricKey>());
 
       final verification = verify(
         () => group.createGroup(
@@ -214,9 +215,9 @@ void main() {
           callerDeviceSigningPublicKeyHex: any(
             named: 'callerDeviceSigningPublicKeyHex',
           ),
-          groupUltimateKeys: any(named: 'groupUltimateKeys'),
+          groupUltimateKeys: captureAny(named: 'groupUltimateKeys'),
           groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
-          creatorMemberKeys: any(named: 'creatorMemberKeys'),
+          creatorMemberKeys: captureAny(named: 'creatorMemberKeys'),
           creatorMemberEncryptedDataKey: any(
             named: 'creatorMemberEncryptedDataKey',
           ),
@@ -231,7 +232,9 @@ void main() {
           creatorEncryptedUltimateKeyAttestation: any(named: 'creatorEncryptedUltimateKeyAttestation'),
         ),
       ).captured;
-      final blob = captured.single as String;
+      final groupKeys = captured[0] as wire.PublicKeyDuo;
+      final memberKeys = captured[1] as wire.PublicKeyDuo;
+      final blob = captured[2] as String;
 
       // The blob must decrypt with the ultimate ENCRYPTION private key and
       // yield the very member key pair the store now holds.
@@ -239,7 +242,11 @@ void main() {
       final ultimate = await verifier.importUltimateKeyJwk(ultimateJwk);
       final recoveredJwk = await AsymmetricCrypto.unwrap(
         blob,
-        ultimate.encryptionKeyPair.privateKey!,
+        ultimate,
+        WrapContext.memberKeyBackup(
+          groupSigningHex: groupKeys.signingPublicKeyHex,
+          memberSigningHex: memberKeys.signingPublicKeyHex,
+        ),
       );
       final recovered = await const KeyDuoSerializer().importKeyDuoJwk(
         recoveredJwk,
@@ -327,7 +334,7 @@ void main() {
       ),
       ultimateEncryptionPublicKeyHex: ultimateEncHex,
     );
-    final blob =
+    final captured =
         verify(
               () => group.createGroup(
                 challenge: any(named: 'challenge'),
@@ -336,9 +343,9 @@ void main() {
                 callerDeviceSigningPublicKeyHex: any(
                   named: 'callerDeviceSigningPublicKeyHex',
                 ),
-                groupUltimateKeys: any(named: 'groupUltimateKeys'),
+                groupUltimateKeys: captureAny(named: 'groupUltimateKeys'),
                 groupEncryptedDataKey: any(named: 'groupEncryptedDataKey'),
-                creatorMemberKeys: any(named: 'creatorMemberKeys'),
+                creatorMemberKeys: captureAny(named: 'creatorMemberKeys'),
                 creatorMemberEncryptedDataKey: any(
                   named: 'creatorMemberEncryptedDataKey',
                 ),
@@ -354,11 +361,20 @@ void main() {
                 creatorEncryptedUltimateKey: any(named: 'creatorEncryptedUltimateKey'),
                 creatorEncryptedUltimateKeyAttestation: any(named: 'creatorEncryptedUltimateKeyAttestation'),
               ),
-            ).captured.single
-            as String;
+            ).captured;
+    final groupKeys = captured[0] as wire.PublicKeyDuo;
+    final memberKeys = captured[1] as wire.PublicKeyDuo;
+    final blob = captured[2] as String;
 
     await expectLater(
-      AsymmetricCrypto.unwrap(blob, deviceKey.encryptionKeyPair.privateKey!),
+      AsymmetricCrypto.unwrap(
+        blob,
+        deviceKey,
+        WrapContext.memberKeyBackup(
+          groupSigningHex: groupKeys.signingPublicKeyHex,
+          memberSigningHex: memberKeys.signingPublicKeyHex,
+        ),
+      ),
       throwsA(isA<CryptoOperationException>()),
     );
   });
@@ -369,7 +385,7 @@ void main() {
     final created = CreatedGroup(
       groupId: 'g',
       displayName: 'g',
-      groupDataKey: await AesGcmSecretKey.generateKey(256),
+      groupDataKey: await GenerationService.generateSymmetricKey(),
       createdAt: DateTime.utc(2026, 8, 2),
     );
     expect(created.toString(), isNot(contains('memberKey')));

@@ -33,6 +33,7 @@ void main() {
       ),
       role: wire.GroupMemberRole.admin,
       memberSigningPublicKeyHex: '04${'a' * 128}',
+      groupUltimateSigningPublicKeyHex: '04${'c' * 128}',
       memberEncryptedDataKey: 'BLOB1',
       deviceEncryptedDataKey: null,
       joinedAt: DateTime.utc(2026, 5, 20),
@@ -48,6 +49,7 @@ void main() {
       ),
       role: wire.GroupMemberRole.member,
       memberSigningPublicKeyHex: '04${'b' * 128}',
+      groupUltimateSigningPublicKeyHex: '04${'d' * 128}',
       memberEncryptedDataKey: 'BLOB2',
       deviceEncryptedDataKey: 'DEVICE-BLOB2',
       joinedAt: DateTime.utc(2026, 5, 21),
@@ -80,12 +82,16 @@ void main() {
     expect(memberships, hasLength(2));
     expect(memberships[0].groupId, '11111111-1111-4111-8111-111111111111');
     expect(memberships[0].memberId, row1.memberId);
+    expect(memberships[0].groupUltimateSigningPublicKeyHex,
+        row1.groupUltimateSigningPublicKeyHex);
     expect(memberships[0].role, wire.GroupMemberRole.admin);
     expect(memberships[0].memberEncryptedDataKey, 'BLOB1');
     expect(memberships[0].deviceEncryptedDataKey, isNull);
     expect(memberships[0].encryptedMemberKey, 'MEMBER-KEY-BLOB1');
     expect(memberships[1].groupId, '33333333-3333-4333-8333-333333333333');
     expect(memberships[1].memberId, row2.memberId);
+    expect(memberships[1].groupUltimateSigningPublicKeyHex,
+        row2.groupUltimateSigningPublicKeyHex);
     expect(memberships[1].deviceEncryptedDataKey, 'DEVICE-BLOB2');
     expect(memberships[1].encryptedMemberKey, 'MEMBER-KEY-BLOB2');
   });

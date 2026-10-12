@@ -11,7 +11,6 @@ dependencies:
     path: ../anonaccount_client
   anonaccount_protocol:
     path: ../anonaccount_protocol
-  webcrypto: ^0.6.0
   dart_jwk_duo:
     git:
       url: https://github.com/qtpi-bonding-org/dart_jwk_duo.git

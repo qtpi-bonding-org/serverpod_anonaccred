@@ -9,7 +9,7 @@ part 'account_keys.freezed.dart';
 /// - [deviceKey] is short-lived to this device.
 /// - [symmetricKeyJwk] is the AES-256 data key, JWK-encoded as a JSON
 ///   string (this is the on-the-wire shape — the runtime
-///   `AesGcmSecretKey` is recovered by the consumer's storage layer).
+///   `SymmetricKey` is recovered by the consumer's storage layer).
 ///
 /// This model deliberately does **not** carry the encrypted blobs sent
 /// to the server. Those live on RegistrationPayload in Phase 2.

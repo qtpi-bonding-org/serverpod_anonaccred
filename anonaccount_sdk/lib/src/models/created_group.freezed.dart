@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreatedGroup {
 
- String get groupId; String get displayName; AesGcmSecretKey get groupDataKey; DateTime get createdAt;
+ String get groupId; String get displayName; SymmetricKey get groupDataKey; DateTime get createdAt;
 /// Create a copy of CreatedGroup
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -41,7 +41,7 @@ abstract mixin class $CreatedGroupCopyWith<$Res>  {
   factory $CreatedGroupCopyWith(CreatedGroup value, $Res Function(CreatedGroup) _then) = _$CreatedGroupCopyWithImpl;
 @useResult
 $Res call({
- String groupId, String displayName, AesGcmSecretKey groupDataKey, DateTime createdAt
+ String groupId, String displayName, SymmetricKey groupDataKey, DateTime createdAt
 });
 
 
@@ -63,7 +63,7 @@ class _$CreatedGroupCopyWithImpl<$Res>
 groupId: null == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,groupDataKey: null == groupDataKey ? _self.groupDataKey : groupDataKey // ignore: cast_nullable_to_non_nullable
-as AesGcmSecretKey,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SymmetricKey,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
@@ -149,7 +149,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String groupId,  String displayName,  AesGcmSecretKey groupDataKey,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String groupId,  String displayName,  SymmetricKey groupDataKey,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreatedGroup() when $default != null:
 return $default(_that.groupId,_that.displayName,_that.groupDataKey,_that.createdAt);case _:
@@ -170,7 +170,7 @@ return $default(_that.groupId,_that.displayName,_that.groupDataKey,_that.created
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String groupId,  String displayName,  AesGcmSecretKey groupDataKey,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String groupId,  String displayName,  SymmetricKey groupDataKey,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _CreatedGroup():
 return $default(_that.groupId,_that.displayName,_that.groupDataKey,_that.createdAt);case _:
@@ -190,7 +190,7 @@ return $default(_that.groupId,_that.displayName,_that.groupDataKey,_that.created
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String groupId,  String displayName,  AesGcmSecretKey groupDataKey,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String groupId,  String displayName,  SymmetricKey groupDataKey,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CreatedGroup() when $default != null:
 return $default(_that.groupId,_that.displayName,_that.groupDataKey,_that.createdAt);case _:
@@ -210,7 +210,7 @@ class _CreatedGroup extends CreatedGroup {
 
 @override final  String groupId;
 @override final  String displayName;
-@override final  AesGcmSecretKey groupDataKey;
+@override final  SymmetricKey groupDataKey;
 @override final  DateTime createdAt;
 
 /// Create a copy of CreatedGroup
@@ -239,7 +239,7 @@ abstract mixin class _$CreatedGroupCopyWith<$Res> implements $CreatedGroupCopyWi
   factory _$CreatedGroupCopyWith(_CreatedGroup value, $Res Function(_CreatedGroup) _then) = __$CreatedGroupCopyWithImpl;
 @override @useResult
 $Res call({
- String groupId, String displayName, AesGcmSecretKey groupDataKey, DateTime createdAt
+ String groupId, String displayName, SymmetricKey groupDataKey, DateTime createdAt
 });
 
 
@@ -261,7 +261,7 @@ class __$CreatedGroupCopyWithImpl<$Res>
 groupId: null == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,groupDataKey: null == groupDataKey ? _self.groupDataKey : groupDataKey // ignore: cast_nullable_to_non_nullable
-as AesGcmSecretKey,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SymmetricKey,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }

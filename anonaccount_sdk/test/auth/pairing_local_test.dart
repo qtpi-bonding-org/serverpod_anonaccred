@@ -42,7 +42,7 @@ void main() {
   });
 
   group('completePairing', () {
-    test('unwraps to a working AesGcmSecretKey and persists it via the store',
+    test('unwraps to a working SymmetricKey and persists it via the store',
         () async {
       final store = InMemoryAccountKeyStore();
       final pairing = AnonaccountPairing(_FakeCaller(), store);
@@ -51,7 +51,12 @@ void main() {
 
       // Approver side wraps the JWK to our public encryption key.
       final blob = await AsymmetricCrypto.wrapForRecipient(
-          originalJwk, (await store.getDevicePublicKey())!);
+        originalJwk,
+        (await store.getDeviceEncryptionPublicKeyHex())!,
+        WrapContext.accountDataKeyForDevice(
+          deviceSigningHex: (await store.getDeviceSigningPublicKeyHex())!,
+        ),
+      );
 
       final aesKey = await pairing.completePairing(wrappedKey: blob);
 
@@ -65,6 +70,25 @@ void main() {
       );
       final pt = await SymmetricCrypto.decrypt(ct, aesKey);
       expect(pt, equals(Uint8List.fromList([1, 2, 3])));
+      expect(await aesKey.toJwk(), originalJwk);
+      aesKey.dispose();
+    });
+
+    test('a blob wrapped for another device does not complete pairing', () async {
+      final store = InMemoryAccountKeyStore();
+      final pairing = AnonaccountPairing(_FakeCaller(), store);
+      await pairing.beginPairing(deviceLabel: 'b');
+      final elsewhere = await KeyGen.generateDeviceKey();
+      final elsewhereHex =
+          (await elsewhere.signingKeyPair.exportPublicKeySec1Hex()).value;
+      final blob = await AsymmetricCrypto.wrapForRecipient(
+        await KeyGen.generateSymmetricKeyJwk(),
+        (await store.getDeviceEncryptionPublicKeyHex())!,
+        WrapContext.accountDataKeyForDevice(deviceSigningHex: elsewhereHex),
+      );
+      await expectLater(pairing.completePairing(wrappedKey: blob),
+          throwsA(isA<CryptoOperationException>()));
+      expect(await store.getSymmetricDataKeyJwk(), isNull);
     });
   });
 }

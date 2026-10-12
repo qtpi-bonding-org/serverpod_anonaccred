@@ -55,7 +55,12 @@ void main() {
     // deviceBlob unwraps to the symmetric key with the device private key
     final device = (await store.getDeviceKey())!;
     final unwrapped = await AsymmetricCrypto.unwrap(
-        p.deviceBlob, device.encryptionKeyPair.privateKey!);
+      p.deviceBlob,
+      device,
+      WrapContext.accountDataKeyForDevice(
+        deviceSigningHex: p.devicePublicKeyHex,
+      ),
+    );
     expect(jsonDecode(unwrapped)['kty'], 'oct');
   });
 }
