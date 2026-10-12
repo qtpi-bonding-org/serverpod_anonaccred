@@ -21,12 +21,17 @@ void main() {
     expect(aJwk, isNot(equals(bJwk)));
   });
 
-  test('generateSymmetricKeyJwk returns a parseable JWK', () async {
+  test('generateSymmetricKeyJwk returns a 256-bit AES-GCM JWK that 3.0 imports',
+      () async {
     final jwk = await KeyGen.generateSymmetricKeyJwk();
     final parsed = jsonDecode(jwk) as Map<String, dynamic>;
     expect(parsed['kty'], 'oct');
-    expect(parsed['alg'], anyOf('A256GCM', 'A256CBC'));
-    expect(parsed['k'], isA<String>());
+    expect(parsed['alg'], 'A256GCM');
+    expect(base64Url.decode(base64Url.normalize(parsed['k'] as String)),
+        hasLength(32));
+    final key = await SymmetricKey.fromJwk(jwk);
+    expect(await key.toJwk(), jwk);
+    key.dispose();
   });
 
   test('generateAccountKeys bundles all three', () async {

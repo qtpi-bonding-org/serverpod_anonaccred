@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
-import 'package:webcrypto/webcrypto.dart';
 
 import '../auth/exceptions.dart';
 import '../models/account_keys.dart';
@@ -22,22 +20,19 @@ class KeyGen {
   /// the lifecycle differs, not the cryptography.
   static Future<KeyDuo> generateCrossDeviceKey() => _generateP256KeyDuo();
 
-  /// Generates an AES-256 symmetric data key and returns its JWK
-  /// (`{"kty":"oct","k":"<base64url-key>","alg":"A256GCM",...}`).
+  /// Generates an AES-256-GCM data key and returns its JWK
+  /// (`{"kty":"oct","k":"<base64url>","alg":"A256GCM","use":"enc"}`).
   static Future<String> generateSymmetricKeyJwk() async {
+    SymmetricKey? key;
     try {
-      final key = await AesGcmSecretKey.generateKey(256);
-      final raw = await key.exportRawKey();
-      final b64 = base64Url.encode(raw).replaceAll('=', '');
-      return jsonEncode({
-        'kty': 'oct',
-        'k': b64,
-        'alg': 'A256GCM',
-      });
+      key = await GenerationService.generateSymmetricKey();
+      return await key.toJwk();
     } catch (e) {
       throw CryptoOperationException(
         'KeyGen.generateSymmetricKeyJwk failed: $e',
       );
+    } finally {
+      key?.dispose();
     }
   }
 
