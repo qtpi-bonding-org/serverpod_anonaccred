@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:anonaccount_protocol/anonaccount_protocol.dart'
     show GroupInnerPayloads;
 // ignore: implementation_imports
@@ -10,7 +8,7 @@ import 'package:anonaccount_client/src/protocol/group_member_view.dart'
     show GroupMemberView;
 import 'package:anonaccount_sdk/anonaccount_sdk.dart';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart'
-    show EncryptionKeyPair, EncryptionPublicKeyHex, KeyDuoSerializer;
+    show KeyDuoSerializer, SymmetricKey;
 
 import 'sdk_test_caller.dart';
 import 'serverpod_test_tools.dart';
@@ -32,7 +30,7 @@ class SimulatedUser {
   final InMemoryAccountKeyStore _store = InMemoryAccountKeyStore();
   final InMemoryMemberKeyStore memberKeys = InMemoryMemberKeyStore();
   final InMemoryGroupOwnerKeyStore ownerKeys = InMemoryGroupOwnerKeyStore();
-  final _groupDataKeys = <String, AesGcmSecretKey>{};
+  final _groupDataKeys = <String, SymmetricKey>{};
 
   late final AnonaccountAuth auth;
   late final AnonaccountGroups groups;
@@ -123,7 +121,7 @@ class SimulatedUser {
   Future<List<GroupMembership>> listMyGroups() async =>
       groups.listMyGroups(callerDeviceKey: await deviceKey);
 
-  Future<AesGcmSecretKey> groupDataKeyFor(String groupId) async {
+  Future<SymmetricKey> groupDataKeyFor(String groupId) async {
     final cached = _groupDataKeys[groupId];
     if (cached != null) return cached;
     final membership = (await listMyGroups()).singleWhere(
@@ -134,11 +132,13 @@ class SimulatedUser {
     ))!;
     final jwk = await AsymmetricCrypto.unwrap(
       membership.memberEncryptedDataKey,
-      memberKey.encryptionKeyPair.privateKey!,
+      memberKey,
+      WrapContext.groupDataKeyForMember(
+        groupSigningHex: membership.groupUltimateSigningPublicKeyHex,
+        memberSigningHex: membership.memberSigningPublicKeyHex,
+      ),
     );
-    final key = await AesGcmSecretKey.importJsonWebKey(
-      jsonDecode(jwk) as Map<String, dynamic>,
-    );
+    final key = await SymmetricKey.fromJwk(jwk);
     _groupDataKeys[groupId] = key;
     return key;
   }
@@ -221,14 +221,13 @@ class SimulatedUser {
     final member = await KeyGen.generateDeviceKey();
     await memberKeys.storeMemberKey(UuidValue.fromString(groupId), member);
     final publicDuo = await member.exportPublicKeyDuo();
-    final ultimate = await EncryptionKeyPair.importPublicKeySec1Hex(
-      EncryptionPublicKeyHex(
-        (await _store.getUltimateEncryptionPublicKeyHex())!,
-      ),
-    );
     final encrypted = await AsymmetricCrypto.wrapForRecipient(
       await const KeyDuoSerializer().exportKeyDuoJwk(member),
-      ultimate.publicKey,
+      (await _store.getUltimateEncryptionPublicKeyHex())!,
+      WrapContext.memberKeyBackup(
+        groupSigningHex: groupUltimateSigningPublicKeyHex,
+        memberSigningHex: publicDuo.signing.value,
+      ),
     );
     final attestation = await SigningCrypto.signChallenge(
       GroupInnerPayloads.setEncryptedMemberKey(
@@ -257,12 +256,13 @@ class SimulatedUser {
       groupId,
       group.ultimateSigningPublicKeyHex,
     );
-    final recipient = await EncryptionKeyPair.importPublicKeySec1Hex(
-      EncryptionPublicKeyHex(prep.encryptionPubkeyHex),
-    );
     final wrappedDataKey = await AsymmetricCrypto.wrapForRecipient(
-      jsonEncode(await (await groupDataKeyFor(groupId)).exportJsonWebKey()),
-      recipient.publicKey,
+      await (await groupDataKeyFor(groupId)).toJwk(),
+      prep.encryptionPubkeyHex,
+      WrapContext.groupDataKeyForMember(
+        groupSigningHex: group.ultimateSigningPublicKeyHex,
+        memberSigningHex: prep.signingPubkeyHex,
+      ),
     );
     if (role == GroupMemberRole.admin) {
       await groups.addGroupMemberAsOwner(
@@ -341,7 +341,7 @@ class SimulatedUser {
   Future<GrantMemberDeviceResult> grantAllDevicesToSelf(
     String groupId,
     UuidValue memberId,
-    AesGcmSecretKey dataKey,
+    SymmetricKey dataKey,
   ) async => groups.grantAllDevices(
     groupId: UuidValue.fromString(groupId),
     memberId: memberId,

@@ -82,5 +82,29 @@ void main() {
       final groupId = await owner.createGroup('Get');
       expect((await owner.getGroup(groupId)).id.toString(), groupId);
     });
+
+    test('listMyGroups carries each group\'s ultimate signing key', () async {
+      final owner = SimulatedUser(sessionBuilder, endpoints, label: 'owner');
+      await owner.onboard();
+      final a = await owner.createGroup('A');
+      final b = await owner.createGroup('B');
+
+      final rows = await owner.listMyGroups();
+      expect(rows, hasLength(2));
+      for (final row in rows) {
+        final share = await owner.getGroup(row.groupId);
+        expect(row.groupUltimateSigningPublicKeyHex,
+            share.ultimateSigningPublicKeyHex);
+      }
+      expect(rows.map((r) => r.groupId).toSet(), {a, b});
+      expect(rows.map((r) => r.groupUltimateSigningPublicKeyHex).toSet(),
+          hasLength(2));
+    });
+
+    test('listMyGroups for an account with no groups is empty', () async {
+      final loner = SimulatedUser(sessionBuilder, endpoints, label: 'loner');
+      await loner.onboard();
+      expect(await loner.listMyGroups(), isEmpty);
+    });
   });
 }
