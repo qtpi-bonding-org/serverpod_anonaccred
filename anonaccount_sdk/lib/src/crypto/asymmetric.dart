@@ -1,63 +1,67 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:dart_jwk_duo/dart_jwk_duo.dart';
-import 'package:webcrypto/webcrypto.dart';
+
+import 'package:dart_jwk_duo/dart_jwk_duo.dart'
+    show CryptoService, EncryptionKeyPair, EncryptionPublicKeyHex, KeyDuo;
 
 import '../auth/exceptions.dart';
+import 'wrap_context.dart';
 
-/// Hybrid ECDH+AES wrap. Wraps a plaintext payload (typically a JWK
-/// representing a symmetric data key) so that only the holder of the
-/// matching ECDH private key can recover it.
+/// HPKE wrap of a plaintext payload (typically a JWK) to one recipient.
 ///
-/// Wire format is whatever `CryptoService.encrypt` produces. Callers
-/// must round-trip via this class — do not parse the bytes.
+/// The blob is whatever `CryptoService.encrypt` produces, base64 encoded.
+/// Callers round-trip through this class and do not parse the bytes.
 class AsymmetricCrypto {
   const AsymmetricCrypto._();
 
-  /// Encrypts [plaintext] to [recipient]. Returns base64-encoded blob.
+  /// Encrypts [plaintext] to [recipientEncryptionPublicKeyHex] under
+  /// [context]. Returns padded standard base64.
   static Future<String> wrapForRecipient(
     String plaintext,
-    EcdhPublicKey recipient,
+    String recipientEncryptionPublicKeyHex,
+    WrapContext context,
   ) async {
+    EncryptionKeyPair? recipient;
     try {
-      final encryptionKeyPair = EncryptionKeyPair.publicOnly(
-        publicKey: recipient,
+      recipient = await EncryptionKeyPair.importPublicKeySec1Hex(
+        EncryptionPublicKeyHex(recipientEncryptionPublicKeyHex),
       );
       final ct = await CryptoService.encrypt(
         Uint8List.fromList(utf8.encode(plaintext)),
-        encryptionKeyPair,
+        recipient,
+        info: context.info,
+        aad: context.aad,
       );
       return base64.encode(ct);
     } catch (e) {
       throw CryptoOperationException(
         'AsymmetricCrypto.wrapForRecipient failed: $e',
       );
+    } finally {
+      // grantAllDevices wraps in a loop; release each imported handle.
+      recipient?.dispose();
     }
   }
 
-  /// Decrypts a [wrappedBlob] produced by [wrapForRecipient] using
-  /// our [ourPrivkey]. Returns the original plaintext string.
+  /// Opens a blob from [wrapForRecipient] with [recipient]'s encryption half.
+  ///
+  /// Takes the whole duo because 3.0 has no way to build a key pair from a
+  /// lone private key, and every caller already holds the duo.
   static Future<String> unwrap(
     String wrappedBlob,
-    EcdhPrivateKey ourPrivkey,
+    KeyDuo recipient,
+    WrapContext context,
   ) async {
     try {
-      // CryptoService.decrypt needs a paired pubkey; generate a throwaway
-      // one — it's irrelevant for decrypt, only the private key matters.
-      final dummyEnc = await EcdhPrivateKey.generateKey(EllipticCurve.p256);
-      final encryptionKeyPair = EncryptionKeyPair(
-        privateKey: ourPrivkey,
-        publicKey: dummyEnc.publicKey,
-      );
       final pt = await CryptoService.decrypt(
         base64.decode(wrappedBlob),
-        encryptionKeyPair,
+        recipient.encryptionKeyPair,
+        info: context.info,
+        aad: context.aad,
       );
       return utf8.decode(pt);
     } catch (e) {
-      throw CryptoOperationException(
-        'AsymmetricCrypto.unwrap failed: $e',
-      );
+      throw CryptoOperationException('AsymmetricCrypto.unwrap failed: $e');
     }
   }
 }

@@ -15,7 +15,7 @@ dependencies:
   dart_jwk_duo:
     git:
       url: https://github.com/qtpi-bonding-org/dart_jwk_duo.git
-      ref: 09d89c590ea89be22d36c2942ec339296b6aefd7
+      ref: 77f8e1b9901b46191ed3702fe1b709957f642475
   crypto: ^3.0.3
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
