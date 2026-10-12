@@ -9,12 +9,16 @@ class InMemoryMemberKeyStore implements MemberKeyStore {
   final _keys = <UuidValue, KeyDuo>{};
 
   @override
-  Future<void> storeMemberKey(UuidValue groupId, KeyDuo key) async =>
-      _keys[groupId] = key;
+  Future<void> storeMemberKey(UuidValue groupId, KeyDuo key) async {
+    final old = _keys[groupId];
+    if (old != null && !identical(old, key)) old.dispose();
+    _keys[groupId] = key;
+  }
 
   @override
   Future<KeyDuo?> getMemberKey(UuidValue groupId) async => _keys[groupId];
 
   @override
-  Future<void> removeMemberKey(UuidValue groupId) async => _keys.remove(groupId);
+  Future<void> removeMemberKey(UuidValue groupId) async =>
+      _keys.remove(groupId)?.dispose();
 }

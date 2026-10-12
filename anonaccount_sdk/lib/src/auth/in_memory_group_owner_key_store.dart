@@ -8,6 +8,8 @@ class InMemoryGroupOwnerKeyStore implements GroupOwnerKeyStore {
 
   @override
   Future<void> storeOwnerKey(UuidValue groupId, KeyDuo key) async {
+    final old = _keys[groupId];
+    if (old != null && !identical(old, key)) old.dispose();
     _keys[groupId] = key;
   }
 
@@ -15,7 +17,6 @@ class InMemoryGroupOwnerKeyStore implements GroupOwnerKeyStore {
   Future<KeyDuo?> getOwnerKey(UuidValue groupId) async => _keys[groupId];
 
   @override
-  Future<void> removeOwnerKey(UuidValue groupId) async {
-    _keys.remove(groupId);
-  }
+  Future<void> removeOwnerKey(UuidValue groupId) async =>
+      _keys.remove(groupId)?.dispose();
 }

@@ -16,6 +16,10 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart' show KeyDuo;
 /// One key per group, so this signature has no way to express the two
 /// generations a `keyEpoch` rotation (D23) would need. Epoch-aware custody is
 /// deferred and this shape changes when it arrives.
+///
+/// The store owns the keys it holds: a key returned by a getter is the
+/// store's own object, usable until the store replaces or removes that
+/// group's entry, at which point the store disposes it.
 abstract interface class MemberKeyStore {
   /// Replaces any key already stored for [groupId].
   ///

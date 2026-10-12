@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
-import 'package:webcrypto/webcrypto.dart';
 import '../crypto/key_gen.dart';
 import 'account_key_store.dart';
 
@@ -12,24 +10,41 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
   KeyDuo? _ultimate;
   String? _symmetricJwk;
   String? _deviceHex;
+  String? _deviceEncryptionHex;
   String? _ultimateHex;
   String? _ultimateEncryptionHex;
 
+  // The store owns what it holds (see AccountKeyStore), so a dropped key is
+  // disposed here; re-storing the same object must not free the live one.
+  static void _drop(KeyDuo? old, KeyDuo? next) {
+    if (old != null && !identical(old, next)) old.dispose();
+  }
+
   @override
   Future<void> generateAccountKeys() async {
-    _ultimate = await KeyGen.generateUltimateKey();
-    _device = await KeyGen.generateDeviceKey();
+    final ultimate = await KeyGen.generateUltimateKey();
+    final device = await KeyGen.generateDeviceKey();
+    _drop(_ultimate, ultimate);
+    _drop(_device, device);
+    _ultimate = ultimate;
+    _device = device;
     _symmetricJwk = await KeyGen.generateSymmetricKeyJwk();
-    _ultimateHex = await _ultimate!.signingKeyPair.exportPublicKeySec1Hex();
+    _ultimateHex = await ultimate.signingKeyPair.exportPublicKeySec1Hex();
     _ultimateEncryptionHex =
-        await _ultimate!.encryptionKeyPair.exportPublicKeySec1Hex();
-    _deviceHex = await _device!.signingKeyPair.exportPublicKeySec1Hex();
+        await ultimate.encryptionKeyPair.exportPublicKeySec1Hex();
+    _deviceHex = await device.signingKeyPair.exportPublicKeySec1Hex();
+    _deviceEncryptionHex =
+        await device.encryptionKeyPair.exportPublicKeySec1Hex();
   }
 
   @override
   Future<void> generateAndStoreDeviceKey() async {
-    _device = await KeyGen.generateDeviceKey();
-    _deviceHex = await _device!.signingKeyPair.exportPublicKeySec1Hex();
+    final device = await KeyGen.generateDeviceKey();
+    _drop(_device, device);
+    _device = device;
+    _deviceHex = await device.signingKeyPair.exportPublicKeySec1Hex();
+    _deviceEncryptionHex =
+        await device.encryptionKeyPair.exportPublicKeySec1Hex();
   }
 
   @override
@@ -39,19 +54,10 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
   Future<KeyDuo?> getDeviceKey() async => _device;
 
   @override
-  Future<EcdhPublicKey?> getDevicePublicKey() async =>
-      _device?.encryptionKeyPair.publicKey;
-
-  @override
   Future<String?> getDeviceSigningPublicKeyHex() async => _deviceHex;
 
   @override
-  Future<AesGcmSecretKey?> getSymmetricDataKey() async {
-    final jwk = _symmetricJwk;
-    if (jwk == null) return null;
-    final k = (jsonDecode(jwk) as Map<String, dynamic>)['k'] as String;
-    return AesGcmSecretKey.importRawKey(base64Url.decode(base64Url.normalize(k)));
-  }
+  Future<String?> getDeviceEncryptionPublicKeyHex() async => _deviceEncryptionHex;
 
   @override
   Future<String?> getSymmetricDataKeyJwk() async => _symmetricJwk;
@@ -67,17 +73,6 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
   }
 
   @override
-  Future<EcdhPublicKey?> getUltimatePublicKey() async =>
-      _ultimate?.encryptionKeyPair.publicKey;
-
-  @override
-  Future<String?> getUltimatePublicKeyJwk() async {
-    final u = _ultimate;
-    if (u == null) return null;
-    return jsonEncode(await u.encryptionKeyPair.publicKey.exportJsonWebKey());
-  }
-
-  @override
   Future<String?> getUltimateSigningPublicKeyHex() async => _ultimateHex;
 
   @override
@@ -90,12 +85,14 @@ class InMemoryAccountKeyStore implements AccountKeyStore {
     if (u == null) return null;
     final jwk = await const KeyDuoSerializer().exportKeyDuoJwk(u);
     _ultimate = null; // one-time retrieval — wipe
+    u.dispose();
     return jwk;
   }
 
   @override
   Future<KeyDuo> importUltimateKeyJwk(String jwk) async {
     final u = await const KeyDuoSerializer().importKeyDuoJwk(jwk);
+    _drop(_ultimate, u);
     _ultimate = u;
     _ultimateHex = await u.signingKeyPair.exportPublicKeySec1Hex();
     _ultimateEncryptionHex = await u.encryptionKeyPair.exportPublicKeySec1Hex();
