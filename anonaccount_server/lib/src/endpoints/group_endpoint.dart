@@ -242,6 +242,16 @@ class GroupEndpoint extends SignedPowEndpoint {
           activeCaller.device.id!,
         );
         final grantByMemberId = {for (final g in grants) g.groupMemberId: g};
+        final groupIds = {for (final m in members) m.shareGroupId};
+        final groups = groupIds.isEmpty
+            ? const <ShareGroup>[]
+            : await ShareGroup.db.find(
+                session,
+                where: (t) => t.id.inSet(groupIds),
+              );
+        final groupKeyById = {
+          for (final g in groups) g.id!: g.ultimateSigningPublicKeyHex,
+        };
 
         final views = <GroupMembershipView>[];
         for (final m in members) {
@@ -256,6 +266,7 @@ class GroupEndpoint extends SignedPowEndpoint {
               shareGroupId: m.shareGroupId,
               role: m.role,
               memberSigningPublicKeyHex: m.memberSigningPublicKeyHex,
+              groupUltimateSigningPublicKeyHex: groupKeyById[m.shareGroupId]!,
               memberEncryptedDataKey: m.encryptedDataKey,
               deviceEncryptedDataKey: grantByMemberId[m.id]?.encryptedDataKey,
               joinedAt: m.joinedAt,

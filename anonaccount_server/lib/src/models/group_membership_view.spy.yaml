@@ -9,6 +9,10 @@ fields:
   shareGroupId: UuidValue
   role: GroupMemberRole
   memberSigningPublicKeyHex: String
+  # The group's ultimate signing key. The member-key and owner-key backups
+  # are bound to it (WrapContext.memberKeyBackup / groupOwnerKeyBackup), and
+  # recovery has nothing but this reply to rebuild that binding from.
+  groupUltimateSigningPublicKeyHex: String
   memberEncryptedDataKey: String
   deviceEncryptedDataKey: String?
   joinedAt: DateTime

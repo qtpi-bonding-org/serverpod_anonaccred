@@ -20,6 +20,7 @@ abstract class GroupMembershipView
     required this.shareGroupId,
     required this.role,
     required this.memberSigningPublicKeyHex,
+    required this.groupUltimateSigningPublicKeyHex,
     required this.memberEncryptedDataKey,
     this.deviceEncryptedDataKey,
     required this.joinedAt,
@@ -32,6 +33,7 @@ abstract class GroupMembershipView
     required _isc.UuidValue shareGroupId,
     required _imgpb098.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
+    required String groupUltimateSigningPublicKeyHex,
     required String memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
     required DateTime joinedAt,
@@ -52,6 +54,8 @@ abstract class GroupMembershipView
       ),
       memberSigningPublicKeyHex:
           jsonSerialization['memberSigningPublicKeyHex'] as String,
+      groupUltimateSigningPublicKeyHex:
+          jsonSerialization['groupUltimateSigningPublicKeyHex'] as String,
       memberEncryptedDataKey:
           jsonSerialization['memberEncryptedDataKey'] as String,
       deviceEncryptedDataKey:
@@ -73,6 +77,8 @@ abstract class GroupMembershipView
 
   String memberSigningPublicKeyHex;
 
+  String groupUltimateSigningPublicKeyHex;
+
   String memberEncryptedDataKey;
 
   String? deviceEncryptedDataKey;
@@ -91,6 +97,7 @@ abstract class GroupMembershipView
     _isc.UuidValue? shareGroupId,
     _imgpb098.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
+    String? groupUltimateSigningPublicKeyHex,
     String? memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
     DateTime? joinedAt,
@@ -105,6 +112,7 @@ abstract class GroupMembershipView
       'shareGroupId': shareGroupId.toJson(),
       'role': role.toJson(),
       'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
+      'groupUltimateSigningPublicKeyHex': groupUltimateSigningPublicKeyHex,
       'memberEncryptedDataKey': memberEncryptedDataKey,
       if (deviceEncryptedDataKey != null)
         'deviceEncryptedDataKey': deviceEncryptedDataKey,
@@ -123,6 +131,7 @@ abstract class GroupMembershipView
       'shareGroupId': shareGroupId.toJson(),
       'role': role.toJson(),
       'memberSigningPublicKeyHex': memberSigningPublicKeyHex,
+      'groupUltimateSigningPublicKeyHex': groupUltimateSigningPublicKeyHex,
       'memberEncryptedDataKey': memberEncryptedDataKey,
       if (deviceEncryptedDataKey != null)
         'deviceEncryptedDataKey': deviceEncryptedDataKey,
@@ -147,6 +156,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
     required _isc.UuidValue shareGroupId,
     required _imgpb098.GroupMemberRole role,
     required String memberSigningPublicKeyHex,
+    required String groupUltimateSigningPublicKeyHex,
     required String memberEncryptedDataKey,
     String? deviceEncryptedDataKey,
     required DateTime joinedAt,
@@ -157,6 +167,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
          shareGroupId: shareGroupId,
          role: role,
          memberSigningPublicKeyHex: memberSigningPublicKeyHex,
+         groupUltimateSigningPublicKeyHex: groupUltimateSigningPublicKeyHex,
          memberEncryptedDataKey: memberEncryptedDataKey,
          deviceEncryptedDataKey: deviceEncryptedDataKey,
          joinedAt: joinedAt,
@@ -173,6 +184,7 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
     _isc.UuidValue? shareGroupId,
     _imgpb098.GroupMemberRole? role,
     String? memberSigningPublicKeyHex,
+    String? groupUltimateSigningPublicKeyHex,
     String? memberEncryptedDataKey,
     Object? deviceEncryptedDataKey = _Undefined,
     DateTime? joinedAt,
@@ -185,6 +197,9 @@ class _GroupMembershipViewImpl extends GroupMembershipView {
       role: role ?? this.role,
       memberSigningPublicKeyHex:
           memberSigningPublicKeyHex ?? this.memberSigningPublicKeyHex,
+      groupUltimateSigningPublicKeyHex:
+          groupUltimateSigningPublicKeyHex ??
+          this.groupUltimateSigningPublicKeyHex,
       memberEncryptedDataKey:
           memberEncryptedDataKey ?? this.memberEncryptedDataKey,
       deviceEncryptedDataKey: deviceEncryptedDataKey is String?
