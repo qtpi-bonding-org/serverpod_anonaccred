@@ -202,8 +202,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "77f8e1b9901b46191ed3702fe1b709957f642475"
-      resolved-ref: "77f8e1b9901b46191ed3702fe1b709957f642475"
+      ref: c5d95e6476ba890eb93de4d8823a7db97da8768e
+      resolved-ref: c5d95e6476ba890eb93de4d8823a7db97da8768e
       url: "https://github.com/qtpi-bonding-org/dart_jwk_duo.git"
     source: git
     version: "3.0.0"
